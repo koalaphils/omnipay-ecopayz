@@ -1,0 +1,30 @@
+DbBundle\Entity\CustomerProduct:
+    exclusion_policy: ALL
+    xml_root_name: customerProduct
+    properties:
+        id:
+            expose: true
+        userName:
+            expose: false
+        product:
+            expose: true
+        balance:
+            expose: true
+        isActive:
+            expose: true
+        details:
+            expose: true
+    virtual_properties:
+        username:
+            exp: object.getUserName()
+            expose: true
+            type: string
+        getCurrency:
+            exp: object.getCustomer().getCurrency()
+            type: DbBundle\Entity\Currency
+            expose: true
+            serialized_name: currency
+        updatedAt:
+            exp: "object.getUpdatedAt() === null ? object.getCreatedAt() : object.getUpdatedAt()"
+            type: DateTime
+            expose: true

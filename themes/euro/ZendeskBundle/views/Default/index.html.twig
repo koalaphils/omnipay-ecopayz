@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+        <base href="https://dashboard.zopim.com/" />
+	<title>Dashboard - Chats</title>
+	<style>
+		body { padding:0; margin:0; }
+		html,body{height:100%;width:100%;} *{padding:0;margin:0;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box}
+	</style>
+</head>
+<link href="https://dashboard.zopim.com/ext/dc.css" rel="stylesheet" type="text/css" media="all"/>
+<link rel="icon"
+      type="image/png"
+      href="https://dashboard.zopim.com/dashboard/images/favicon.ico"/>
+
+<body>
+<div style="display: table; height: 100%; width: 100%; *position: relative; overflow: hidden;z-index:-100">
+	<div style=" *position: absolute; *top: 50%;display: table-cell; vertical-align: middle; *text-align: center; *width: 100%;">
+		<div style=" *position: relative; *top: -50%; text-align: center;font-family: Helvetica Neue, Helvetica, Arial, sans-serif;font-size: 13px; color: #666;">
+			<img src="https://dashboard.zopim.com/dashboard/images/loading-logo@2x.gif" style="vertical-align:middle; width: 172px"/>
+		</div>
+	</div>
+</div>
+<script src="https://dashboard.zopim.com/ext/d3.v3.min.js"></script>
+<script src="https://dashboard.zopim.com/ext/crossfilter.min.js"></script>
+<script src="https://dashboard.zopim.com/ext/dc.min.js"></script>
+<script type="text/javascript" src="https://assets.zendesk.com/apps/sdk/1.0/zaf_sdk.min.js"></script>
+<script>
+	var mini = location.search.match(/mini=([_a-z]+)/);
+
+	if (mini) mini = mini[1];
+
+	if (mini === 'nav_bar') {
+		document.write('<script src="https://dashboard.zopim.com/metrics/lib/es6-module-loader.js"><\/script>');
+		document.write('<script src="https://dashboard.zopim.com/metrics/lib/system.js"><\/script>');
+	}
+
+	document.write('<script src="https://dashboard.zopim.com/bin/top_bar.js?ts=' + (+new Date) + '"><\/script>');
+
+</script>
+
+</body>
+
+</html>

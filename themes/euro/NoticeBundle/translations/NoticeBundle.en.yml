@@ -1,0 +1,53 @@
+menus:
+    Notice: Notice
+    
+page:
+    title:
+        list: Notice | List
+        update: Notice | Update %title%
+        create: Notice | Create
+        view: Notice | View %title%
+    Create Notice: Create Notice
+    Update Notice: Update Notice
+    View Notice: View Notice
+
+modal:
+    delete:
+        title: Delete Notice
+
+fields:
+    id: ID
+    title: Title
+    description: Description
+    type: Type
+    startAt: Start At
+    endAt: End At
+    isActive: Active
+    
+noticeType:
+    general: General
+    deposit: Deposit
+    withdraw: Withdraw
+    bet: Betting
+     
+notification:
+    delete:
+        title: Notice Deleted
+        message: You have successfully deleted a notice "%title%"
+    created:
+        title: Notice Created
+        message: %title% was successfully created
+    updated:
+        title: Notice Updated
+        message: %title% was successfully updated
+
+roles:
+    groups:
+        notice: Notice
+    notice:
+        create: Create Notice
+        view: View Notice
+        update: Update Notice
+        delete: Delete Notice
+    
+Are you sure you want to delete "%title%": Are you sure you want to delete "%title%"

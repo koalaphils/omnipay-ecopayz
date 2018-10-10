@@ -1,0 +1,57 @@
+DbBundle\Entity\Currency:
+    type: entity
+    table: currency
+    repositoryClass: DbBundle\Repository\CurrencyRepository
+    id:
+        id:
+            type: integer
+            id: true
+            generator:
+                strategy: AUTO
+            column: currency_id
+            options:
+                unsigned: true
+    fields:
+        code:
+            type: string
+            length: 5
+            unique: true
+            column: currency_code
+        name:
+            type: string
+            length: 250
+            unique: true
+            column: currency_name
+        rate:
+            type: decimal
+            column: currency_rate
+            precision: 65
+            scale: 10
+            options:
+                default: 1
+        createdBy:
+            type: bigint
+            column: currency_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: currency_created_at
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: currency_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            column: currency_updated_at
+            nullable: true
+    manyToOne:
+        updater:
+            targetEntity: DbBundle\Entity\User
+            joinColumn:
+                nullable: true
+                name: currency_updated_by
+                referencedColumnName: user_id
+    lifecycleCallbacks: {  }

@@ -1,0 +1,19 @@
+media.list_page:
+    path:     /
+    defaults: { _controller: MediaBundle:Default:index }
+    
+media.file_list:
+    path:       /files
+    defaults:   { _controller: MediaBundle:Default:list }
+
+media.file_delete:
+    path:       /{fileName}/delete
+    defaults:   { _controller: MediaBundle:Default:delete }
+    
+media.file_upload:
+    path:       /upload
+    defaults:   { _controller: MediaBundle:Default:upload }
+    
+media.file_rename:
+    path:       /rename
+    defaults:   { _controller: MediaBundle:Default:rename }

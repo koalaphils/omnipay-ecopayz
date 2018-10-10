@@ -1,0 +1,120 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}{{ "page.title.tag.upload"|trans({},"DWLBundle") }}{% endblock %}
+
+{% block stylesheet_plugins %}
+    {{ form_assetcss(form) }}
+{% endblock %}
+
+{% block javascript_plugins %}
+    {{ form_assetjs(form) }}
+{% endblock %}
+
+{% block pageTitle -%}{{ "page.title.header.upload"|trans({},"DWLBundle") }}{%- endblock %}
+    
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.finance"|trans({},"AppBundle") }}</li>
+    <li>
+        <a href="{{ path("customer.list_page") }}">{{ "menus.dwl"|trans({},"DWLBundle") }}</a>
+    </li>
+    <li class="active">
+        {{ "menus.Create"|trans({},"DWLBundle") }}
+    </li>
+{%- endblock %}
+
+{% block page %}
+    <div class="col-sm-12">
+        <div class="card-box">
+            <div class="alert alert-danger hide" id="dwlAlert">
+                <h4><i class="fa fa-exclamation-circle"></i> DWL Exists</h4>
+                <p></p>
+            </div>
+            {{ form_start(form) }}
+            {{ form_row(form.product) }}
+            {{ form_row(form.currency) }}
+            {{ form_row(form.date) }}
+            {{ form_row(form.file) }}
+            <div class="col-md-12">
+                <div class="progress">
+                    <div class="progress-bar progress-bar-primary" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
+                        <span class="sr-only">0% Complete</span>
+                    </div>
+                </div>
+            </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ form_javascript(form) }}
+    <script type="text/javascript">
+        $(function() {
+            $('#{{ form.vars.id }}').submit(function(e) {
+                var data = new FormData(this);
+                $('.progress').removeClass('hide');
+                $('.progress .progress-bar').attr('aria-valuenow', 0);
+                $('.progress .progress-bar').css('width', 0 + '%');
+                $.ajax({
+                    'type': 'POST',
+                    'url': '{{ path('dwl.save') }}',
+                    'data': data,
+                    'xhr': function() {
+                        var uploadXhr = $.ajaxSettings.xhr();
+                        if (uploadXhr.upload) {
+                            uploadXhr.upload.addEventListener('progress', function(e) {
+                                if(e.lengthComputable){
+                                    var max = e.total;
+                                    var current = e.loaded;
+
+                                    var Percentage = (current * 100)/max;
+                                    $('.progress .progress-bar').attr('aria-valuenow', Percentage);
+                                    $('.progress .progress-bar').css('width', Percentage + '%');
+                                }  
+                            }, false);
+                        }
+                        return uploadXhr;
+                    },
+                    'cache': false,
+                    'contentType': false,
+                    'processData': false,
+                    'success': function (result) {
+                    },
+                    'beforeSend': function () {
+                        $('#dwlAlert').addClass('hide');
+                        $('#dwlAlert p').html('');
+                        $('.form-group').removeClass('has-error');
+                        $('.form-group').find('.help-block ul').html('');
+                    },
+                    'statusCode': {
+                        '422': function (jqXHR) {
+                            $(this).data('global-ajax-error', false);
+                            $.each(jqXHR.responseJSON.errors, function(i, e) {
+                                if (i == 'DWLUpload') {
+                                    $('#dwlAlert').removeClass('hide');
+                                    $('#dwlAlert p').html(this);
+                                    var id = $('#dwlAlert p a').attr('href');
+                                    $('#dwlAlert p a').attr('href', "{{ path('dwl.update_page', {'id': "__id__"}) }}".replace("__id__", id));
+                                }
+                                $('#' + i).closest('.form-group').addClass('has-error');
+                                $('#' + i).closest('.form-group').find('.help-block').find('ul').append('<li><span class="glyphicon glyphicon-exclamation-sign"></span> '+ this +'</li>');
+                            });
+                        }
+                    }
+                });
+                e.preventDefault();
+            });
+            
+            $(document).bind('ajaxComplete',function(event, xhr, settings) {
+                if($(settings).data('global-ajax-complete') === false) return;
+                if(settings.globalAjaxComplete === false) return;
+                
+                if(xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.id) {
+                    setTimeout(function() {
+                        window.location = '{{ path('dwl.update_page', {'id': '__id__'}) }}'.replace('__id__', xhr.responseJSON.data.id);
+                    }, 2000);
+                }
+            });
+        });
+    </script>
+{% endblock %}

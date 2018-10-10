@@ -1,0 +1,53 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}{{ "page.title.create"|trans({},"CurrencyBundle") }}{% endblock %} 
+
+{% block stylesheet_plugins %}
+    {{ form_assetcss(form) }}
+{% endblock %}
+
+{% block javascript_plugins %}
+    {{ form_assetjs(form) }}
+{% endblock %}
+
+{% block pageTitle -%}{{ "page.Create Currency"|trans({},"CurrencyBundle") }}{%- endblock pageTitle %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.finance"|trans({},"AppBundle") }}</li>
+    <li>
+        {% if is_granted('ROLE_CURRENCY_VIEW') %}
+        <a href="{{ path("currency.list_page") }}">{{ "page.Currency List"|trans({},"CurrencyBundle") }}</a>
+        {% endif %}
+    </li>
+    <li>{{ "page.Create Currency"|trans({},"CurrencyBundle") }}</li>
+{%- endblock %}
+
+{% block pageHeaderExtra %}
+    <div class="pull-right">
+        <a class="btn btn-inverse waves-effect waves-light pull-right m-b-10" href="{{ path("currency.list_page") }}">{{ "page.BacktoCurrency"|trans({},"CurrencyBundle") }}<span><i class="ti-arrow-left m-r-5 cls-icn-plus"></i></span></a>
+        <ul class="list-inline quicklinks font-13 font-normal text-right">
+            <li>Quick Links:</li>
+            {% if is_granted('ROLE_PRODUCT_VIEW') %}
+            <li><a href="{{ path("product.list_page") }}">{{ "Product"|trans({},"CurrencyBundle") }}</a></li>|
+            {% endif %}
+            {% if is_granted('ROLE_GATEWAY_VIEW') %}
+            <li><a href="{{ path("gateway.list_page") }}">{{ "Gateway"|trans({},"CurrencyBundle") }}</a></li>|
+            {% endif %}
+            {% if is_granted('ROLE_DWL_VIEW') %}
+            <li><a href="{{ path("dwl.list_page") }}">{{ "Daily Win/Loss"|trans({},"CurrencyBundle") }}</a></li>
+            {% endif %}
+        </ul>
+    </div>
+{% endblock pageHeaderExtra %}
+
+{% block page %}
+    <div class="col-sm-12">
+        <div class="card-box">
+            {% include "CurrencyBundle:Form:group-form.html.twig" %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ form_javascript(form) }}
+{% endblock %}

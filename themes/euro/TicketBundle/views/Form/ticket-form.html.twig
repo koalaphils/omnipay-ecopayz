@@ -1,0 +1,27 @@
+{{ form_start(form) }}
+
+<div class="col-lg-3 col-md-4">
+    <div class="card-box">
+        <div class="row">
+            {{ form_row(form.requester)}}
+            {{ form_row(form.status)}}
+            {{ form_row(form.assignee)}}
+            {{ form_row(form.type)}}
+            {{ form_row(form.priority)}}
+            {{form_row(form.tag)}}
+        </div>
+    </div>
+</div>
+<div class="col-lg-9 col-md-8">
+    <div class="card-box">
+    <div class="row">
+        <div class="col-sm-12">
+            {{form_row(form.subject)}}
+            {{form_row(form.description)}}
+        </div>
+    </div>
+    {{form_row(form.save)}}
+    </div>
+</div>
+    
+{{ form_end(form) }}

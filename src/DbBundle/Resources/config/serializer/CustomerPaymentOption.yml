@@ -1,0 +1,24 @@
+DbBundle\Entity\CustomerPaymentOption:
+    exclusion_policy: ALL
+    properties:
+        id:
+            groups: ['Default', 'transaction_exp']
+            expose: true
+        fields:
+            groups: ['Default', 'fields']
+            expose: true
+        isActive:
+            expose: true
+    virtual_properties:
+        getPymentOption:
+            serialized_name: type
+            exp: object.getPaymentOption().getCode()
+            groups: ['Default', 'transaction_exp']
+            expose: true
+            type: string
+        getEmail:
+            groups: ['payment_option.email']
+            expose: true
+            type: string
+        getIsActive:
+            expose: true

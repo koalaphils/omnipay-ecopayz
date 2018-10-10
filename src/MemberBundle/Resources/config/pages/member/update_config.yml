@@ -1,0 +1,1242 @@
+template: MemberBundle:Member:update.html.twig
+roles: ROLE_CUSTOMER_UPDATE
+data:
+    customer:
+        repositoryEntity: \DbBundle\Entity\Customer
+        method: findById
+        arguments:
+            - '@=app.getRequest().attributes.get("id")'
+
+widgets:
+    profileForm:
+        type: \AppBundle\Widget\Page\FormWidget
+        properties:
+            modelClass: 'MemberBundle\Request\UpdateProfileRequest'
+            handler: '@member.handler.update_profile::handle'
+            groups:
+                Customer:
+                    class: card-box
+                    label: Member Details
+                    groups:
+                        Left:
+                            size: 6
+                        Right:
+                            size: 6
+                Marketing:
+                    class: card-box
+                    label: Marketing Info
+                    groups:
+                        marketLeft:
+                            size: 6
+                        marketRight:
+                            size: 6
+            useTab: false
+            data: '@pageManager.customer'
+            notifications:
+                success:
+                    title: Saved
+                    message: Member successfully updated.
+            fields:
+                username:
+                    type: text
+                    options:
+                        label: Username
+                        required: true
+                    size: 12
+                    group: Left
+                email:
+                    options:
+                        label: Email
+                        required: true
+                    type: email
+                    size: 12
+                    group: Left
+                status:
+                    options:
+                        label: Status
+                        required: false
+                    type: switch
+                    size: 12
+                    group: Left
+                fullName:
+                    options:
+                        label: Full Name
+                    type: text
+                    size: 12
+                    size: 12
+                    group: Left
+                groups:
+                    options:
+                        label: Groups
+                        multiple: true
+                        required: true
+                    type: dropdown
+                    size: 12
+                    group: Right
+                    choicesFrom:
+                        function: 'controller::getMemberGroups'
+                        label: result.getName()
+                        value: result.getId()
+                referrer:
+                    options:
+                        label: Affiliates
+                        required: false
+                    type: select2
+                    size: 12
+                    group: Right
+                    isAjax: true
+                    ajax:
+                        request: onFindMembers
+                    transformer:
+                        model: '@member.transformer.referrerTransformer'
+                country:
+                    options:
+                        label: Country
+                        required: true
+                    type: dropdown
+                    size: 12
+                    group: Right
+                    choicesFrom:
+                        function: '@country.manager::getCountryList'
+                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
+                        value: result['id']
+                currency:
+                    options:
+                        label: Currency
+                        required: true
+                    type: dropdown
+                    size: 12
+                    group: Right
+                    choicesFrom:
+                        function: '@currency.manager::getCurrencyList'
+                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
+                        value: result['id']
+                birthDate:
+                    type: date
+                    options:
+                        label: Birth Date
+                        widget: 'single_text'
+                        format: 'M/dd/yyyy'
+                        required: true
+                    size: 12
+                    group: Left
+                joinedAt:
+                    options:
+                        label: Date Joined
+                        widget: 'single_text'
+                        format: 'M/dd/yyyy h:mm:ss a'
+                        required: true
+                    type: datetime
+                    size: 12
+                    group: Right
+                referrerSite:
+                    options:
+                        label: Referrer Site
+                        required: false
+                        attr:
+                            readonly: true
+                    type: text
+                    size: 12
+                    group: marketRight
+                registrationSite:
+                    options:
+                        label: Registration Site
+                        required: false
+                        attr:
+                            readonly: true
+                    type: text
+                    size: 12
+                    group: marketLeft
+                    readonly: true
+                affiliateLink:
+                    options:
+                        label: Referrer Code
+                        required: false
+                    type: text
+                    size: 12
+                    group: marketLeft
+                clientIp:
+                    options:
+                        label: Registration IP
+                        required: false
+                        attr:
+                            readonly: true
+                    size: 12
+                    type: text  
+                    group: marketLeft                                      
+                promoCode:
+                    options:
+                        label: Promo Code
+                        required: false
+                    type: text
+                    size: 12
+                    group: marketRight
+                riskSetting:
+                    options:
+                        label: RiskSetting
+                        required: false
+                    type: dropdown
+                    size: 12
+                    group: Left
+                    choicesFrom:
+                        function: '@customer.riskSettingService::getActiveRiskSettings'
+                        label: result['text']
+                        value: result['id']
+                        preselect: false
+                tags:
+                    options:
+                        label: Tags
+                        multiple: true
+                        required: false
+                    type: dropdown
+                    size: 12
+                    group: Right
+                    choicesFrom:
+                        function: '@customer.manager::getTagList'
+                        label: result['text']
+                        value: result['code']
+    passwordForm:
+        type: AppBundle\Widget\Page\FormWidget
+        properties:
+            modelClass: MemberBundle\Request\UpdatePasswordRequest
+            handler: '@member.handler.update_password::handlePassword'
+            data: '@pageManager.customer'
+            resettable: true
+            notifications:
+                success:
+                    title: Saved
+                    message: Password have been changed
+            fields:
+                password:
+                    options:
+                        label: Password
+                        required: false
+                    type: password
+                confirmPassword:
+                    options:
+                        label: Confirm Password
+                        required: false
+                    type: password
+    transactionPasswordForm:
+        type: AppBundle\Widget\Page\FormWidget
+        properties:
+            modelClass: MemberBundle\Request\UpdateTransactionPasswordRequest
+            handler: '@member.handler.update_transaction_password::handleTransactionPassword'
+            data: '@pageManager.customer'
+            resettable: true
+            notifications:
+                success:
+                    title: Saved
+                    message: Transaction Password have been changed
+            fields:
+                password:
+                    options:
+                        label: Transaction Password
+                        required: false
+                    type: password
+                confirmPassword:
+                    options:
+                        label: Confirm Password
+                        required: false
+                    type: password
+
+    sendResetPasswordForm:
+        type: AppBundle\Widget\Page\FormWidget
+        properties:
+            modelClass: MemberBundle\Request\SendResetPasswordRequest
+            handler: '@member.handler.send_reset_password::handleSendResetPassword'
+            data: '@pageManager.customer'
+            resettable: true
+            notifications:
+                success:
+                    title: Reset password link
+                    message: Reset password email has been successfully sent.
+            fields:
+                origin:
+                    options:
+                        label: Choose Origin
+                        required: true
+                    type: dropdown
+                    size: 12
+                    choicesFrom:
+                        function: '@member.manager::getOriginSetting'
+                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
+                        value: result['url']
+
+    contactsForm:
+        type: AppBundle\Widget\Page\FormWidget
+        properties:
+            modelClass: MemberBundle\Request\UpdateContactRequest
+            handler: '@member.handler.update_contacts::handle'
+            data: '@pageManager.customer'
+            notifications:
+                success:
+                    title: Saved
+                    message: Contacts have been saved
+            fields:
+                contacts:
+                    addLabel: Add Contacts
+                    type: repeatable
+                    options:
+                        label: Contacts
+                        required: false
+                    fields:
+                        type:
+                            size: 6
+                            label: Type
+                            type: dropdown
+                            options:
+                                choices:
+                                    Mobile: mobile
+                                    Work: work
+                                    Home: home
+                                    Main: main
+                                    Work Fax: work_fax
+                                    Fax: fax
+                                    Email: email
+
+                        value:
+                            size: 6
+                            label: Value
+                            type: text
+    socialsForm:
+        type: \AppBundle\Widget\Page\FormWidget
+        properties:
+            modelClass: MemberBundle\Request\UpdateSocialsRequest
+            handler: '@member.handler.update_socials::handle'
+            data: '@pageManager.customer'
+            notifications:
+                success:
+                    title: Saved
+                    message: Socials have been saved
+            fields:
+                socials:
+                    type: repeatable
+                    options:
+                        label: Socials
+                        required: false
+                    fields:
+                        type:
+                            size: 6
+                            label: Type
+                            type: dropdown
+                            options:
+                                choices:
+                                    Skype: skype
+                                    Facebook: facebook
+                                    Website: website
+
+                        value:
+                            size: 6
+                            label: Value
+                            type: text
+    productList:
+        type: \AppBundle\Widget\Page\ListWidget
+        properties:
+            processResult: 'controller::processCustomerProductListResult'
+            class: \DbBundle\Entity\CustomerProduct
+            methods:
+                records:
+                    name: getCustomerProductListInNative
+                    params:
+                        filters: []
+                        orders: []
+                        limit: 10
+                        offset: 0
+                totalFiltered:
+                    name: getCustomerProductListFilterCount
+                    params:
+                        filters: []
+                total:
+                    name: getCustomerProductListAllCount
+            additionalFilters:
+                customerID: '@=pageManager.getData("customer").getId()'
+            columns:
+                userName:
+                    label: Username
+                    type: text
+                product:
+                    label: Product
+                    type: text
+                    from: product.name
+                balance:
+                    label: Balance
+                    type: text
+                    from: balanceWithBA
+                status:
+                    label: Status
+                    type: function
+                    from: isActive
+                    function: productListStatus
+                action:
+                    label: Action
+                    type: function
+                    function: productListAction
+    productForm:
+        type: \AppBundle\Widget\Page\FormWidget
+        properties:
+            modelClass: MemberBundle\Request\CreateMemberProductRequest
+            handler: '@member.handler.create_member_product::handle'
+            data: '@pageManager.customer'
+            notifications:
+                success:
+                    title: Saved
+                    message: Customer Product have been added
+            fields:
+                username:
+                    options:
+                        label: Username
+                        required: true
+                    type: text
+                product:
+                    options:
+                        label: Product
+                        required: true
+                    type: dropdown
+                    choicesFrom:
+                        function: '@product.manager::getProductList'
+                        arguments:
+                            - excludeAcWallet: true
+                        label: result['text']
+                        value: result['id']
+                        preselect: false
+                balance:
+                    option:
+                        label: Balance
+                        required: true
+                    type: text
+                brokerage:
+                    options:
+                        label: Brokerage Account
+                        required: false
+                    type: dropdown
+                    isAjax: true
+                    minimumInputLength: 3
+                    ajax:
+                        delay: 2000
+                        request: onFindSkypeBettors
+                brokerageFirstName:
+                    type: hidden
+                brokerageLastName:
+                    type: hidden
+    updateProductForm:
+        type: \AppBundle\Widget\Page\FormWidget
+        data: '@pageManager.customer'
+        properties:
+            modelClass: MemberBundle\Request\UpdateMemberProductRequest
+            handler: '@member.handler.update_member_product::handle'
+            notifications:
+                success:
+                    title: Saved
+                    message: Customer Product has been saved
+            fields:
+                username:
+                    options:
+                        label: Username
+                        required: true
+                    type: text
+                product:
+                    options:
+                        label: Product
+                        required: false
+                        attr:
+                            disabled: disabled
+                    type: dropdown
+                    choicesFrom:
+                        function: '@product.manager::getProductList'
+                        label: result['text']
+                        value: result['id']
+                balance:
+                    option:
+                        label: Balance
+                        required: true
+                    type: text
+                brokerage:
+                    options:
+                        label: Brokerage Account
+                        required: false
+                    type: dropdown
+                    isAjax: true
+                    minimumInputLength: 3
+                    ajax:
+                        request: onFindSkypeBettors
+                brokerageFirstName:
+                    type: hidden
+                brokerageLastName:
+                    type: hidden
+                customerProduct:
+                    type: hidden
+    transactionList:
+        type: \AppBundle\Widget\Page\ListWidget
+        properties:
+            class: \DbBundle\Entity\CustomerProduct
+            ajax:
+                url:
+                    route: transaction.list_search
+                    params:
+                        customerId: '@=pageManager.getData("customer").getId()'
+                type: POST
+            additionalFilters:
+                customerID: '@=pageManager.getData("customer").getId()'
+            columns:
+                number:
+                    label: Number
+                    type: function
+                    function: transactionListNumber
+                    exclude: true
+                date:
+                    label: Date
+                    type: date
+                    format: M j, Y, g:i a
+                customer:
+                    label: Member
+                    type: text
+                    from: customer.full_name
+                    exclude: true
+                product:
+                    label: Product (Username)
+                    type: function
+                    from: sub_transactions
+                    function: getTransactionProductUsernames
+                paymentOption:
+                    label: Payment Option
+                    type: function
+                    from: immutable_payment_option_data
+                    function: getTransactionPaymentOptions
+                currency:
+                    label: Currency
+                    type: text
+                    from: currency.code
+                customer_fee:
+                    label: Member Fee
+                    type: function
+                    function: transactionListFee
+                    hidden: true
+                company_fee:
+                    label: Company Fee
+                    type: function
+                    function: transactionListFee
+                amount:
+                    label: Amount
+                    type: function
+                    function: transactionListAmount
+                status:
+                    label: Status
+                    type: function
+                    from: status.label
+                    function: transactionListStatus
+                type_text:
+                    label: Type
+                    type: function
+                    function: translateTypeText
+            filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'ft>>poyar<'form-group' <'m-t-10'>>>
+            filters:
+                from:
+                    label: From
+                    type: date
+                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
+                    symbol: f
+                    attrs:
+                        placeholder: From
+                        type: input
+                        class: form-control cls-date
+                    applyOnChanged: 0
+                    value: :from
+                to:
+                    label: To
+                    type: date
+                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
+                    symbol: t
+                    attrs:
+                        placeholder: To
+                        type: input
+                        class: form-control cls-date
+                    applyOnChanged: 0
+                    value: :to
+                product:
+                    label: Product
+                    type: select
+                    dom: <'form-group form-group-sm m-r-10 xs-filter'i>
+                    symbol: p
+                    class: selectpicker
+                    applyOnChanged: false
+                    attrs:
+                        data-style: btn-white btn-sm
+                        multiple: multiple
+                        data-none-selected-text: Select Product
+                        data-width: auto
+                        data-size: 5
+                    value: :product
+                    choicesFrom:
+                        function: '@product.manager::getProductList'
+                        label: result['name']
+                        value: result['id']
+                paymentOption:
+                    label: Payment Option
+                    type: select
+                    dom: <'form-group form-group-sm m-r-10 xs-filter'i>
+                    symbol: o
+                    class: selectpicker
+                    applyOnChanged: false
+                    attrs:
+                        data-style: btn-white btn-sm
+                        title: Select P.O.
+                        multiple: multiple
+                        data-width: auto
+                        data-size: 5
+                    value: :paymentOption
+                    choicesFrom:
+                        function: '@paymentoption.manager::filter'
+                        label: result.getName()
+                        value: result.getCode()
+                        from: data
+                types:
+                    dom: <'form-group form-group-sm m-r-10 xs-filter'i>
+                    label: Type
+                    type: select
+                    symbol: y
+                    class: selectpicker
+                    applyOnChanged: false
+                    attrs:
+                        data-style: btn-white btn-sm
+                        title: Type
+                        multiple: multiple
+                        data-width: auto
+                        data-size: 5
+                    choices:
+                        deposit: Deposit
+                        withdraw: Withdraw
+                        transfer: Transfer
+                        p2ptransfer: P2P Transfer
+                        dwl: Win/Loss
+                    value: :types
+                applyFilter:
+                    attrs:
+                        class: btn btn-sm btn-default
+                resetFilter:
+                    attrs:
+                        class: btn btn-sm btn-inverse
+    documents:
+        type: MediaBundle\Widget\Page\MediaLibraryWidget
+        properties:
+            rootPath: customerDocuments
+
+    referrals:
+        type: AppBundle\Widget\Page\ListWidget
+        properties:
+            class: DbBundle\Entity\Customer
+            processResult: 'controller::processListResult'
+            additionalFilters:
+                affiliate: '@=pageManager.getData("customer").getId()'
+            dom: t
+            methods:
+                records:
+                    name: getCustomerList
+                    params:
+                        filters: []
+                        orders: []
+                        limit: 10
+                        offset: 0
+                totalFiltered:
+                    name: getCustomerListFilterCount
+                    params:
+                        filters: []
+                total:
+                    name: getCustomerListAllCount
+            columns:
+                customer:
+                    label: Full Name
+                    type: function
+                    function: listFullname
+                username:
+                    label: Username
+                    type: text
+                    from: customer.user.username
+                email:
+                    label: Email
+                    type: text
+                    from: customer.user.email
+                action:
+                    label: Action
+                    type: function
+                    function: referralsAction
+                    from: customer
+    linkForm:
+        type: AppBundle\Widget\Page\FormWidget
+        properties:
+            modelClass: MemberBundle\Request\LinkMemberRequest
+            handler: '@member.handler.link_member::handle'
+            data: '@pageManager.customer'
+            notifications:
+                success:
+                    title: Saved
+                    message: Successfully linked members
+            fields:
+                referrals:
+                    options:
+                        label: Link a member
+                        multiple: true
+                    type: dropdown
+                    size: 12
+                    isAjax: true
+                    ajax:
+                        request: onFindAvailableReferrals
+                    templateSelection: linkSelection
+                    templateResult: linkResult
+
+    commissions:
+        type: AppBundle\Widget\Page\ListWidget
+        properties:
+            class: DbBundle\Entity\CustomerProduct
+            processResult: 'controller::processCommissionResult'
+            dom: t
+            methods:
+                records:
+                    name: getReferrerTotalReferredProducts
+                    params:
+                        filters: []
+                        orders: []
+                        limit: 10
+                        offset: 0
+                totalFiltered:
+                    name: getReferrerReferredProductsCount
+                    params:
+                        filters: []
+                total:
+                    name: getReferrerReferredProductsCount
+                    params:
+                        filters: []
+            additionalFilters:
+                member: '@=pageManager.getData("customer").getId()'
+            columns:
+                product:
+                    label: Product
+                    type: text
+                    from: productName
+                commission:
+                    label: % Commission
+                    type: text
+                    from: commission.commission
+                created_at:
+                    label: Date Last Updated
+                    type: date
+                    format: F j, Y H:i:s
+                    from: commission.created_at
+                number_member_product:
+                    label: No. of Referral's Product
+                    type: text
+                    from: totalProductReferrals
+                action:
+                    label: Action
+                    type: function
+                    function: commissionListAction
+
+    addCommissionForm:
+        type: AppBundle\Widget\Page\FormWidget
+        properties:
+            modelClass: MemberBundle\Request\AddCommissionRequest
+            handler: '@member.handler.add_commission_member::handle'
+            data: '@pageManager.customer'
+            notifications:
+                success:
+                    title: Saved
+                    message: Successfully Added Commission
+            fields:
+                product:
+                    options:
+                        label: Product
+                        required: true
+                    type: dropdown
+                    choicesFrom:
+                        function: '@product.manager::getProductList'
+                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
+                        value: result['id']
+                        preselect: false
+                commission:
+                    options:
+                        label: Commission
+                        required: true
+                    type: text
+                status:
+                    options:
+                        label: Status
+                        required: false
+                    type: switch
+
+    updateCommissionForm:
+        type: AppBundle\Widget\Page\FormWidget
+        properties:
+            modelClass: MemberBundle\Request\UpdateCommissionRequest
+            handler: '@member.handler.update_commission_member::handle'
+            data: '@pageManager.customer'
+            notifications:
+                success:
+                    title: Saved
+                    message: Successfully Updated Commission
+            fields:
+                product:
+                    options:
+                        label: Product
+                        required: false
+                        attr:
+                            readonly: readonly
+                    type: text
+                commission:
+                    options:
+                        label: Commission
+                        required: true
+                    type: text
+# NOTE: see https://ac88dev.atlassian.net/browse/AC66-1017
+#                status:
+#                    options:
+#                        label: Status
+#                        required: false
+#                    type: switch
+                resourceId:
+                    type: hidden
+                productId:
+                    type: hidden
+#                memberId:
+#                    type: hidden
+
+
+    paymentOptions:
+        type: MemberBundle\Widget\Page\PaymentOptionWidget
+        properties:
+            member:
+                method: 'pagemanager::getData'
+                arguments:
+                    - 'customer'
+            formTemplate:
+                - MemberBundle:Member:widgets/update-widgets.html.twig
+
+
+    websites:
+        type: AppBundle\Widget\Page\ListWidget
+        properties:
+            class: DbBundle\Entity\MemberWebsite
+            methods:
+                records:
+                    name: findWebsites
+                    params:
+                        filters: []
+                        limit: 20
+                        offset: 0
+                totalFiltered:
+                    name: getTotalWebsite
+                    params:
+                        filters: []
+                total:
+                    name: getTotalWebsite
+                    params:
+                        filters: []
+                    staticParams:
+                        filters:
+                            member: '@=pageManager.getData("customer").getId()'
+            additionalFilters:
+                member: '@=pageManager.getData("customer").getId()'
+            columns:
+                website:
+                    label: Website
+                    type: text
+                action:
+                    label: Actions
+                    type: function
+                    function: websitesAction
+
+
+    createWebsiteForm:
+        type: AppBundle\Widget\Page\FormWidget
+        properties:
+            modelClass: MemberBundle\Request\CreateWebsiteRequest
+            data: '@pageManager.customer'
+            handler: '@member.handler.create_member_website::handle'
+            notifications:
+                success:
+                    title: Saved
+                    message: Successfully Created Website
+            fields:
+                website:
+                    options:
+                        label: Website Url
+                        required: true
+                        attr:
+                            autocomplete: off
+                    type: text
+
+    memberReferralName:
+        type: AppBundle\Widget\Page\ListWidget
+        properties:
+            class: DbBundle\Entity\MemberReferralName
+            methods:
+                records:
+                    name: getReferralNameList
+                    params:
+                        filters: []
+                        orders: []
+                        limit: 10
+                        offset: 0
+                totalFiltered:
+                    name: getReferralNameListFilterCount
+                    params:
+                        filters: []
+                total:
+                    name: getReferralNameListFilterCount
+                    staticParams:
+                        filters:
+                            member: '@=pageManager.getData("customer").getId()'
+            additionalFilters:
+                member: '@=pageManager.getData("customer").getId()'
+            columns:
+                name:
+                    label: Referral Code
+                    type: text
+                action:
+                    label: Action
+                    type: function
+                    function: referralNameAction
+                    from: referralName
+
+    createMemberReferralNameForm:
+        type: AppBundle\Widget\Page\FormWidget
+        properties:
+            modelClass: MemberBundle\Request\CreateMemberReferralNameRequest
+            data: '@pageManager.customer'
+            handler: '@member.handler.create_member_referral_name::handle'
+            notifications:
+                success:
+                    title: Saved
+                    message: Successfully Created Referral Code
+            fields:
+                name:
+                    options:
+                        label: Referral Code
+                        required: true
+                        attr:
+                            autocomplete: off
+                    type: text
+
+    banners:
+        type: AppBundle\Widget\Page\ListWidget
+        properties:
+            class: DbBundle\Entity\MemberBanner
+            methods:
+                records:
+                    name: findMemberBanners
+                    params:
+                        filters: []
+                totalFiltered:
+                    name: countMemberBanners
+                    params:
+                        filters: []
+                total:
+                    name: countMemberBanners
+                    params:
+                        filters: []
+                    staticParams:
+                        filters:
+                            member: '@=pageManager.getData("customer").getId()'
+            additionalFilters:
+                member: '@=pageManager.getData("customer").getId()'
+            columns:
+                type:
+                    label: Type
+                    type: text
+                    from: banner_image.type_text
+                language:
+                    label: Language
+                    type: text
+                    from: banner_image.language
+                size:
+                    label: Size
+                    type: text
+                    from: banner_image.dimension
+                campaignName:
+                    label: Campaign Name
+                    type: text
+                    from: campaign_name
+                website:
+                    label: Website
+                    type: text
+                    from: member_website.website
+                referralCode:
+                    label: Referral Code
+                    type: text
+                    from: member_referral_name.name
+                action:
+                    label: Actions
+                    type: function
+                    function: bannerListAction
+
+    memberCampaignName:
+        type: AppBundle\Widget\Page\ListWidget
+        properties:
+            class: DbBundle\Entity\MemberBanner
+            methods:
+                records:
+                    name: getCampaignNameList
+                    params:
+                        filters: []
+                        orders: []
+                        limit: 10
+                        offset: 0
+                totalFiltered:
+                    name: getCampaignNameListFilterCount
+                    params:
+                        filters: []
+                total:
+                    name: getCampaignNameListFilterCount
+                    staticParams:
+                        filters:
+                            member: '@=pageManager.getData("customer").getId()'
+            additionalFilters:
+                member: '@=pageManager.getData("customer").getId()'
+            columns:
+                campaignName:
+                    label: Campaign Name
+                    type: text
+                    from: campaign_name
+    runningCommissionList:
+        type: AppBundle\Widget\Page\ListWidget
+        properties:
+            class: DbBundle\Entity\CommissionPeriod
+            processResult: '@member.manager::processRunningCommission'
+            methods:
+                records:
+                    name: getCommissionPeriodList
+                    # staticParams:
+                    #    filters:
+                    #        statuses:
+                    #            - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT
+                    #            - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION
+                    params:
+                        filters: []
+                        limit: 20
+                        offset: 0
+                totalFiltered:
+                    name: countCommissionList
+                    staticParams:
+                        filters:
+                            statuses:
+                                - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT
+                                - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION
+                    params:
+                        filters: []
+                total:
+                    name: countCommissionList
+                    staticParams:
+                        filters:
+                            statuses:
+                                - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT
+                                - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION
+                    params:
+                        filters: []
+            footer:
+                columns:
+                    total:
+                        type: static
+                        attrs:
+                            colspan: 3
+                            class: text-right
+                        value: Total Running
+                        isHead: true
+                    totalCommission:
+                        type: text
+                        attrs:
+                            colspan: 2
+                        from: totalRunningCommission
+            columns:
+                dwlDateFrom:
+                    label: Date From
+                    type: text
+                    from: schedule.dwl_date_from
+                dwlDateTo:
+                    label: Date To
+                    type: text
+                    from: schedule.dwl_date_to
+                status:
+                    label: Status
+                    type: choice
+                    from: commission.status
+                    choices:
+                        condition_unmet: Condition Not Met
+                        condition_met: Condition Met
+                commisison:
+                    label: Commission
+                    type: text
+                    from: commission.commission
+                payout:
+                    label: AC Wallet Payout
+                    type: text
+                    from: commission.payout
+
+    turnoverCommissionByProductList:
+        type: \AppBundle\Widget\Page\ListWidget
+        properties:
+            class: \DbBundle\Entity\Customer
+            ajax:
+                url:
+                    route: member.turnover_commission.search
+                    params:
+                        id: '@=pageManager.getData("customer").getId()'
+                        orderBy: 'productName'
+                type: POST
+            columns:
+                productName:
+                    label: Product
+                    type: text
+                    exclude: true
+                memberId:
+                    label: Member ID
+                    type: text
+                totalTurnover:
+                    label: Total Turnover
+                    type: function
+                    function: turnoverCommissionDwlAmount
+                totalWinLoss:
+                    label: Total Member W/L
+                    type: function
+                    function: turnoverCommissionDwlAmount
+                totalAffiliateCommission:
+                    label: Affiliate Commission
+                    type: function
+                    function: turnoverCommissionAffiliateAmount
+            footer:
+                columns:
+                    period:
+                        attrs:
+                            colspan: 2
+                        type: function
+                        function: turnoverCommissionPeriod
+                        from: period
+                    totalTurnover:
+                        type: function
+                        function: turnoverCommissionTotalTurnover
+                        from: totals
+                    totalWinLoss:
+                        type: function
+                        function: turnoverCommissionTotalWinLoss
+                        from: totals
+                    totalAffiliateCommission:
+                        type: function
+                        function: turnoverCommissionTotalCommission
+                        from: totals
+            filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'ft>>ar<'form-group' <'m-t-10'>>c<'form-group' <'m-t-10'>>>
+            filters:
+                dwlDateFrom:
+                    label: DWL Date From
+                    type: date
+                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
+                    symbol: f
+                    attrs:
+                        placeholder: DWL Date From
+                        type: input
+                        class: form-control cls-date
+                    applyOnChanged: 0
+                dwlDateTo:
+                    label: DWL Date To
+                    type: date
+                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
+                    symbol: t
+                    attrs:
+                        placeholder: DWL Date To
+                        type: input
+                        class: form-control cls-date
+                    applyOnChanged: 0
+                applyFilter:
+                    attrs:
+                        class: btn btn-sm btn-default
+                resetFilter:
+                    attrs:
+                        class: btn btn-sm btn-inverse
+                btnExportCsv:
+                    type: button
+                    label: Export to CSV
+                    symbol: c
+                    attrs:
+                        class: btn btn-sm btn-inverse
+    turnoverCommissionByMemberList:
+        type: \AppBundle\Widget\Page\ListWidget
+        properties:
+            class: \DbBundle\Entity\Customer
+            ajax:
+                url:
+                    route: member.turnover_commission.search
+                    params:
+                        id: '@=pageManager.getData("customer").getId()'
+                        orderBy: 'memberId'
+                type: POST
+            columns:
+                memberId:
+                    label: Member ID
+                    type: text
+                    exclude: true
+                productName:
+                    label: Product
+                    type: text
+                totalTurnover:
+                    label: Total Turnover
+                    type: function
+                    function: turnoverCommissionDwlAmount
+                totalWinLoss:
+                    label: Total Member W/L
+                    type: function
+                    function: turnoverCommissionDwlAmount
+                totalAffiliateCommission:
+                    label: Affiliate Commission
+                    type: function
+                    function: turnoverCommissionAffiliateAmount
+            footer:
+                columns:
+                    period:
+                        attrs:
+                            colspan: 2
+                        type: function
+                        function: turnoverCommissionPeriod
+                        from: period
+                    totalTurnover:
+                        type: function
+                        function: turnoverCommissionTotalTurnover
+                        from: totals
+                    totalWinLoss:
+                        type: function
+                        function: turnoverCommissionTotalWinLoss
+                        from: totals
+                    totalAffiliateCommission:
+                        type: function
+                        function: turnoverCommissionTotalCommission
+                        from: totals
+            filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'ft>>ar<'form-group' <'m-t-10'>>c<'form-group' <'m-t-10'>>>
+            filters:
+                dwlDateFrom:
+                    label: DWL Date From
+                    type: date
+                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
+                    symbol: f
+                    attrs:
+                        placeholder: DWL Date From
+                        type: input
+                        class: form-control cls-date
+                    applyOnChanged: 0
+                dwlDateTo:
+                    label: DWL Date To
+                    type: date
+                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
+                    symbol: t
+                    attrs:
+                        placeholder: DWL Date To
+                        type: input
+                        class: form-control cls-date
+                    applyOnChanged: 0
+                applyFilter:
+                    attrs:
+                        class: btn btn-sm btn-default
+                resetFilter:
+                    attrs:
+                        class: btn btn-sm btn-inverse
+                btnExportCsv:
+                    type: button
+                    label: Export to CSV
+                    symbol: c
+                    attrs:
+                        class: btn btn-sm btn-inverse

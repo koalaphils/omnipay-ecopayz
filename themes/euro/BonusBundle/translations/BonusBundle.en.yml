@@ -1,0 +1,46 @@
+menus:
+    Bonus: Bonus
+    Requested List: Requested List
+    Requested: Requested
+    Request: Request
+    
+page:
+    title:
+        list: Bonus | List
+        create: Bonus | Create
+        update: Bonus | Update %subject%
+        requested_list: Bonus | Requested | List
+        requested: Bonus | Requested | Update
+    Update Bonus: Update Bonus
+    Create Bonus: Create Bonus
+    Requested: Requested Bonus
+    Requested List: Requested List
+    
+fields:
+    id: ID
+    subject: Subject
+    startAt: Start At
+    endAt: End At
+    terms: Terms
+    image: Image
+    isActive: Active
+    
+notification:
+    created:
+        title: Saved
+        message: Bonus "%subject%" was successfully created
+    updated:
+        title: Saved
+        message: Bonus "%subject%" was successfully updated
+    deleted:
+        title: Deleted
+        message: Bonus "%subject%" was successfully deleted
+        
+roles:
+    groups:
+        bonus: Bonus
+    bonus:
+        view: View Bonus
+        update: Update Bonus
+        delete: Delete Bonus
+        create: Create Bonus

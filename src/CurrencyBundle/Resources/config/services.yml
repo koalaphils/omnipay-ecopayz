@@ -1,0 +1,16 @@
+services:
+    currency.manager:
+        class: CurrencyBundle\Manager\CurrencyManager
+        parent: app.base_manager
+        
+    # form type
+    currency.form_type.currency_setting:
+        class: CurrencyBundle\Form\CurrencySettingType
+        arguments: [ "@doctrine" ]
+        tags:
+            - { name: form.type }
+    currency.form_type.currency:
+        class: CurrencyBundle\Form\CurrencyType
+        arguments: [ "@app.setting_manager" ]
+        tags:
+            - { name: form.type }

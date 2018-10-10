@@ -1,0 +1,8 @@
+version: '2.3'
+services:
+    bo:
+      ports:
+        - 5001:80
+        - 5002:8080
+      volumes:
+        - ../:/backoffice

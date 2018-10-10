@@ -1,0 +1,6 @@
+zendesk.authorize:
+    path:       /authorize
+    defaults:   { _controller: ZendeskBundle:Default:authorize }
+zendesk.sso_zopim:
+    path:       /zopim/sso
+    defaults:   { _controller: ZendeskBundle:Chat:ssoZopim }

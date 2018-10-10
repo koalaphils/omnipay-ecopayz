@@ -1,0 +1,49 @@
+member.list_page:
+    path: /
+    defaults:
+        _controller: MemberBundle:Member:withWidget
+        action: index
+
+member.create_page:
+    path: /create
+    defaults:
+        _controller: MemberBundle:Member:withWidget
+        action: create
+
+member.affiliate_link_versionable:
+    path: /affiliate-link/versionable
+    defaults:
+        _controller: MemberBundle:Member:getAffiliateLinkPreviousVersions
+
+member.login_history:
+    path: /login-history
+    defaults:
+        _controller: MemberBundle:Member:getClientLoginHistory
+
+customer.group:
+    resource: "@CustomerBundle/Resources/config/group_routing.yml"
+
+member.update_page:
+    path: /{id}/{activeTab}
+    defaults:
+        _controller: MemberBundle:Member:withWidget
+        action: update
+        activeTab: profile
+
+member.download_banner:
+    path: /banner/{id}/download
+    defaults:
+        _controller: MemberBundle:Member:downloadBanner
+
+member.turnover_commission.search:
+    path: /{id}/turnover-commission/{orderBy}/search
+    defaults:
+        _controller: MemberBundle:Member:getTurnoverCommissionList
+    requirements:
+        orderBy: productName|memberId
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+
+member.turnover_commission.download:
+    path: /{id}/turnover-commission/{orderBy}/download
+    defaults:
+        _controller: MemberBundle:Member:downloadTurnoverCommissionReport

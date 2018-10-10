@@ -1,0 +1,32 @@
+services:
+    report_customer.manager:
+        class: ReportBundle\Manager\ReportCustomerManager
+        parent: app.base_manager
+
+    report_customer.repository:
+        class: ReportBundle\Repository\ReportCustomerRepository
+        lazy: true
+        arguments:
+            - '@doctrine'
+
+    # Product Report
+    report_product.manager:
+        class: ReportBundle\Manager\ReportProductManager
+        parent: app.base_manager
+
+    report_product.repository:
+        class: ReportBundle\Repository\ReportProductRepository
+        arguments:
+            - '@doctrine'
+
+    # Gateway Report
+    report_gataeway.manager:
+        class: ReportBundle\Manager\ReportGatewayManager
+        parent: app.base_manager
+        arguments:
+            - '@gateway.manager'
+
+    report_gateway.repository:
+        class: ReportBundle\Repository\ReportGatewayRepository
+        arguments:
+            - '@doctrine'

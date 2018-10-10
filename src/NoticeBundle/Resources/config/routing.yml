@@ -1,0 +1,28 @@
+notice.list_page:
+    path:     /
+    defaults: { _controller: NoticeBundle:Default:index }
+
+notice.list_search:
+    path:     /search
+    defaults: { _controller: NoticeBundle:Default:search }
+    
+notice.create_page:
+    path:       /create
+    defaults:   { _controller: NoticeBundle:Default:create }
+    
+notice.update_page:
+    path:       /update/{id}
+    defaults:   { _controller: NoticeBundle:Default:update }    
+    
+notice.save:
+    path:       /save/{id}
+    defaults:   {_controller: NoticeBundle:Default:save, id: new }
+    condition:  "context.getMethod() in ['POST']"
+    
+notice.view_page:
+    path:       /view/{id}
+    defaults:   { _controller: NoticeBundle:Default:view }
+
+notice.delete:
+    path:       /delete/{id}
+    defaults:   { _controller: NoticeBundle:Default:delete }

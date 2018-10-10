@@ -1,0 +1,15 @@
+services:
+    gateway_transaction.manager:
+        class: GatewayTransactionBundle\Manager\GatewayTransactionManager
+        parent: app.base_manager
+
+    gateway_log.manager:
+        class: GatewayTransactionBundle\Manager\GatewayLogManager
+        parent: app.base_manager
+        
+    # form type
+    gateway_transaction.form_type.gateway_transaction:
+            class: GatewayTransactionBundle\Form\GatewayTransactionType
+            arguments: [ "@doctrine", "@router" ]
+            tags:
+                - { name: form.type }

@@ -1,0 +1,56 @@
+DbBundle\Entity\MemberWebsite:
+    type: entity
+    table: member_website
+    repositoryClass: DbBundle\Repository\MemberWebsiteRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: member_website_id
+            options:
+                unsigned: true
+    indexes:
+        website_index:
+            columns: [member_website_website]
+        member_index:
+            columns: [member_website_member_id]
+    uniqueConstraints:
+        website_unq:
+            columns: [member_website_website]
+    fields:
+        website:
+            type: string
+            length: 100
+            column: member_website_website
+        isActive:
+            type: boolean
+            length: 1
+            column: member_website_is_active
+            options:
+                default: 1
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: member_website_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            column: member_website_updated_at
+            nullable: true
+        createdBy:
+            type: bigint
+            column: member_website_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: member_website_created_at
+    manyToOne:
+        member:
+            targetEntity: DbBundle\Entity\Customer
+            joinColumn:
+                name: member_website_member_id
+                referencedColumnName: customer_id

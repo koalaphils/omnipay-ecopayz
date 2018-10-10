@@ -1,0 +1,39 @@
+DbBundle\Entity\Session:
+    type: entity
+    table: session
+    repositoryClass: DbBundle\Repository\SessionRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: id
+            options:
+                unsigned: true
+    fields:
+        sessionId:
+            type: string
+            length: 255
+            column: session_id
+        key:
+            type: string
+            length: 255
+            column: session_key
+        userId:
+            type: bigint
+            column: session_user_id
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: session_created_at
+    manyToOne:
+        user:
+            targetEntity: DbBundle\Entity\User
+            joinColumn:
+                name: session_user_id
+                referencedColumnName: user_id
+            
+    lifecycleCallbacks:
+        prePersist: [ setCreatedValue ]

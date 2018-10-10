@@ -1,0 +1,249 @@
+imports:
+    - { resource: parameters.yml }
+    - { resource: security.yml }
+    - { resource: services.yml }
+    - { resource: "@AppBundle/Resources/config/services.yml" }
+    - { resource: "@DbBundle/Resources/config/services.yml" }
+    - { resource: "@GroupBundle/Resources/config/services.yml" }
+    - { resource: "@UserBundle/Resources/config/services.yml" }
+    - { resource: "@ProductBundle/Resources/config/services.yml" }
+    - { resource: "@CurrencyBundle/Resources/config/services.yml" }
+    - { resource: "@CountryBundle/Resources/config/services.yml" }
+    - { resource: "@CustomerBundle/Resources/config/services.yml" }
+    - { resource: "@MemberBundle/Resources/config/services.yml" }
+    - { resource: "@GatewayBundle/Resources/config/services.yml" }
+    - { resource: "@NoticeBundle/Resources/config/services.yml" }
+    - { resource: "@TicketBundle/Resources/config/services.yml" }
+    - { resource: "@TransactionBundle/Resources/config/services.yml" }
+    - { resource: "@BonusBundle/Resources/config/services.yml" }
+    - { resource: "@MediaBundle/Resources/config/services.yml" }
+    - { resource: "@SessionBundle/Resources/config/services.yml" }
+    - { resource: "@ThemeBundle/Resources/config/services.yml" }
+    - { resource: "@DWLBundle/Resources/config/services.yml" }
+    - { resource: "@ApiBundle/Resources/config/services.yml" }
+    - { resource: "@PaymentOptionBundle/Resources/config/services.yml" }
+    - { resource: "@GatewayTransactionBundle/Resources/config/services.yml" }
+    - { resource: "@AuditBundle/Resources/config/services.yml" }
+    - { resource: "@ReportBundle/Resources/config/services.yml" }
+    - { resource: "@WebSocketBundle/Resources/config/services.yml" }
+    - { resource: "@CommissionBundle/Resources/config/services.yml" }
+    - { resource: bundle/payum.yml }
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# http://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
+parameters:
+    locale: en
+    jms_serializer.form_error_handler.class: ApiBundle\Serializer\Normalizer\FormErrorHandler
+
+framework:
+    #esi:             ~
+    translator:      { fallbacks: ["%locale%"] }
+    secret:          "%secret%"
+    router:
+        resource: "%kernel.root_dir%/config/routing.yml"
+        strict_requirements: ~
+    form:            ~
+    csrf_protection: ~
+    validation:      { enable_annotations: true }
+    #serializer:      { enable_annotations: true }
+    templating:
+        engines: ['twig']
+    default_locale:  "%locale%"
+    session:
+        # handler_id set to null will use default session handler from php.ini
+        handler_id: session.handler.native_file
+        save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
+    fragments:       ~
+    http_method_override: true
+    serializer: { enabled: true }
+    trusted_proxies:  "%trusted_proxies%"
+
+# Twig Configuration
+twig:
+    debug:            "%kernel.debug%"
+    strict_variables: "%kernel.debug%"
+    form_themes:
+        - 'AppBundle:Form:ubold.html.twig'
+    globals:
+        asianconnect_url: "%asianconnect_url%"
+
+# Doctrine Configuration
+doctrine:
+    dbal:
+        driver:   pdo_mysql
+        host:     "%database_host%"
+        port:     "%database_port%"
+        dbname:   "%database_name%"
+        user:     "%database_user%"
+        password: "%database_password%"
+        charset:  UTF8
+        server_version: 5.7
+        platform_service: custom_mysql_platform
+        wrapper_class: AppBundle\DoctrineExtension\DBAL\Connection
+        #options:
+        #    20: false # Turn off PDO::ATTR_EMULATE_PREPARES
+        types:
+            json:
+                class: AppBundle\DoctrineExtension\Types\JsonType
+                commented: true
+            tinyint:
+                class: AppBundle\DoctrineExtension\Types\TinyIntType
+                commented: true
+            metadata:
+                class: AppBundle\DoctrineExtension\Types\MetaDataType
+        mapping_types:
+            json: json
+            tinyinteger: tinyint
+        # if using pdo_sqlite as your database driver:
+        #   1. add the path in parameters.yml
+        #     e.g. database_path: "%kernel.root_dir%/data/data.db3"
+        #   2. Uncomment database_path in parameters.yml.dist
+        #   3. Uncomment next line:
+        #     path:     "%database_path%"
+
+    orm:
+        auto_generate_proxy_classes: "%kernel.debug%"
+        naming_strategy: doctrine.orm.naming_strategy.underscore
+        auto_mapping: true
+        dql:
+            string_functions:
+                GROUP_CONCAT: Oro\ORM\Query\AST\Functions\String\GroupConcat
+                JSON_SET: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonSet
+                JSON_CONTAINS: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonContains
+                JSON_CONTAINS_PATH: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonContainsPath
+                JSON_REMOVE: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonRemove
+                JSON_OBJECT: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonObject
+                JSON_EXTRACT: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonExtract
+                JSON_MERGE: AppBundle\DoctrineExtension\ORM\Query\AST\Functions\Mysql\JsonMerge
+                JSON_UNQUOTE: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonUnquote
+                CAST: Oro\ORM\Query\AST\Functions\Cast
+                FIND_IN_SET: AppBundle\DoctrineExtension\ORM\Query\AST\Functions\Mysql\FindInSet
+                IFNULL: AppBundle\DoctrineExtension\ORM\Query\AST\Functions\Mysql\IfNull
+                MATCH: DoctrineExtensions\Query\Mysql\MatchAgainst
+                IF: AppBundle\DoctrineExtension\ORM\Query\AST\Functions\Mysql\IfFunction
+
+doctrine_migrations:
+    dir_name: "%kernel.root_dir%/DoctrineMigrations"
+    namespace: Application\Migrations
+    table_name: migrations
+    name: Application Migrations
+
+swiftmailer:
+    transport: "%mailer_transport%"
+    host:      "%mailer_host%"
+    username:  "%mailer_user%"
+    password:  "%mailer_password%"
+    encryption: "%mailer_encryption%"
+    spool:
+        type: file
+        path: "%kernel.project_dir%/var/spool"
+
+assetic:
+    bundles: ~
+    debug:          "%kernel.debug%"
+    use_controller: "%kernel.debug%"
+    filters:
+        cssrewrite: ~
+
+jms_serializer:
+    metadata:
+        directories:
+            DbBundleEntity:
+                namespace_prefix: DbBundle\Entity
+                path: "@DbBundle/Resources/config/serializer"
+    default_context:
+        serialization:
+            serialize_null: true
+            version: ~
+            attributes: {}
+            groups: ['Default', 'REST']
+            enable_max_depth_checks: true
+        deserialization:
+            serialize_null: true
+            version: ~
+            attributes: {}
+            groups: ['Default', 'REST']
+            enable_max_depth_checks: true
+
+nelmio_cors:
+    defaults:
+        allow_credentials: false
+        allow_origin: []
+        allow_headers: []
+        allow_methods: []
+        expose_headers: []
+        max_age: 0
+        hosts: []
+        origin_regex: false
+        forced_allow_origin_value: ~
+    paths:
+        '^/api/':
+            allow_origin: ['*']
+            allow_headers: ['X-Custom-Auth']
+            allow_methods: ['POST', 'PUT', 'GET', 'DELETE']
+            max_age: 3600
+        '^/':
+            origin_regex: true
+            allow_origin: ['^http://localhost:[0-9]+']
+            allow_headers: ['X-Custom-Auth']
+            allow_methods: ['POST', 'PUT', 'GET', 'DELETE']
+            max_age: 3600
+            hosts: ['^api\.']
+
+nelmio_api_doc:
+    name: Back Office API
+
+fos_oauth_server:
+    db_driver: orm
+    client_class:        DbBundle\Entity\OAuth2\Client
+    access_token_class:  DbBundle\Entity\OAuth2\AccessToken
+    refresh_token_class: DbBundle\Entity\OAuth2\RefreshToken
+    auth_code_class:     DbBundle\Entity\OAuth2\AuthCode
+    service:
+        storage:       api.oauth_storage
+        user_provider: api.oauth_user_provider
+        options:
+            supported_scopes: api
+
+fos_rest:
+    zone:
+        - { path: ^/(%app_locales%)/api/* }
+    param_fetcher_listener: true
+    routing_loader:
+        default_format: null
+        include_format: false
+    view:
+        view_response_listener: 'force'
+        formats:
+            json: true
+            xml: true
+        templating_formats:
+            html: false
+    allowed_methods_listener: true
+    access_denied_listener:
+        json: true
+    format_listener:
+        rules:
+            -
+                path: ^/(%app_locales%)/api
+                priorities: ['json', 'xml']
+                fallback_format: xml
+                prefer_extension: false
+            - { path: '^/', stop: true }
+    service:
+        view_handler: api.view_handler
+
+jms_job_queue:
+    queue_options_defaults:
+        max_concurrent_jobs: 5
+    queue_options:
+        payout:
+            max_concurrent_jobs: 1
+
+#sensio_framework_extra:
+#    view:
+#        annotations: false
+
+#sensio_framework_extra:
+#    view:    { annotations: false }
+#    router:  { annotations: true }

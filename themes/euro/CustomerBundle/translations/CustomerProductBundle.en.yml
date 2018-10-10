@@ -1,0 +1,42 @@
+#menus:
+#    Customer Product : Customer Product
+#    List: List
+#    Create: Create
+#    Update: Update
+
+page:
+    title:
+        update: Customer Product | Update %productName%
+    Create Product: Create Product
+    Update Product: Update Product
+    Product: Product
+    #tab:
+    #    profile: Profile
+    #    product: Product
+    
+fields:
+    id: ID
+    customerName: Customer Name
+    userName: Username
+    productName: Product Name
+    brokerageSyncId: Brokers Name
+    balance: Balance
+    isActive: Is Active
+    
+    
+notification:
+    title: Success
+    created: %name% was successfully created
+    updated: %name% was successfully updated
+    suspended:
+        title: Suspended
+        message: %username% was successfully suspended
+    activated:
+        title: Activated
+        message: %username% was successfully activated
+    
+roles:
+    customerProduct:
+        view: View Customer Product
+        create: Create Customer Product
+        update: Update Customer Product

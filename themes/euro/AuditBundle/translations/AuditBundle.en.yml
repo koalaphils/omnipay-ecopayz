@@ -1,0 +1,66 @@
+menus:
+    Audit: Audit
+    Member: Member Log
+    Support: Support Log
+
+page:
+    title:
+          Member: Admin | Member Log 
+          Support: Admin | Support Log 
+
+columns:
+    timestamp: Date & Time
+    user: User
+    clientIp: Client IP
+    details: Details
+    
+roles:
+    audit:
+        view: View Audit
+    groups:
+        audit: Audit
+
+breadcrumb:
+    list: Audit List
+    
+fields:
+    ip: Origin IP's
+    date: Access Date
+
+category:
+    bonus: Bonus
+    country: Country
+    currency: Currency
+    member: Member
+    memberGroup: Member Group
+    dwl: DWL
+    gateway: Gateway
+    gatewayTransaction: Gateway Transaction
+    notice: Notice
+    paymentOption: Payment Option
+    product: Product
+    deposit: Deposit
+    user: User
+    userGroup: User Group
+    login: Login
+    logout: Logout
+    memberProduct: Member Product
+    memberPaymentOption: Member Payment Option
+    withdrawal: Withdrawal
+    transfer: Transfer
+    p2pTransfer: P2P Transfer
+    cDwl: Member DWL
+    riskSetting: Risk Setting
+    bet: Bet Transaction
+    memberBanner: Banner
+    memberWebsite: Website
+    memberReferralName: Referral Name
+    bannerImage: Banner Image
+
+operation:
+    create: Created
+    update: Updated
+    delete: Deleted
+    login: Login
+    logout: Logout
+    

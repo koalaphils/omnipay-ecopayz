@@ -1,0 +1,69 @@
+DbBundle\Entity\DWL:
+    type: entity
+    table: dwl
+    repositoryClass: DbBundle\Repository\DWLRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: dwl_id
+            options:
+                unsigned: true
+    indexes:
+        status_index:
+            columns: [dwl_status]
+        date_index:
+            columns: [dwl_date]
+    fields:
+        status:
+            type: smallint
+            column: dwl_status
+            options:
+                default: 1
+                unsigned: true
+        version:
+            type: smallint
+            column: dwl_version
+            options:
+                default: 1
+                unsigned: true
+        date:
+            type: date
+            column: dwl_date
+        details:
+            type: json
+            column: dwl_details
+        createdBy:
+            type: bigint
+            column: dwl_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: dwl_created_at
+        updatedBy:
+            type: integer
+            nullable: true
+            column: dwl_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            column: dwl_updated_at
+            version: true
+    manyToOne:
+        product:
+            targetEntity: DbBundle\Entity\Product
+            joinColumn:
+                nullable: false
+                name: dwl_product_id
+                referencedColumnName: product_id
+        currency:
+            targetEntity: DbBundle\Entity\Currency
+            joinColumn:
+                nullable: false
+                name: dwl_currency_id
+                referencedColumnName: currency_id
+    lifecycleCallbacks: {  }

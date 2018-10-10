@@ -1,0 +1,42 @@
+transaction.list_page:
+    path:       /
+    defaults:   { _controller: TransactionBundle:Transaction:index }
+
+transaction.list_search:
+    path:       /search
+    defaults:   { _controller: TransactionBundle:Transaction:search }
+    condition:  "context.getMethod() in ['POST', 'GET'] and request.isXMLHttpRequest()"
+
+transaction.download:
+    path: /download
+    defaults:
+        _controller: TransactionBundle:Transaction:download
+
+transaction.setting.transaction_page:
+    path:       /setting
+    defaults:    { _controller: TransactionBundle:Setting:index }
+
+transaction.count_status:
+    path:   /statuses/count
+    defaults:   { _controller: TransactionBundle:Transaction:countTransactionByStatus }
+
+transaction.create_page:
+    path:       /{type}
+    defaults:    { _controller: TransactionBundle:Transaction:createPage }
+
+transaction.gateways:
+    path: /{type}/gateways
+    defaults: { _controller: TransactionBundle:Transaction:getGatewayByTransaction }
+
+transaction.update_page:
+    path:       /{type}/{id}
+    defaults:    { _controller: TransactionBundle:Transaction:updatePage }
+
+transaction.save:
+    path:       /{type}/{id}/save
+    defaults:   { _controller: TransactionBundle:Transaction:save, id: 'new' }
+    condition:  "context.getMethod() in ['POST']"
+
+transaction.void:
+    path:       /{type}/{id}/void
+    defaults:   { _controller: TransactionBundle:Transaction:voidTransaction}

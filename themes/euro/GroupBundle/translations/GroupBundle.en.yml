@@ -1,0 +1,41 @@
+menus:
+    Group: Group
+    List: List
+    Create: Create
+
+page:
+    title:
+        name: User Group
+        list: Admin | Group
+        update: Admin | Group | Update %name%
+        create: Admin |Group | Create
+    Create Group: Create User Group
+    Update Group: Update User Group
+
+fields:
+    id: ID
+    name: Name
+    roles: Roles
+    
+roles:
+    groups:
+        group: Group
+    group:
+        view: View Group
+        create: Create Group
+        update: Update Group
+    
+notification:
+    title: Success
+    created: %name% was successfully created
+    updated: %name% was successfully updated
+
+quickLinks:
+    name: Quick Links
+    user: User
+    country: Country
+    addUserGroup: Add User Group
+    backToList: Back to User Group List
+
+breadcrumb:
+    list: User Group List

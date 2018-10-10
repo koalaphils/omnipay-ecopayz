@@ -1,0 +1,27 @@
+<div class="row">
+    <div class="col-sm-12 col-xs-12">
+        <div class="card-box">
+            <div id="customerTransactionList">
+                <table id="datatable-responsive"
+                    class="table table-bordered table-striped dt-responsive nowrap" cellspacing="0"
+                    width="100%">
+                    <thead>
+                        <tr>
+                            <th data-priority="1">{{ "fields.number"|trans({}, "TransactionBundle") }}</th>
+                            <th>{{ "fields.date"|trans({}, "TransactionBundle") }}</th>
+                            <th>{{ "fields.customer"|trans({}, "TransactionBundle") }}</th>
+                            <th>{{ "fields.productUsername"|trans({}, "TransactionBundle") }}</th>
+                            <th>{{ "fields.paymentOptionEmail"|trans({}, "TransactionBundle") }}</th>
+                            <th>{{ "fields.currency"|trans({}, "TransactionBundle") }}</th>
+                            <th data-priority="2">{{ "fields.amount"|trans({}, "TransactionBundle") }}</th>
+                            <th>{{ "fields.status"|trans({}, "TransactionBundle") }}</th>
+                            <th>{{ "fields.type"|trans({}, "TransactionBundle") }}</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot></tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

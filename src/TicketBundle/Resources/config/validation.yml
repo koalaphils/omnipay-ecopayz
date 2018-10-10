@@ -1,0 +1,25 @@
+DbBundle\Entity\Ticket:
+    properties:
+        requester:
+            - NotBlank:
+                groups: ['default']
+            - Regex:
+                pattern: '/^[A-Za-z0-9\s\P{Han}]*$/u'
+                match: true
+                message: ticket.requester.regex
+                groups: ['default']
+            - Length:
+                min: 4
+                max: 100
+                minMessage: ticket.requester.min
+                maxMessage: ticket.requester.max
+                groups: ['default']
+        
+        subject:
+            - NotBlank:
+                groups: ['default']
+        description:
+            - NotBlank:
+                groups: ['default']
+            
+                

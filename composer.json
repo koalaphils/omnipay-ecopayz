@@ -1,0 +1,101 @@
+{
+    "name": "symfony/framework-standard-edition",
+    "license": "MIT",
+    "type": "project",
+    "description": "The \"Symfony Standard Edition\" distribution",
+    "autoload": {
+        "psr-4": { "": "src/" },
+        "classmap": [ "app/AppKernel.php", "app/AppCache.php" ],
+        "files": ["src/AppBundle/Helper/helpers.php", "src/AppBundle/DoctrineExtension/Persister/BasicEntityPersister.php"]
+    },
+    "autoload-dev": {
+        "psr-4": { "Tests\\": "tests/"},
+        "files": [ "vendor/symfony/symfony/src/Symfony/Component/VarDumper/Resources/functions/dump.php" ]
+    },
+    "require": {
+        "php": ">=5.5.9",
+        "ext-intl": "*",
+        "beberlei/DoctrineExtensions": "^1.0",
+        "cydrickn/number": "^1.0",
+        "dercoder/omnipay-ecopayz": "dev-master",
+        "doctrine/doctrine-bundle": "^1.6",
+        "doctrine/doctrine-migrations-bundle": "^1.2",
+        "doctrine/orm": "^2.5",
+        "firebase/php-jwt": "^4.0",
+        "friendsofsymfony/oauth-server-bundle": "^1.5",
+        "friendsofsymfony/rest-bundle": "^2.2",
+        "incenteev/composer-parameter-handler": "^2.0",
+        "jms/job-queue-bundle": "^1.4",
+        "jms/serializer-bundle": "^2.0",
+        "nelmio/api-doc-bundle": "^2.13",
+        "nelmio/cors-bundle": "^1.5",
+        "oro/doctrine-extensions": "dev-master",
+        "payum/offline": "^1.4",
+        "payum/omnipay-v3-bridge": "^1.0@alpha",
+        "payum/payum-bundle": "^2.2",
+        "php-http/guzzle6-adapter": "^1.1",
+        "rx/thruway-client": "^3.0",
+        "sensio/distribution-bundle": "^5.0.19",
+        "sensio/framework-extra-bundle": "^3.0.2",
+        "symfony/assetic-bundle": "^2.8",
+        "symfony/monolog-bundle": "^3.1.0",
+        "symfony/swiftmailer-bundle": "^2.3.10",
+        "symfony/symfony": "3.3.*",
+        "syslogic/doctrine-json-functions": "^1.0",
+        "zendesk/zendesk_api_client_php": "2.1.7"
+    },
+    "require-dev": {
+        "escapestudios/symfony2-coding-standard": "3.x-dev",
+        "fig-r/psr2r-sniffer": "dev-master",
+        "fzaninotto/faker": "1.6",
+        "jakoch/phantomjs-installer": "^2.1",
+        "league/factory-muffin": "^3.0",
+        "league/factory-muffin-faker": "^2.0",
+        "overtrue/phplint": "^1.1",
+        "sensio/generator-bundle": "^3.0",
+        "symfony/phpunit-bridge": "^3.0"
+    },
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/cydrickn/omnipay-ecopayz.git"
+        }
+    ],
+    "scripts": {
+        "symfony-scripts": [
+            "Incenteev\\ParameterHandler\\ScriptHandler::buildParameters",
+            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
+            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache",
+            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installAssets",
+            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installRequirementsFile",
+            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::prepareDeploymentTarget",
+            "AppBundle\\Composer\\ScriptHandler::setupEmailDirectory",
+            "AppBundle\\Composer\\ScriptHandler::setupReferralToolsDirectory"
+        ],
+        "post-install-cmd": [
+            "@symfony-scripts"
+        ],
+        "post-update-cmd": [
+            "@symfony-scripts"
+        ]
+    },
+    "config": {
+        "platform": {
+            "php": "7.1"
+        },
+        "sort-packages": true
+    },
+    "extra": {
+        "symfony-app-dir": "app",
+        "symfony-web-dir": "web",
+        "symfony-assets-install": "relative",
+        "incenteev-parameters": {
+            "file": "app/config/parameters.yml"
+        },
+        "branch-alias": {
+            "dev-master": "3.3-dev"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

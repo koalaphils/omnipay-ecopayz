@@ -1,0 +1,83 @@
+DbBundle\Entity\MemberCommission:
+    type: entity
+    table: member_commission
+    repositoryClass: DbBundle\Repository\MemberCommissionRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: member_commission_id
+            options:
+                unsigned: true
+    indexes:
+        status_index:
+            columns: [member_commission_status]
+        resource_index:
+            columns: [member_commission_resource_id]
+        version_index:
+            columns: [member_commission_version]
+        member_index:
+            columns: [member_commission_member_id]
+        isLatest_index:
+            columns: [member_commission_is_latest]
+    uniqueConstraints:
+        resource_version_unq:
+            columns: [member_commission_resource_id, member_commission_version]
+    fields:
+        resourceId:
+            type: string
+            nullable: false
+            column: member_commission_resource_id
+        version:
+            type: integer
+            nullable: false
+            column: member_commission_version
+            options:
+                unsigned: true
+                default: 1
+        commission:
+            type: decimal
+            precision: 65
+            scale: 10
+            options:
+                default: 0
+            column: member_commission_commission
+            nullable: false
+        status:
+            type: smallint
+            column: member_commission_status
+            options:
+                default: 1
+                unsigned: true
+            nullable: false
+        isLatest:
+            type: boolean
+            column: member_commission_is_latest
+            nullable: false
+            options:
+                default: 1
+                unsigned: true
+        createdBy:
+            type: bigint
+            column: member_commission_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: member_commission_created_at
+            nullable: false
+    manyToOne:
+        member:
+            targetEntity: DbBundle\Entity\Customer
+            joinColumn:
+                nullable: false
+                name: member_commission_member_id
+                referencedColumnName: customer_id
+        product:
+            targetEntity: DbBundle\Entity\Product
+            joinColumn:
+                nullable: false
+                name: member_commission_product_id
+                referencedColumnName: product_id

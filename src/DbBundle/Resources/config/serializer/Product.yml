@@ -1,0 +1,12 @@
+DbBundle\Entity\Product:
+    exclusion_policy: ALL
+    xml_root_name: product
+    properties:
+        id:
+            expose: true
+        code:
+            expose: true
+        name:
+            expose: true
+        deletedAt:
+            expose: true

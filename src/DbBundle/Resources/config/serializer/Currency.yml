@@ -1,0 +1,11 @@
+DbBundle\Entity\Currency:
+    exclusion_policy: ALL
+    properties:
+        name:
+            expose: true
+        code:
+            expose: true
+        rate:
+            expose: true
+        updater:
+            expose: true

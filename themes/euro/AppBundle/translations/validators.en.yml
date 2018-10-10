@@ -1,0 +1,2 @@
+unique:
+    message: The {{ string }} is already used

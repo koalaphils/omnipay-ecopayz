@@ -1,0 +1,59 @@
+DbBundle\Entity\MemberBanner:
+    type: entity
+    table: member_banner
+    repositoryClass: DbBundle\Repository\MemberBannerRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: member_banner_id
+            options:
+                unsigned: true
+    indexes:
+        campaign_name_index:
+            columns: [member_banner_campaign_name]
+        member_index:
+            columns: [member_banner_member_id]
+        referral_name_index:
+            columns: [member_banner_referral_name_id]
+        website_index:
+            columns: [member_banner_website_id]
+    uniqueConstraints:
+        campaign_name_unq:
+            columns: [member_banner_campaign_name]
+    fields:
+        campaignName:
+            type: string
+            length: 100
+            column: member_banner_campaign_name
+        createdBy:
+            type: bigint
+            column: member_banner_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: member_banner_created_at
+    manyToOne:
+        memberWebsite:
+            targetEntity: DbBundle\Entity\MemberWebsite
+            joinColumn:
+                name: member_banner_website_id
+                referencedColumnName: member_website_id
+        memberReferralName:
+            targetEntity: DbBundle\Entity\MemberReferralName
+            joinColumn:
+                name: member_banner_referral_name_id
+                referencedColumnName: member_referral_name_id
+        bannerImage:
+            targetEntity: DbBundle\Entity\BannerImage
+            joinColumn:
+                name: member_banner_image_id
+                referencedColumnName: banner_image_id
+        member:
+            targetEntity: DbBundle\Entity\Customer
+            joinColumn:
+                name: member_banner_member_id
+                referencedColumnName: customer_id

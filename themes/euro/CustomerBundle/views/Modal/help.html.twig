@@ -1,0 +1,86 @@
+<div class="modal-dialog">
+    <div class="modal-content create-product-content">
+        <div class="modal-header">
+            <h4 class="modal-title create-product-title" id="methodHelpLabel">{{ "Help"|trans({},"GatewayBundle") }}</h4>
+        </div>
+        <div class="modal-body">
+            <p>
+                Customer Group Gateways are compose of conditions for customer under the group.<br/>
+                This conditions will be use for auto selection of gateways in creating or editing transaction.
+            </p>
+            <h4>Example of Conditions</h4>
+            <hr />
+            <dl class='dl-horizontal m-b-0'>
+                <dt>Gateway</dt>
+                <dd>BANK EUR</dd>
+                <dt>Condition</dt>
+                <dd>transaction.paymentOption == 'BANK' and customer.currency == 'EUR'</dd>
+            </dl>
+            <hr />
+            <dl class='dl-horizontal m-b-0'>
+                <dt>Gateway</dt>
+                <dd>BANK GBP</dd>
+                <dt>Condition</dt>
+                <dd>transaction.paymentOption == 'BANK' and customer.currency == 'GBP'</dd>
+            </dl>
+            <h4>Available Options</h4>
+            <p>
+                In our condition we have available options.<br />
+                Our main options are <b>transaction</b> and <b>customer</b>.
+            </p>
+            <table class='table table-striped table-responsive table-bordered'>
+                <thead>
+                    <tr>
+                        <th>Option</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>transaction.currency</td>
+                        <td>The value transaction currency, this will depend on customer currency.</td>
+                    </tr>
+                    <tr>
+                        <td>transaction.customer_fee</td>
+                        <td>The value transaction customer fee.</td>
+                    </tr>
+                    <tr>
+                        <td>transaction.company_fee</td>
+                        <td>The value transaction company fee.</td>
+                    </tr>
+                    <tr>
+                        <td>transaction.amount</td>
+                        <td>The value transaction amount</td>
+                    </tr>
+                    <tr>
+                        <td>transaction.customer_amount</td>
+                        <td>The value transaction custmomer amount</td>
+                    </tr>
+                    <tr>
+                        <td>transaction.status.id</td>
+                        <td>The value transaction status id</td>
+                    </tr>
+                    <tr>
+                        <td>transaction.status.label</td>
+                        <td>The value transaction status label</td>
+                    </tr>
+                    <tr>
+                        <td>transaction.payment_option</td>
+                        <td>The value of this was the payment option type that was selected in transaction</td>
+                    </tr>
+                    <tr>
+                        <td>customer.currency</td>
+                        <td>The value of this will be the currency code of customer</td>
+                    </tr>
+                    <tr>
+                        <td>customer.country</td>
+                        <td>The value of this will be the country code of customer</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-inverse waves-effect" data-dismiss="modal">Close</button>
+        </div>
+    </div><!-- /.modal-content -->
+</div>

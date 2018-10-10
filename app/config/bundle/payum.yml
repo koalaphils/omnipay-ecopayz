@@ -1,0 +1,51 @@
+payum:
+    storages:
+        PaymentBundle\Model\Payment:
+            filesystem:
+                storage_dir: '%kernel.project_dir%/var/payum/payments'
+                id_property: number
+
+    security:
+        token_storage:
+            Payum\Core\Model\Token:
+                filesystem:
+                    storage_dir: '%kernel.project_dir%/var/payum/gateways'
+                    id_property: hash
+    gateways:
+        ecopayz:
+            factory: omnipay
+            type: Ecopayz
+            payum.action.capture: '@payment.ecopayz.capture'
+            payum.action.notify: '@payment.ecopayz.notify'
+            testMode: %payum.gateways.ecopayz.testMode%
+        offline:
+            factory: offline
+
+payment:
+    gateway_forms:
+        offline:
+            bankName:
+                type: \Symfony\Component\Form\Extension\Core\Type\TextType
+                options:
+                    required: false
+            bankHolder:
+                type: \Symfony\Component\Form\Extension\Core\Type\TextType
+                options:
+                    required: false
+            bankAccount:
+                type: \Symfony\Component\Form\Extension\Core\Type\TextType
+                options:
+                    required: false
+        ecopayz:
+            merchantId:
+                type: \Symfony\Component\Form\Extension\Core\Type\NumberType
+                options:
+                    required: false
+            merchantAccountNumber:
+                type: \Symfony\Component\Form\Extension\Core\Type\NumberType
+                options:
+                    required: false
+            merchantPassword:
+                type: \Symfony\Component\Form\Extension\Core\Type\TextType
+                options:
+                    required: false

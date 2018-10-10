@@ -1,0 +1,27 @@
+DbBundle\Entity\User:
+    exclusion_policy: ALL
+    properties:
+        username:
+            expose: true
+        email:
+            expose: true
+        activationTimestamp:
+            expose: true
+    virtual_properties:
+        isActivated:
+            expose: true
+        typeText:
+            exp: "object.getTypeText()"
+            expose: true
+            type: string
+            serialized_name: type
+        isActivated:
+            exp: object.getActivationTimestamp()
+            expose: true
+            type: boolean
+            serialized_name: is_activated
+        isEnabled:
+            exp: object.isEnabled()
+            expose: true
+            type: boolean
+            serialized_name: is_enabled

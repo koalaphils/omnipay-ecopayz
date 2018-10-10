@@ -1,0 +1,4 @@
+services:
+    product.manager:
+        class: ProductBundle\Manager\ProductManager
+        parent: app.base_manager

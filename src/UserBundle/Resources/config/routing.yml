@@ -1,0 +1,49 @@
+user.list_page:
+    path:       /
+    defaults:   { _controller: UserBundle:Default:index }
+
+user.list_search:
+    path:       /search
+    defaults:   { _controller: UserBundle:Default:search }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+
+user.create_page:
+    path:       /create
+    defaults:   { _controller: UserBundle:Default:create }
+
+user.view_page:
+    path:       /view/{id}
+    defaults:   { _controller: UserBundle:Default:view }
+
+user.update_page:
+    path:       /update/{id}
+    defaults:   { _controller: UserBundle:Default:update }
+    
+user.save:
+    path:       /save/{id}
+    defaults:   {_controller: UserBundle:Default:save, id: new }
+    condition:  "context.getMethod() in ['POST']"
+
+user.myaccount_page:
+    path:       /myaccount
+    defaults:   { _controller: UserBundle:Default:myAccount }
+    
+user.password_save:
+    path:       /{id}/password/save
+    defaults:   { _controller: UserBundle:Default:savePassword }
+    
+user.preferences_save:
+    path: /preferences
+    defaults:
+        _controller: UserBundle:Default:savePreferences
+    methods: [POST]
+
+user.activate:
+    path:       /activate
+    defaults:   { _controller: UserBundle:Default:activate }
+    methods: [POST]
+
+user.suspend:
+    path:       /suspend
+    defaults:   { _controller: UserBundle:Default:suspend }
+    methods: [POST]

@@ -1,0 +1,89 @@
+page:
+    title:
+        deposit: Transaction | Request Deposit
+        withdraw: Transaction | Request Withdraw
+        list: Transaction | List
+        transfer: Transaction | Request Transfer
+    Setting: Transaction Setting
+    Deposit: Deposit Transaction
+    Withdraw: Withdraw Transaction
+    Transfer: Transfer
+    
+menus:
+    Transaction: Transaction
+    Deposit: Deposit
+    Withdraw: Withdraw
+    History: List
+    Transfer: Transfer
+    P2PTransfer: P2P Transfer
+    
+settings:
+    transaction:
+        label: Transaction
+        fields:
+            status:
+                label: Status
+                cms_label: CMS Status
+                ams_label: AMS Status
+                actions: Actions
+                edit_bonus_amount: Edit Bonus Amount
+                editGateway: Edit Payment Gateway
+                editFees: Edit Fees
+            action:
+                label: Action Label
+                status: To Status
+                class: Button Class
+    paymentGateway:
+        label: Selection method for payment gateway
+        description: This is for the method of on how the transaction will select the payment gateway
+        choices:
+            manual: Manual
+            customerLevel: Customer Level
+            customerGroup: Customer Group
+            customerCurrency: Customer Currency
+                
+types:
+    deposit: Deposit
+    withdraw: Withdraw
+    transfer: Transfer
+    bonus: Bonus
+    p2pTransfer: P2P Transfer
+    dwl: Daily Win Loss
+    bet: Bet
+fields:
+    number: Number
+    customer: Customer
+    date: Date
+    currency: Currency
+    amount: Total Amount
+    subTransaction:
+        amount: Amount
+        product: Product
+    type: Type
+    status: Status
+    details:
+        bonus:
+            id: Bonus
+            subject: Subject
+        messages:
+            customer: Customer Message
+            support: CS Message
+    customerFee: Customer Fee
+    companyFee: Company Fee
+    
+notification:
+    title: Success
+    message: Transaction have been %status%.
+    setting:
+        transaction:
+            title: Saved
+            message: Transaction Setting was successfully saved.
+            
+roles:
+    groups:
+        transaction: Transaction
+    transaction:
+        view: View Transaction
+        update: Update Transaction
+        create: Create Transaction
+        changeProcess: Change Transaction Process

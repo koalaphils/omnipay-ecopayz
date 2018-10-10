@@ -1,0 +1,82 @@
+DbBundle\Entity\SubTransaction:
+    type: entity
+    table: sub_transaction
+    repositoryClass: DbBundle\Repository\SubTransactionRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: subtransaction_id
+            options:
+                unsigned: true
+    indexes:
+        type_index:
+            columns: [subtransaction_type]
+        dwl_turnover_index:
+            columns: [subtransaction_dwl_turnover]
+        dwl_winloss_index:
+            columns: [subtransaction_dwl_winloss]
+    fields:
+        type:
+            type: smallint
+            column: subtransaction_type
+            options:
+                unsigned: true
+        amount:
+            type: decimal
+            precision: '65'
+            scale: '10'
+            options:
+                default: 0
+            column: subtransaction_amount
+        fees:
+            type: json
+            column: subtransaction_fees
+        details:
+            type: json
+            nullable: true
+            column: subtransaction_details
+        dwlId:
+            type: bigint
+            options:
+                generate: subtransaction_details->"$.dwl.id"
+                readOnly: true
+            column: subtransaction_dwl_id
+            nullable: true
+        dwlTurnover:
+            type: decimal
+            precision: 65
+            scale: 10
+            options:
+                generate: subtransaction_details->"$.dwl.turnover"
+                readOnly: true
+            column: subtransaction_dwl_turnover
+            nullable: true
+        dwlWinLoss:
+            type: decimal
+            precision: 65
+            scale: 10
+            options:
+                generate: subtransaction_details->"$.dwl.winLoss"
+                readOnly: true
+            column: subtransaction_dwl_winloss
+            nullable: true
+    manyToOne:
+        parent:
+            targetEntity: DbBundle\Entity\Transaction
+            inversedBy: subTransactions
+            joinColumn:
+                nullable: false
+                name: subtransaction_transaction_id
+                referencedColumnName: transaction_id
+            cascade: [ 'persist' ]
+        customerProduct:
+            targetEntity: DbBundle\Entity\CustomerProduct
+            joinColumn:
+                nullable: true
+                name: subtransaction_customer_product_id
+                referencedColumnName: cproduct_id
+            fetch: EAGER
+    lifecycleCallbacks: {  }

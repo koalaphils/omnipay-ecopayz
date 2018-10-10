@@ -1,0 +1,104 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}{{ "page.title.create_affiliate"|trans({},"CustomerBundle") }}{% endblock %}
+
+{% form_theme form 'CustomerBundle:Customer:FormTheme/customer.html.twig' %}
+
+{% block stylesheet_plugins %}
+    {{ form_assetcss(form) }}
+{% endblock %}
+
+{% block javascript_plugins %}
+    {{ form_assetjs(form) }}
+{% endblock %}
+
+{% block pageTitle -%}{{ "page.Create Affiliate"|trans({},"CustomerBundle") }}{%- endblock %}
+
+{% block pageHeaderExtra %}
+<div class="pull-right">
+     {% if is_granted('ROLE_CUSTOMER_VIEW') %}
+    <a class="btn btn-inverse waves-effect waves-light pull-right m-b-10" href="{{ path("affiliate.list_page") }}"><span><i class="ti-arrow-left m-r-5 cls-icn-plus"></i></span> {{ "menus.BackToAffiliate"|trans({},"CustomerBundle") }}</a>
+    {% endif %}
+    <ul class="list-inline quicklinks font-13 font-normal text-right">
+        <li>{{ "quickLinks.name"|trans({},"CustomerBundle") }}:</li>
+        {% if is_granted('ROLE_CUSTOMER_VIEW') %} 
+        <li><a href="{{ path("customer.list_page") }}">{{ "quickLinks.customerList"|trans({},"CustomerBundle") }}</a></li>|
+        {% endif %}
+        {% if is_granted('ROLE_CUSTOMER_CREATE') %} 
+        <li><a href="{{ path("customer.create_page") }}">{{ "quickLinks.addCustomer"|trans({},"CustomerBundle") }}</a></li>|
+        {% endif %}
+        {% if is_granted('ROLE_TRANSACTION_VIEW') %} 
+        <li><a href="{{ path("transaction.list_page") }}">{{ "quickLinks.transList"|trans({},"CustomerBundle") }}</a></li>
+        {% endif %}
+    </ul>
+</div>    
+{% endblock pageHeaderExtra %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.marketing"|trans({},"AppBundle") }}</li>
+    <li>
+        <a href="{{ path("affiliate.list_page") }}">{{ "breadcrumb.list"|trans({},"CustomerBundle") }}</a>
+    </li>
+    <li class="active">
+        {{ "menus.Create"|trans({},"CustomerBundle") }}
+    </li>
+{%- endblock %}
+
+{% block page %}
+    <div class="col-sm-12">
+        <div class="card-box">
+            <div class="customerList">
+                {% include "CustomerBundle:Affiliate:form.html.twig" %}
+            </div>
+        </div>
+            
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ form_javascript(form) }}
+    <script type="text/javascript" src="{{ asset('bundles/customer/js/customer/form.js') }}"></script>
+    <script type="text/javascript">
+    $(function(){
+        $('#{{ form.vars.id }}').form({
+            'action': '{{ form.vars.action }}',
+            'ajax': {
+                'success': function (data) {
+                    if (data.success) {
+                        notification('Saved', 'You have successfully saved an affiliate', 'success');
+                        setTimeout(function () {
+                            window.location = data.link;
+                        }, 2000);
+                    } else if (typeof data.errors !== 'undefined') {
+                        for (var i in data.errors) {
+                            var error = data.errors[i];
+                            $('#' + error.formId)
+                                .closest('.form-group').addClass('has-error')
+                                .find('.help-block ul')
+                                .append('<li>' + error.message + '</li>');
+                        }
+                        notification('Validation Failed', 'Some fields are invalid', 'error');
+                    }
+                },
+                'beforeSend': function (xhr, settings) {
+                    $('#{{ form.vars.id }}').find('.form-group').removeClass('has-error');
+                    $('#{{ form.vars.id }}').find('.help-block ul li').remove();
+                    $('#btnSave').attr('disabled', 'disabled');
+                },
+                'complete': function (xhr, textStatus) {
+                    $('#btnSave').removeAttr('disabled');
+                }
+            }
+        });
+
+        $('#btnSave').click(function () {
+            $('#{{ form.vars.id }}').submit();
+        });
+
+        $('#{{ form.btnGroup.cancelAffiliate.vars.id }}').click(function() {
+            window.location = "{{ path('affiliate.list_page') }}";
+        });
+    });
+
+    </script>
+{% endblock %}

@@ -1,0 +1,123 @@
+DbBundle\Entity\Product:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+            fields: code
+            groups: ['default']
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+            fields: name
+            groups: ['default']
+    properties:
+        code:
+            - NotBlank:
+                groups: ['default']
+            - Length:
+                min: 2
+                minMessage: code.min
+                max: 3
+                maxMessage: code.max
+                groups: ['default']
+            - Regex:
+                groups: ['default']
+                pattern: '/^[A-Z]+$/'
+                match: true
+                message: Product code must have capital characters only.
+        name:
+            - NotBlank:
+                groups: ['default']
+            - Length:
+                min: 4
+                minMessage: name.min
+                max: 64
+                maxMessage: name.max
+                groups: ['default']
+            - Regex:
+                groups: ['default']
+                pattern: '/^[a-zA-Z0-9\s?]+$/'
+                match: true
+                message: Product name allows alphanumeric characters and spaces only.
+
+ProductBundle\Request\ProductFormRequest:
+    constraints:
+        - AppBundle\Validator\Constraints\Unique:
+            entityClass: DbBundle\Entity\Product
+            select: " e.code "
+            expression: " e.code = :code and e.id <> :id"
+            expressionParams:
+                id: "object.getId()"
+                code: "object.getCode()"
+            groups: ['update']
+            message: "Code already exists"
+            errorPath: 'code'
+        - AppBundle\Validator\Constraints\Unique:
+            entityClass: DbBundle\Entity\Product
+            select: " e.name "
+            expression: " e.name = :name and e.id <> :id"
+            expressionParams:
+                id: "object.getId()"
+                name: "object.getName()"
+            groups: ['update']
+            message: "Name already exists"
+            errorPath: 'name'
+        - AppBundle\Validator\Constraints\Unique:
+            entityClass: DbBundle\Entity\Product
+            select: " e.code "
+            expression: " e.code = :code"
+            expressionParams:
+                code: "object.getCode()"
+            groups: ['new']
+            message: "Code already exists"
+            errorPath: 'code'
+        - AppBundle\Validator\Constraints\Unique:
+            entityClass: DbBundle\Entity\Product
+            select: " e.name "
+            expression: " e.name = :name"
+            expressionParams:
+                name: "object.getName()"
+            groups: ['new']
+            message: "Name already exists"
+            errorPath: 'name'
+
+    properties:
+        code:
+            - NotBlank:
+                groups: ['default']
+            - Length:
+                min: 2
+                minMessage: code.min
+                max: 3
+                maxMessage: code.max
+                groups: ['default']
+            - Regex:
+                groups: ['default']
+                pattern: '/^[A-Z]+$/'
+                match: true
+                message: Product code must have capital characters only.
+        name:
+            - NotBlank:
+                groups: ['default']
+            - Length:
+                min: 4
+                minMessage: name.min
+                max: 64
+                maxMessage: name.max
+                groups: ['default']
+            - Regex:
+                groups: ['default']
+                pattern: '/^[a-zA-Z0-9\s?]+$/'
+                match: true
+                message: Product name allows alphanumeric characters and spaces only.
+        commission:
+            - NotBlank:
+                groups: ['default']
+            - Regex:
+                groups: ['default']
+                pattern: '/^(0|[1-9]\d*)(\.\d+)?$/'
+                match: true
+                message: Invalid commission value.
+            - LessThan:
+                groups: ['default']
+                value: 100
+                message: Default commission should be less than 100.
+            - AppBundle\Validator\Constraints\DecimalLength:
+                groups: ['default']
+                length: 10

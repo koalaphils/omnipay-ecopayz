@@ -1,0 +1,80 @@
+DbBundle\Entity\Gateway:
+    type: entity
+    table: gateway
+    repositoryClass: DbBundle\Repository\GatewayRepository
+    id:
+        id:
+            type: integer
+            id: true
+            generator:
+                strategy: AUTO
+            column: gateway_id
+            options:
+                unsigned: true
+    indexes:
+        UNIQ_20170719002312:
+            columns: [ gateway_name, gateway_currency_id ]
+    fields:
+        name:
+            type: string
+            length: '64'
+            column: gateway_name
+        balance:
+            type: decimal
+            precision: '65'
+            scale: '10'
+            column: gateway_balance
+            options:
+                default: 0
+        paymentOption:
+            type: string
+            column: gateway_payment_option
+            nullable: true
+        isActive:
+            type: boolean
+            column: gateway_is_active
+            options:
+                default: 1
+        createdBy:
+            type: bigint
+            column: gateway_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: gateway_created_at
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: gateway_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            column: gateway_updated_at
+            nullable: true
+        details:
+            type: json
+            column: gateway_details
+        levels:
+            type: json
+            column: gateway_levels
+    manyToOne:
+        paymentOptionEntity:
+            targetEntity: DbBundle\Entity\PaymentOption
+            joinColumn:
+                name: gateway_payment_option
+                referencedColumnName: payment_option_code
+            nullable: true
+        currency:
+            targetEntity: DbBundle\Entity\Currency
+            joinColumn:
+                nullable: false
+                name: gateway_currency_id
+                referencedColumnName: currency_id
+    oneToMany:
+        groups:
+            targetEntity: DbBundle\Entity\CustomerGroupGateway
+            mappedBy: gateway
+            cascade: ['persist']
+    lifecycleCallbacks: {  }

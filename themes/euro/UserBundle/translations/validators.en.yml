@@ -1,0 +1,12 @@
+username:
+    regex: Username accepts letters and numbers only
+    min: Username must be at least {{ limit }} characters long
+    max: Username cannot be longer than {{ limit }} chatacters
+password:
+    min: Password must be at least {{ limit }} characters long
+    mismatch: The password fields must match.
+    regex: Password must be at least 8 characters, contain at least 2 letters, 2 digits and 2 symbols.
+transactionPassword:
+    regex: Password must be alphanumeric and have atleast 1 capital letter.
+type:
+    choice: Choose a valid user type

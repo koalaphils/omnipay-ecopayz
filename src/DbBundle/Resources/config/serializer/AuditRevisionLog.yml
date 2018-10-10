@@ -1,0 +1,13 @@
+DbBundle\Entity\AuditRevisionLog:
+    exclusion_policy: ALL
+    virtual_properties:
+        label:
+            exp: "object.getLabel()"
+        fields:
+            exp: "object.getFields()"
+        entityDetails:
+            exp: "object.getEntityDetails()"
+        categoryKey:
+            exp: "object.getCategoryKey()"
+        operationKey:
+            exp: "object.getOperationKey()"

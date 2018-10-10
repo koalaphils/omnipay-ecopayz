@@ -1,0 +1,129 @@
+template: MemberBundle:Member:create.html.twig
+roles: ROLE_CUSTOMER_CREATE
+widgets:
+    createForm:
+        type: \AppBundle\Widget\Page\FormWidget
+        properties:
+            modelClass: \MemberBundle\Request\CreateMemberRequest
+            handler: '@member.handler.create_member::handle'
+            groups:
+                Customer:
+                    class: card-box
+                    groups:
+                        Left:
+                            size: 6
+                        Right:
+                            size: 6
+            useTab: false
+            redirectOnSuccess:
+                route: member.update_page
+                params:
+                    id: data.getId()
+                    activeTab:
+                        type: static
+                        value: profile
+            cancelPath:
+                route: member.list_page
+            notifications:
+                success:
+                    message: You have successfully added new member
+                    title: Success
+            fields:
+                username:
+                    type: text
+                    options:
+                        label: Username
+                    size: 12
+                    group: Left
+                email:
+                    options:
+                        label: Email
+                    type: email
+                    size: 12
+                    group: Left
+                password:
+                    options:
+                        label: Password
+                    type: password
+                    group: Left
+                confirmPassword:
+                    options:
+                        label: Confirm Password
+                    type: password
+                    group: Left
+                status:
+                    options:
+                        label: Status
+                        required: false
+                    type: switch
+                    group: Left
+                fullName:
+                    options:
+                        label: Full Name
+                    type: text
+                    group: Left
+                    size: 12
+                referal:
+                    options:
+                        label: Affiliates
+                        required: false
+                    type: select2
+                    group: Right
+                    size: 12
+                    isAjax: true
+                    ajax:
+                        request: onFindMembers
+                    transformer:
+                        model: '@member.transformer.referrerTransformer'
+                birthDate:
+                    type: date
+                    options:
+                        label: Birth Date
+                        widget: 'single_text'
+                        format: 'M/dd/yyyy'
+                    group: Right
+                    size: 12
+                country:
+                    options:
+                        label: Country
+                    type: choices
+                    group: Right
+                    size: 12
+                    choicesFrom:
+                        function: '@country.manager::getCountryList'
+                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
+                        value: result['id']
+                        preselect: false
+                currency:
+                    options:
+                        label: Currency
+                    type: choices
+                    group: Right
+                    size: 12
+                    choicesFrom:
+                        function: '@currency.manager::getCurrencyList'
+                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
+                        value: result['id']
+                        preselect: false
+                joinedAt:
+                    options:
+                        label: Date Joined
+                        widget: 'single_text'
+                        format: 'M/dd/yyyy h:mm:ss a'
+                    type: datetime
+                    group: Right
+                    size: 12
+                groups:
+                    options:
+                        label: Groups
+                        multiple: true
+                    type: choices
+                    group: Right
+                    size: 12
+                    choicesFrom:
+                        function: 'controller::getMemberGroups'
+                        label: result.getName()
+                        value: result.getId()
+                    defaultFrom:
+                        label: result.getName()
+                        value: result.getId()

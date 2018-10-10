@@ -1,0 +1,230 @@
+report:
+    resource: "@ReportBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+payum_all:
+    resource: "@PayumBundle/Resources/config/routing/all.xml"
+
+payment:
+    resource: "@PaymentBundle/Resources/config/routing.yml"
+
+payment_option:
+    resource: "@PaymentOptionBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/paymentoptions
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+api:
+    resource: "@ApiBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/api
+    requirements:
+        _locale: "%app_locales%"
+        _format: json|xml
+    defaults:
+        _locale: "%locale%"
+
+brokerage_api:
+    resource: "@BrokerageBundle/Resources/config/routing_api.yml"
+    prefix:   /{_locale}/api
+    requirements:
+        _locale: "%app_locales%"
+        _format: json|xml
+    defaults:
+        _locale: "%locale%"
+
+brokerage:
+    resource: "@BrokerageBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/brokerage
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+fos_oauth_server_token:
+    resource: "@FOSOAuthServerBundle/Resources/config/routing/token.xml"
+
+fos_oauth_server_authorize:
+    resource: "@FOSOAuthServerBundle/Resources/config/routing/authorize.xml"
+
+dwl:
+    resource: "@DWLBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/dwl
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+media:
+    resource: "@MediaBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/media
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+bonus:
+    resource: "@BonusBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/bonus
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+transaction:
+    resource: "@TransactionBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/transaction
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+ticket:
+    resource: "@TicketBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/ticket
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+#zendesk:
+#    resource: "@ZendeskBundle/Resources/config/routing.yml"
+#    prefix:   /{_locale}/zendesk
+#    requirements:
+#        _locale: "%app_locales%"
+#    defaults:
+#        _locale: "%locale%"
+
+affiliate:
+    resource: "@CustomerBundle/Resources/config/affiliate_routing.yml"
+    prefix:   /{_locale}/affiliate
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+customer:
+    resource: "@CustomerBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/customer
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+member:
+    resource: "@MemberBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/members
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+notice:
+    resource: "@NoticeBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/notice
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+gateway:
+    resource: "@GatewayBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/gateway
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+product:
+    resource: "@ProductBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/product
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+country:
+    resource: "@CountryBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/country
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+currency:
+    resource: "@CurrencyBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/currency
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+user:
+    resource: "@UserBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/user
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+group:
+    resource: "@GroupBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/group
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+app:
+    resource: "@AppBundle/Resources/config/routing.yml"
+    prefix: /{_locale}
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+gateway_transaction:
+    resource: "@GatewayTransactionBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/gateway-transaction
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+gateway_log:
+    resource: "@GatewayTransactionBundle/Resources/config/log_routing.yml"
+    prefix:   /{_locale}/gateway-history
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+audit:
+    resource: "@AuditBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/audit
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+commission:
+    resource: "@CommissionBundle/Resources/config/routing.yml"
+    prefix: /{_locale}/commission
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
+root:
+    path: /{path}
+    defaults:
+        _controller: AppBundle:Default:redirect
+        path: ""
+    requirements:
+        path: .*
+

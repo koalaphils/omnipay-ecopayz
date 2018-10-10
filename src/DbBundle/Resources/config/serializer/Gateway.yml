@@ -1,0 +1,17 @@
+DbBundle\Entity\Gateway:
+    exclusion_policy: ALL
+    properties:
+        id:
+            expose: true
+        name:
+            expose: true
+        details:
+            groups: ['details']
+        levels:
+            groups: ['levels']
+        groups:
+            groups: ['groups']
+        balance:
+            groups: ['balance']
+        currency:
+            groups: ['currency']

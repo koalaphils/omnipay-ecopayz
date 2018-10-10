@@ -1,0 +1,59 @@
+DbBundle\Entity\Bonus:
+    type: entity
+    table: bonus
+    repositoryClass: DbBundle\Repository\BonusRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: bonus_id
+            options:
+                unsigned: true
+    fields:
+        subject:
+            type: string
+            length: '64'
+            column: bonus_subject
+        startAt:
+            type: datetime
+            column: bonus_start_at
+        endAt:
+            type: datetime
+            column: bonus_end_at
+        isActive:
+            type: boolean
+            column: bonus_is_active
+            options:
+                default: 1
+        terms:
+            type: text
+            column: bonus_terms
+        image:
+            type: json
+            nullable: true
+            column: bonus_image
+        deletedAt:
+            type: datetime
+            nullable: true
+            column: bonus_deleted_at
+        createdBy:
+            type: bigint
+            column: bonus_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: bonus_created_at
+        updatedBy:
+            type: bigint
+            column: bonus_updated_by
+            nullable: true
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            column: bonus_updated_at
+            nullable: true
+    lifecycleCallbacks: {  }

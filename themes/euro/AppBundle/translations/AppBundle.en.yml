@@ -1,0 +1,119 @@
+menus:
+    Navigation: Navigation
+    Profile: Profile
+    Settings: Settings
+    Logout: Logout
+    Lock Screen: Lock Screen
+    Dashboard: Dashboard
+    List: List
+    Create: Create
+    Update: Update
+    View: View
+    Setting: Setting
+    Reply: Reply
+
+breadcrumb:
+    finance: Finance
+    member: Member
+    transaction: Transaction
+    marketing: Marketing
+    report: Report
+    admin: Admin
+    setting: Setting
+    memberSummary: Member Summary
+    paymentGateway: Payment Gateway Summary
+    productSummary: Product Summary
+
+page:
+    title:
+        main: AC66 CMS
+        login: Login
+        dashboard: Dashboard
+        setting:
+                maintenance: Settings | Maintenance
+                paymentOption: Settings | Payment Options
+                scheduler: Settings | Task Scheduler
+
+
+layout:
+    Notification: Notification
+    New: New
+    See all notifications: See all notifications
+    All rights reserved: All rights reserved
+
+login:
+    Sign In to: Sign In to
+    Log In: Log In
+    Forgot your password: Forgot your password
+    Username: Username
+    Password: Password
+
+form:
+    optional: Optional
+    save: Save
+    delete: Delete
+    cancel: Cancel
+    send: Send
+    confirm: Confirm
+    cancel: Cancel
+
+fields:
+    action: Action
+
+roles:
+    superAdmin: Super Admin
+    groups:
+        system: System
+    api: Acess API
+    maintenance: Maintenance
+    updateSettings: Update Settings
+    scheduler: Scheduler
+
+settings:
+    maintenance:
+        label: Maintenance
+        fields:
+            enabled: Enable Maintenance
+    paymentOption:
+        label: Payment Options
+        fields:
+            code: Code
+            label: Label
+            isActive: Is Active
+            autoDecline: Auto Decline
+            sort: Sort
+            isRequired: Is Required
+            isUnique: Is Unique
+    scheduler:
+        label: Task Scheduler
+        fields:
+            enabled: Auto Decline
+            minutesInterval: Interval in minutes
+
+
+notification:
+    setting:
+        title: Saved
+        message: Setting was successfully Saved
+    paymentoption:
+        title: Saved
+        message: Payment Options was successfully saved.
+    scheduler:
+        title: Saved
+        message: Task was successfully Saved
+        message_failed: Invalid field
+
+confirm:
+    header: Delete
+    messageTicket: Are you sure that you want to delete this ticket?
+
+email:
+    subject:
+        welcome: New Member Registration %fullName%
+        welcomeAffiliate: New Affiliate Registration %fullName%
+        activation: Please verify your account!
+        activated: Starting betting with Asianconnect! 
+        resetPassword: 'Asianconnect: Reset password request!'
+
+
+Account is disabled.: User is inactive. Please contact System Administrator.

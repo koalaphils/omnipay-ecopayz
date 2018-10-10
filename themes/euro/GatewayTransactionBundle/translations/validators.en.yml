@@ -1,0 +1,24 @@
+gatewayTransaction:
+    number:
+        unique: This number is already used.
+    type:
+        choice: Types should be deposit, withdraw or transfer only.
+    amount:
+        expression: Amount should not be less than the fee.
+    amountTo:
+        expression: Amount should not be less than the fee.
+    gateway:
+        expression: Gateways selected should not be the same.
+    gatewayTo:
+        expression: Gateways selected should not be the same.
+    code:
+        min: Currency code must be at least {{ limit }} characters long
+        max: Currency code cannot be longer than {{ limit }} chatacters
+        regex: Currency code should contain only alphanumeric characters.
+    status:
+        choice: Status should be pending or approved only.
+    details:
+        notes:
+            regex: Only accepts letters, numbers, space, dot, dash, comma and hash.
+        reason:
+            regex: Only accepts letters, numbers, space, dot, dash, comma and hash.

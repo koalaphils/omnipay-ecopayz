@@ -1,0 +1,33 @@
+DbBundle\Entity\Gateway:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+            fields: [name, currency]
+            groups: ['default']
+    properties:
+        name:
+            - NotBlank:
+                groups: ['default']
+            - Length:
+                groups: ['default']
+                min: 4
+                max: 64
+                minMessage: gateway.name.min
+                maxMessage: gateway.name.max
+            - Regex:
+                groups: ['default']
+                pattern: '/^[A-Za-z0-9\s\P{Han}]*$/u'
+                match: true
+                message: gateway.name.regex
+        currency:
+            - NotBlank:
+                groups: ['default']
+        balance:
+            - NotBlank:
+                groups: ['default']
+            - Type:
+                type: numeric
+                groups: ['default']
+                message: gateway.balance.type
+        paymentOption:
+            - NotBlank:
+                groups: ['default']

@@ -1,0 +1,50 @@
+DbBundle\Entity\CustomerPaymentOption:
+    type: entity
+    table: customer_payment_option
+    repositoryClass: DbBundle\Repository\CustomerPaymentOptionRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: customer_payment_option_id
+    fields:
+        isActive:
+            type: boolean
+            column: customer_payment_option_is_active
+        fields:
+            type: json
+            column: customer_payment_option_fields
+        createdBy:
+            type: bigint
+            nullable: true
+            column: customer_payment_option_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: customer_payment_option_created_at
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: customer_payment_option_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            column: customer_payment_option_updated_at
+            nullable: true
+    manyToOne:
+        paymentOption:
+            targetEntity: DbBundle\Entity\PaymentOption
+            joinColumn:
+                name: customer_payment_option_type
+                referencedColumnName: payment_option_code
+        customer:
+            targetEntity: DbBundle\Entity\Customer
+            inversedBy: paymentOptions
+            joinColumn:
+                name: customer_payment_options_customer_id
+                referencedColumnName: customer_id
+    lifecycleCallbacks: {  }

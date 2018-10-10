@@ -1,0 +1,49 @@
+services:
+    # websocket.rpc_manager:
+    #     class: WebSocketBundle\Manager\RpcManager
+        
+    # websocket.topic_manager:
+    #     class: WebSocketBundle\Manager\TopicManager
+    
+    # websocket.authorization_manager:
+    #     class: WebSocketBundle\Security\AuthorizationManager
+    #     arguments:
+    #         - "%voryx_thruway.realm%"
+    #     calls:
+    #         - [ setContainer, ['@service_container']]
+            
+    # jwt_auth_provider:
+    #     class: WebSocketBundle\Security\JwtAuthProvider
+    #     arguments:
+    #         - ["@=parameter('voryx_thruway')['realm']"]
+    #         - "%jwt_key%"
+    #     tags:
+    #         - { name: thruway.internal_client }
+    #     calls:
+    #         - [ setContainer, ['@service_container'] ]
+    
+    # websocket.cms_rpc:
+    #     class: WebSocketBundle\Rpc\CMSRpc
+    #     arguments: [ "@app.setting_manager", "@websocket.authorization_manager", "@jwt_auth_provider" ]
+    #     tags:
+    #         - { name: websocket.rpc, uri: counter.get, method: getCounter }
+    #         - { name: websocket.rpc, uri: counter.set, method: setCounter, disclose_caller: true, then: onUpdateCounter}
+    
+    # websocket.notification_topic:
+    #     class: WebSocketBundle\Topic\NotificationTopic
+    #     tags:
+    #         - { name: websocket.topic, uri: notifications }
+            
+    # websocket.transaction_listener:
+    #     class: WebSocketBundle\Listener\TransactionListener
+    #     calls:
+    #         - [ setContainer, [ "@service_container" ] ]
+    #     tags:
+    #         - { name: doctrine.event_listener, event: postPersist }
+    #         - { name: doctrine.event_listener, event: postUpdate }
+
+    websocket.customer_subscriber:
+        class: WebSocketBundle\EventSubscriber\CustomerSubscriberForWebsocket
+        arguments: ['@app.publisher']
+        tags:
+            - { name: kernel.event_subscriber }

@@ -1,0 +1,28 @@
+DbBundle\Entity\AuditRevisionLog:
+    type: entity
+    table: audit_revision_log
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: audit_revision_log_id
+            options:
+                unsigned: true
+    fields:
+        details:
+            type: json
+            column: audit_revision_log_details
+        operation:
+            type: smallint
+            column: audit_revision_log_operation
+        category:
+            type: smallint
+            column: audit_revision_log_category
+    manyToOne:
+        auditRevision:
+            targetEntity: DbBundle\Entity\AuditRevision
+            joinColumn:
+                name: audit_revision_log_audit_revision_id
+                referencedColumnName: audit_revision_id

@@ -1,0 +1,12 @@
+services:
+    api.banner_image.manager:
+        class: ApiBundle\Manager\BannerImageManager
+        parent: app.base_manager
+
+    api.member_banner.manager:
+        class: ApiBundle\Manager\MemberBannerManager
+        parent: app.base_manager
+
+    api.member.manager:
+        class: ApiBundle\Manager\MemberManager
+        parent: app.base_manager

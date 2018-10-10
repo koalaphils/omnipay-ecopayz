@@ -1,0 +1,133 @@
+DbBundle\Entity\User:
+    type: entity
+    table: user
+    repositoryClass: DbBundle\Repository\UserRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: user_id
+            options:
+                unsigned: true
+    indexes:
+        email_index:
+            columns: [user_email]
+        username_index:
+            columns: [user_username]
+    uniqueConstraints:
+        username_unq:
+            columns: [user_username, user_type]
+        email_unq:
+            columns: [user_email, user_type]
+    fields:
+        username:
+            type: string
+            length: 255
+            column: user_username
+            options:
+                collation: utf8_bin 
+        password:
+            type: string
+            length: 255
+            column: user_password
+        email:
+            type: string
+            length: 255
+            column: user_email
+        type:
+            type: integer
+            length: 1
+            column: user_type
+            options:
+                default: 1
+        isActive:
+            type: boolean
+            options:
+                default: true
+            column: user_is_active
+        roles:
+            type: json
+            column: user_roles
+            nullable: true
+        deletedAt:
+            type: datetime
+            nullable: true
+            column: user_deleted_at
+        zendeskId:
+            type: bigint
+            nullable: true
+            column: user_zendesk_id
+        userKey:
+            type: string
+            length: 255
+            nullable: true
+            column: user_key
+        activationCode:
+            type: string
+            length: 150
+            column: user_activation_code
+            nullable: true
+        activationSentTimestamp:
+            type: datetime
+            nullable: true
+            column: user_activation_sent_timestamp
+        activationTimestamp:
+            type: datetime
+            nullable: true
+            column: user_activation_timestamp
+        createdBy:
+            type: bigint
+            nullable: true
+            column: user_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: user_created_at
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: user_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            column: user_updated_at
+            nullable: true
+        preferences:
+            type: json
+            column: user_preferences
+        resetPasswordCode:
+            type: string
+            length: 150
+            column: user_reset_password_code
+            nullable: true
+        resetPasswordSentTimestamp:
+            type: datetime
+            nullable: true
+            column: user_reset_password_sent_timestamp
+    manyToOne:
+        group:
+            targetEntity: DbBundle\Entity\UserGroup
+            joinColumn:
+                name: user_group_id
+                referencedColumnName: group_id
+        creator:
+            targetEntity: DbBundle\Entity\User
+            joinColumn:
+                name: user_created_by
+                referencedColumnName: user_id
+            nullable: true
+    oneToOne:
+        customer:
+            targetEntity: DbBundle\Entity\Customer
+            mappedBy: user
+            nullable: true
+    oneToMany:
+        auditRevision:
+            targetEntity: DbBundle\Entity\AuditRevision
+            mappedBy: user
+            cascade: [ persist ]
+    lifecycleCallbacks: {  }

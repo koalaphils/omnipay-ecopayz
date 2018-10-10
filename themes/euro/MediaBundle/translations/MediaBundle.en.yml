@@ -1,0 +1,10 @@
+page:
+    title:
+        media: Media
+    media: Media Manager
+    
+notification:
+    deleted:
+        success:
+            title: Deleted
+            message: Successfully deleted

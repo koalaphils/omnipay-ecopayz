@@ -1,0 +1,5 @@
+services:
+    api.member.create_banner.request_handler:
+        class: ApiBundle\RequestHandler\CreateMemberBannerRequestHandler
+        lazy: true
+        arguments: ["@doctrine"]

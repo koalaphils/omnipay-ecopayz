@@ -1,0 +1,32 @@
+DbBundle\Entity\AuditRevision:
+    type: entity
+    table: audit_revision
+    repositoryClass: DbBundle\Repository\AuditRevisionRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: audit_revision_id
+            options:
+                unsigned: true
+    fields:
+        timestamp:
+            type: datetime
+            column: audit_revision_timestamp
+        clientIp:
+            type: string
+            length: 255
+            column: audit_revision_client_ip
+    oneToMany:
+        logs:
+            targetEntity: DbBundle\Entity\AuditRevisionLog
+            mappedBy: auditRevision
+            cascade: ['persist']
+    manyToOne:
+        user:
+            targetEntity: DbBundle\Entity\User
+            joinColumn:
+                name: audit_revision_user_id
+                referencedColumnName: user_id

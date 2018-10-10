@@ -1,0 +1,70 @@
+DbBundle\Entity\ProductCommission:
+    type: entity
+    table: product_commission
+    repositoryClass: DbBundle\Repository\ProductCommissionRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: product_commission_id
+            options:
+                unsigned: true
+    indexes:
+        resource_index:
+            columns: [product_commission_resource_id]
+        version_index:
+            columns: [product_commission_version]
+        member_index:
+            columns: [product_commission_product_id]
+        isLatest_index:
+            columns: [product_commission_is_latest]
+    uniqueConstraints:
+        resource_version_unq:
+            columns: [product_commission_resource_id, product_commission_version]
+        product_version_unq:
+            columns: [product_commission_product_id, product_commission_version]
+    fields:
+        resourceId:
+            type: string
+            nullable: false
+            column: product_commission_resource_id
+        version:
+            type: integer
+            nullable: false
+            column: product_commission_version
+            options:
+                unsigned: true
+                default: 1
+        commission:
+            type: decimal
+            precision: 65
+            scale: 10
+            options:
+                default: 0
+            column: product_commission_commission
+            nullable: false
+        isLatest:
+            type: boolean
+            column: product_commission_is_latest
+            nullable: false
+            options:
+                default: 1
+                unsigned: true
+        createdBy:
+            type: bigint
+            column: product_commission_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: product_commission_created_at
+            nullable: false
+    manyToOne:
+        product:
+            targetEntity: DbBundle\Entity\Product
+            joinColumn:
+                nullable: false
+                name: product_commission_product_id
+                referencedColumnName: product_id

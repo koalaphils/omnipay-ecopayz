@@ -1,0 +1,173 @@
+DbBundle\Entity\Customer:
+    properties:
+        fName:
+            - NotBlank:
+                groups: ['default']
+            - Length:
+                min: 1
+                minMessage: customer.fName.min
+                max: 64
+                maxMessage: customer.fName.max
+                groups: ['default']
+            - Regex:
+                groups: ['default']
+                pattern: '/^[A-Za-z0-9\s\P{Han}]*$/u'
+                match: true
+                message: customer.fName.regex
+        mName:
+            - Length:
+                min: 1
+                minMessage: customer.mName.min
+                max: 64
+                maxMessage: customer.mName.max
+                groups: ['default']
+            - Regex:
+                groups: ['default']
+                pattern: '/^[A-Za-z0-9\s\P{Han}]*$/u'
+                match: true
+                message: customer.mName.regex
+        lName:
+            - NotBlank:
+                groups: ['default']
+            - Length:
+                min: 1
+                minMessage: customer.lName.min
+                max: 64
+                maxMessage: customer.lName.max
+                groups: ['default']
+            - Regex:
+                groups: ['default']
+                pattern: '/^[A-Za-z0-9\s\P{Han}]*$/u'
+                match: true
+                message: customer.lName.regex
+        birthDate:
+            - NotBlank:
+                groups: ['default']
+            - Date:
+                groups: ['default']
+            - GreaterThanOrEqual:
+                value: -100 years
+                groups: ['default']
+                message: customer.birthDate.valid
+            - LessThanOrEqual:
+                value: -18 years
+                groups: ['default']
+                message: customer.birthDate.valid
+        joinedAt:
+            - NotBlank:
+                groups: ['default']
+            - LessThanOrEqual:
+                value: tomorrow
+                groups: ['default']
+                message: customer.joinedAt.invalid
+        currency:
+            - NotBlank:
+                groups: ['default']
+        country:
+            - NotBlank:
+                groups: ['default']
+        balance:
+            - NotBlank:
+                groups: ['default']
+            - Type:
+                type: numeric
+                groups: ['default']
+                message: customer.balance.type
+
+        transactionPassword:
+            - NotBlank:
+                groups: ['withTransactionPassword']
+        groups:
+            - NotBlank:
+                groups: ['customer']
+            - Count:
+                min: 1
+                groups: ['customer']
+                minMessage: Customer must have at least one group.
+
+DbBundle\Entity\CustomerProduct:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+            fields: [userName, product]
+            groups: ['default']
+            message: customerProduct.duplicate
+        - AppBundle\Validator\Constraints\Unique:
+            groups: ['default']
+            entityClass: DbBundle\Entity\CustomerProduct
+            expression: "JSON_UNQUOTE(JSON_EXTRACT(e.details, '$.brokerage.sync_id')) = :brokerageSyncId"
+            expressionParams:
+                brokerageSyncId: object.getBrokerageSyncId()
+            validator: unique_json
+            errorPath: brokerageSyncId
+            violationValues:
+                --firstname: object.getBrokerageFirstName()
+                --lastname: object.getBrokerageLastName()
+            message: "--firstname --lastname already in used."
+    properties:
+        balance:
+            - NotBlank:
+                groups: ['withBalance']
+            - Type:
+                type: numeric
+                groups: ['default']
+                message: customerProduct.balance.type
+        userName:
+            - NotBlank:
+                groups: ['default']
+            - Regex:
+                pattern: '/^[A-Za-z0-9\s\P{Han}]*$/u'
+                match: true
+                message: customerProduct.userName.regex
+                groups: ['default']
+            - Length:
+                min: 4
+                max: 100
+                minMessage: customerProduct.userName.min
+                maxMessage: customerProduct.userName.max
+                groups: ['default']
+
+DbBundle\Entity\CustomerGroup:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+            fields: name
+            groups: ['Default']
+    properties:
+        name:
+            - NotBlank:
+                groups: ['Default']
+
+DbBundle\Entity\CustomerGroupGateway:
+    constraints:
+        - Callback: [CustomerBundle\Validator\CustomerGroupValidator, validateUniqueGateway]
+    properties:
+        gateway:
+            - NotBlank:
+                groups: ['Default']
+        customerGroup:
+            - NotBlank:
+                groups: ['Default']
+        conditions:
+            - NotBlank: ~
+            
+DbBundle\Entity\RiskSetting:
+    properties:
+        riskId:
+            - NotBlank:
+                groups: ['Default']
+        isActive:
+            - Type:
+                type: bool
+                groups: ['Default']
+
+DbBundle\Entity\ProductRiskSetting:
+    properties:
+        riskSettingPercentage:
+            - NotBlank:
+                groups: ['Default']
+            - Type:
+                type: numeric
+                groups: ['Default']
+            - Range:
+                min: 0
+                max: 100
+                groups: ['Default']

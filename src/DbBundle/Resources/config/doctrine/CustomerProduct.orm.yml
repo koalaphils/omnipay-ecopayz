@@ -1,0 +1,95 @@
+DbBundle\Entity\CustomerProduct:
+    type: entity
+    table: customer_product
+    repositoryClass: DbBundle\Repository\CustomerProductRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: cproduct_id
+            options:
+                unsigned: true
+    indexes:
+        userName_index:
+            columns: [cproduct_username]
+        productID_index:
+            columns: [cproduct_product_id]
+        bet_sync_id_index:
+            columns: [cproduct_bet_sync_id]
+    uniqueConstraints:
+        username_unq:
+            columns: [cproduct_username, cproduct_product_id]
+    fields:
+        customerID:
+            type: bigint
+            column: cproduct_customer_id
+            options:
+                unsigned: true
+        userName:
+            type: string
+            length: 100
+            column: cproduct_username
+        productID:
+            type: integer
+            column: cproduct_product_id
+            options:
+                unsigned: true
+        balance:
+            type: decimal
+            column: cproduct_balance
+            precision: 65
+            scale: 10
+            options:
+                default: 0
+        isActive:
+            type: boolean
+            column: cproduct_is_active
+            options:
+                default: 1
+        createdBy:
+            type: bigint
+            column: cproduct_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: cproduct_created_at
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: cproduct_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            nullable: true
+            column: cproduct_updated_at
+        details:
+            type: json
+            nullable: true
+            column: cproduct_details
+        betSyncId:
+            type: bigint
+            options:
+                generate: cproduct_details->"$.brokerage.sync_id"
+                readOnly: true
+            column: cproduct_bet_sync_id
+            nullable: true
+    manyToOne:
+        product:
+            targetEntity: DbBundle\Entity\Product
+            joinColumn:
+                nullable: false
+                name: cproduct_product_id
+                referencedColumnName: product_id
+            fetch: EAGER
+        customer:
+            targetEntity: DbBundle\Entity\Customer
+            inversedBy: products
+            joinColumn:
+                nullable: false
+                name: cproduct_customer_id
+                referencedColumnName: customer_id
+    lifecycleCallbacks: {  }

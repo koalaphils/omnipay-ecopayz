@@ -1,0 +1,63 @@
+DbBundle\Entity\CommissionPeriod:
+    type: entity
+    table: commission_period
+    repositoryClass: DbBundle\Repository\CommissionPeriodRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: commission_period_id
+            options:
+                unsigned: true
+    fields:
+        dwlDateFrom:
+            type: date
+            column: commission_period_date_from
+            nullable: false
+            unique: true
+        dwlDateTo:
+            type: date
+            column: commission_period_date_to
+            nullable: false
+            unique: true
+        payoutAt:
+            type: datetime
+            column: commission_period_payout_at
+            nullable: false
+        status:
+            type: tinyint
+            column: commission_period_status
+            nullable: false
+            options:
+                default: 1
+        details:
+            type: json
+            column: commission_period_details
+        conditions:
+            type: json
+            column: commission_period_conditions
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: commission_period_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            column: commission_period_updated_at
+            nullable: true
+        createdBy:
+            type: bigint
+            column: commission_period_created_by
+            options:
+                unsigned: true
+            nullable: false
+        createdAt:
+            type: datetime
+            column: commission_period_created_at
+            nullable: false
+
+
+

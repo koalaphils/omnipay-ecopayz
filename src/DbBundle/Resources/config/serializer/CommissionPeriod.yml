@@ -1,0 +1,18 @@
+DbBundle\Entity\CommissionPeriod:
+    exclusion_policy: ALL
+    properties:
+        dwlDateFrom:
+            expose: true
+            type: DateTime<'Y-m-d'>
+            groups: ['Default', 'periodBalance']
+        dwlDateTo:
+            expose: true
+            type: DateTime<'Y-m-d'>
+            groups: ['Default', 'periodBalance']
+        payoutAt:
+            expose: true
+            type: DateTime<'Y-m-d H:i:s'>
+            groups: ['Default', 'periodBalance']
+        status:
+            expose: true
+            groups: ['Default', 'periodBalance']

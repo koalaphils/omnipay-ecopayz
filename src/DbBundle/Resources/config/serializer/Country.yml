@@ -1,0 +1,9 @@
+DbBundle\Entity\Country:
+    exclusion_policy: ALL
+    properties:
+        name:
+            expose: true
+        currency:
+            groups: ['currency']
+        code:
+            expose: true

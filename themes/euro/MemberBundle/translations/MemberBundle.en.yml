@@ -1,0 +1,52 @@
+menus:
+    BactToMemberList: Back to Member List
+page:
+    title:
+        list: Member | List
+        create: Member | Create
+        update: Member | Update %fullName%
+    text:
+        Member: Members
+    tab:
+        profile: Profile
+        security: Security
+        contacts: Contacts
+        socials: Socials
+        products: Products
+        transactionHistory: Transaction History
+        payments: Payments
+        referrals: Referrals
+        documents: Documents
+        commissions: Affiliate Setting
+        referralTools : Referral Tools
+
+fields:
+    fullname: Full Name
+    country: Country
+    currency: Currency
+    kyc: KYC
+    dateJoined: Date Joined
+    createdBy: Created By
+    status: Status
+
+notification:
+    unlinkCustomer:
+        success:
+            title: Successful
+            message: Member %name% has been successfully unlinked.
+        error:
+            title: Error
+            message: Member %name% is no longer linked to this affiliate.
+
+
+## General
+Add Member: Add Member
+Create Member: Create Member
+Update Member: Update Member
+Member Group: Member Group
+Member: Member
+Member List: Member List
+
+quickLinks:
+    addMember: Add Member
+    memberGroup: Member Group

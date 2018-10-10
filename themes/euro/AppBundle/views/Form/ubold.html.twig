@@ -1,0 +1,612 @@
+{% use "bootstrap_3_layout.html.twig" %}
+
+{% block form_label_class %}{% endblock form_label_class %}
+{% block form_group_class %}{% endblock form_group_class %}
+
+{% block form_start -%}
+    {% set attr = attr|merge({"id": id}) %}
+    {% if view is defined and view %}
+        {% set attr = attr|merge({class: (attr.class|default('') ~ ' form-horizontal')|trim}) %}
+        <div {% for attrname, attrvalue in attr %} {{ attrname }}="{{ attrvalue }}"{% endfor %}>
+    {% else %}
+        {{- parent() -}}
+    {% endif %}
+{%- endblock form_start %}
+
+{%- block form_end -%}
+    {% if view is defined and view %}
+            <div class="clearfix"></div>
+        </div>
+    {% else %}
+        <div class="clearfix"></div>
+        {{- parent() -}}
+    {% endif %}
+{%- endblock form_end -%}
+
+{%- block form_javascript -%}
+    {% if form.parent is null %}
+        <script type="text/javascript">
+            $(function () {
+                $(document).ajaxStop(function() {
+                    $('#{{ form.vars.id }}').data('initialSate', $('#{{ form.vars.id }}').serialize());
+                });  
+            });
+        </script>
+    {% endif %}
+
+    {% for child in form -%}
+        {{- form_javascript(child) -}}
+    {%- endfor %}
+{% endblock form_javascript %}
+
+{%- block form_stylesheet -%}
+    {% for child in form -%}
+        {{- form_stylesheet(child) -}}
+    {%- endfor %}
+{% endblock form_stylesheet %}
+
+{%- block form_assetcss -%}
+    {% for child in form -%}
+        {{- form_assetcss(child) -}}
+    {%- endfor %}
+    {{ asset_render('css','form.asset') }}
+{% endblock form_assetcss %}
+
+{%- block form_assetjs -%}
+    {% for child in form -%}
+        {{- form_assetjs(child) -}}
+    {%- endfor %}
+    {{ asset_render('js','form.asset') }}
+{% endblock form_assetjs %}
+
+{% block button_javascript '' %}
+{% block button_assetcss '' %}
+{% block button_assetjs '' %}
+{% block button_stylesheet '' %}
+
+{% block form_widget_simple -%}
+    {% if view is defined and view %}
+        {% if type is not defined or type not in ['file', 'hidden'] %}
+            {%- set attr = attr|merge({class: (attr.class|default('') ~ ' form-control')|trim}) -%}
+            <span {{ block('widget_attributes') }}>{% if value is not empty %}{{ value }}{% endif %}</span>
+        {% endif %}
+    {% else %}
+        {{- parent() -}}
+    {% endif %}
+{%- endblock form_widget_simple %}
+
+
+{% block switch_widget %}
+    {% spaceless %}
+        {% if view is defined and view %}
+             {%- set attr = attr|merge({'disabled':'disabled'|trim}) -%}
+        {% endif %}
+        <input type="checkbox" {{ block('widget_attributes') }}{% if value is defined %} value="{{ value }}"{% endif %}{% if checked %} checked="checked"{% endif %} data-plugin="switchery" data-color="#81c868" data-secondary-color="#f05050" />
+    {% endspaceless %}
+{% endblock %}
+
+{% block switch_assetcss %}
+    {{ asset_add('css', absolute_url(asset('assets/plugins/switchery/css/switchery.min.css')), 'form.asset') }}
+{% endblock %}
+
+{% block switch_assetjs %}
+    {{ asset_add('js', absolute_url(asset('assets/plugins/switchery/js/switchery.min.js')), 'form.asset') }}
+{% endblock %}
+
+{% block textarea_widget -%}
+    {% if view|default(false) %}
+        {% set attr = attr|merge({class: (attr.class|default('') ~ ' form-control')|trim}) %}
+        <div {{ block('widget_attributes') }} style="min-height: 90px">{{ value }}</div>
+    {% else %}
+    {{- parent() -}}
+    {% endif %}
+{%- endblock %}
+
+{% block select2_widget %}
+    {% spaceless %}
+        {%- set attr = attr|merge({class: (attr.class|default('') ~ ' form-control')|trim}) -%}
+        {%- set attr = attr|merge({'multiple': multiple}) -%}
+        {%- set required = false -%}
+        <select {{ block('widget_attributes') }} >
+        </select>
+    {% endspaceless %}
+{% endblock %}
+
+{% block select2_javascript %}
+    {% set view = view|default(false) %}
+    <script type="text/javascript">
+        $(function() {
+            $('#{{ id }}').select2({
+                'data': {{ value|json_encode()|raw }},
+                'allowClear': true,
+                'ajax': {
+                    'data': function(params) {
+                        var page = params.page || 1;
+                        var length = $('#{{ id }}').data('length');
+                        var start = (page - 1) * length;
+
+                        return {
+                            'idColumn': $('#{{ id }}').data('id-column'),
+                            'select2': 1,
+                            'search': params.term,
+                            'length': length,
+                            'start': start
+                        };
+                    },
+                    'processResults': function(data, params) {
+                        var page = params.page || 1;
+
+                        return {
+                            'results': data.items,
+                            'pagination': {
+                                'more': (page * $('#{{ id }}').data('length')) < data.recordsFiltered
+                            }
+                        };
+                    }
+                },
+                'templateResult': function(data) {
+                    if(window[$('#{{ id }}').data('useTemplateResult')]) {
+                        return window[$('#{{ id }}').data('useTemplateResult')](data);
+                    }
+                    if(data.id === null || data.id === '' || !data.id) return data.text;
+                    var text = "{{ selectText|raw }}";
+                    for(var col in data) {
+                        var regex = new RegExp('\{' + col + '\}','g');
+                        text = text.replace(regex, data[col]);
+                    }
+
+                    return text;
+                },
+                'templateSelection': function(data, container) {
+                    if(window[$('#{{ id }}').data('useTemplateSelection')]) {
+                        return window[$('#{{ id }}').data('useTemplateSelection')](data, container);
+                    }
+                    if(data.id === null || data.id === '' || !data.id) return data.text;
+                    var text = "{{ selectText|raw }}";
+                    for(var col in data) {
+                        var regex = new RegExp('\{' + col + '\}','g');
+                        text = text.replace(regex, data[col]);
+                    }
+
+                    return text;
+                },
+                'placeholder': {
+                    'id': null,
+                    'text': "{{ placeholder|trans({}, translation_domain) }}"
+                },
+                'escapeMarkup': function(markup) {
+                    return markup;
+                }
+            });
+
+            {% if view %}
+            $('#{{ id }}').select2("enable",false);
+            $($('#{{ id }}').data('select2').$container).find('.select2-selection').css({'background-color': "rgba(0,0,0,0)"});
+            {% endif %}
+        });
+    </script>
+{% endblock %}
+
+{% block select2_assetcss %}
+    {{ asset_add('css', absolute_url(asset('assets/plugins/select2/css/select2.min.css')), 'form.asset') }}
+{% endblock %}
+
+{% block select2_assetjs %}
+    {{ asset_add('js', absolute_url(asset('assets/plugins/select2/js/select2.min.js'), 'form.asset')) }}
+{% endblock %}
+
+{% block roles_javascript %}
+    <script type="text/javascript">
+        $(function() {
+            $('#{{ id }}_superAdmin').change(function(e) {
+                if(this.checked) {
+                    $('.{{ id }}-group').addClass('hide');
+                } else {
+                    $('.{{ id }}-group').removeClass('hide');
+                }
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block roles_widget -%}
+    <div class="panel-group panel-group-joined" id="{{ id }}_accordion">
+        {% block role_superadmin %}
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="checkbox">
+                    <input type="checkbox" id="{{ id }}_superAdmin" name="{{ full_name }}[ROLE_SUPER_ADMIN]" value="2" {% if value["ROLE_SUPER_ADMIN"] is defined and value["ROLE_SUPER_ADMIN"] == 2 %}checked="checked"{% endif %} {% if view is defined and view %}disabled="disabled"{% endif %}  />
+                    <label for="{{ id }}_superAdmin"><b>Super Admin</b></label>
+                </div>
+            </div>
+        </div>
+        {% endblock role_superadmin %}
+        {% set i = 0 %}
+        {% for key,group in groups %}
+            <div class="panel panel-default {{ id }}-group">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a class="collapsed" data-toggle="collapse" data-parent="#{{ id }}_accordion" href="#role_{{ id }}_{{ i }}_collapse" aria-expanded="false">
+                            {{ key }}
+                        </a>
+                    </h4>
+                </div>
+                <div id="role_{{ id }}_{{ i }}_collapse" class="panel-collapse collapse" aria-expanded="false">
+                    <div class="panel-body">
+                        {% for roleKey in group -%}
+                            {% set role = roles[roleKey] %}
+                            <div class="col-md-3 col-sm-3 col-xs-3"><b>{{ role.label.text|trans({}, role.label.translation_domain) }}</b></div>
+                            <div class="col-md-3 col-sm-3 col-xs-3">
+                                <div class="radio">
+                                    <input type="radio" id="{{ id }}_{{ roleKey }}_deny" value="0" name="{{ full_name }}[{{ roleKey }}]" {% if value[roleKey] is defined  and value[roleKey] == 0 %} checked="checked" {% endif %} {% if view is defined and view %}disabled="disabled"{% endif %} />
+                                    <label for="{{ id }}_{{ roleKey }}_deny">Deny</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-3 col-xs-3">
+                                <div class="radio">
+                                    <input type="radio" id="{{ id }}_{{ roleKey }}_inherit" value="1" name="{{ full_name }}[{{ roleKey }}]" {% if value[roleKey] is defined  and value[roleKey] == 1 %} checked="checked" {% elseif value[roleKey] is not defined %} checked="checked" {% endif %} {% if view is defined and view %}disabled="disabled"{% endif %} />
+                                    <label for="{{ id }}_{{ roleKey }}_inherit">Inherit</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-3 col-xs-3">
+                                <div class="radio">
+                                    <input type="radio" id="{{ id }}_{{ roleKey }}_allow" value="2" name="{{ full_name }}[{{ roleKey }}]" {% if value[roleKey] is defined  and value[roleKey] == 2 %} checked="checked" {% endif %} {% if view is defined and view %}disabled="disabled"{% endif %} />
+                                    <label for="{{ id }}_{{ roleKey }}_allow">Allow</label>
+                                </div>
+                            </div>
+                        {%- endfor %}
+                    </div>
+                </div>
+            </div>
+            {% set i = i+1 %}
+        {% endfor %}
+    </div>
+{%- endblock %}
+
+{% block radio_widget %}
+    {% if view is defined and view %}
+        {%- set attr = attr|merge({'disabled': 'disabled'}) -%}
+    {% endif %}
+    {% spaceless %}
+        <div class="radio">
+            <input type="radio" {{ block('widget_attributes') }} value="{{ value }}" {% if checked %}checked="checked"{% endif %} />
+            <label for="{{ id }}">{{ label }}</label>
+        </div>
+    {% endspaceless %}
+{% endblock %}
+
+{% block choice_widget_expanded -%}
+    {% if '-inline' in label_attr.class|default('') -%}
+        {%- for child in form %}
+            {{- form_widget(child, {
+                parent_label_class: label_attr.class|default(''),
+                translation_domain: choice_translation_domain,
+            }) -}}
+        {% endfor -%}
+    {%- else -%}
+        <div class="form-group" {{ block('widget_container_attributes') }}>
+            {%- for child in form %}
+                {{- form_widget(child, {
+                    parent_label_class: label_attr.class|default(''),
+                    translation_domain: choice_translation_domain,
+                }) -}}
+            {% endfor -%}
+        </div>
+    {%- endif %}
+{%- endblock choice_widget_expanded %}
+
+{%- block choice_widget_collapsed -%}
+    {#% set attr = attr|merge({class: (attr.class|default('') ~ ' selectpicker')|trim}) %#}
+    {% set attr = attr|merge({'data-style': (attr["data-style"] |default('btn-white'))}) %}
+    {% if view is defined and view %}
+        {%- set attr = attr|merge({'disabled': 'disabled'}) -%}
+    {% endif %}
+    {{- parent() -}}
+{%- endblock choice_widget_collapsed -%}
+
+{% block choice_assetcss %}
+    {{ asset_add('css', absolute_url(asset('assets/plugins/bootstrap-select/css/bootstrap-select.min.css')), 'form.asset') }}
+{% endblock %}
+
+{% block choice_assetjs %}
+    {{ asset_add('js', absolute_url(asset('assets/plugins/bootstrap-select/js/bootstrap-select.min.js')), 'form.asset') }}
+{% endblock %}
+
+{% block date_javascript %}
+    {% if widget == 'single_text'%}
+        {% set view = view|default(false) %}
+        {% if not view %}
+        <script>
+            $('#{{ id }}').datepicker();
+        </script>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
+{% block date_assetcss %}
+    {{ asset_add('css', absolute_url(asset("assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.min.css")),'form.asset') }}
+{% endblock %}
+
+{% block date_assetjs %}
+    {{ asset_add('js', absolute_url(asset("assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.min.js")),'form.asset') }}
+{% endblock %}
+
+{% block time_javascript %}
+    {% if widget == 'single_text'%}
+        {% set view = view|default(false) %}
+        {% if not view %}
+        <script>
+            $('#{{ id }}').timepicker();
+        </script>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
+{% block datetime_javascript %}
+    {% if widget == 'single_text'%}
+        {% set view = view|default(false) %}
+        {% if not view %}
+        <script type="text/javascript">
+            $(function(){
+                $('#{{ id }}').datetimepicker({
+                    'format': 'M/DD/YYYY h:mm:ss A',
+                    'widgetPositioning': {
+                        'horizontal': '{{ widget_option.position.horizontal|default('auto') }}',
+                        'vertical': '{{ widget_option.position.vertical|default('top') }}'
+                    },
+                    'useCurrent': false
+                });
+                $('#{{ id }}').data('DateTimePicker').date(moment('{{ value }}'));
+            });
+        </script>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
+{% block datetime_assetcss %}
+    {{ asset_add('css', absolute_url(asset("assets/plugins/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css")),'form.asset') }}
+{% endblock %}
+
+{% block datetime_assetjs %}
+    {{ asset_add('js', absolute_url(asset("assets/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js")),'form.asset') }}
+{% endblock %}
+
+{% block form_row -%}
+    <div class="col-sm-{% if half is defined and half %}6{% else %}12{% endif %}">
+        <div class="form-group{% if (not compound or force_error|default(false)) and not valid %} has-error{% endif %}">
+            {{- form_label(form) -}}
+            <div class="{{ block('form_group_class') }}">
+                {{- form_widget(form) -}}
+                {{- form_errors(form) -}}
+            </div>
+        </div>
+    </div>
+{%- endblock form_row %}
+
+
+{% block submit_row -%}
+    {% if 'data-first-button' in attr %}
+    <div class="col-sm-12">
+        <div class="form-group">
+    {% endif %}
+    {{ form_widget(form) }}
+    {% if 'data-last-button' in attr %}
+        </div>
+    </div>
+    {% endif %}
+{% endblock submit_row %}
+
+{% block reset_row -%}
+    {% if 'data-first-button' in attr %}
+    <div class="col-sm-12">
+        <div class="form-group">
+    {% endif %}
+    {{ form_widget(form) }}
+    {% if 'data-last-button' in attr %}
+        </div>
+    </div>
+    {% endif %}
+{% endblock reset_row %}
+
+{% block button_row %}
+{% spaceless %}
+    {% if 'data-first-button' in attr %}
+    <div class="col-sm-12">
+        <div class="form-group">
+    {% endif %}
+    {{ form_widget(form) }}
+    {% if 'data-last-button' in attr %}
+        </div>
+    </div>
+    {% endif %}
+{% endspaceless %}
+{% endblock button_row %}
+
+{% block button_attributes %}
+{% spaceless %}
+    id="{{ id }}" name="{{ full_name }}"{% if disabled %} disabled="disabled"{% endif %}
+    {% for attrname, attrvalue in attr %}{% if attrvalue != 'data-first-button' and attrvalue != 'data-last-button'%}{{ attrname }}="{{ attrvalue }}"{%endif%}{% endfor %}
+{% endspaceless %}
+{% endblock button_attributes %}
+
+{% block group_row %}
+    <div class="col-sm-{{ span_col }}">
+    {{- form_widget(form)  -}}
+    </div>
+{% endblock %}
+
+{%- block group_widget -%}
+    {{- block('form_widget_compound') -}}
+{%- endblock group_widget -%}
+
+{%- block form_label -%}
+{% spaceless %}
+    {% if label is same as(false) %}
+        <div class="{{ block('form_label_class') }}"></div>
+    {% else %}
+        {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' ' ~ block('form_label_class'))|trim}) %}
+        {%- set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' control-label')|trim}) -%}
+        {% if label is not same as(false) -%}
+            {% if not compound -%}
+                {% set label_attr = label_attr|merge({'for': id}) %}
+            {%- endif -%}
+            {% if required -%}
+                {% set label_attr = label_attr|merge({'class': (label_attr.class|default('') ~ ' required')|trim}) %}
+            {%- endif -%}
+            {% if label is empty -%}
+                {%- if label_format is not empty -%}
+                    {% set label = label_format|replace({
+                        '%name%': name,
+                        '%id%': id,
+                    }) %}
+                {%- else -%}
+                    {% set label = name|humanize %}
+                {%- endif -%}
+            {%- endif -%}
+            <label{% for attrname, attrvalue in label_attr %} {{ attrname }}="{{ attrvalue }}"{% endfor %}>{%- if required and not view|default(false) %}<span class="text text-danger">*</span> {% endif -%}{{ translation_domain is same as(false) ? label : label|trans({}, translation_domain) }}</label>
+        {%- endif -%}
+    {% endif %}
+{% endspaceless %}
+{%- endblock form_label -%}
+
+{% block form_errors -%}
+    {% if form.parent %}
+        <span class="help-block">
+        <ul class="list-unstyled">
+            {%- for error in errors -%}
+                <li><span class="glyphicon glyphicon-exclamation-sign"></span> {{ error.message }}</li>
+            {%- endfor -%}
+        </ul>
+        </span>
+    {% elseif errors|length > 0 -%}
+        {% if form.parent %}<span class="help-block">{% else %}<div class="alert alert-danger">{% endif %}
+        <ul class="list-unstyled">
+            {%- for error in errors -%}
+                <li><span class="glyphicon glyphicon-exclamation-sign"></span> {{ error.message }}</li>
+            {%- endfor -%}
+        </ul>
+        {% if form.parent %}</span>{% else %}</div>{% endif %}
+    {%- endif %}
+{%- endblock form_errors %}
+
+{% block tag_widget -%}
+    {% set attr = attr|merge({'data-role': 'tagsinput'}) %}
+    <div class="tags-default">
+        {{ block('form_widget_simple') }}
+    </div>
+{%- endblock %}
+
+{% block tag_assetcss %}
+    {{ asset_add('css', absolute_url(asset('assets/plugins/bootstrap-tagsinput/css/bootstrap-tagsinput.css')), 'form.asset') }}
+{% endblock %}
+
+{% block tag_assetjs %}
+    {{ asset_add('js', absolute_url(asset('assets/plugins/bootstrap-tagsinput/js/bootstrap-tagsinput.min.js')), 'form.asset') }}
+{% endblock %}
+
+
+{% block summernote_widget -%}
+    {{ block('textarea_widget') }}
+{%- endblock %}
+
+{% block summernote_javascript -%}
+    <script type="text/javascript">
+        $('#{{ form.vars.id }}').summernote({
+            height: 250,                 // set editor height
+            minHeight: null,             // set minimum height of editor
+            maxHeight: null,             // set maximum height of editor
+            focus: false                 // set focus to editable area after initializing summernote
+        });
+    </script>
+{%- endblock %}
+
+{% block summernote_assetcss %}
+    {{ asset_add('css', absolute_url(asset('assets/plugins/summernote/summernote.css')), 'form.asset') }}
+{% endblock %}
+
+{% block summernote_assetjs %}
+    {{ asset_add('js', absolute_url(asset('assets/plugins/summernote/summernote.min.js')), 'form.asset') }}
+{% endblock %}
+
+{% block markdown_widget -%}
+    {{- block('textarea_widget') -}}
+{%- endblock markdown_widget %}
+
+{% block markdown_javascript -%}
+    <script type='text/javascript'>
+        $(function() {
+            $('#{{ form.vars.id }}').markdown({
+                'resize': "horizontal"
+            });
+            $('#{{ form.vars.id }}').css('padding','10px');
+            $('#{{ form.vars.id }}').css('min-height','200px');
+            $('#{{ form.vars.id }}').css('max-height','500px');
+        });
+    </script>
+{%- endblock markdown_javascript %}
+
+{% block markdown_assetcss %}
+    {{ asset_add('css', absolute_url(asset('assets/plugins/bootstrap-markdown/css/bootstrap-markdown.min.css')), 'form.asset') }}
+{% endblock %}
+
+{% block markdown_assetjs %}
+    {{ asset_add('js', absolute_url(asset('assets/plugins/bootstrap-markdown/js/markdown.js')), 'form.asset') }}
+    {{ asset_add('js', absolute_url(asset('assets/plugins/bootstrap-markdown/js/to-markdown.js')), 'form.asset') }}
+    {{ asset_add('js', absolute_url(asset('assets/plugins/bootstrap-markdown/js/bootstrap-markdown.js')), 'form.asset') }}
+    {{ asset_add('js', absolute_url(asset('assets/plugins/bootstrap-markdown/js/markdown-replacer.js')), 'form.asset') }}
+{% endblock %}
+
+{% block file_widget -%}
+    {% set attr = attr|merge({class: (attr.class|default('')) ~ " filestyle"|trim}) %}
+    {{ block('form_widget_simple') }}
+{%- endblock %}
+
+{% block file_assetjs %}
+    {{ asset_add('js', absolute_url(asset('assets/plugins/bootstrap-filestyle/js/bootstrap-filestyle.min.js')), 'form.asset') }}
+{% endblock %}
+
+{% block media_widget %}
+    <div class="media-item-container">
+        <div class="media-item{{ ((value.filename|default(""))|trim) == "" ? "" : " has-item" }}" id="{{ form.vars.id }}">
+            <button class="btn btn-danger btn-remove-item btn-sm" type="button"><i class="fa fa-close"></i></button>
+            <div class="media-item-div">
+                <span class="media-plus"><i class="ti-plus"></i></span>
+                <input type="hidden" name="{{ form.vars.full_name }}" value="{{ value.filename|default('') }}" />
+                <div class="media-img-container">
+                    <i class="fa fa-file"></i>
+                    <img class="" src="{{ ((value.filename|default(""))|trim) == "" ? "":path("app.render_file", {"fileName": value.filename}) }}" />
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block media_javascript %}
+    <script type="text/javascript">
+        $(function() {
+            $('#{{ form.vars.id }} .media-item-div').click(function(e) {
+                MediaLibrary.changeOption('url', "{{ path('media.file_list') }}");
+                MediaLibrary.select(this, function(file, e) {
+                    MediaLibrary.close();
+                    $("#{{ form.vars.id }} img").attr('src', file.route.render);
+                    $("#{{ form.vars.id }} input[name='{{ form.vars.full_name }}']").val(file.filename);
+                    $("#{{ form.vars.id }}").addClass('has-item');
+
+                    $('#{{ form.vars.id }}').attr('type', file.type);
+                });
+            });
+            $('#{{ form.vars.id }} .btn-remove-item').click(function() {
+                $("#{{ form.vars.id }} img").attr('src', '');
+                $("#{{ form.vars.id }} input[name='{{ form.vars.full_name }}']").val('');
+                $("#{{ form.vars.id }}").removeClass('has-item');
+                $('#{{ form.vars.id }}').attr('type', '');
+            });
+
+            $('#{{ form.vars.id }}').attr('type', MediaLibrary.getType("{{ value.extension|default('') }}"));
+        });
+    </script>
+{% endblock %}
+
+{% block media_assetcss %}
+    {{ asset_add('css', absolute_url(asset('bundles/app/css/media_type.css')), 'form.asset') }}
+{% endblock %}

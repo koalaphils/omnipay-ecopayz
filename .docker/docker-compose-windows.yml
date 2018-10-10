@@ -1,0 +1,13 @@
+version: '2.3'
+services:
+    bo:
+        build:
+            context: ../
+            dockerfile: .docker/DockerfileWindows
+            args:
+                BASE_IMAGE: ${BASE_IMAGE}
+                BASE_IMAGE_TAG: ${BASE_IMAGE_TAG}
+        ports:
+            - 8080:80
+        volumes:
+            - ../:/backoffice

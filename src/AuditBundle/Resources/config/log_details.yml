@@ -1,0 +1,614 @@
+parameters:
+    log_details:
+        currency:
+            code:
+                label: Code
+                from: 'code.0'
+                to: 'code.1'
+            name:
+                label: Name
+                from: 'name.0'
+                to: 'name.1'
+            rate:
+                label: Rate
+                from: 'rate.0'
+                to: 'rate.1'
+
+        country:
+            code:
+                label: Code
+                fom: 'code.0'
+                rate: 'code.1'
+            name:
+                label: Name
+                from: 'name.0'
+                to: 'name.1'
+            currency:
+                label: Currency
+                from: 'currency.0'
+                to: 'currency.1'
+            tags:
+                label: Tags
+                from: 'tags.0'
+                to: 'tags.1'
+
+        product:
+            name:
+                label: Name
+                from: 'name.0'
+                to: 'name.1'
+            code:
+                label: Code
+                from: 'code.0'
+                to: 'code.1'
+            isActive:
+                label: Active
+                from: 'isActive.0'
+                to: 'isActive.1'
+            url:
+                label: URL
+                from: 'url.0'
+                to: 'url.1'
+
+        gateway:
+            name:
+                label: Name
+                from: 'name.0'
+                to: 'name.1'
+            currency:
+                label: Currency
+                from: 'currency.0'
+                to: 'currency.1'
+            balance:
+                label: Balance
+                from: 'balance.0'
+                to: 'balance.1'
+            paymentOptionEntity:
+                label: Payment Option
+                from: 'paymentOptionEntity.0'
+                to: 'paymentOptionEntity.1'
+            isActive:
+                label: Active
+                from: 'isActive.0'
+                to: 'isActive.1'
+            levels:
+                label: Levels
+                from: 'levels.0'
+                to: 'levels.1'
+            bankName:
+                label: Bank Name
+                from: 'details.0.bank.name'
+                to: 'details.1.bank.name'
+            bankHolder:
+                label: Bank Holder
+                from: 'details.0.bank.holder'
+                to: 'details.1.bank.holder'
+            bankAccount:
+                label: Bank Account
+                from: 'details.0.bank.account'
+                to: 'details.1.bank.account'
+
+        dwl:
+            product:
+                label: Product
+                from: 'product.0'
+                to: 'product.1'
+            currency:
+                label: Currency
+                from: 'currency.0'
+                to: 'currency.1'
+            status:
+                label: Status
+                from: 'status.0'
+                to: 'status.1'
+            version:
+                label: Version
+                from: 'version.0'
+                to: 'version.1'
+            date:
+                label: Date
+                from: 'date.0'
+                to: 'date.1'
+
+        paymentOption:
+            code:
+                label: Code
+                from: 'code.0'
+                to: 'code.1'
+            name:
+                label: Name
+                from: 'name.0'
+                to: 'name.1'
+            fields:
+                label: Fields
+                from: 'fields.0'
+                to: 'fields.1'
+                isNested: true
+            isActive:
+                label: Active
+                from: 'isActive.0'
+                to: 'isActive.1'
+
+        userGroup:
+            name:
+                label: Name
+                from: 'name.0'
+                to: 'name.1'
+            roles:
+                label: Roles
+                from: 'roles.0'
+                to: 'roles.1'
+                isNested: true
+
+        user:
+            username:
+                label: Username
+                from: 'username.0'
+                to: 'username.1'
+            password:
+                label: Password
+                from: 'password.0'
+                to: 'password.1'
+                isSensitive: true
+            email:
+                label: Email
+                from: 'email.0'
+                to: 'email.1'
+            isActive:
+                label: Active
+                from: 'isActive.0'
+                to: 'isActive.1'
+            type:
+                label: Type
+                from: 'type.0'
+                to: 'type.1'
+            roles:
+                label: Roles
+                from: 'roles.0'
+                to: 'roles.1'
+                isNested: true
+            group:
+                label: Group
+                from: 'group.0'
+                to: 'group.1'
+
+        customerGroup:
+            name:
+                label: Name
+                from: 'name.0'
+                to: 'name.1'
+            isDefault:
+                label: Default
+                from: 'isDefault.0'
+                to: 'isDefault.1'
+            gateway:
+                label: Gateway
+                from: 'gateway.0'
+                to: 'gateway.1'
+            customerGroup:
+                label: Customer Group
+                from: 'customerGroup.0'
+                to: 'customerGroup.1'
+            conditions:
+                label: Conditions
+                from: 'conditions.0'
+                to: 'conditions.1'
+
+        customer:
+            fName:
+                label: First Name
+                from: 'fName.0'
+                to: 'fName.1'
+            mName:
+                label: Middle Name
+                from: 'mName.0'
+                to: 'mName.1'
+            lName:
+                label: Last Name
+                from: 'lName.0'
+                to: 'lName.1'
+            fullName:
+                label: Full Name
+                from: 'fullName.0'
+                to: 'fullName.1'
+            birthDate:
+                label: Birth Date
+                from: 'birthDate.0'
+                to: 'birthDate.1'
+            balance:
+                label: Unallocated Balance
+                from: 'balance.0'
+                to: 'balance.1'
+            socials:
+                label: Socials
+                from: 'socials.0'
+                to: 'socials.1'
+                isNested: true
+            transactionPassword:
+                label: Transaction Password
+                from: 'transactionPassword.0'
+                to: 'transactionPassword.1'
+                isSensitive: true
+            level:
+                label: Level
+                from: 'level.0'
+                to: 'level.1'
+            verifiedAt:
+                label: Verified At
+                from: 'verifiedAt.0'
+                to: 'verifiedAt.1'
+            joinedAt:
+                label: Date Joined
+                from: 'joinedAt.0'
+                to: 'joinedAt.1'
+            contacts:
+                label: Contacts
+                from: 'contacts.0'
+                to: 'contacts.1'
+            isAffiliate:
+                label: Affiliate
+                from: 'isAffiliate.0'
+                to: 'isAffiliate.1'
+            isCustomer:
+                label: Customer
+                from: 'isCustomer.0'
+                to: 'isCustomer.1'
+            affiliate:
+                label: Affiliate
+                from: 'affiliate.0'
+                to: 'affiliate.1'
+            currency:
+                label: Currency
+                from: 'currency.0'
+                to: 'currency.1'
+            country:
+                label: Country
+                from: 'country.0'
+                to: 'country.1'
+            affiliateLink:
+                label: Affiliate Link
+                from: 'affiliateLink.0'
+                to: 'affiliateLink.1'
+            promoCode:
+                label: Promo Code
+                from: 'promoCode.0'
+                to: 'promoCode.1'
+            riskSetting:
+                label: Risk Setting
+                from: 'riskSetting.0'
+                to: 'riskSetting.1'
+
+        affiliate:
+            fName:
+                label: First Name
+                from: 'fName.0'
+                to: 'fName.1'
+            mName:
+                label: Middle Name
+                from: 'mName.0'
+                to: 'mName.1'
+            lName:
+                label: Last Name
+                from: 'lName.0'
+                to: 'lName.1'
+            birthDate:
+                label: Birth Date
+                from: 'birthDate.0'
+                to: 'birthDate.1'
+            balance:
+                label: Unallocated Balance
+                from: 'balance.0'
+                to: 'balance.1'
+            socials:
+                label: Socials
+                from: 'socials.0'
+                to: 'socials.1'
+                isNested: true
+            transactionPassword:
+                label: Transaction Password
+                from: 'transactionPassword.0'
+                to: 'transactionPassword.1'
+                isSensitive: true
+            level:
+                label: Level
+                from: 'level.0'
+                to: 'level.1'
+            verifiedAt:
+                label: Verified At
+                from: 'verifiedAt.0'
+                to: 'verifiedAt.1'
+            joinedAt:
+                label: Date Joined
+                from: 'joinedAt.0'
+                to: 'joinedAt.1'
+            contacts:
+                label: Contacts
+                from: 'contacts.0'
+                to: 'contacts.1'
+                isNested: true
+            isAffiliate:
+                label: Affiliate
+                from: 'isAffiliate.0'
+                to: 'isAffiliate.1'
+            isCustomer:
+                label: Customer
+                from: 'isCustomer.0'
+                to: 'isCustomer.1'
+            affiliate:
+                label: Affiliate
+                from: 'affiliate.0'
+                to: 'affiliate.1'
+            currency:
+                label: Currency
+                from: 'currency.0'
+                to: 'currency.1'
+            country:
+                label: Country
+                from: 'country.0'
+                to: 'country.1'
+            riskSetting:
+                label: Risk Setting
+                from: 'riskSetting.0'
+                to: 'riskSetting.1'
+
+        customerProduct:
+            userName:
+               label: Username
+               from: 'userName.0'
+               to: 'userName.1'
+            balance:
+                label: Balance
+                from: 'balance.0'
+                to: 'balance.1'
+            isActive:
+                label: Active
+                from: 'isActive.0'
+                to: 'isActive.1'
+            product:
+                label: Product
+                from: 'product.0'
+                to: 'product.1'
+            customer:
+                label: Customer
+                from: 'customer.0'
+                to: 'customer.1'
+
+        customerPaymentOption:
+            type:
+                label: Type
+                from: 'type.0'
+                to: 'type.1'
+            isActive:
+                label: Active
+                from: 'isActive.0'
+                to: 'isActive.1'
+            fields:
+                label: Fields
+                from: 'fields.0'
+                to: 'fields.1'
+                isNested: true
+            customer:
+                label: Customer
+                from: 'customer.0'
+                to: 'customer.1'
+            paymentOption:
+                label: Payment Option
+                from: 'paymentOption.0'
+                to: 'paymentOption.1'
+
+        gatewayTransaction:
+            number:
+                label: Number
+                from: 'number.0'
+                to: 'number.1'
+            type:
+                label: Type
+                from: 'type.0'
+                to: 'type.1'
+            date:
+                label: Date
+                from: 'date.0'
+                to: 'date.1'
+            gateway:
+                label: Gateway
+                from: 'gateway.0'
+                to: 'gateway.1'
+            amount:
+                label: Amount
+                from: 'amount.0'
+                to: 'amount.1'
+            fee:
+                label: Fee
+                from: 'fees.0.fee'
+                to: 'fees.1.fee'
+            gatewayTo:
+                label: Gateway To
+                from: 'gatewayTo.0'
+                to: 'gatewayTo.1'
+            amountTo:
+                label: Amount To
+                from: 'amountTo.0'
+                to: 'amountTo.1'
+            feeTo:
+                label: Fee To
+                from: 'fees.0.feeTo'
+                to: 'fees.1.feeTo'
+            status:
+                label: Status
+                from: 'status.0'
+                to: 'status.1'
+            notes:
+                label: Notes
+                from: 'details.0.notes'
+                to: 'details.1.notes'
+            reason:
+                label: Reason
+                from: 'details.0.reason'
+                to: 'details.1.reason'
+            isVoided:
+                label: Voided
+                from: 'isVoided.0'
+                to: 'isVoided.1'
+            paymentOption:
+                label: Payment Option
+                from: 'paymentOption.0'
+                to: 'paymentOption.1'
+            currency:
+                label: Currency
+                from: 'currency.0'
+                to: 'currency.1'
+
+        transaction:
+            number:
+                label: Number
+                from: 'number.0'
+                to: 'number.1'
+            currency:
+                label: Currency
+                from: 'currency.0'
+                to: 'currency.1'
+            amount:
+                label: Amount
+                from: 'amount.0'
+                to: 'amount.1'
+            fees:
+                label: Fees
+                from: 'fees.0'
+                to: 'fees.1'
+                isNested: true
+            type:
+                label: Type
+                from: 'type.0'
+                to: 'type.1'
+            date:
+                label: Date
+                from: 'date.0'
+                to: 'date.1'
+            status:
+                label: Status
+                from: 'status.0'
+                to: 'status.1'
+            isVoided:
+                label: Voided
+                from: 'isVoided.0'
+                to: 'isVoided.1'
+            notes:
+                label: Notes
+                from: 'details.0.notes'
+                to: 'details.1.notes'
+            reasonToVoidOrDecline:
+                label: Reason
+                from: 'details.0.reasonToVoidOrDecline'
+                to: 'details.1.reasonToVoidOrDecline'
+            customer:
+                label: Customer
+                from: 'customer.0'
+                to: 'customer.1'
+            gateway:
+                label: Gateway
+                from: 'gateway.0'
+                to: 'gateway.1'
+            paymentOption:
+                label: Payment Option
+                from: 'paymentOption.0'
+                to: 'paymentOption.1'
+            customerProduct:
+                label: Product
+                from: 'customerProduct.0'
+                to: 'customerProduct.1'
+            bet_details:
+                label: Bet Details
+                from: 'details.0.bet_details'
+                to: 'details.1.bet_details'
+
+        riskSetting:
+            riskId:
+                label: Risk Setting ID
+                from: 'riskId.0'
+                to: 'riskId.1'
+            isActive:
+                label: Active
+                from: 'isActive.0'
+                to: 'isActive.1'
+            productRiskSettings:
+                label: Product Risk Settings
+                from: 'productRiskSettings.0'
+                to: 'productRiskSettings.1'
+                isNested: true
+
+        memberBanner:
+            member:
+                label: Member
+                from: 'member.0'
+                to: 'member.1'
+            referralLink:
+                label: Referral Link
+                from: 'referralLink.0'
+                to: 'referralLink.1'
+            campaignName:
+                label: Campaign Name
+                from: 'campaignName.0'
+                to: 'campaignName.1'
+            memberWebsite:
+                label: Website
+                from: 'memberWebsite.0'
+                to: 'memberWebsite.1'
+            memberReferralName:
+                label: Referral Name
+                from: 'memberReferralName.0'
+                to: 'memberReferralName.1'
+            bannerImage:
+                label: Filename
+                from: 'bannerImage.0'
+                to: 'bannerImage.1'
+
+        memberWebsite:
+            member:
+                label: Member
+                from: 'member.0'
+                to: 'member.1'
+            website:
+                label: Website
+                from: 'website.0'
+                to: 'website.1'
+            isActive:
+                label: Active
+                from: 'isActive.0'
+                to: 'isActive.1'
+
+        memberReferralName:
+            member:
+                label: Member
+                from: 'member.0'
+                to: 'member.1'
+            name:
+                label: Referral Name
+                from: 'name.0'
+                to: 'name.1'
+            isActive:
+                label: Active
+                from: 'isActive.0'
+                to: 'isActive.1'
+
+        bannerImage:
+            type:
+                label: Type
+                from: 'type.0'
+                to: 'type.1'
+            language:
+                label: Language
+                from: 'language.0'
+                to: 'language.1'
+            dimension:
+                label: Dimension
+                from: 'dimension.0'
+                to: 'dimension.1'
+            isActive:
+                label: Active
+                from: 'isActive.0'
+                to: 'isActive.1'
+            filename:
+                label: Filename
+                from: 'details.0.filename'
+                to: 'details.1.filename'
+

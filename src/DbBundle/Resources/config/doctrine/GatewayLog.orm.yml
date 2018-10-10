@@ -1,0 +1,58 @@
+DbBundle\Entity\GatewayLog:
+    type: entity
+    table: gateway_log
+    repositoryClass: DbBundle\Repository\GatewayLogRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: gateway_log_id
+            options:
+                unsigned: true
+    fields:
+        timestamp:
+            type: datetime
+            column: gateway_log_timestamp
+        type:
+            type: smallint
+            column: gateway_log_type
+        balance:
+            type: decimal
+            precision: 65
+            scale: 10
+            options:
+                default: 0
+            column: gateway_log_balance
+        amount:
+            type: decimal
+            precision: 65
+            scale: 10
+            options:
+                default: 0
+            column: gateway_log_amount
+        referenceNumber:
+            type: string
+            length: 255
+            column: gateway_log_reference_number
+        details:
+            type: json
+            nullable: true
+            column: gateway_log_details
+    manyToOne:
+        gateway:
+            targetEntity: DbBundle\Entity\Gateway
+            joinColumn:
+                name: gateway_log_gateway_id
+                referencedColumnName: gateway_id
+        currency:
+            targetEntity: DbBundle\Entity\Currency
+            joinColumn:
+                name: gateway_log_currency_id
+                referencedColumnName: currency_id
+        paymentOption:
+            targetEntity: DbBundle\Entity\PaymentOption
+            joinColumn:
+                name: gateway_log_payment_option_code
+                referencedColumnName: payment_option_code

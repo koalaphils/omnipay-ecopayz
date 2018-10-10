@@ -1,0 +1,19 @@
+DbBundle\Entity\SubTransaction:
+    exclusion_policy: ALL
+    properties:
+        id:
+            expose: true
+        type:
+            expose: true
+        amount:
+            expose: true
+        fees:
+            groups: ['fees']
+        details:
+            groups: ['details']
+        customerProduct:
+            expose: true
+    virtual_properties:
+        immutableCustomerProductData:
+            expose: true
+            exp: object.getImmutableCustomerProductData()

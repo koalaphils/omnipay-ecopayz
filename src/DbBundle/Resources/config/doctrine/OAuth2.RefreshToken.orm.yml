@@ -1,0 +1,20 @@
+DbBundle\Entity\OAuth2\RefreshToken:
+    type: entity
+    table: oauth2_refresh_token
+    id:
+        id:
+            type: integer
+            generator:
+                strategy: AUTO
+
+    manyToOne:
+        client:
+            targetEntity: DbBundle\Entity\OAuth2\Client
+            joinColumn:
+                name: client_id
+                referencedColumnName: id
+        user:
+            targetEntity: DbBundle\Entity\User
+            joinColumn:
+                name: user_id
+                referencedColumnName: user_id

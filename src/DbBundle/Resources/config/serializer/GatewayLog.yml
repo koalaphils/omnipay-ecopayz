@@ -1,0 +1,32 @@
+DbBundle\Entity\GatewayLog:
+    exclusion_policy: ALL
+    properties:
+        id:
+            expose: true
+        timestamp:
+            expose: true
+            type: DateTime<'Y-m-d H:i:s'>
+        amount:
+            expose: true
+        referenceNumber:
+            expose: true
+        currency:
+            expose: true
+        gateway:
+            expose: true
+        balance:
+            expose: true
+
+    virtual_properties:
+        typeText:
+            exp: "object.translateType(object.getType())"
+            expose: true
+        currentBalance:
+            exp: "object.getCurrentBalance()"
+            expose: true
+        originText:
+            exp: "object.getOrigin()"
+            expose: true
+        username:
+            exp: "object.getDetail('user')"
+            expose: true

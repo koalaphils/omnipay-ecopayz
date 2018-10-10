@@ -1,0 +1,11 @@
+services:
+    group.manager:
+        class: GroupBundle\Manager\GroupManager
+        parent: app.base_manager
+        
+    # form type
+    group.form_type.user_group:
+        class: GroupBundle\Form\UserGroupType
+        arguments: [ "@app.role_manager", "@translator" ]
+        tags:
+            - { name: form.type }

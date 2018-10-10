@@ -1,0 +1,7 @@
+services:
+    # form type
+    ticket.form_type.ticket:
+        class: TicketBundle\Form\TicketType
+        arguments: [ "@doctrine", "@router" ]
+        tags:
+            - { name: form.type }

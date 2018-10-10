@@ -1,0 +1,10 @@
+services:
+    paymentOption.form_type:
+        class: PaymentOptionBundle\Form\PaymentOptionType
+        arguments: [ "@payum" ]
+        tags:
+            - { name: form.type }
+
+    paymentoption.manager:
+        class: PaymentOptionBundle\Manager\PaymentOptionManager
+        parent: app.base_manager

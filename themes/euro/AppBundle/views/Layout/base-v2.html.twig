@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+    <head lang="{{ app.request.getLocale() }}">
+        <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="A fully featured admin theme which can be used to build CRM, CMS, etc." />
+        <meta name="author" content="Coderthemes" />
+
+        <link rel="shortcut icon" href="{{ asset("assets/images/ac66bo-fav-icon.png") }}" />
+
+        <title>{{ 'page.title.main'|trans({},'AppBundle') }} | {% block title %}{% endblock %}</title>
+
+        {% block stylesheet_plugins %}{% endblock %}
+
+        {{ asset_render('css', 'default', [
+                asset('assets/plugins/bootstrap-sweetalert/sweetalert.css'),
+                asset('assets/css/bootstrap.min.css'),
+                asset('assets/css/core.css'),
+                asset('assets/css/components.css'),
+                asset('assets/css/icons.css'),
+                asset('assets/css/pages.css'),
+                asset('assets/css/responsive.css'),
+            ]) }}
+        {% block stylesheets %}{% endblock %}
+        {{ asset_render('css', 'default', [asset("assets/css/custom.css")]) }}
+        <style type="text/css">
+            .notification-list .media-body {
+                margin-left: 0;
+            }
+            .ztable_colvis_btn .bs-caret {
+                display: none;
+            }
+            .inline-block {
+                display: inline-block !important;
+            }
+        </style>
+
+        <!-- HTML5 Shiv and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+        {{ asset_render('js', 'default', [asset("assets/js/modernizr.min.js")]) }}
+    </head>
+
+    <body class="{% block bodyClass  %}fixed-left{% endblock %}">
+        {% block body -%}
+        <!-- Begin page -->
+        <div id="wrapper">
+            <!-- Top Bar Start -->
+            <div class="topbar">
+                <!-- LOGO -->
+                <div class="topbar-left">
+                    <div class="text-center">
+                        <a href="{{ path('app.dashboard_page') }}" class="logo">
+                            <i class="icon-c-logo"><img src="{{ asset("assets/images/ac66bo-fav-icon.png") }}" height="20"/> </i>
+                            <span><img src="{{ asset("assets/images/acc66_logo.png") }}" height="42"/></span>
+                        </a>
+                    </div>
+                </div>
+                {% include 'AppBundle:Layout:header-menu.html.twig' %}
+            </div>
+
+            {% include 'AppBundle:Layout:side-menu-v2.html.twig' %}
+
+            <div class="content-page">
+                <!-- Start content -->
+                <div class="content">
+                    <div class="container">
+                        {% block content -%}
+                            <div class="row">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="page-header-2">
+                                            {% block pageHeaderExtra %}{% endblock pageHeaderExtra %}
+                                            <h4 class="page-title">{% block pageTitle %}{% endblock %}</h4>
+                                            <ol class="breadcrumb">
+                                                {% block breadcrumb %}{% endblock %}
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% block pageOuter -%}
+                                <div class="row">
+                                    {% block page -%}{%- endblock page %}
+                                </div>
+                                {%- endblock pageOuter %}
+                            </div>
+                        {%- endblock content %}
+                    </div>
+
+                    <footer class="footer text-right">
+                        © {{ "now"|date("Y") }}. {{ 'layout.All rights reserved'|trans({},"AppBundle") }}.
+                   </footer>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Widgets -->
+        <div class="float-sm">
+          <div class="fl-fl float-widgets">
+            <i class="widgets-holder fa fa-money"></i>
+              <ul>
+                <a href="{{ path("transaction.create_page", {'type': 'deposit'}) }}"><li>Deposit</li></a>
+                <a href="{{ path("transaction.create_page", {'type': 'withdraw'}) }}"><li>Withdrawal</li></a>
+                <a href="{{ path("transaction.create_page", {'type': 'transfer'}) }}"><li>Transfer</li></a>
+                <a href="{{ path("transaction.create_page", {'type': 'p2p_transfer'}) }}"><li>P2P Transfer</li></a>
+                <a href="{{ path("transaction.create_page", {'type': 'bonus'}) }}"><li>Bonus</li> </a>
+              </ul>
+          </div>
+        </div>
+
+
+
+        {%- endblock %}
+
+        {% block modals %}
+        {% endblock modals %}
+
+
+        {# Scripts #}
+        {{ asset_render('js', 'default', [
+                asset('bundles/app/js/Page.js'),
+                asset('assets/plugins/lodash/lodash.js'),
+                asset('assets/js/decimal.min.js'),
+                asset("assets/js/jquery.min.js"),
+                asset("assets/js/bootstrap.min.js"),
+                asset("assets/js/detect.js"),
+                asset("assets/js/fastclick.js"),
+                asset("assets/js/jquery.slimscroll.js"),
+                asset("assets/js/jquery.blockUI.js"),
+                asset("assets/js/waves.js"),
+                asset("assets/js/wow.min.js"),
+                asset("assets/js/jquery.nicescroll.js"),
+                asset("assets/js/jquery.scrollTo.min.js"),
+                asset("assets/plugins/moment/moment.js"),
+                asset("assets/plugins/notifyjs/js/notify.js"),
+                asset("assets/plugins/notifications/notify-metro.js"),
+                asset("assets/plugins/bootstrap-sweetalert/sweetalert.min.js"),
+                asset("bundles/app/js/date.js"),
+                asset('assets/plugins/autobahn/autobahn.min.js'),
+                asset('bundles/app/js/xml.js'),
+                asset('assets/plugins/dotdotdot/jquery.dotdotdot-3.2.2.js'),
+                asset('assets/plugins/includejs/includejs.js')
+            ]) }}
+
+        <script type="text/javascript">
+            var resizefunc = [];
+            window.lodash = _;
+            var customerCreatedTopic = "{{ constant('TransactionBundle\\WebsocketTopics::TOPIC_CUSTOMER_CREATED') }}";
+            var websocketUrl = "{{ parameter("websocket.url") }}";
+            var websocketRealm = "{{ parameter("websocket.realm") }}";
+            var websocketJwt = "{% if jwt is defined %}{{ jwt }}{% endif %}";
+        </script>
+        {% block javascript_plugins %}{% endblock %}
+        {{ asset_render('js', 'default', [
+                asset("assets/js/jquery.core.js"),
+                asset("assets/js/jquery.app.js"),
+                asset('bundles/app/js/cms_core.js'),
+                asset('bundles/websocket/js/websocket_v2.js')
+            ]) }}
+
+        {{ asset_render('js', 'default') }}
+        {% include 'AppBundle:Layout:partials/scripts.html.twig' %}
+        {% block javascripts -%}{%- endblock %}
+    </body>
+</html>

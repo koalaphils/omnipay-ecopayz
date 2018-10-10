@@ -1,0 +1,31 @@
+{{ form_start(form) }}
+    <div class="col-md-8">
+        <div class="card-box">
+            <div class="row">
+            {{ form_row(form.name) }}
+            {{ form_row(form.currency) }}
+            {{ form_row(form.balance) }}
+            {{ form_row(form.paymentOption) }}
+            {% if is_granted('ROLE_GATEWAY_CHANGE_STATUS') %}
+            {{ form_row(form.isActive) }}
+            {% endif %}
+            </div>
+        </div>
+        <div class="card-box{{ is_granted('ROLE_CONFIGURE_GATEWAY') ? ' ' : ' hidden' }}">
+            <div class="">{{ form_widget(form.details.config) }}</div>
+            {% for mode, paymentForm in paymentForms %}
+                {{ form_widget(paymentForm, {"attr": {"class": "row payment-mode", "data-mode": mode}}) }}
+            {% endfor %}
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card-box">
+            {{ form_widget(form.details.methods, {"attr": {"class": "row"}}) }}
+        </div>
+    </div>
+    <div class="col-md-12">
+        <div class="card-box text-right">
+        {{ form_widget(form.save, {'attr': {'class': 'btn btn-success'}}) }}
+        </div>
+    </div>
+{{ form_end(form) }}

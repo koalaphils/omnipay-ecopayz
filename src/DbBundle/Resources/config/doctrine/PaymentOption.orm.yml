@@ -1,0 +1,66 @@
+DbBundle\Entity\PaymentOption:
+    type: entity
+    table: null
+    repositoryClass: DbBundle\Repository\PaymentOptionRepository
+    id:
+        code:
+            type: string
+            id: true
+            column: payment_option_code
+            length: 16
+    fields:
+        name:
+            type: string
+            length: 64
+            unique: true
+            column: payment_option_name
+        paymentMode:
+            type: string
+            length: 64
+            options:
+                default: ''
+        sort:
+            type: string
+            length: 5
+            options:
+                default: ''
+            column: payment_option_sort
+        fields:
+            type: json
+            column: payment_option_fields
+        image:
+            type: string
+            nullable: true
+            column: payment_option_image_uri
+        isActive:
+            type: boolean
+            length: 1
+            column: payment_option_is_active
+            options:
+                default: 0
+        autoDecline:
+            type: boolean
+            length: 1
+            column: payment_option_has_auto_decline
+            options:
+                default: 0
+        createdBy:
+            type: bigint
+            column: payment_option_created_by
+            nullable: true
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: payment_option_created_at
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: payment_option_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            nullable: true
+            column: payment_option_updated_at
+    lifecycleCallbacks: {  }

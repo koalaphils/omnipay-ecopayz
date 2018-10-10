@@ -1,0 +1,90 @@
+# This file is a "template" of what your parameters.yml file should look like
+# Set parameters here that may be different on each deployment target of the app, e.g. development, staging, production.
+# http://symfony.com/doc/current/best_practices/configuration.html#infrastructure-related-configuration
+parameters:
+    database_host:     database
+    database_port:     ~
+    database_name:     "${DATABASE_NAME}"
+    database_user:     "${DATABASE_USER}"
+    database_password: "${DATABASE_PASSWORD}"
+    mailer_transport:  smtp
+    mailer_host:       127.0.0.1
+    mailer_user:       ~
+    mailer_password:   ~
+    mailer_email_from: support@asianconnect88.com
+    mailer_email_cc: register@asianconnect88.com
+    mailer_email_affiliate_from: affiliates@asianconnect88.com
+    mailer_encryption: tls
+    # A secret key that's used to generate certain security-related tokens
+    secret:            ThisTokenIsNotSoSecretChangeIt
+
+    #ZimiTech Zendesk
+    #zendesk_assignee: 'Supermoonbet Admin'
+    #zendesk_assignee_id: 17729348928
+    #zendesk_assignee_email: web.zimitech@gmail.com
+    #zendesk_default_locale: 1
+    #zendesk_subdomain: zmtwebdev
+    #zendesk_security_type: basic
+    #zendesk_security_options:
+    #    username: web.zimitech@gmail.com
+    #    token: 2LJoR2oFUUG8rhFh4kM4S0ELC50vhCkuP6MnBJfn
+    #zendesk_api_base: v2
+    #zendesk_assignee: 'Supermoonbet Admin'
+    #zendesk_assignee_id: 17729348928
+    #zendesk_assignee_email: support@supermoonbet.com
+    #zendesk_default_locale: 1
+    #zendesk_ticket_is_read_id: 58818688
+    #zopim_sso: https://zmtwebdev.zendesk.com/api/v2/account/zopim_subscription/authorize.json
+
+    app_locales: en|ko
+    upload_folder: /uploads/
+    php_command: php
+
+    #session expiration time
+    session.expiration_time: 3600
+
+    theme: euro
+    upload_dwl_filename: upload_dwl.log
+
+    jwt_key: ThisJWTKeyPlsChangeThis
+
+    data_transfer.xml: AppBundle:DataTransfer:default.html.twig
+
+    websocket.url: 'ws://127.0.0.1:8080'
+    websocket.realm: 'bo'
+    websocket.wamp: 'http://127.0.0.1:8081'
+
+    # Brokerage Url
+    brokerage:
+        url: http://bet.local/api/
+        access_token: NjFkNDlkMWQ2YzdhYjdhMGZkYWQ4NTE4NjkzYjkxYjkzYTJjOTk1MzJhOWY0OGExYmMwMjM0Yzg1YzJhYjM3OA
+        token_type: Bearer
+        paths:
+            sync_customer_product: customer/
+            search_brokers_name: customer/search
+            sync_transaction: transaction/
+
+    # activation
+    activation.expiration_duration: '+1 week'
+
+    # email spooling command
+    email_spool_command: '/usr/bin/php /var/www/html/summit_bo/app/console swiftmailer:spool:send --env=dev >> /var/www/html/summit_bo/var/logs/email.log 2>&1 &'
+
+    asianconnect_url: 'https://www.asianconnect88.com/'
+    asianodds_domain: 'asianodds88.com'
+
+    customer_temp_password: 'super@c66p@$$w0rd'
+
+    # reset password
+    reset_password.expiration_duration: '+1 week'
+
+    # Payum
+    payum.gateways.ecopayz.testMode: false
+
+    # slack
+    # Get Bot User OAuth Access Token from https://api.slack.com/apps/A7UQVNDAM/oauth?#api_main_content
+    slack.token: xoxb-267506547253-OnpMUnIXY1DeneDYy1VrjJML
+
+    # trusted proxies
+    trusted_proxies: [172.18.0.5]
+    cron_user: system

@@ -1,0 +1,6 @@
+services:
+    media.manager:
+        class: MediaBundle\Manager\MediaManager
+        calls:
+            - [ 'setContainer', ['@service_container'] ]
+            - [ 'init' ]

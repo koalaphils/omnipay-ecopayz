@@ -1,0 +1,20 @@
+DbBundle\Entity\MemberRunningCommission:
+    exclusion_policy: ALL
+    properties:
+        runningCommission:
+            expose: true
+            groups: ['Default', 'periodBalance']
+        commission:
+            expose: true
+        status:
+            expose: true
+        metaData:
+            expose: true
+        commissionPeriod:
+            expose: true
+            groups: ['periodBalance']
+    virtual_properties:
+        payout:
+            exp: "object.getPayout()"
+            expose: true
+            groups: ['Default', 'periodBalance']

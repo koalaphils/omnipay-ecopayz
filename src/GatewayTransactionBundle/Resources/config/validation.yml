@@ -1,0 +1,83 @@
+DbBundle\Entity\GatewayTransaction:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+            fields: number
+            message: gatewayTransaction.number.unique
+    properties:
+        number:
+            - NotBlank: ~
+        type:
+            - NotBlank: ~
+            - Choice:
+                choices: [1, 2, 3]
+                message: gatewayTransaction.type.choice
+        date:
+            - DateTime: ~
+        amount:
+            - NotBlank: ~
+            - Range:
+                min: 1
+            - Type:
+                type: numeric
+            - Expression:
+                expression: "this.getAmount() >= this.getFees()['fee']"
+                message: gatewayTransaction.amount.expression
+        amount:
+            - NotBlank:
+                groups: ['transfer']
+            - Range:
+                min: 1
+                groups: ['transfer']
+            - Type:
+                type: numeric
+                groups: ['transfer']
+            - Expression:
+                expression: "this.getAmountTo() >= this.getFees()['feeTo']"
+                message: gatewayTransaction.amountTo.expression
+                groups: ['transfer']
+        paymentOption:
+            - NotBlank: ~
+        currency:
+            - NotBlank: ~
+        gateway:
+            - NotBlank: ~
+            - Expression:
+                expression: "this.validateGateways()"
+                message: gatewayTransaction.gateway.expression
+        gatewayTo:
+            - NotBlank:
+                groups: ['transfer']
+            - Expression:
+                expression: "this.validateGateways()"
+                message: gatewayTransaction.gatewayTo.expression
+                groups: ['transfer']
+        details:
+            - Collection:
+                allowMissingFields: true
+                allowExtraFields: true
+                fields:
+                    notes:
+                        - Length:
+                            min: 5
+                            max: 255
+                        - Regex:
+                            pattern: '/^[a-zA-Z0-9\.\,\#\s\-]+/'
+                            message: gatewayTransaction.details.notes.regex
+                    reason:
+                        - NotBlank: ~
+                        - Length:
+                            min: 5
+                            max: 255
+                        - Regex:
+                            pattern: '/^[a-zA-Z0-9\.\,\#\s\-]+/'
+                            message: gatewayTransaction.details.reason.regex
+        fees:
+            - Collection:
+                allowMissingFields: false
+                fields:
+                    fee:
+                        - Type:
+                            type: numeric
+                    feeTo:
+                        - Type:
+                            type: numeric

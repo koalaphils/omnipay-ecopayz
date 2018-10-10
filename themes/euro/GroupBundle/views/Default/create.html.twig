@@ -1,0 +1,141 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% form_theme form _self %}
+
+{% block title %}{{ "page.title.create"|trans({},"GroupBundle") }}{% endblock %}
+
+{% block stylesheets %}
+    <style type="text/css">
+        .ms-container {
+            width: 100%;
+        }
+    </style>
+{% endblock stylesheets %}
+
+{% block stylesheet_plugins %}
+    {{ form_assetcss(form) }}
+{% endblock %}
+
+{% block javascript_plugins %}
+    {{ form_assetjs(form) }}
+{% endblock %}
+
+{% block pageTitle -%}{{ "page.Create Group"|trans({},"GroupBundle") }}{%- endblock pageTitle %}
+
+{% block pageHeaderExtra %}
+<div class="pull-right">
+    <a class="btn btn-inverse waves-effect waves-light pull-right m-b-10" href="{{ path("group.list_page") }}"><span><i class="ti-arrow-left m-r-5"></i></span> {{ "quickLinks.backToList"|trans({}, 'GroupBundle') }}</a>
+    <ul class="list-inline quicklinks font-13 font-normal text-right">
+        <li>{{ "quickLinks.name"|trans({}, 'GroupBundle') }}:</li>
+        <li><a href="{{ path("user.list_page") }}">{{ "quickLinks.user"|trans({}, 'GroupBundle') }}</a></li>|
+        <li><a href="{{ path("country.list_page") }}">{{ "quickLinks.country"|trans({}, 'GroupBundle') }}</a></li>
+    </ul>
+</div>
+{% endblock pageHeaderExtra %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.admin"|trans({},"AppBundle") }}</li>
+    <li>
+        <a href="{{ path("group.list_page") }}">{{ "breadcrumb.list"|trans({},"GroupBundle") }}</a>
+    </li>
+    <li class="active">{{ "page.Create Group"|trans({},"GroupBundle") }}</li>
+{%- endblock breadcrumb %}
+
+{% block page %}
+    <div class="col-sm-12">
+        <div class="card-box">
+            {% include "GroupBundle:Form:group-form.html.twig" %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script type="text/javascript">
+        var roles = {{ roles|json_encode()|raw('js') }};
+        var groups = {{ roleGroups|json_encode()|raw('js') }};
+    </script>
+    {{ form_javascript(form) }}
+{% endblock %}
+
+{% block checkbox_row %}
+    <div class="form-group col-md-4">
+        {{ form_widget(form) }}
+    </div>
+{% endblock checkbox_row %}
+
+{% block checkbox_widget %}
+    {% if view is defined and view %}
+        {%- set attr = attr|merge({'disabled': 'disabled'}) -%}
+    {% endif %}
+    {% spaceless %}
+        <div class="checkbox m-t-0 role-container" id="role_{{ value }}_container">
+            <input class='role_checkbox' id='role_{{ value }}' type="checkbox" {{ block('widget_attributes') }} value="{{ value }}" {% if checked %}checked="checked"{% endif %} />
+            <label for="{{ id }}">{{ label }}</label>
+        </div>
+    {% endspaceless %}
+{% endblock %}
+
+{% block submit_row -%}
+    {% if 'data-first-button' in attr %}
+    <div class="col-sm-12">
+        <div class="form-group">
+    {% endif %}
+    {{ form_widget(form, { 'attr' : { 'class' : 'btn-success pull-right m-r-10' } } ) }}
+    {% if 'data-last-button' in attr %}
+        </div>
+    </div>
+    {% endif %}
+{% endblock submit_row %}
+
+{% block _UserGroup_roles_widget %}
+    {% for groupName, group in form.vars.choices %}
+        <h5><b>{{ group.label }}</b></h5>
+        <div class="row m-b-10">
+        {% for roleIndex, role in group.choices %}
+            {{ form_row(form.children[roleIndex]) }}
+        {% endfor %}
+        </div>
+    {% endfor %}
+{% endblock _UserGroup_roles_widget %}
+
+{% block _UserGroup_roles_javascript %}
+    <script type="text/javascript">
+        function generateChildRoles() {
+            for (var roleCode in roles) {
+                var role = roles[roleCode];
+                if (role.requirements.length > 0) {
+                    // $('#role_' + roleCode + '_container').addClass('hidden');
+                    for (var requiredRoleIndex in roles[roleCode].requirements) {
+                        if (typeof roles[roles[roleCode].requirements[requiredRoleIndex]].children === 'undefined') {
+                            roles[roles[roleCode].requirements[requiredRoleIndex]].children = [];
+                        }
+                        roles[roles[roleCode].requirements[requiredRoleIndex]].children.push(roleCode);
+                    }
+                }
+            }
+        }
+
+        generateChildRoles();
+        $(function () {
+            $('.role_checkbox').on('change', function (e) {
+                var value = $(this).val();
+                var role = roles[value];
+                if (this.checked) {
+                    for (var roleCode in role.requirements) {
+                        $('#role_' + role.requirements[roleCode]).get(0).checked = 1;
+                        $('#role_' + role.requirements[roleCode]).trigger('change');
+                    }
+                    /*for (var roleCode in role.children) {
+                        $('#role_' + role.children[roleCode] + '_container').removeClass('hidden');
+                    }*/
+                } else {
+                    for (var roleCode in role.children) {
+                        $('#role_' + role.children[roleCode]).get(0).checked = false;
+                        $('#role_' + role.children[roleCode]).trigger('change');
+                        // $('#role_' + role.children[roleCode] + '_container').addClass('hidden');
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock _UserGroup_roles_javascript %}

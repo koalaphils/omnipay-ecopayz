@@ -1,0 +1,5 @@
+notification:
+    error:
+        title: Error
+        message: Unable to make authorization in websocket, Pls. contact your administrator
+        

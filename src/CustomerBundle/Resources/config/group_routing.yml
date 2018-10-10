@@ -1,0 +1,27 @@
+customer.group_list_page:
+    path: /group
+    defaults: { _controller: CustomerBundle:CustomerGroup:index }
+
+customer.group_list:
+    path: /group/list
+    defaults: { _controller: CustomerBundle:CustomerGroup:list }
+
+customer.group_create_page:
+    path: /group/create
+    defaults: { _controller: CustomerBundle:CustomerGroup:createPage }
+    condition:  "context.getMethod() in ['GET']"
+    
+customer.group_create:
+    path: /group/create
+    defaults: { _controller: CustomerBundle:CustomerGroup:create }
+    condition:  "context.getMethod() in ['POST']"
+    
+customer.group_edit_page:
+    path: /group/{id}
+    defaults: { _controller: CustomerBundle:CustomerGroup:updatePage }
+    condition:  "context.getMethod() in ['GET']"
+    
+customer.group_update:
+    path: /group/{id}
+    defaults: { _controller: CustomerBundle:CustomerGroup:update }
+    condition:  "context.getMethod() in ['POST']"

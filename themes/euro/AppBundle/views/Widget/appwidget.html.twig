@@ -1,0 +1,60 @@
+{% use "AppBundle:Widget:base.html.twig"  %}
+
+{% block quotes_container %}
+    <div id="{{ block_id }}" class="panel btn-twitter social-feed-box">
+        <a href="{{ path('app.dashboard_widget_remove', {"widgetId": widget.getId()}) }}" class="widget-remove" data-toggle="remove"><i class="ion-close-round"></i></a>
+        <div class="panel-body p-20">
+            <div class="">
+                <span class="text-uppercase font-600 pull-right">Quotes</span>
+                <i class="fa fa-quote-left fa-2x"></i>
+            </div>
+            {{ widget_render_block(widget, 'widget') }}
+        </div>
+    </div>
+{% endblock quotes_container %}
+
+{% block quotes_widget %}
+    <div id="{{ id }}" class="carousel slide social-feed-slider" data-ride="carousel">
+        <!-- Indicators -->
+        <ol class="carousel-indicators m-b-0">
+            {% for i in 0..(widget.property('count')-1) %}
+                <li data-target="#{{ id }}" data-slide-to="{{ i }}" class="{{ i == 0 ? 'active' : '' }}"></li>
+            {% endfor %}
+        </ol>
+        <!-- Wrapper for slides -->
+        <div class="carousel-inner" role="listbox">
+            {% for index,quote in widget.getQuotes() %}
+            <div class="item {{ (index == 0) ? 'active' : '' }}">
+                <div class="m-t-20">
+                    <h3 class="text-white m-b-5">{{ quote.quote }}</h3>
+                    <span class="font-13"><small>{{ quote.source }}</small></span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock quotes_widget %}
+
+{% block collection_container %}
+    {% if widget.property('type') == 'row' %}
+    <div class="row" id="{{ id }}">
+    {% else %}
+    <div class="col-md-{{ widget.property('size', 12) }}" id="{{ id }}">
+        <div class="row">
+    {% endif %}
+    {% for child in widget.children() %}
+        {% if widget_name == 'collection' and child.property('type') == 'column' %}
+            {{ widget_render(child) }}
+        {% else %}
+            <div class="col-md-{{ child.property('size', 12) }}">
+                {{ widget_render(child) }}
+            </div>
+        {% endif %}
+    {% endfor %}
+    {% if widget.property('type') == 'row' %}
+    </div>
+    {% else %}
+        </div>
+    </div>
+    {% endif %}
+{% endblock collection_container %}

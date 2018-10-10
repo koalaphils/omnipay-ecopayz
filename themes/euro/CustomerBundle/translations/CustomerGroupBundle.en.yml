@@ -1,0 +1,38 @@
+tag:
+    list_title: Member Group | List
+    create_title: Member Group | Create
+    update_title: Member Group | Update
+
+page:
+    list_title: Customer Group
+    create_title: Create Member Group
+    update_title: Update Member Group
+    title:
+        create: Member Group | Create
+        list: Member Group
+breadcrumb:
+    name: Group
+    text: Group
+    list: Member Group List
+    transList: Transaction List
+
+quicklink:
+    list: Transaction List
+
+fields:
+    name: Name
+    isDefault: Is Default
+    id: ID
+
+menus:
+    Customer Group Create: Create Member Group
+    Customer Group: Member Group
+
+notifications:
+    submit:
+        error:
+            title: Save Member Group
+            message: There should be one group set as default
+roles:
+    customer_group:
+        view: View Member Group

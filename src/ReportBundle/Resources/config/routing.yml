@@ -1,0 +1,93 @@
+report.customers:
+    path: /reports/customers
+    defaults:
+        _controller: ReportBundle:CustomerReport:index
+    methods: ['GET']
+
+report.customers_currency:
+    path: /reports/customers/{currency}
+    defaults:
+        _controller: ReportBundle:CustomerReport:currencyReport
+    methods: ['GET']
+
+report.customers_currency_summary:
+    path: /reports/member-summary/{currency}
+    defaults:
+        _controller: ReportBundle:CustomerReport:memberReportSummary
+    methods: ['POST']
+
+report.customers_export:
+    path: /reports/customers/{currency}/export
+    defaults:
+        _controller: ReportBundle:CustomerReport:exportCustomers
+
+report.customer:
+    path: /reports/customers/{currency}/{customerId}
+    defaults:
+        _controller: ReportBundle:CustomerReport:customerPage
+    methods: ['GET']
+
+report.customer_products:
+    path: /reports/customer-products
+    defaults:
+        _controller: ReportBundle:CustomerReport:customerProductsReport
+
+report.customer_products_export:
+    path: /reports/customer-products/export
+    defaults:
+        _controller: ReportBundle:CustomerReport:exportCustomerProducts
+
+# Product Report
+
+report.products:
+    path: /reports/products
+    defaults:
+        _controller: ReportBundle:ProductReport:index
+
+report.product_currency:
+    path: /reports/products/{currency}
+    defaults:
+        _controller: ReportBundle:ProductReport:currencyReport
+
+report.products_export:
+    path: /reports/products/{currency}/export
+    defaults:
+        _controller: ReportBundle:ProductReport:exportProducts
+
+report.product:
+    path: /reports/products/{currencyCode}/{productId}
+    defaults:
+        _controller: ReportBundle:ProductReport:productReportPage
+
+report.product_customerproduct_dwl:
+    path: /reports/products/{currencyCode}/{productId}/customerproducts/{customerProductId}
+    defaults:
+        _controller: ReportBundle:ProductReport:customerProductDwlReport
+
+
+# Payment Gateway Report
+
+report.gateways:
+    path: /reports/gateways
+    defaults:
+        _controller: ReportBundle:GatewayReport:index
+
+report.gateway_currency:
+    path: /reports/gateways/{currency}
+    defaults:
+        _controller: ReportBundle:GatewayReport:currencyReport
+
+report.gateways_export:
+    path: /reports/gateways/{currencyCode}/export
+    defaults:
+        _controller: ReportBundle:GatewayReport:exportGateways
+
+report.gateway_transactions:
+    path: /reports/gateways/{id}/transactions
+    defaults:
+        _controller: ReportBundle:GatewayReport:gatewayTransactionsReport
+
+report.gateway_transactions_export:
+    path: /reports/gateways/{id}/transactions/export
+    defaults:
+        _controller: ReportBundle:GatewayReport:exportGatewayTransactions

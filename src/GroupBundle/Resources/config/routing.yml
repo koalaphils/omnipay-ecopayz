@@ -1,0 +1,25 @@
+group.list_page:
+    path:       /
+    defaults: { _controller: GroupBundle:Default:index }
+
+group.list_search:
+    path:       /search
+    defaults:   { _controller: GroupBundle:Default:search }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+
+group.create_page:
+    path:       /create
+    defaults:   { _controller: GroupBundle:Default:create }
+
+group.view_page:
+    path:       /view/{id}
+    defaults:   { _controller: GroupBundle:Default:view }
+    
+group.update_page:
+    path:       /update/{id}
+    defaults:   { _controller: GroupBundle:Default:update }
+    
+group.save:
+    path:       /save/{id}
+    defaults:   {_controller: GroupBundle:Default:save, id: new }
+    condition:  "context.getMethod() in ['POST']"

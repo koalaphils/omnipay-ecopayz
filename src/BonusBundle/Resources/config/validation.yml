@@ -1,0 +1,24 @@
+DbBundle\Entity\Bonus:
+    properties:
+        subject:
+            - NotBlank:
+                groups: ['default']
+            - Regex:
+                pattern: '/^[A-Za-z0-9\s\P{Han}]*$/u'
+                match: true
+                message: subject.regex
+                groups: ['default']
+            - Length:
+                min: 4
+                minMessage: subject.min
+                groups: ['default']
+        startAt:
+            - NotBlank:
+                groups: ['default']
+            - DateTime:
+                groups: ['default']
+        endAt:
+            - NotBlank:
+                groups: ['default']
+            - DateTime:
+                groups: ['default']

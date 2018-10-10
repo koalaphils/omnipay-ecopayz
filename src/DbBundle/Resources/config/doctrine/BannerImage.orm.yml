@@ -1,0 +1,59 @@
+DbBundle\Entity\BannerImage:
+    type: entity
+    table: banner_image
+    repositoryClass: DbBundle\Repository\BannerImageRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: banner_image_id
+            options:
+                unsigned: true
+    indexes:
+        type_index:
+            columns: [banner_image_type]
+        language_index:
+            columns: [banner_image_language]
+        dimension_index:
+            columns: [banner_image_dimension]
+    fields:
+        language:
+            type: string
+            length: 5
+            column: banner_image_language
+        type:
+            type: smallint
+            column: banner_image_type
+        dimension:
+            type: string
+            length: 50
+            column: banner_image_dimension
+        details:
+            type: json
+            column: banner_image_details
+        isActive:
+            type: boolean
+            length: 1
+            column: banner_image_is_active
+            options:
+                default: 1
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: banner_image_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            column: banner_image_updated_at
+            nullable: true
+        createdBy:
+            type: bigint
+            column: banner_image_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: banner_image_created_at

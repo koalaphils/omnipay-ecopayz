@@ -1,0 +1,236 @@
+{% block _GatewayTransaction_paymentOption_javascript %}
+    {{ block('triggerGateway') }}
+{% endblock %}
+
+{% block _GatewayTransaction_currency_javascript %}
+    {{ block('triggerGateway') }}
+{% endblock %}
+
+{% block triggerGateway %}
+    {{ form_javascript(form) }}
+
+    <script type='text/javascript'>
+        $('#{{ id }}').on('select2:select', function(event) {
+            $('#{{ form.parent.gateway.vars.id }}').val(null).trigger('change');
+
+            {% if form.parent.gatewayTo is defined %}
+                $('#{{ form.parent.gatewayTo.vars.id }}').val(null).trigger('change');
+            {% endif %}
+        });
+    </script>
+{% endblock %}
+
+{% block _GatewayTransaction_amount_javascript %}
+    {{ block('triggerNetAmount') }}
+{% endblock %}
+
+{% block _GatewayTransaction_amountTo_javascript %}
+    {{ block('triggerNetAmount') }}
+{% endblock %}
+
+{% block _GatewayTransaction_fees_fee_javascript %}
+    {{ block('triggerNetAmount') }}
+{% endblock %}
+
+{% block _GatewayTransaction_fees_feeTo_javascript %}
+    {{ block('triggerNetAmount') }}
+{% endblock %}
+
+{% block triggerNetAmount %}
+    <script type="text/javascript">
+        $(function() {
+            $('#{{ id }}').keyup(function() {
+                computeNetAmount();
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block _GatewayTransaction_gateway_javascript %}
+    {{ block('loadGateway') }}
+{% endblock %}
+
+{% block _GatewayTransaction_gatewayTo_javascript %}
+    {{ block('loadGateway') }}
+{% endblock %}
+
+{% block loadGateway %}
+    <script type="text/javascript">
+        $(function() {
+            var element = $('#{{ id }}');
+
+            element.select2({
+                'data': {{ value|json_encode()|raw }},
+                'ajax': {
+                    'url': '{{ path('gateway.list_search') }}',
+                    'data': function(params) {
+                        var page = params.page || 1;
+                        var length = $(this).data('length');
+                        var start = (page - 1) * length;
+
+                        var paymentOption = $('#{{ form.parent.paymentOption.vars.id }}').select2('data')[0];
+                        var currency = $('#{{ form.parent.currency.vars.id }}').select2('data')[0];
+
+                        var data = {
+                            'idColumn': element.data('id-column'),
+                            'select2': 1,
+                            'search': params.term,
+                            'length': length,
+                            'start': start,
+                            '_format': 'json',
+                            'paymentOption': typeof paymentOption != 'undefined' ? paymentOption.id : null,
+                            'currency': typeof currency != 'undefined' ? currency.id : null
+                        };
+
+                        return data;
+                    },
+                    'processResults': function(data, page) {
+                        var selectedGateways = [];
+
+                        $('select.gateway').each(function() {
+                            if (!element.is($(this))) {
+                                selectedGateways.push(parseInt($(this).val()));
+                            }
+                        });
+
+                        var filteredGateways = $.grep(data.items, function(v) {
+                            return $.inArray(v.id, selectedGateways) == -1;
+                        });
+
+                        return {
+                            'results': filteredGateways,
+                            'pagination': {
+                                'more': (page * $(this).data('length')) < data.recordsFiltered
+                            }
+                        };
+                    }
+                },
+                'templateResult': function(data) {
+                    if(window[$('#{{ id }}').data('useTemplateResult')]) {
+                        return window[$('#{{ id }}').data('useTemplateResult')](data);
+                    }
+                    if(data.id === null || data.id === '' || !data.id) return data.text;
+                    var text = "{{ selectText|raw }}";
+                    for(var col in data) {
+                        var regex = new RegExp('\{' + col + '\}','g');
+                        text = text.replace(regex, data[col]);
+                    }
+
+                    return text;
+                },
+                'templateSelection': function(data, container) {
+                    if(window[$('#{{ id }}').data('useTemplateSelection')]) {
+                        return window[$('#{{ id }}').data('useTemplateSelection')](data, container);
+                    }
+                    if(data.id === null || data.id === '' || !data.id) return data.text;
+                    var text = "{{ selectText|raw }}";
+                    for(var col in data) {
+                        var regex = new RegExp('\{' + col + '\}','g');
+                        text = text.replace(regex, data[col]);
+                    }
+
+                    return text;
+                },
+                'placeholder': {
+                    'id': null,
+                    'text': "{{ placeholder|trans({}, translation_domain) }}"
+                },
+                'escapeMarkup': function(markup) {
+                    return markup;
+                }
+            });
+
+            {% if view|default(false) %}
+                element.select2("enable", false);
+                $(element.data('select2').$container).find('.select2-selection').css({'background-color': "rgba(0,0,0,0)"});
+            {% endif %}
+        });
+    </script>
+{% endblock %}
+
+{% block _GatewayTransaction_javascript %}
+    {{ form_javascript(form) }}
+    <script src="{{ asset('assets/plugins/jquery-form/jquery.form.min.js') }}"></script>
+
+    <script type="text/javascript">
+        $(function() {
+            computeNetAmount();
+        });
+
+        $('#{{ form.vars.id }}').ajaxForm({
+            'beforeSend': function () {
+                $('#{{ form.vars.id }}').find('.form-group').removeClass('has-error');
+                $('#{{ form.vars.id }}').find('.help-block ul li').remove();
+                $('button[type=submit]').attr('disabled', 'disabled');
+            },
+            'complete': function () {
+                $('button[type=submit]').removeAttr('disabled');
+            },
+            'statusCode': {
+                422: function (xhr, textStatus, errorThrown) {
+                    $(this).data('global-ajax-error', false);
+
+                    var data = xhr.responseJSON;
+
+                    for (var i in data.errors) {
+                        var error = data.errors[i];
+                        $('#' + error.formId)
+                            .closest('.form-group').addClass('has-error')
+                            .find('.help-block ul')
+                            .append('<li>' + error.message + '</li>');
+                    }
+                },
+                200: function (xhr) {
+                    notification('Saved', 'You have successfully saved gateway transaction', 'success');
+
+                    setTimeout(function () {
+                        window.location = xhr.data['@link'];
+                    }, 2000);
+                }
+            }
+        });
+
+        function computeNetAmount() {
+            var type = '{{ form.vars.type }}';
+
+            {% if form.amount.vars.view|default(false) is same as(false) %}
+                var baseAmount = new Decimal($('#{{ form.amount.vars.id }}').val());
+                var fee = new Decimal($('#{{ form.fees.fee.vars.id }}').val());
+            {% else %}
+                var baseAmount = new Decimal($('#{{ form.amount.vars.id }}').html());
+                var fee = new Decimal($('#{{ form.fees.fee.vars.id }}').html());
+            {% endif %}
+
+            var netAmount = 0;
+            if (type == 'deposit') {
+                netAmount = baseAmount.minus(fee);
+            } else if (type == 'withdraw' || type == 'transfer') {
+                netAmount = baseAmount.plus(fee);
+            }
+
+            {% if form.amount.vars.view|default(false) is same as(false) %}
+                $('#{{ form.netAmount.vars.id }}').val(netAmount);
+            {% else %}
+                $('#{{ form.netAmount.vars.id }}').html(netAmount.toString());
+            {% endif %}
+
+            {% if form.amountTo is defined %}
+                {% if form.amountTo.vars.view|default(false) is same as(false) %}
+                    var baseAmountTo = new Decimal($('#{{ form.amountTo.vars.id }}').val());
+                    var feeTo = new Decimal($('#{{ form.fees.feeTo.vars.id }}').val());
+                {% else %}
+                    var baseAmountTo = new Decimal($('#{{ form.amountTo.vars.id }}').html());
+                    var feeTo = new Decimal($('#{{ form.fees.feeTo.vars.id }}').html());
+                {% endif %}
+
+                var netAmountTo = baseAmountTo.minus(feeTo);
+
+                {% if form.amountTo.vars.view|default(false) is same as(false) %}
+                    $('#{{ form.netAmountTo.vars.id }}').val(netAmountTo);
+                {% else %}
+                    $('#{{ form.netAmountTo.vars.id }}').html(netAmountTo.toString());
+                {% endif %}
+            {% endif %}
+        }
+    </script>
+{% endblock _GatewayTransaction_javascript %}

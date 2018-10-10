@@ -1,0 +1,20 @@
+services:
+    widget.transaction_list:
+        class: TransactionBundle\Widget\TransactionListWidget
+        parent: app.widget_abstract
+        calls:
+            - [ 'setType', ['transactionList'] ]
+        shared: false
+        lazy: true
+        tags:
+            - { name: app.widget, widget_name: transactionList }
+
+    widget.transaction_search:
+        class: TransactionBundle\Widget\TransactionSearchWidget
+        parent: app.widget_abstract
+        calls:
+            - [ 'setType', ['transactionList'] ]
+        shared: false
+        lazy: true
+        tags:
+            - { name: app.widget, widget_name: transactionSearch }

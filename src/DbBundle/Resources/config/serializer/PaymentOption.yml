@@ -1,0 +1,12 @@
+DbBundle\Entity\PaymentOption:
+    exclusion_policy: ALL
+    xml_root_name: paymentOption
+    properties:
+        code:
+            expose: true
+        name:
+            expose: true
+        isActive:
+            expose: true
+        fields:
+            expose: true

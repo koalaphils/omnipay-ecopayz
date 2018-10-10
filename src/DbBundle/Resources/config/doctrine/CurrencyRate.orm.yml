@@ -1,0 +1,87 @@
+DbBundle\Entity\CurrencyRate:
+    type: entity
+    table: currency_rate
+    repositoryClass: DbBundle\Repository\CurrencyRateRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: currency_rate_id
+            options:
+                unsigned: true
+    indexes:
+        version_index:
+            columns: [currency_rate_version]
+        isLatest_index:
+            columns: [currency_rate_is_latest]
+    uniqueConstraints:
+        resource_version_unq:
+            columns: [currency_rate_resource_id, currency_rate_version]
+        currency_version_unq:
+            columns: [currency_rate_source_currency_id, currency_rate_version]
+    fields:
+        resourceId:
+            type: string
+            nullable: false
+            column: currency_rate_resource_id
+        version:
+            type: integer
+            nullable: false
+            column: currency_rate_version
+            options:
+                unsigned: true
+                default: 1
+        rate:
+            type: decimal
+            precision: 65
+            scale: 10
+            options:
+                default: 1
+            column: currency_rate_rate
+            nullable: false
+        destinationRate:
+            type: decimal
+            type: decimal
+            precision: 65
+            scale: 10
+            options:
+                default: 1
+            column: currency_rate_destination_rate
+            nullable: false
+        isLatest:
+            type: boolean
+            column: currency_rate_is_latest
+            nullable: false
+            options:
+                default: 1
+                unsigned: true
+        createdBy:
+            type: bigint
+            column: currency_rate_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: currency_rate_created_at
+            nullable: false
+    manyToOne:
+        sourceCurrency:
+            targetEntity: DbBundle\Entity\Currency
+            joinColumn:
+                nullable: false
+                name: currency_rate_source_currency_id
+                referencedColumnName: currency_id
+        destinationCurrency:
+            targetEntity: DbBundle\Entity\Currency
+            joinColumn:
+                nullable: false
+                name: currency_rate_destination_currency_id
+                referencedColumnName: currency_id
+        creator:
+            targetEntity: DbBundle\Entity\User
+            joinColumn:
+                nullable: true
+                name: currency_rate_created_by
+                referencedColumnName: user_id

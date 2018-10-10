@@ -1,0 +1,6 @@
+code:
+    min: Product code cannot be shorter than {{ limit }}.
+    max: Product code cannot be longer than {{ limit }}.
+name:
+    min: Product name cannot be shorter than {{ limit }}.
+    max: Product name cannot be longer than {{ limit }}.

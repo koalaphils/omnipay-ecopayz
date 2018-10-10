@@ -1,0 +1,53 @@
+menus:
+    report:
+        product: Product Summary
+        memberProduct: Member Product Summary
+        paymentOption: Report - Payment Option
+        member: Member Summary
+    List: List
+
+page:
+    title:
+        list: Report Product | List
+        customerProductsList: Report Member Products | List
+fields:
+    product:
+        id: ID
+        product: Product
+        signsUp: No. of Sign Ups
+        openedAccounts: No. of Newly Opened Accounts
+        signsUpWithout: No. of Signups w/o deposit
+        registeredAccounts: Total No. of Registered Accounts
+        activeAccounts: No. Active Accounts
+        inactiveAccounts: No. Inactive Accounts
+        turnOver: Turnover
+        winLoss: Win/Loss
+        grossComm: Gross Comm.
+        total: Total
+    customerProducts:
+        id: ID
+        memberProduct: Member Product
+        turnover: Turnover
+        winLoss: Win/Loss
+        grossCommission: Gross Commisson
+        memberCommission: Member Commission
+        deposit: Deposit
+        withdraw: Withdraw
+        balance: Balance
+        currentBalance: Current Balance
+    labels:
+        from: From
+        to: To
+        currency: Currency
+roles:
+    groups:
+        report: Reports
+    report:
+        product:
+            view: View Product Report
+        customer:
+            view: View Member Report
+        gateway:
+            view: View Payment Gateway Report
+notes:
+    reportNotes: Please select date and currency to display result

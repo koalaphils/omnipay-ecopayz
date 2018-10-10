@@ -1,0 +1,265 @@
+menus:
+    Customer: Customer
+    List: List
+    Customer List: Customer List
+    Create: Create
+    Update: Update
+    Affiliate: Affiliate
+    Affiliate List: Affiliate List
+    BackToCustomerList: Back to Member List
+    BackToAffiliate: Back to Affiliate List
+    AddCustomerGroup: Add Member Group
+    BackToCustomerGroupList: Back to Member Group List
+
+page:
+    title:
+        list: Customer | List
+        update_customer: Customer | Update %fullName%
+        update_affiliate: Marketing | Affiliate | Update %fullName%
+        create: Customer | Create
+        create_affiliate: Marketing | Affiliate | Create
+        affiliate: Marketing | Affiliate
+        riskSetting:
+            create: Customer | Risk Setting | Create
+    Create Customer: Create Customer
+    Create Affiliate: Create Affiliate
+    Update Customer: Update Customer
+    Update Affiliate: Update Affiliate
+    Add Customer: Add Customer
+    Add Affiliate: Add Affiliate
+    tab:
+        profile: Profile
+        product: Product
+        productCommission: Commissions
+        transactionHistory: Transactions History
+        security: Security
+        bank: Bank
+        documents: Documents
+        payment: Payments
+        contacts: Contacts
+        socials: Socials
+        transactionHistory: Transaction History
+        affiliate: Affiliate
+        customers: Customers
+        transactions: Transactions
+        ips: IP
+
+quickLinks:
+    name: Quick Links
+    addCustomer: Add Customer
+    addAffiliate: Add Affiliate
+    customerList: Customer List
+    customerGroup: Customer Group
+    promoCode: Promo Code
+    trackingId: Affiliate Tracking ID
+    transList: Transaction List
+
+breadcrumb:
+    list: Affiliate List
+
+fields:
+    id: ID
+    fullName: Full Name
+    fName: First Name
+    mName: Middle Name
+    lName: Last Name
+    birthDate: Birth Date
+    country: Country
+    currency: Currency
+    kyc: KYC
+    joinedAt: Date Joined
+    createdBy: Created By
+    balance: Unallocated Balance
+    status: Status
+    userID: User ID
+    socials: Social
+    password: Password
+    newPassword: New Password
+    newTransactionPassword: New Transaction Password
+    confirmNewTransactionPassword: Confirm New Transaction Password
+    confirmNewPassword: Confirm New Password
+    type: Type
+    changePassword: Change Password
+    confirmPassword: Confirm New Password
+    email: Email
+    verifyCustomer: Verified Customer
+    verifyAffiliate: Verified Affiliate
+    isActive: Is Active
+    isAffiliate: Is Affiliate
+    isCustomer: Is Customer
+    transactionPassword: Confirm New Transaction Password
+    level: Level
+    joinedAt: Date Joined
+    group: Customer Group
+    document:
+        title: Title
+        description: Description
+        file: File
+    contact:
+        type: Type
+        value: Contact
+    payment:
+        type: Payment Option Type
+        isActive: Is Active
+    affiliate:
+        label: Affiliate
+        placeholder: Select Affiliate
+    riskSetting:
+        riskId: Risk ID
+        field: Risk Setting
+
+form:
+    social:
+        addSocial: Add Social
+    convertToAffiliate: Convert to Affiliate
+    convertToCustomer: Convert to Customer
+    cancel: Cancel
+
+contactType:
+    mobile: Mobile
+    work: Work
+    home: Home
+    main: Main
+    workFax: Work Fax
+    fax: Fax
+    email: Email
+
+socialType:
+    skype: Skype
+    facebook: Facebook
+    website: Website
+
+customerType:
+    member: Member
+    admin: Admin
+    cashPayer: Cash Payer
+
+notification:
+    error:
+        title: Oh Snap!
+        message: Data not saved. Please check the fields and try again.
+    title: Success
+    created: %fName% %lName% was successfully created
+    updated: %fName% %lName% was successfully updated
+    activation:
+        success:
+            title: Activation Sent
+            message: Activation email has been successfully sent to %name%
+        error:
+            title: Sending Failed
+            message: Customer is already activated.
+    activateCustomer:
+        success:
+            title: Account Activated
+            message: Customer account %name% has been successfully activated
+        error:
+            title: Activating Failed
+            message: Customer is already activated.
+    resetPassword:
+        success:
+            title: Reset Password
+            message: Reset password email has been successfully sent to %name%
+        error:
+            title: Sending Failed
+            message: Customer account has not been activated yet.
+    verified:
+        title:
+            verified: Verified
+            unverified: Unverified
+        message:
+            verified: %name% was successfully verified
+            unverified: %name% was successfully unverified
+    bank:
+        title: Saved
+        message: Customer bank was successfully saved
+    document:
+        update:
+            success:
+                title: Saved
+                message: Document "%title%" %field% was successfully saved.
+        delete:
+            success:
+                title: Deleted
+                message: Document "%title%" was successfully Deleted.
+            error:
+                title: Error Deletion
+                message: Document "%title%" deletion failed.
+    contact:
+        title: Saved
+        message: Customer contact was successfully saved
+        error-title: Error
+        error-message: Invalid Contact Details
+
+    social:
+        title: Saved
+        message: Customer socials was successfully saved
+    paymentOption:
+        save:
+            success:
+                title: Saved
+                message: Customer Payment Option successfully saved.
+        delete:
+            success:
+                title: Deleted
+                message: Customer Payment Option successfully deleted.
+    convertAffiliate:
+        success:
+            title: Successfull
+            message: The customer was successfully converted to affilaite
+        error:
+            title: Error
+            message: The customer was already an affiliate
+    convertCustomer:
+        success:
+            title: Successfull
+            message: The affiliate was successfully converted to customer
+        error:
+            title: Error
+            message: The affiliate was already a customer
+    riskSetting:
+        suspended:
+            title: Suspended
+            message: %riskSettingRiskId% was successfully suspended
+        activated:
+            title: Activated
+            message: %riskSettingRiskId% was successfully activated
+
+roles:
+    groups:
+        customer: Customer
+    customer:
+        view: View Customer
+        update: Update Customer
+        create: Create Customer
+        convert_to_customer: Convert To Customer
+        convert_to_affiliate: Convert To Affiliate
+
+    customerRiskSettting:
+        view: View Risk Setting
+        update: Update Risk Setting
+        create: Create Risk Setting
+
+# messages
+Customer not verified: Customer not verified
+This customer has not been verified and may be unable to create transaction: This customer has not been verified and may be unable to create transaction.
+Verify this customer: Verify this customer
+
+activation:
+    title: Activation Details
+    sentOn: Activation email sent on
+    activatedOn: Account activated on
+    button: Resend Activation Email
+    buttonActivate: Activate Customer
+
+resetPassword:
+    title: Reset Password Link
+    sentOn: Reset password email sent on
+    button: Send Reset Password Email
+    select: Select Origin
+
+settings:
+    customerProfilling:
+          label: Risk Setting
+
+RiskSetting:
+    label: Risk Setting

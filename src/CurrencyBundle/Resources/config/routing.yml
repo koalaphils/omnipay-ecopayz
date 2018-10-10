@@ -1,0 +1,29 @@
+currency.list_page:
+    path:     /
+    defaults: { _controller: CurrencyBundle:Default:index }
+
+currency.list_search:
+    path:     /search
+    defaults: { _controller: CurrencyBundle:Default:search }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+    
+currency.create_page:
+    path:       /create
+    defaults:   { _controller: CurrencyBundle:Default:create }
+
+currency.view_page:
+    path:       /view/{id}
+    defaults:   { _controller: CurrencyBundle:Default:view }
+    
+currency.update_page:
+    path:       /update/{id}
+    defaults:   { _controller: CurrencyBundle:Default:update }
+    
+currency.save:
+    path:       /save/{id}
+    defaults:   {_controller: CurrencyBundle:Default:save, id: new }
+    condition:  "context.getMethod() in ['POST']"
+    
+currency.setting.currency_page:
+    path:       /setting
+    defaults:   { _controller: CurrencyBundle:Setting:index }

@@ -1,0 +1,37 @@
+dwl.list_page:
+    path: /
+    defaults: { _controller: DWLBundle:DWL:index }
+
+dwl.list_search:
+    path:       /search
+    defaults:   { _controller: DWLBundle:DWL:search }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+
+dwl.create_page:
+    path: /create
+    defaults: { _controller: DWLBundle:DWL:create }
+
+dwl.update_page:
+    path: /update/{id}
+    defaults: { _controller: DWLBundle:DWL:update }
+
+dwl.export:
+    path: /export/{id}
+    defaults: { _controller: DWLBundle:DWL:exportToCsvDWL }
+
+dwl.submit:
+    path: /submit/{id}
+    defaults: { _controller: DWLBundle:DWL:submit }
+
+dwl.save:
+    path: /save/{id}
+    defaults: { _controller: DWLBundle:DWL:save, id: new }
+
+dwl.item_save:
+    path: /save/{id}/{version}/{username}
+    defaults: { _controller: DWLBundle:DWL:saveItem }
+
+dwl.get_dwl:
+    path: /{id}
+    defaults: { _controller: DWLBundle:DWL:getDWL }
+

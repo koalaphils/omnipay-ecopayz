@@ -1,0 +1,101 @@
+DbBundle\Entity\Customer:
+    exclusion_policy: ALL
+    xml_root_name: customer
+    properties:
+        id:
+            expose: true
+        fName:
+            groups: ['Default', 'name']
+        mName:
+            groups: ['Default', 'name']
+        lName:
+            groups: ['Default', 'name']
+        fullName:
+            groups: ['Default', 'name']
+        birthDate:
+            groups: ['Default']
+        currency:
+            groups: ['Default', 'currency']
+            type: DbBundle\Entity\Currency
+        country:
+            groups: ['Default', 'country']
+            type: DbBundle\Entity\Country
+        user:
+            groups: ['Default', 'user']
+        balance:
+            serialized_name: unallocated_balance
+            expose: true
+        socials:
+            groups: ['socials']
+        details:
+            groups: ['details']
+        files:
+            groups: ['files']
+        contacts:
+            groups: ['contacts']
+        affiliate:
+            groups: ['affiliate']
+        groups:
+            groups: ['Default', 'groups']
+        joinedAt:
+            expose: true
+            type: DateTime<'Y-m-d H:i:s'>
+        verifiedAt:
+            expose: true
+            type: DateTime<'Y-m-d H:i:s'>
+        paymentOptions:
+            groups: ['paymentOptions']
+        tags:
+            expose: true
+    virtual_properties:
+        hasConfirmReferrerTermsAndConditions:
+            type: boolean
+            serialized_name: has_confirm_terms_and_conditions
+            groups: ['Default', 'termsAndConditions']
+        getFullName:
+            groups: ['Default', 'name']
+            type: string
+            serialized_name: full_name
+        currency_code:
+            exp: object.getCurrency().getCode()
+            groups: ['transaction_exp']
+            serialized_name: currency
+            type: string
+        country_code:
+            exp: object.getCountry().getCode()
+            groups: ['transaction_exp']
+            serialized_name: country
+            type: string
+        activatedAt:
+            exp: object.getUser().getActivationTimestamp()
+            expose: true
+            type: DateTime<'Y-m-d H:i:s'>
+            serialized_name: activated_at
+        isActivated:
+            exp: object.getUser().getIsActive()
+            expose: true
+            type: boolean
+            serialized_name: is_activated
+        isEnabled:
+            exp: object.isEnabled()
+            expose: true
+            type: boolean
+            serialized_name: is_enabled
+        availableBalance:
+            exp: object.getAvailableBalance()
+            expose: true
+            type: float
+        preferences:
+            exp: object.getPreferences()
+            type: array
+            groups: [preferences]
+            serialized_name: preferences
+        websocket:
+            exp: object.getWebsocketDetails()
+            groups: [websocket]
+            serialized_name: websocket
+        brokerageSyncId:
+            exp: object.getBrokerageProductSyncId()
+            expose: true
+            type: integer
+            serialized_name: brokerage_sync_id

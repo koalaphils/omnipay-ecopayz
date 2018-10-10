@@ -1,0 +1,34 @@
+bonus.list_page:
+    path:     /
+    defaults: { _controller: BonusBundle:Default:index }
+
+bonus.list_search:
+    path:       /search
+    defaults:   { _controller: BonusBundle:Default:search }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+
+bonus.create_page:
+    path:       /create
+    defaults:   { _controller: BonusBundle:Default:create }
+
+bonus.update_page:
+    path:       /update/{id}
+    defaults:   { _controller: BonusBundle:Default:update }
+    
+bonus.save:
+    path:       /save/{id}
+    defaults:   { _controller: BonusBundle:Default:save, id: new }
+    condition:  "context.getMethod() in ['POST']"
+    
+bonus.delete:
+    path:       /delete/{id}
+    defaults:   { _controller: BonusBundle:Default:delete }
+    
+bonus.requested_list_page:
+    path:     /requested
+    defaults: { _controller: BonusBundle:Transaction:index }
+    
+bonus.read:
+    path:       /read
+    defaults:   {_controller: BonusBundle:Default:read }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()" 

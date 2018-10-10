@@ -1,0 +1,72 @@
+DbBundle\Entity\Product:
+    type: entity
+    table: product
+    repositoryClass: DbBundle\Repository\ProductRepository
+    id:
+        id:
+            type: integer
+            id: true
+            generator:
+                strategy: AUTO
+            column: product_id
+            options:
+                unsigned: true
+    uniqueConstraints:
+        name_unq:
+            columns: [product_name]
+    fields:
+        code:
+            type: string
+            length: 10
+            unique: true
+            column: product_code
+        name:
+            type: string
+            length: 64
+            unique: true
+            column: product_name
+        isActive:
+            type: boolean
+            length: 1
+            column: product_is_active
+            options:
+                default: 1
+        logo:
+            type: string
+            column: product_logo_uri
+            nullable: true
+        url:
+            type: string
+            column: product_url
+            nullable: true
+        createdBy:
+            type: bigint
+            column: product_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: product_created_at
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: product_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            column: product_updated_at
+            nullable: true
+        deletedAt:
+            type: datetime
+            column: product_deleted_at
+            nullable: true
+        details:
+            type: json
+            nullable: true
+            column: product_details
+    oneToMany:
+        commissionHistory:
+            targetEntity: DbBundle\Entity\ProductCommission
+            mappedBy: product
+    lifecycleCallbacks: {  }

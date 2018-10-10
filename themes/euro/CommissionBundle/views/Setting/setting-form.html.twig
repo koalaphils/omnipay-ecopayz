@@ -1,0 +1,70 @@
+{% use "AppBundle:Widget:Page/form.html.twig"  %}
+
+{% block setting_setting_javascript %}
+    {{ widget_render_block(widget, 'javascript') }}
+    <script type='text/javascript'>
+        $(function() {
+            initDaySelection();
+            $('#{{ form.frequency.vars.id }}').on('changed.bs.select', function () {
+                initDaySelection();
+            });
+        });
+
+        function initDaySelection()
+        {
+            $('#{{ form.day.vars.id }}').closest('.form-group').addClass('hide');
+            var frequency = $('#{{ form.frequency.vars.id }}').selectpicker('val');
+            $('#{{ form.day.vars.id }}').selectpicker('destroy');
+            $('#{{ form.day.vars.id }}').html('');
+            if (frequency === 'monthly') {
+                for (var i = 1; i <= 31; i++) {
+                    $('#{{ form.day.vars.id }}').append('<option value="' + i + '">' + i + '</option>');
+                }
+                $('#{{ form.day.vars.id }}').closest('.form-group').removeClass('hide');
+            } else if (frequency === 'weekly') {
+                $('#{{ form.day.vars.id }}').append('<option value="1">Sunday</option>');
+                $('#{{ form.day.vars.id }}').append('<option value="2">Monday</option>');
+                $('#{{ form.day.vars.id }}').append('<option value="3">Tuesday</option>');
+                $('#{{ form.day.vars.id }}').append('<option value="4">Wednesday</option>');
+                $('#{{ form.day.vars.id }}').append('<option value="5">Thursday</option>');
+                $('#{{ form.day.vars.id }}').append('<option value="6">Friday</option>');
+                $('#{{ form.day.vars.id }}').append('<option value="7">Saturday</option>');
+                $('#{{ form.day.vars.id }}').closest('.form-group').removeClass('hide');
+            }
+
+            $('#{{ form.day.vars.id }}').selectpicker({
+                'size': 10,
+                'actionBox': true,
+                'style': 'btn-white',
+                'size': 5
+            });
+            
+            $('#{{ form.day.vars.id }}').selectpicker('val', [{{ form.day.vars.data }}]); 
+        }
+    </script>
+{% endblock setting_setting_javascript %}
+
+{% block _setting_setting_data_day_widget %}
+    {% spaceless %}
+        {%- set attr = attr|merge({class: (attr.class|default('') ~ ' form-control selectpicker')|trim}) -%}
+        {%- set required = false -%}
+        <select {{ block('widget_attributes') }} >
+        </select>
+    {% endspaceless %}
+{% endblock _setting_setting_data_day_widget %}
+
+{% block setting_setting_frequency_widget %}
+    <a href="javascript::void(0)" id="client-ip" class="text-center cls-frequency" data-toggle="tooltip" data-placement="right" data-html="true" title="Interval between periods where commission will be computed"><i class="fa fa-question-circle"></i></a>
+{% endblock setting_setting_frequency_widget %}
+
+{% block _setting_setting_data_frequency_widget %}
+    {{ form_widget(form) }} {{ block('setting_setting_frequency_widget') }}
+{% endblock _setting_setting_data_frequency_widget  %}
+
+{% block setting_setting_conditions_widget %}
+    <a href="javascript::void(0)" id="client-ip" class="text-center cls-criteria" data-toggle="tooltip" data-placement="right" data-html="true" title="Select a criteria that should be met for commission to be credited to AC wallet product"><i class="fa fa-question-circle"></i></a>
+{% endblock setting_setting_conditions_widget %}
+
+{% block _setting_setting_data_conditions_widget %}
+    {{ form_widget(form) }} {{ block('setting_setting_conditions_widget') }}
+{% endblock _setting_setting_data_conditions_widget  %}

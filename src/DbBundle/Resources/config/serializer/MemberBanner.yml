@@ -1,0 +1,19 @@
+DbBundle\Entity\MemberBanner:
+    exclusion_policy: ALL
+    properties:
+        referralLink:
+            expose: true
+            groups: ['Default', 'referralLinkOnly']
+        trackingHtmlCode:
+            expose: true
+        campaignName:
+            expose: true
+        memberWebsite:
+            expose: true
+        memberReferralName:
+            expose: true
+        bannerImage:
+            expose: true
+        createdAt:
+            expose: true
+            type: DateTime<'Y-m-d H:i:s'>

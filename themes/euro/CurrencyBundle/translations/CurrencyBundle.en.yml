@@ -1,0 +1,46 @@
+menus:
+    Currency: Currency
+
+page:
+    title:
+        list: Finance | Currency
+        update: Finance | Currency | Update %code%
+        create: Finance | Currency | Create
+        setting: Settings | Currency
+    Create Currency: Create Currency
+    Update Currency: Update Currency
+    Currency List: Currency List
+    BacktoCurrency: Back to Currency List
+
+fields:
+    id: ID
+    name: Name
+    code: Code
+    rate: Rate
+    euroPerUnit : EURO per Unit
+    lastUpdated: Last Updated
+    lastUpdatedBy: Last Updated by
+
+notification:
+    title: Success
+    created: %name% was successfully created
+    updated: %name% was successfully updated
+    setting:
+        currency:
+            title: Saved
+            message: Currency setting successfully saved
+
+roles:
+    currency:
+        view: View Currency
+        create: Create Currency
+        update: Update Currency
+        changebase: Change Currency Base
+    groups:
+        currency: Currency
+
+settings:
+    currency:
+        label: Currency Setting
+    fields:
+        baseCurrency: Base Currency

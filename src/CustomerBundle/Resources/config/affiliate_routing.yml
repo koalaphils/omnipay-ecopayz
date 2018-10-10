@@ -1,0 +1,33 @@
+affiliate.list_page:
+    path:       /
+    defaults:   { _controller: CustomerBundle:Affiliate:index }
+
+affiliate.commissions_page:
+    path:       /update/{id}/commissions
+    defaults:   { _controller: CustomerBundle:Affiliate:commissionPage, activeTab: commissions  }
+
+affiliate.commission_list:
+    path:       /update/{id}/commissions/list
+    defaults:   { _controller: CustomerBundle:Affiliate:commissionList}
+
+affiliate.update_page:
+    path:       /update/{id}/{activeTab}
+    defaults:   { _controller: CustomerBundle:Default:update, activeTab: profile  }
+
+affiliate.create_page:
+    path:       /create
+    defaults:   { _controller: CustomerBundle:Affiliate:createPage }
+    condition:  "context.getMethod() in ['GET']"
+
+affiliate.convert_to_customer:
+    path:       /{id}/convert
+    defaults:   { _controller: CustomerBundle:Customer:convert }
+
+affiliate.save:
+    path:       /save/{id}
+    defaults:   {_controller: CustomerBundle:Affiliate:save, id: new }
+    condition:  "context.getMethod() in ['POST']"
+#affiliate.create:
+#    path:       /create
+#    defaults:   { _controller: CustomerBundle:Affiliate:create }
+#    condition:  "context.getMethod() in ['POST']"

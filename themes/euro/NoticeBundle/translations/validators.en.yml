@@ -1,0 +1,10 @@
+title:
+    regex: Title has invalid characters, Valid characters (Letter, Number and Internationalize Characters)
+    min: Title must be at least {{ limit }} characters long
+    max: Title cannot be longer than {{ limit }} chatacters
+type:
+    choice: Choose a valid type
+startAt:
+    datetime: Invalid date
+endAt:
+    datetime: Invalid date

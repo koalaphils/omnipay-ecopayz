@@ -1,0 +1,51 @@
+DbBundle\Entity\RiskSetting:
+    type: entity
+    table: risk_setting
+    repositoryClass: DbBundle\Repository\RiskSettingRepository
+    id:
+        id:
+            type: integer
+            id: true
+            generator:
+                strategy: AUTO
+            options:
+                unsigned: true
+            column: risk_setting_id
+    fields:
+        riskId:
+            type: string
+            length: 64
+            column: risk_setting_risk_id
+        isActive:
+            type: boolean
+            column: risk_setting_is_active
+            options:
+                default: true
+        resourceId:
+            type: string
+            nullable: false
+            column: risk_setting_resource_id
+        version:
+            type: integer
+            nullable: false
+            column: risk_setting_version
+            options:
+                unsigned: true
+                default: 1
+        isLatest:
+            type: boolean
+            column: risk_setting_is_latest
+            nullable: false
+            options:
+                default: 1
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: risk_setting_created_at
+            nullable: false
+    oneToMany:
+        productRiskSettings:
+            targetEntity: DbBundle\Entity\ProductRiskSetting
+            mappedBy: riskSetting
+            cascade: [ persist, remove ]
+

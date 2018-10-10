@@ -1,0 +1,85 @@
+app.dashboard_page:
+    path:       /
+    defaults:   { _controller: AppBundle:Default:indexOld }
+
+app.login_page:
+    path:       /login
+    defaults:   { _controller: AppBundle:Security:login }
+
+app.login_check:
+    path:       /login_check
+
+app.logout:
+    path:       /logout
+
+app.test:
+    path: /test/{a}/{d}
+    defaults:
+        _controller: AppBundle:Page:withWidget
+        action: index
+
+# Setting
+app.setting.maintenance_page:
+    path:       /settings/maintenance
+    defaults:   { _controller: AppBundle:Setting:maintenance }
+
+app.setting.paymentoptions_page:
+    path:       /settings/paymentoptions
+    defaults:   { _controller: AppBundle:Setting:paymentOption }
+
+app.setting.get:
+    path:       /settings/get
+    defaults:   { _controller: AppBundle:Setting.setting }
+
+app.setting.scheduler_page:
+    path:       /settings/scheduler
+    defaults:   { _controller: AppBundle:Setting:scheduler }
+
+app.render_file:
+    path:       /file/{fileName}
+    requirements:
+        fileName: .*
+    defaults:   { _controller: AppBundle:Default:renderFile }
+
+app.dashboard_make_default:
+    path: /dashboard/makedefault
+    defaults:
+        _controller: AppBundle:Default:makeWidgetsDefault
+
+app.dashboard_widget_form:
+    path: /dashboard/{widgetName}/form
+    defaults:
+        _controller: AppBundle:Default:renderDashboardWidgetForm
+
+app.dashboard_widget_form_add:
+    path: /dashboard/{widgetName}/add
+    defaults:
+        _controller: AppBundle:Default:addWidget
+
+
+app.dashboard_widget_remove:
+    path: /dashboard/{widgetId}/remove
+    defaults:
+        _controller: AppBundle:Default:removeWidget
+
+app.widget_ajax:
+    path: /widget/{widgetName}
+    defaults:
+        _controller: AppBundle:Widget:widgetOnAjax
+    condition:  "request.isXMLHttpRequest()"
+
+app.widget_render:
+    path: /widget/{widgetName}
+    defaults:
+        _controller: AppBundle:Widget:widgetRender
+
+# Notification
+app.notification.list:
+    path: /notification/list
+    defaults:
+        _controller: AppBundle:Default:getNotificationList
+
+app.notification.save_last_read:
+    path: /notification/save/last-read
+    defaults:
+        _controller: AppBundle:Default:saveNotificationLastRead

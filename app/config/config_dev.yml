@@ -1,0 +1,73 @@
+imports:
+    - { resource: config.yml }
+
+framework:
+    router:
+        resource: "%kernel.root_dir%/config/routing_dev.yml"
+        strict_requirements: true
+    profiler: { only_exceptions: false }
+
+web_profiler:
+    toolbar: true
+    intercept_redirects: false
+
+monolog:
+    channels: ["dwl_submit"]
+    handlers:
+        main:
+            formatter: app.monolog_formatter
+            type: stream
+            path: "%kernel.logs_dir%/%kernel.environment%.log"
+            level: debug
+            channels: ['!event']
+        console:
+            type:   console
+            bubble: false
+            verbosity_levels:
+                VERBOSITY_VERBOSE: INFO
+                VERBOSITY_VERY_VERBOSE: DEBUG
+            channels: ["!doctrine"]
+        console_very_verbose:
+            type:   console
+            bubble: false
+            verbosity_levels:
+                VERBOSITY_VERBOSE: NOTICE
+                VERBOSITY_VERY_VERBOSE: NOTICE
+                VERBOSITY_DEBUG: DEBUG
+            channels: ["doctrine"]
+        dwl_submit:
+            type: stream
+            path: "%kernel.logs_dir%/%kernel.environment%_%upload_dwl_filename%"
+            channels: ["dwl_submit"]
+        slack:
+            formatter: app.monolog_formatter
+            type: slack
+            token: "%slack.token%"
+            channel: ac66-nonprod-errors
+            bot_name: zmtsys
+            level: critical
+            use_attachment: true
+            include_extra: true
+
+assetic:
+    use_controller: false
+
+#doctrine:
+    #orm:
+    #    query_cache_driver:
+    #        type: file_system
+    #        cache_provider: file_cache
+    #    metadata_cache_driver:
+    #        type: file_system
+    #        cache_provider: file_cache
+    #    result_cache_driver:
+    #        type: file_system
+    #        cache_provider: file_cache
+
+#doctrine_cache:
+#    providers:
+#        file_cache:
+#            file_system:
+#                extension: php
+#                directory: "%kernel.root_dir%/cache/dev_doctrine"
+#                #umask: 770

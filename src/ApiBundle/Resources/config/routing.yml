@@ -1,0 +1,248 @@
+api_customers.me:
+    path: me
+    defaults: { _controller: ApiBundle:Customer:me }
+    methods: [GET]
+
+api_customers.me_preferences:
+    path: me/preferences
+    defaults: { _controller: ApiBundle:Customer:mePreferences }
+    methods: [GET]
+
+api_customers.me_payment_options:
+    path: me/payment-options
+    defaults: { _controller: ApiBundle:Customer:customerPaymentOptions }
+    methods: [GET]
+
+api_customers.me_payment_option:
+    path: me/payment-options/{id}
+    defaults: { _controller: ApiBundle:Customer:customerPaymentOption }
+    methods: [GET]
+
+api_customers.me_notifications:
+    path: me/notifications
+    defaults: { _controller: ApiBundle:Customer:notifications }
+    methods: [GET]
+
+api_customers.me_read_notifications:
+    path: me/read-notifications
+    defaults: { _controller: ApiBundle:Customer:readNotifications }
+    methods: [PUT]
+
+
+api_customers.me_products:
+    path: me/products
+    defaults: { _controller: ApiBundle:Customer:customerProducts }
+    methods: [GET]
+
+api_customers.me_product:
+    path: me/products/{id}
+    defaults: { _controller: ApiBundle:Customer:customerProduct }
+    methods: [GET]
+
+api_customers.me_audit:
+    path: me/audit/{category}
+    requirements:
+        category: login|logout
+    defaults:
+        _controller: ApiBundle:Customer:meAudit
+    methods: [POST]
+
+api_customers.validate_activation_code:
+    path: customer/activation-code/validate
+    defaults:
+        _controller: ApiBundle:Customer:validateActivationCode
+    methods: [POST]
+
+api_customers.activate_account:
+    path: customer/activate
+    defaults:
+        _controller: ApiBundle:Customer:activateAccount
+    methods: [POST]
+
+api_customers.me_transactions:
+    path: me/transactions
+    defaults:
+        _controller: ApiBundle:Transaction:customerTransactions
+    methods: [GET]
+
+api_customers.me_deposit_transaction:
+    path: me/transactions/deposit
+    defaults:
+        _controller: ApiBundle:Transaction:depositTransaction
+    methods: [POST]
+
+api_customers.me_withdraw_transaction:
+    path: me/transactions/withdraw
+    defaults:
+        _controller: ApiBundle:Transaction:withdrawTransaction
+    methods: [POST]
+
+api_customers.me_transfer_transaction:
+    path: me/transactions/transfer
+    defaults:
+        _controller: ApiBundle:Transaction:transferTransaction
+    methods: [POST]
+
+api_customers.me_p2p_transfer_transaction:
+    path: me/transactions/p2ptransfer
+    defaults:
+        _controller: ApiBundle:Transaction:p2pTransferTransaction
+    methods: [POST]
+
+api_customers.me_transaction:
+    path: me/transactions/{id}
+    defaults:
+        _controller: ApiBundle:Transaction:customerTransaction
+    methods: [GET]
+
+api_customers.me_security_update:
+    path: me/customer/security/update
+    defaults:
+        _controller: ApiBundle:Customer:updateSecurity
+    methods: [POST]
+
+api_affiliate.commissions:
+    path: me/commissions
+    defaults:
+        _controller: ApiBundle:Affiliate:affiliateCommission
+    methods: [GET]
+
+api_customers.check_username_if_exists:
+    path: customer/username/check-if-exists
+    defaults:
+        _controller: ApiBundle:Customer:checkUsernameIfExists
+    methods: [POST]
+
+api_customers.check_email_if_exists:
+    path: customer/email/check-if-exists
+    defaults:
+        _controller: ApiBundle:Customer:checkEmailIfExists
+    methods: [POST]
+
+api_customers.check_product_username_if_exists:
+    path: customer/product-username/check-if-exists
+    defaults:
+        _controller: ApiBundle:CustomerProduct:checkIfProductUsernameExists
+    methods: [POST]
+
+api_customers.register_customer:
+    path: customers/register
+    defaults:
+        _controller: ApiBundle:Customer:customerRegister
+    methods: [POST]
+
+api_customers.register_customer_v2:
+    path: customers/register/v2
+    defaults:
+        _controller: ApiBundle:Customer:customerRegisterV2
+    methods: [POST]
+
+api_products:
+    path: products
+    defaults:
+        _controller: ApiBundle:Product:productList
+    methods: [GET]
+
+api_countries.list:
+    path: countries
+    defaults:
+        _controller: ApiBundle:Country:countryList
+    methods: [GET]
+
+api_countries.country:
+    path: countries/{code}
+    defaults:
+        _controller: ApiBundle:Country:country
+    methods: [GET]
+
+api_paymentoptions.list:
+    path: paymentoptions
+    defaults:
+        _controller: ApiBundle:PaymentOption:paymentOptionList
+    methods: [GET]
+
+api_customers.request_reset_password:
+    path: customer/reset-password/request
+    defaults:
+        _controller: ApiBundle:Customer:requestResetPassword
+    methods: [POST]
+
+api_customers.reset_password:
+    path: customer/password/reset
+    defaults:
+        _controller: ApiBundle:Customer:resetPassword
+    methods: [POST]
+
+api_customers.validate_reset_password_code:
+    path: customer/reset-password-code/validate
+    defaults:
+        _controller: ApiBundle:Customer:validateResetPasswordCode
+    methods: [POST]
+
+api_users.details:
+    path: user/{username}
+    defaults:
+        _controller: ApiBundle:User:details
+    methods: [GET]
+
+api_bannerimages.list:
+    path: banner/images/list
+    defaults:
+        _controller: ApiBundle:BannerImage:list
+    methods: [GET]
+
+api_memberbanners.generate:
+    path: me/banner/generate
+    defaults:
+        _controller: ApiBundle:MemberBanner:generate
+    methods: [POST]
+
+api_member.list_referral_links:
+    path: me/referral-links/list
+    defaults:
+        _controller: ApiBundle:Member:listReferralLinks
+    methods: [GET]
+
+api_member.get_current_period_referral_turnovers_commissions:
+    path: me/referral-turnover-commission/current-period
+    defaults:
+        _controller: ApiBundle:Member:getCurrentPeriodReferralTurnoversAndCommissions
+    methods: [GET]
+
+api_member.get_previous_successful_member_running_commissions:
+    path: me/running-commission/{periodCount}/previous-period
+    defaults:
+        _controller: ApiBundle:Member:getPreviousSuccessfulMemberRunningCommissions
+        periodCount: 1
+    requirements:
+        periodCount: \d+
+    methods: [GET]
+
+api_member.get_last_successful_member_running_commission:
+    path: me/running-commission/last-successful
+    defaults:
+        _controller: ApiBundle:Member:getLastSuccessfulMemberRunningCommission
+    methods: [GET]
+
+api_memberbanners.list:
+    path: me/banner/list
+    defaults:
+        _controller: ApiBundle:MemberBanner:list
+    methods: [GET]
+
+api.bannerimage.view:
+    path:       /banner/view/{filename}
+    requirements:
+        filename: .*
+    defaults:
+        _controller: ApiBundle:BannerImage:view
+    methods: [GET]
+
+api_member.confirm_referrer_terms_and_conditions:
+    path: me/terms-and-conditions/{hasConfirm}/confirm
+    requirements:
+        hasConfirm: 1|0
+    defaults:
+        _controller: ApiBundle:Member:confirmReferrerTermsAndConditions
+    methods: [POST]
+

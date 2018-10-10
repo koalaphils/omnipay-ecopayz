@@ -1,0 +1,16 @@
+class_name: AcceptanceTester
+modules:
+  enabled:
+    - WebDriver:
+        browser: chrome
+        host: 'googlechrome_remote' #the headless chrome docker container/service name
+        url: 'http://bo/app_test.php/en/'
+        window_size: 1920x1080
+    - Db:
+        dsn: 'mysql:host=%DATABASE_HOST%;dbname=%DATABASE_FOR_TESTS_NAME%'
+        user: '%DATABASE_USER%'
+        password: '%DATABASE_PASSWORD%'
+        dump: 'tests/_data/ac66dump.sql'
+        populate: true # run populator before all tests
+        cleanup: true # run populator before each test
+        populator: 'mysql -h$host -u$user -p$password $dbname < $dump'

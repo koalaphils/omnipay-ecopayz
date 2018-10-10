@@ -1,0 +1,60 @@
+DbBundle\Entity\Notice:
+    type: entity
+    table: announcement
+    repositoryClass: DbBundle\Repository\NoticeRepository
+    id:
+        id:
+            type: integer
+            id: true
+            generator:
+                strategy: AUTO
+            column: announcement_id
+            options:
+                unsigned: true
+    fields:
+        title:
+            type: string
+            length: '64'
+            column: announcement_title
+        description:
+            type: text
+            column: announcement_description
+        type:
+            type: smallint
+            column: announcement_type
+            options:
+                unsigned: true
+        startAt:
+            type: datetime
+            column: announcement_start_at
+        endAt:
+            type: datetime
+            column: announcement_end_at
+        isActive:
+            type: boolean
+            column: announcement_is_active
+            options:
+                default: 1
+        createdBy:
+            type: bigint
+            column: announcement_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: announcement_created_at
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: announcement_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            nullable: true
+            column: announcement_updated_at
+        image:
+            type: string
+            nullable: true
+            column: announcement_image_uri
+    lifecycleCallbacks: {  }

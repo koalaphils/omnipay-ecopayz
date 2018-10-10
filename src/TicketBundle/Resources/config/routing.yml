@@ -1,0 +1,30 @@
+ticket.list_page:
+    path:     /
+    defaults: { _controller: TicketBundle:Ticket:index }
+
+ticket.view_list:
+    path:       /view/list
+    defaults:   { _controller: TicketBundle:View:list }
+
+ticket.view_execute:
+    path:       /view/{id}/execute
+    defaults:   { _controller: TicketBundle:View:execute }
+    
+ticket.create_page:
+    path:       /create
+    defaults:   { _controller: TicketBundle:Ticket:create }
+    
+ticket.save:
+    path:       /save/{tid}/{rid}
+    defaults:   {_controller: TicketBundle:Ticket:save, tid: new, rid: ''}
+    condition:  "context.getMethod() in ['POST']"
+
+ticket.reply_page:
+    path:       /reply/{tid}/{rid}
+    defaults:   { _controller: TicketBundle:Ticket:reply, tid: '', rid: '' }
+    
+ticket.delete:
+    path:       /delete
+    defaults:   { _controller: TicketBundle:Ticket:delete }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+    

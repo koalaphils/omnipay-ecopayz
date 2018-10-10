@@ -1,0 +1,20 @@
+services:
+    payment.gateway_form_manager:
+        class: PaymentBundle\Manager\GatewayFormManager
+        arguments:
+            - '@form.factory'
+
+    payment.ecopayz.capture:
+        class: PaymentBundle\Controller\Ecopayz\CaptureAction
+        calls:
+            - [ setContainer, ['@service_container'] ]
+
+    payment.ecopayz.notify:
+        class: PaymentBundle\Controller\Ecopayz\NotifyAction
+        arguments: ['@logger']
+        calls:
+            - [ setContainer, ['@service_container'] ]
+
+    payment.manager:
+        class: PaymentBundle\Manager\PaymentManager
+        arguments: ['@payum', '@doctrine', '@request_stack']

@@ -1,0 +1,222 @@
+imports:
+    - { resource: widgets.yml }
+services:
+    custom_mysql_platform:
+        class: AppBundle\DoctrineExtension\Platform\MySql7Platform
+        
+    monolog.processor.web:
+      class: Monolog\Processor\WebProcessor
+      tags:
+          - { name: monolog.processor }
+
+    # Logger
+    app.monolog_formatter:
+        class: Monolog\Formatter\LineFormatter
+        arguments:
+            - "[%%datetime%%] \n%%channel%%.%%level_name%%: %%message%% %%context%%
+                \nIP: %%extra.ip%% | URL: %%extra.url%% | SERVER: %%extra.server%% | REFERRER: %%extra.referrer%%\n"
+        calls:
+            - [includeStacktraces]
+
+    # Helpers
+    app.array_helper:
+        class: AppBundle\Helper\ArrayHelper
+
+    app.notification_helper:
+        class: AppBundle\Helper\NotificationHelper
+        calls:
+            - [ 'setContainer', ['@service_container'] ]
+
+    # component
+    app.component.data_transfer:
+        class: AppBundle\Component\DataTransfer
+        arguments: [ '@service_container' ]
+
+    # voter
+    app.voter:
+        class: AppBundle\Security\VoterDot
+        arguments: ['@security.access.decision_manager']
+        public: false
+        tags:
+            - { name: security.voter }
+
+    app.file_helper:
+        class: AppBundle\Helper\FileHelper
+
+    # Base Manager
+    app.base_manager:
+        abstract: true
+        calls:
+            - [ 'setContainer', ['@service_container'] ]
+
+    app.setting_manager:
+        class: AppBundle\Manager\SettingManager
+        calls:
+            - [ 'setContainer', ['@service_container'] ]
+            - [ 'registerSettingMenu' ]
+
+    app.menu_manager:
+        class: AppBundle\Manager\MenuManager
+        arguments:
+            - "@kernel"
+            - "@router"
+        calls:
+            - [ 'registerMenu' ]
+
+    app.role_manager:
+        class: AppBundle\Manager\RoleManager
+        arguments:
+            - "@kernel"
+            - "@translator"
+            - "@security.authorization_checker"
+        calls:
+            - [ 'registerRoles' ]
+
+    app.asset_manager:
+        class: AppBundle\Manager\AssetManager
+
+    app.widget_manager:
+        class: AppBundle\Manager\WidgetManager
+        calls:
+            - [ 'setContainer', ['@service_container'] ]
+
+    app.widget_abstract:
+        abstract: true
+        arguments: ['@form.factory', '@app.widget_manager']
+        calls:
+            - [ 'setContainer', ['@service_container'] ]
+
+    #twig extenstions
+    app.twig.extension:
+        class: AppBundle\Twig\TwigExtension
+        calls:
+            - [ 'setContainer', ['@service_container'] ]
+        tags:
+            - { name: twig.extension }
+
+    app.twig.menu_extenstion:
+        class: AppBundle\Twig\MenuTwigExtension
+        arguments:
+            - "@app.menu_manager"
+            - "@app.setting_manager"
+        tags:
+            - { name: twig.extension }
+
+    app.twig.form_extenstion:
+        class: AppBundle\Twig\FormExtension
+        tags:
+            - { name: twig.extension }
+
+    # maintenance
+    app.listener.page:
+        class: AppBundle\Listener\PageListener
+        arguments: ['%locale%']
+        calls:
+            - [ 'setContainer', ['@service_container'] ]
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest }
+            - { name: kernel.event_listener, event: kernel.response, method: onKernelResponse }
+            - { name: kernel.event_listener, event: kernel.controller, method: onKernelController }
+
+    # session
+    app.listener_login_event:
+        class: AppBundle\Listener\LoginEventListener
+        tags:
+            - { name: kernel.event_listener, event: security.interactive_login, method: onLogin }
+        calls:
+            - [ setContainer, ['@service_container'] ]
+
+
+    app.logout_handler:
+        class: AppBundle\Handler\LogoutHandler
+        calls:
+            - [ setContainer, ['@service_container'] ]
+
+    session.listener:
+        class: AppBundle\Listener\SessionListener
+        arguments: ["%session.expiration_time%", "@session.session_manager"]
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest, priority: 9 }
+
+    # form type
+    app.form_type.media:
+        class: AppBundle\Form\Type\MediaType
+        arguments:
+            - "@media.manager"
+        tags:
+            - { name: form.type }
+
+    app.form_type.roles:
+        class: AppBundle\Form\Type\RolesType
+        arguments:
+            - "@app.role_manager"
+        tags:
+            - { name: form.type }
+
+    app.form_type.widget:
+        class: AppBundle\Form\WidgetType
+        arguments:
+            - "@app.widget_manager"
+        tags:
+            - { name: form.type }
+
+    # constraints
+    app.constraints.exists:
+        class: AppBundle\Validator\Constraints\ExistsValidator
+        arguments: [ '@doctrine' ]
+        tags:
+            - { name: validator.constraint_validator, alias: exists }
+
+    app.constraints.unique:
+        class: AppBundle\Validator\Constraints\UniqueValidator
+        arguments: [ '@doctrine' ]
+        tags:
+            - { name: validator.constraint_validator, alias: custom_unique }
+
+    app.constraints.composite_unique:
+        class: AppBundle\Validator\Constraints\CompositeUniqueValidator
+        arguments: [ '@doctrine' ]
+        tags:
+            - { name: validator.constraint_validator, alias: composite_unique }
+
+    app.constraints.unique_json:
+        class: AppBundle\Validator\Constraints\UniqueJsonValidator
+        arguments: [ '@doctrine' ]
+        tags:
+            - { name: validator.constraint_validator, alias: unique_json }
+
+    app.mailer_manager:
+        class: AppBundle\Manager\MailerManager
+        arguments: ["@mailer", "@templating", "%mailer_email_from%", "%email_spool_command%", "@media.manager"]
+
+    # helpers
+    app.publisher:
+        class: AppBundle\Helper\Publisher
+        arguments: ["%websocket.url%", "%websocket.realm%", "%jwt_key%"]
+
+    # form extension
+    app.form.extension.model_transformer:
+        class: AppBundle\Form\Extension\ModelTransformerExtension
+        tags:
+            - { name: form.type_extension, extended_type: Symfony\Component\Form\Extension\Core\Type\FormType }
+
+    app.form.extension.view_transformer:
+        class: AppBundle\Form\Extension\ViewTransformerExtension
+        tags:
+            - { name: form.type_extension, extended_type: Symfony\Component\Form\Extension\Core\Type\FormType }
+
+    app.page_manager:
+        class: AppBundle\Manager\PageManager
+        shared: false
+        calls:
+            - [ 'setContainer', ['@service_container'] ]
+            - [ 'initAppVariable' ]
+
+    # notification
+    app.notification_manager:
+        class: AppBundle\Manager\NotificationManager
+        parent: app.base_manager
+
+    app.referral_tool_generator:
+        class: AppBundle\Helper\ReferralToolGenerator
+        arguments: ["@app.setting_manager", "@media.manager", "@templating"]

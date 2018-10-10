@@ -1,0 +1,32 @@
+DbBundle\Entity\ProductRiskSetting:
+    type: entity
+    table: product_risk_setting
+    repositoryClass: DbBundle\Repository\ProductRiskSettingRepository
+    id:
+        id:
+            type: integer
+            id: true
+            generator:
+                strategy: AUTO
+            options:
+                unsigned: true
+            column: product_risk_setting_id
+    fields:
+        riskSettingPercentage:
+            type: decimal
+            column: product_risk_setting_percentage
+            precision: 65
+            scale: 10
+    manyToOne:
+        riskSetting:
+            targetEntity: DbBundle\Entity\RiskSetting
+            inversedBy: productRiskSettings
+            cascade: [ persist ]
+            joinColumn:
+                name: product_risk_setting_risk_id
+                referencedColumnName: risk_setting_id
+        product:
+            targetEntity: DbBundle\Entity\Product
+            joinColumn:
+                name: product_risk_setting_product_id
+                referencedColumnName: product_id

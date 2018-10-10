@@ -1,0 +1,39 @@
+services:
+    widget.customer_search:
+        class: CustomerBundle\Widget\CustomerSearchWidget
+        parent: app.widget_abstract
+        calls:
+            - [ 'setType', ['customerSearch'] ]
+        shared: false
+        lazy: true
+        tags:
+            - { name: app.widget, widget_name: customerSearch }
+    widget.customer_count:
+        class: CustomerBundle\Widget\CustomerCountWidget
+        parent: app.widget_abstract
+        calls:
+            - [ 'setType', ['customerCount'] ]
+        shared: false
+        lazy: true
+        tags:
+            - { name: app.widget, widget_name: customerCount }
+
+    widget.affiliate_commission_list:
+        class: CustomerBundle\Widget\AffiliateCommissionListWidget
+        parent: app.widget_abstract
+        calls:
+            - [ 'setType', ['affiliateCommissionList'] ]
+        shared: false
+        lazy: true
+        tags:
+            - { name: app.widget, widget_name: affiliateCommissionList, dashboard: false }
+
+    widget.affiliate_commission_form:
+        class: CustomerBundle\Widget\AffiliateCommissionForm
+        parent: app.widget_abstract
+        calls:
+            - [ 'setType', ['affiliateCommissionForm'] ]
+        shared: false
+        lazy: true
+        tags:
+            - { name: app.widget, widget_name: affiliateCommissionForm, dashboard: false }

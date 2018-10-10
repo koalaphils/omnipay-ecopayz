@@ -1,0 +1,20 @@
+DbBundle\Entity\BannerImage:
+    exclusion_policy: ALL
+    properties:
+        language:
+            expose: true
+        dimension:
+            expose: true
+    virtual_properties:
+        typeText:
+            exp: "object.getTypeText()"
+            expose: true
+        filename:
+            exp: "object.getFilename()"
+            expose: true
+        languageText:
+            exp: "object.getLanguageText()"
+            expose: true
+        typeTitleText:
+            exp: "object.getTypeTitleText()"
+            expose: true

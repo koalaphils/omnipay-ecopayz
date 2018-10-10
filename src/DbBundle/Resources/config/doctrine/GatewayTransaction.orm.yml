@@ -1,0 +1,99 @@
+DbBundle\Entity\GatewayTransaction:
+    type: entity
+    table: gateway_transaction
+    repositoryClass: DbBundle\Repository\GatewayTransactionRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: gateway_transaction_id
+            options:
+                unsigned: true
+    fields:
+        number:
+            type: string
+            length: 255
+            unique: true
+            column: gateway_transaction_number
+        type:
+            type: smallint
+            column: gateway_transaction_type
+        date:
+            type: datetime
+            column: gateway_transaction_date
+        amount:
+            type: decimal
+            precision: 65
+            scale: 10
+            options:
+                default: 0
+            column: gateway_transaction_amount
+            nullable: false
+        amountTo:
+            type: decimal
+            precision: 65
+            scale: 10
+            options:
+                default: 0
+            column: gateway_transaction_amount_to
+            nullable: true
+        fees:
+            type: json
+            column: gateway_transaction_fees
+        status:
+            type: smallint
+            column: gateway_transaction_status
+            options:
+                unsigned: true
+        details:
+            type: json
+            nullable: true
+            column: gateway_transaction_details
+        isVoided:
+            type: boolean
+            column: gateway_transaction_is_voided
+            options:
+                default: false
+        createdBy:
+            type: bigint
+            column: gateway_transaction_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: gateway_transaction_created_at
+        updatedBy:
+            type: bigint
+            column: gateway_transaction_updated_by
+            nullable: true
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            column: gateway_transaction_updated_at
+            nullable: true
+            version: true
+    manyToOne:
+        gateway:
+            targetEntity: DbBundle\Entity\Gateway
+            joinColumn:
+                name: gateway_transaction_gateway_id
+                referencedColumnName: gateway_id
+        gatewayTo:
+            targetEntity: DbBundle\Entity\Gateway
+            joinColumn:
+                name: gateway_transaction_gateway_to_id
+                referencedColumnName: gateway_id
+        currency:
+            targetEntity: DbBundle\Entity\Currency
+            joinColumn:
+                nullable: false
+                name: gateway_transaction_currency_id
+                referencedColumnName: currency_id
+        paymentOption:
+            targetEntity: DbBundle\Entity\PaymentOption
+            joinColumn:
+                name: gateway_transaction_payment_option_code
+                referencedColumnName: payment_option_code

@@ -1,0 +1,62 @@
+menus:
+    Gateway: Gateway
+    BackToGatewayList: Back to Gateway List
+
+page:
+    title:
+        list: Finance | Gateway
+        update: Finance | Gateway | Update %name%
+        create: Finance | Gateway | Create
+    Create Gateway: Create Gateway
+    Update Gateway: Update Gateway
+
+breadcrumb:
+    list: Gateway List
+
+fields:
+    id: ID
+    name: Gateway
+    currency: Currency
+    paymentOption: Payment Option
+    balance: Balance
+    isActive: Active
+    bank:
+        name: Bank Name
+        holder: Bank Holder
+        account: Bank Account
+    levels: Levels
+    equation: Equation
+    vars: Variables
+    status: Status
+    action: Action
+
+
+paymentOption:
+    select: "--SELECT--"
+    bankwire: Bankwire
+    netteler: Netteler
+    skrill: Skrill
+    paypal: Paypal
+    ecopayz: Ecopayz
+    bitcoin: Bitcoin
+
+notification:
+    title: Success
+    created: %name% was successfully created
+    updated: %name% was successfully updated
+    suspended:
+        title: Suspended
+        message: %name% was successfully suspended
+    enabled:
+        title: Enabled
+        message: %name% was successfully enabled
+
+roles:
+    groups:
+        gateway: Gateway
+    gateway:
+        view: View Gateway
+        create: Create Gateway
+        update: Update Gateway
+        configure: Configure Gateway
+        change_status: Change Status of Gateway

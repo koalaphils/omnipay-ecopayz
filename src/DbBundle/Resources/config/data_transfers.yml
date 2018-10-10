@@ -1,0 +1,16 @@
+services:
+    db.customer_group_list_data_transfer:
+        class: DbBundle\DataTransfer\CustomerGroupListDataTransfer
+        arguments: ['@app.component.data_transfer']
+        tags:
+            - { name: app.data_transfer }
+    db.customer_group_data_transfer:
+        class: DbBundle\DataTransfer\CustomerGroupDataTransfer
+        arguments: ['@router']
+        tags:
+            - { name: app.data_transfer }
+    db.customer_data_transfer:
+        class: DbBundle\DataTransfer\CustomerDataTransfer
+        arguments: ['@jms_serializer', '@router']
+        tags:
+            - { name: app.data_transfer }

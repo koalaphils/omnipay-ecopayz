@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ruleset name="Standard">
+    <description>Custom Standards</description>
+
+    <config name="installed_paths" value="/var/www/html/summit/cms/vendor/escapestudios/symfony2-coding-standard,/var/www/html/summit/cms/vendor/fig-r/psr2r-sniffer/PSR2R" />
+
+    <arg value="s" />
+
+    <rule ref="Symfony">
+        <exclude name="Symfony.Functions.Arguments.Invalid" />
+        <exclude name="Symfony.ControlStructure.YodaConditions.Invalid" />
+        <exclude name="Symfony.Commenting.License.Warning" />
+        <exclude name="Symfony.Commenting.FunctionComment.ExtraParamComment" />
+        <exclude name="Symfony.Commenting.FunctionComment.Missing" />
+        <exclude name="Symfony.Commenting.ClassComment.Missing" />
+    </rule>
+
+    <rule ref="Squiz.Strings.ConcatenationSpacing">
+        <properties>
+            <property name="spacing" value="1" />
+            <property name="ignoreNewlines" value="true" />
+        </properties>
+    </rule>
+</ruleset>

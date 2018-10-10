@@ -1,0 +1,228 @@
+{% use "AppBundle:Widget:base.html.twig"  %}
+
+{% block memberPaymentOptionList_container %}
+    <div id="{{ block_id }}">
+        <div id="{{ id }}FormContainer"></div>
+        <div id="{{ id }}Listing"></div>
+    </div>
+{% endblock memberPaymentOptionList_container %}
+
+{% block memberPaymentOptionList_stylesheet %}
+    <style rel="stylesheet">
+        .payment-list {
+            margin-top: 10px;
+        }
+
+        .payment-list .payment-item {
+            padding: 15px;
+        }
+
+        .payment-list .payment-item:hover {
+            background: #a9f4ff;
+            cursor: pointer;
+        }
+
+        .payment-list .payment-img-col {
+            display: table-cell;
+            float: none;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .payment-list .payment-info {
+            display: table-cell;
+            float: none;
+        }
+
+        .payment-img img {
+            max-width: 98%;
+            max-height: 98%;
+        }
+
+        .payment-list .selected .payment-item {
+            background: #4ea5e0;
+            border-color: #2581b8;
+            color: #ecf0f1;
+        }
+
+        .payment-item .bank-detail {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+{% endblock memberPaymentOptionList_stylesheet %}
+
+{% block memberPaymentOptionList_widget %}
+    <div class="payment-list row" id="{{ block_id }}">
+        <div class="masonry-container">
+        {% for item in list %}
+            {{ block('memberPaymentOptionList_item') }}
+        {% endfor %}
+        </div>
+    </div>
+{% endblock memberPaymentOptionList_widget %}
+
+{% block memberPaymentOptionList_item %}
+    <div class="col-md-6 col-sm-6 col-xs-12">
+        <div class="card-box p-5 payment-item" data-id="{{ item.id }}" data-type="{{ item.paymentOption.code }}">
+            <div class="row">
+                <div class="col-md-4 payment-img-col hidden-md hidden-sm hidden-xs">
+                    <div class="payment-img"><i class="fa fa-credit-card-alt fa-5x"></i></div>
+                </div>
+                <div class="col-md-8 col-sm-12 col-xs-12 payment-info">
+                    <div class="text-muted m-b-5 text-center"><i class="fa fa-credit-card-alt hidden-lg"></i> <b>{{ item.paymentOption.name }}</b></div>
+                    {% for index,field in item.paymentOption.fields %}
+                    <div class="row">
+                        <div class="col-md-4 col-sm-4 col-xs-4 text-right"><b class="text-muted">{{ field.label }}:</b></div>
+                        <div class="col-md-8 col-sm-8 col-xs-8 bank-detail">{{ item.fields[field.code]|default('') }}</div>
+                    </div>
+                    {% endfor %}
+                    <div class="row">
+                        <div class="col-md-4 col-sm-4 col-xs-4 text-right">
+                            <b class="text-muted">Active:</b>
+                        </div>
+                        <div class="col-md-8 col-sm-8 col-xs-8">
+                            {% if item.isActive %}
+                            <i class="fa fa-check text-success"></i>
+                            {% else %}
+                            <i class="fa fa-times text-danger"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock memberPaymentOptionList_item %}
+
+{% block memberPaymentOptionList_form -%}
+    {%- spaceless -%}
+    <form id="{{ id }}Form">
+        <div class="col-md-12 form-group">
+            <label class="control-label required">Payment Option Type</label>
+            <select class="form-control" name="data[paymentOption]" id="{{ id }}PaymentOption">
+                <option value=""></option>
+                {% for code,paymentOption in paymentOptions %}
+                    <option value="{{ code }}" {{ type == code ? 'selected="selected"' : "" }}>{{ paymentOption.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% if type != '' %}
+            <div class='col-md-12 form-group'>
+                <label>Is Active</label>
+                <input name="data[isActive]" {{ paymentOption.isActive ? 'checked="checked"' : '' }} value="1" data-plugin="switchery" data-color="#81c868" data-secondary-color="#f05050"  type="checkbox">
+            </div>
+            {% for field in paymentOptions[type].fields %}
+                <div class="col-md-12 form-group">
+                    <label class="control-label {%if field.isRequired is defined and field.isRequired%}required{%endif%}">{%if field.isRequired is defined and field.isRequired%}<span class="text text-danger">*</span>{%endif%} {{ field.label }}
+                        {% if type == constant('DbBundle\\Entity\\PaymentOption::PAYMENT_MODE_ECOPAYZ')|upper and 'Account' in field.label and paymentOption.getId() is not null %}
+                            (Last Updated Date: {{ paymentOption.paymentOption.updatedAt.date|date("m/d/Y") }})
+                        {% endif %}                
+                    </label>
+                    <input type="text" class="form-control" name="data[fields][{{ field.code }}]" value="{{ paymentOption.getField(field.code) }}" {%if field.isRequired is defined and field.isRequired%}required="required"{%endif%}/>
+                    <div class="">
+                        <span class="help-block">
+                            <ul class="list-unstyled"></ul>
+                        </span>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% if paymentOption.getId() is not null %}
+            <input type="hidden" name="data[id]" value="{{ paymentOption.getId() }}" />
+        {% endif %}
+    </form>
+    {%- endspaceless -%}
+{% endblock memberPaymentOptionList_form %}
+
+{% block memberPaymentOptionList_javascript %}
+    <script type="text/javascript">
+        function {{ id }}GetForm(type, paymentOption)
+        {
+            $.ajax({
+                'cache': false,
+                'headers': {
+                    'X-WIDGET-REQUEST': 'onGetForm',
+                    'X-WIDGET-PATH': '{{ widget_path }}',
+                    'X-WIDGET-ID': '{{ id }}'
+                },
+                'dataType': "html",
+                'data': {'data': {'type': type, 'paymentOption': paymentOption}},
+                'type': 'POST',
+                'success': function (data) {
+                    $('#{{ id }}FormContainer').html(data);
+                    $('#{{ id }}FormContainer form #{{ id }}PaymentOption').change(function () {
+                        var value = $(this).val();
+                        {{ id }}GetForm(value);
+                    });
+                    $('#{{ id }}FormContainer form').ajaxForm({
+                        'type': 'POST',
+                        'headers': {
+                            'X-WIDGET-REQUEST': 'onSave',
+                            'X-WIDGET-PATH': '{{ widget_path }}',
+                            'X-WIDGET-ID': '{{ id }}'
+                        },
+                        'success': function (data) {
+                            if (typeof data['withErrors'] !== 'undefined' && data['withErrors'] !== null) {
+                                var errors = data['withErrors'];
+                                $.each(errors, function (i, error) {
+                                    $.each(error, function (code, value) {
+                                        $("input[name = 'data[fields]["+ code +"]']")
+                                            .closest('.form-group').addClass('has-error')
+                                            .find('.help-block ul')
+                                            .html('<li>'+ code.charAt(0).toUpperCase() + code.substr(1).toLowerCase() +' must be unique.</li>')
+                                        ;
+                                    });
+                                });
+                            } else {
+                                {{ id }}GetList();
+                                $('#{{ id }}FormContainer form').trigger('form.success');
+                            }
+                        }
+                    });
+                    $('#{{ id }}_container').trigger('formRendered');
+                }
+            });
+        }
+
+        function {{ id }}GetList()
+        {
+            $.ajax({
+                'cache': false,
+                'headers': {
+                    'X-WIDGET-REQUEST': 'onGetList',
+                    'X-WIDGET-PATH': '{{ widget_path }}',
+                    'X-WIDGET-ID': '{{ id }}'
+                },
+                'dataType': "html",
+                'success': function (data) {
+                    $('#{{ id }}Listing').html(data);
+                    $('#{{ id }}Listing .payment-item').click(function () {
+                        $('#{{ id }}Listing .payment-item').parent().removeClass('selected');
+                        $(this).parent().addClass('selected');
+                        var id = $(this).data('id');
+                        var type = $(this).data('type');
+                        {{ id }}GetForm(type, id);
+                    });
+                }
+            });
+        }
+
+        page.addScript('{{ absolute_url(asset('assets/plugins/isotope/js/isotope.pkgd.min.js')) }}');
+
+        $(window).load(function(){
+            var $container = $('.masonry-container');
+            $container.isotope({
+                filter: '*'
+            });
+        });
+
+        function {{ id }}ExecPage()
+        {
+            {{ id }}GetList();
+        }
+
+        page.addScript('{{ absolute_url(asset('assets/plugins/jquery-form/jquery.form.min.js')) }}');
+        page.addLoader({{ id }}ExecPage, ['{{ absolute_url(asset('assets/plugins/jquery-form/jquery.form.min.js')) }}']);
+    </script>
+{% endblock memberPaymentOptionList_javascript %}

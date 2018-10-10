@@ -1,0 +1,27 @@
+services:
+    commission.service:
+        class: CommissionBundle\Service\CommissionService
+        calls:
+            - ['setContainer', ['@service_container']]
+            - ['setValidator', ['@validator']]
+    commission.manager:
+        class: CommissionBundle\Manager\CommissionManager
+        arguments:
+            - '@=container.get("kernel").getEnvironment()'
+            - '@doctrine.orm.entity_manager'
+        calls:
+            - ['setCurrencyManager', ['@currency.manager']]
+            - ['setMemberManager', ['@member.manager']]
+            - ['setCommissionPeriodRepository', ['@=service("doctrine").getRepository("DbBundle\\Entity\\CommissionPeriod")']]
+    commission.payout_service:
+        class: CommissionBundle\Service\CommissionPayoutService
+        calls:
+            - ['setContainer', ['@service_container']]
+    commission.constraints.valid_commission:
+        class: CommissionBundle\Validator\Constraints\ValidCommissionPeriodValidator
+        lazy: false
+        arguments:
+            - '@=service("doctrine").getRepository("DbBundle\\Entity\\CommissionPeriod")'
+            - '@=service("app.setting_manager").getSetting("commission.startDate")'
+        tags:
+            - { name: validator.constraint_validator, alias: valid_commission }

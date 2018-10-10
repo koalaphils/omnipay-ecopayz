@@ -1,0 +1,41 @@
+paymentoption.activate:
+    path:       /activate
+    defaults:    
+        _controller: PaymentOptionBundle:PaymentOption:activate 
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()" 
+    
+paymentoption.suspend:
+    path:       /suspend
+    defaults:
+        _controller: PaymentOptionBundle:PaymentOption:suspend
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()" 
+    
+paymentoption.list_page:
+    path: /
+    defaults:
+        _controller: PaymentOptionBundle:PaymentOption:listPage
+    methods: [GET]
+
+paymentoption.search:
+    path: /search
+    defaults:
+        _controller: PaymentOptionBundle:PaymentOption:search
+    condition:  "context.getMethod() in ['POST', 'GET'] and request.isXMLHttpRequest()"
+
+paymentoption.create_page:
+    path: /new
+    defaults:
+        _controller: PaymentOptionBundle:PaymentOption:createPage
+    methods: [GET]
+
+paymentoption.update_page:
+    path: /{id}
+    defaults:
+        _controller: PaymentOptionBundle:PaymentOption:updatePage
+    methods: [GET]
+
+paymentoption.save:
+    path: /{id}
+    defaults:
+        _controller: PaymentOptionBundle:PaymentOption:save
+    methods: [POST]

@@ -1,0 +1,54 @@
+customer:
+    fName:
+        min: Customer first name must be at least {{ limit }} characters long
+        max: Customer first name cannot be longer than {{ limit }} chatacters
+        regex: Customer first name has invalid characters, Valid characters (Letter, Number and Internationalize Characters)
+        #regex: Customer first name has invalid characters, Only accepts characters and spaces only    
+    mName:
+        min: Customer middle name must be at least {{ limit }} characters long
+        max: Customer middle name cannot be longer than {{ limit }} chatacters
+        regex: Customer middle name has invalid characters, Valid characters (Letter, Number and Internationalize Characters)
+        #regex: Customer middle name has invalid characters, Only accepts characters and spaces only        
+    lName:
+        min: Customer last name must be at least {{ limit }} characters long
+        max: Customer last name cannot be longer than {{ limit }} chatacters
+        regex: Customer last name has invalid characters, Valid characters (Letter, Number and Internationalize Characters)
+        #regex: Customer last name has invalid characters, Only accepts characters and spaces only
+    fullName:
+        min: Customer full name must be at least {{ limit }} characters long
+        max: Customer full name cannot be longer than {{ limit }} chatacters
+        regex: Customer full name has invalid characters, Valid characters (Letter, Number and Internationalize Characters)
+    currency:
+        min: Customer currency must be at least {{ limit }} characters long
+        max: Customer currency cannot be longer than {{ limit }} chatacters
+        #regex: Customer currency has invalid characters, Only accepts characters and spaces only                
+        regex: Customer currency has invalid characters, Valid characters (Letter, Number and Internationalize Characters)
+    country:
+        min: Customer country must be at least {{ limit }} characters long
+        max: Customer country cannot be longer than {{ limit }} chatacters
+        #regex: Customer country has invalid characters, Only accepts characters only                        
+        regex: Customer country has invalid characters, Valid characters (Letter, Number and Internationalize Characters)
+    userID:
+        regex: UserID has invalid characters, Valid characters (Letter, Number and Internationalize Characters)
+        min: UserID must be at least {{ limit }} characters long
+        max: UserID cannot be longer than {{ limit }} chatacters
+    balance:
+        type: Customer must be numeric
+    birthDate:
+        regex: Customer birth date has invalid date (mm/dd/yyyy)
+        valid: Age should be 18-100 years only
+    joinedAt:
+        invalid: Joined date should be on or before today.
+user:
+    password:
+        min: Password must be at least {{ limit }} characters long
+        mismatch: The password fields must match.
+        
+customerProduct:
+    balance:
+        type: Customer must be numeric
+    userName:
+        regex: Username has invalid characters, Valid characters (Letter, Number and Internationalize Characters)
+        min: Username must be at least {{ limit }} characters long
+        max: Username cannot be longer than {{ limit }} chatacters
+    duplicate: Username and product already used.

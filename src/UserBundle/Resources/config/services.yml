@@ -1,0 +1,12 @@
+services:
+    user.manager:
+        class: UserBundle\Manager\UserManager
+        parent: app.base_manager
+        arguments: ["%customer_temp_password%"]
+
+    # form type
+    user.form_type.user:
+        class: UserBundle\Form\UserType
+        arguments: [ "@doctrine", "@router", "@security.authorization_checker"]
+        tags:
+            - { name: form.type }

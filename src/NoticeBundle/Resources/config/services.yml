@@ -1,0 +1,4 @@
+services:
+    notice.manager:
+        class: NoticeBundle\Manager\NoticeManager
+        parent: app.base_manager

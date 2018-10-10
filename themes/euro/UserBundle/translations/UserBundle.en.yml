@@ -1,0 +1,72 @@
+menus:
+    User: User
+    List: List
+    Create: Create
+    Update: Update
+
+page:
+    title:
+        list: Admin | User
+        update:  Admin | User | Update %username%
+        create:  Admin | User | Create
+        myAccount: My Account
+    Create User: Create User
+    Update User: Update User
+    My Account: My Account
+
+fields:
+    id: ID
+    username: Username
+    password: Password
+    confirmPassword: Confirm Password
+    email: Email
+    groups: Groups
+    createdAt: Created
+    createdBy: Created By
+    ipLastLogin: Last Login IP
+    isActive: Status
+    type: Type
+    changePassword: Change Password
+    group: Group
+    roles: Roles
+    clientIP: Client IP
+    
+userType:
+    member: Member
+    admin: Admin
+    cashPayer: Cash Payer
+    2: Admin
+    3: Cash Payer
+
+notification:
+    title: Success
+    created: %username% was successfully created
+    updated: %username% was successfully updated
+    password:
+        title: Updated
+        message: Password was successfully updated
+
+roles:
+    user:
+        view: View User
+        update: Update User
+        create: Create User
+        add_roles: Create User With Roles
+        add_group: Create User With Group
+        change_roles: Change User Roles
+        change_group: Change User Group
+    groups:
+        user: User
+
+quickLinks:
+    name: Quick Links
+    addUser: Add User
+    country: Country
+    transHistory: Transaction History
+    userGroup: User Group
+
+breadcrumb:
+    list: User List
+
+# Normal Text
+Account Info: Account Info

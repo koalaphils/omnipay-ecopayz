@@ -1,0 +1,61 @@
+menus:
+    PaymentOption: Payment Option
+
+
+page:
+    title:
+        list: Settings | Payment Option
+        update: Payment Option | Update %title%
+        create: Payment Option | Create
+        view: Payment Option | View %title%
+    Create Payment Option: Create Payment Option
+    Update Payment Option: Update Payment Option
+    View Payment Option: View Payment Option
+
+breadcrumb:
+    name: Payment Option
+    create: Create
+    update: Update
+    list: Payment Option List
+
+modal:
+    delete:
+        title: Delete Payment Option
+
+fields:
+    id: ID
+    code: Code
+    name: Name
+    status: Status
+
+notification:
+    delete:
+        title: Payment Option Deleted
+        message: You have successfully deleted a Payment Option "%code%"
+    created:
+        title: Payment Option Created
+        message: %code% was successfully created
+    updated:
+        title: Payment Option Updated
+        message: %code% was successfully updated
+    suspended:
+        title: Suspended
+        message: %name% was successfully suspended
+    activated:
+        title: Activated
+        message: %name% was successfully activated
+
+roles:
+    groups:
+        paymentOption: Payment Option
+    paymentoption:
+        create: Create Payment Option
+        view: View Payment Option
+        update: Update Payment Option
+        addfield: Add Payment Option Field
+        removefield: Remove Payment Option Field
+    notice:
+        create: Create Payment Option
+        view: View Payment Option
+        update: Update Payment Option
+        delete: Delete Payment Option

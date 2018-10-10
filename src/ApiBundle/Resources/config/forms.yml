@@ -1,0 +1,6 @@
+services:
+    member.form_type.member_banner:
+        class: ApiBundle\Form\Member\MemberBannerType
+        arguments: ["@doctrine", "@app.setting_manager"]
+        tags:
+            - { name: form.type }

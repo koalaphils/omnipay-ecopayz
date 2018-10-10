@@ -1,0 +1,21 @@
+gateway_transaction.list_page:
+    path:     /
+    defaults: { _controller: GatewayTransactionBundle:Default:index }
+
+gateway_transaction.list_search:
+    path:     /search
+    defaults: { _controller: GatewayTransactionBundle:Default:search }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+    
+gateway_transaction.create_page:
+    path:       /{type}/create
+    defaults:   { _controller: GatewayTransactionBundle:Default:create }
+    
+gateway_transaction.update_page:
+    path:       /{type}/{id}/update
+    defaults:   { _controller: GatewayTransactionBundle:Default:update }
+    
+gateway_transaction.save:
+    path:       /{type}/{id}/save
+    defaults:   {_controller: GatewayTransactionBundle:Default:save, id: new }
+    condition:  "context.getMethod() in ['POST']"

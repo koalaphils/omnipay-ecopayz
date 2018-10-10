@@ -1,0 +1,69 @@
+services:
+    member.handler.create_member:
+        class: MemberBundle\RequestHandler\CreateMemberRequestHandler
+        lazy: true
+        arguments: ["@doctrine.orm.entity_manager", "@request_stack", "@security.password_encoder", "@member.manager"]
+    member.handler.update_profile:
+        class: MemberBundle\RequestHandler\UpdateProfileRequestHandler
+        lazy: true
+        arguments: ["@doctrine.orm.entity_manager", "@request_stack", "@event_dispatcher", "@audit.manager"]
+    member.handler.update_password:
+        class: MemberBundle\RequestHandler\UpdatePasswordRequestHandler
+        lazy: true
+        arguments: ["@security.password_encoder", "@doctrine.orm.entity_manager"]
+    member.handler.send_reset_password:
+        class: MemberBundle\RequestHandler\SendResetPasswordRequestHandler
+        lazy: true
+        arguments: ["@doctrine.orm.entity_manager", "@translator", "@user.manager", "%asianconnect_url%"]
+    member.handler.update_transaction_password:
+        class: MemberBundle\RequestHandler\UpdateTransactionPasswordHandler
+        lazy: true
+        arguments: ["@security.password_encoder", "@doctrine.orm.entity_manager"]
+    member.handler.update_contacts:
+        class: MemberBundle\RequestHandler\UpdateContactRequestHandler
+        lazy: true
+        arguments: ["@doctrine.orm.entity_manager"]
+    member.handler.update_socials:
+        class: MemberBundle\RequestHandler\UpdateSocialsRequestHandler
+        lazy: true
+        arguments: ["@doctrine.orm.entity_manager"]
+    member.handler.create_member_product:
+        class: MemberBundle\RequestHandler\CreateMemberProductRequestHandler
+        lazy: true
+        arguments: ["@doctrine", "@event_dispatcher", "@brokerage.brokerage_manager", "@customerproduct.manager"]
+    member.handler.update_member_product:
+        class: MemberBundle\RequestHandler\UpdateMemberProductRequestHandler
+        lazy: true
+        arguments: ["@doctrine", "@event_dispatcher", "@brokerage.brokerage_manager", "@customerproduct.manager"]
+    member.handler.link_member:
+        class: MemberBundle\RequestHandler\LinkMemberRequestHandler
+        lazy: true
+        arguments: ["@doctrine", "@event_dispatcher"]
+    member.handler.add_commission_member:
+        class: MemberBundle\RequestHandler\AddCommmissionRequestHandler
+        lazy: true
+        arguments: ["@doctrine"]
+        calls:
+            - ['setEventDispatcher', ['@event_dispatcher']]
+    member.handler.update_commission_member:
+        class: MemberBundle\RequestHandler\UpdateCommissionRequestHandler
+        lazy: true
+        arguments: ["@doctrine"]
+        calls:
+            - ['setEventDispatcher', ['@event_dispatcher']]
+    member.handler.create_payment_option:
+        class: MemberBundle\RequestHandler\CreatePaymentOptionHandler
+        lazy: true
+        arguments: ["@doctrine"]
+    member.handler.update_payment_option:
+        class: MemberBundle\RequestHandler\UpdatePaymentOptionHandler
+        lazy: true
+        arguments: ["@doctrine"]
+    member.handler.create_member_referral_name:
+        class: MemberBundle\RequestHandler\CreateMemberReferralNameRequestHandler
+        lazy: true
+        arguments: ["@doctrine"]
+    member.handler.create_member_website:
+        class: MemberBundle\RequestHandler\CreateWebsiteRequestHandler
+        lazy: true
+        arguments: ["@doctrine"]

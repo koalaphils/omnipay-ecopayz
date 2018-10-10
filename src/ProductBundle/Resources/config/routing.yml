@@ -1,0 +1,45 @@
+product.list_page:
+    path:       /
+    defaults:   { _controller: ProductBundle:Default:index }
+
+product.list_search:
+    path:       /search
+    defaults:   { _controller: ProductBundle:Default:search }
+    condition:  "context.getMethod() in ['POST', 'GET'] and request.isXMLHttpRequest()"
+
+product.list_search_without_betadmin:
+    path:       /search-without-betadmin
+    defaults:   { _controller: ProductBundle:Default:searchWithoutBetadmin }
+    condition:  "context.getMethod() in ['POST', 'GET'] and request.isXMLHttpRequest()"
+
+product.create_page:
+    path:       /create
+    defaults:   { _controller: ProductBundle:Default:create }
+
+product.view_page:
+    path:       /view/{id}
+    defaults:   { _controller: ProductBundle:Default:view }
+
+product.update_page:
+    path:       /update/{id}
+    defaults:   { _controller: ProductBundle:Default:update }
+    
+product.save:
+    path:       /save/{id}
+    defaults:   {_controller: ProductBundle:Default:save, id: new }
+    condition:  "context.getMethod() in ['POST']"
+    
+product.activate:
+    path:       /activate
+    defaults:   { _controller: ProductBundle:Default:activate }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()" 
+    
+product.suspend:
+    path:       /suspend
+    defaults:   { _controller: ProductBundle:Default:suspend }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()" 
+    
+product.delete:
+    path:       /delete
+    defaults:   { _controller: ProductBundle:Default:delete }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()" 

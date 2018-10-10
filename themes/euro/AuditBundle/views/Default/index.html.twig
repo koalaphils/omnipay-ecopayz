@@ -1,0 +1,610 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}{{ ("page.title." ~ type|title)|trans({},"AuditBundle") }}{% endblock %}
+
+{% block stylesheets %}
+    <!-- DataTables -->
+    <link href="{{ asset('assets/plugins/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/buttons.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/responsive.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/dataTables.colVis.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/dataTables.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+
+    <link href="{{ asset("assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.min.css") }}" rel="stylesheet"/>
+    <link href="{{ asset("assets/plugins/bootstrap-daterangepicker/daterangepicker.css") }}" rel="stylesheet"/>
+
+    <link href="{{ asset("assets/plugins/custombox/css/custombox.css") }}" rel="stylesheet">
+{% endblock %}
+
+{% block pageTitle -%}{{ ("menus." ~ type|title)|trans({},"AuditBundle") }}{%- endblock pageTitle %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.admin"|trans({},"AppBundle") }}</li>
+    <li>{{ ("menus." ~ type|title)|trans({},"AuditBundle") }}</li>
+{%- endblock %}
+
+{% block page %}
+    <div class="col-sm-12">
+        <div class="card-box">
+            <div id="auditLog">
+                <table id="datatable-responsive"
+                       class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0"
+                       width="100%">
+                    <thead>
+                    <tr>
+                        <th>{{ "columns.user"|trans({}, "AuditBundle") }}</th>
+                        <th>{{ "columns.timestamp"|trans({}, "AuditBundle") }}</th>
+                        <th>{{ "columns.clientIp"|trans({}, "AuditBundle") }}</th>
+                        <th>{{ "columns.details"|trans({}, "AuditBundle") }}</th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot></tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('bundles/app/js/ZTable.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/dataTables.bootstrap.js') }}"></script>
+
+    <script src="{{ asset('assets/plugins/datatables/dataTables.buttons.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/buttons.bootstrap.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/vfs_fonts.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/buttons.html5.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/dataTables.responsive.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/responsive.bootstrap.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/dataTables.colVis.js') }}"></script>
+
+    <script src="{{ asset("assets/plugins/moment/moment.js") }}" type="text/javascript"></script>
+    <script src="{{ asset("assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.min.js") }}" type="text/javascript"></script>
+    <script src="{{ asset("assets/plugins/bootstrap-daterangepicker/daterangepicker.js") }}" type="text/javascript"></script>
+
+    <script src="{{ asset("assets/plugins/custombox/js/custombox.min.js") }}"></script>
+    <script src="{{ asset("assets/plugins/custombox/js/legacy.min.js") }}"></script>
+    <script src="{{ asset("assets/plugins/sprintf/sprintf.min.js") }}"></script>
+
+    <script type="text/javascript" >
+        var userPreferences = {{ app.user.getPreference('ui.auditLog.list.column.visibility')|json_encode()|raw }};
+        var logDetails = {{ logDetails|json_encode|raw }};
+        var logEntityDetails = {
+            'cDwl': {
+                'delete': [
+                    {'message': 'DWL: %s (%s)', 'params': ['dwl.product.name', 'dwl.currency.code']},
+                    {'message': 'DWL Date: %s', 'params': ['dwl.date']},
+                    {'message': 'DWL Version: %s', 'params': ['dwl.version']}
+                ]
+            }
+        };
+
+        $(function(){
+            var listTable = new ZTable('#auditLog',  {
+                'ajax': {
+                    'url': '{{ path("audit.list_search", { 'type' : type }) }}',
+                    'data': function (data, dataTable) {
+                        return {
+                            'search': data.filters.search,
+                            'length': data.length,
+                            'start': dataTable.start,
+                            'datatable': true,
+                            'route': true,
+                            'draw': dataTable.draw,
+                            'order': data.order,
+                            'filter' : data.filters
+                        };
+                    },
+                    'dataFilter': function (str) {
+                        return str;
+                    }
+                },
+                'attrs': {
+                    'colvisButton' : {
+                        'data-style': 'btn-primary'
+                    }
+                },
+                'colvis': {
+                    'hidden': function () {
+                        var hidden = [];
+                        for (var i in userPreferences) {
+                            if (userPreferences[i] == 'false') {
+                                hidden.push(eval(i));
+                            }
+                        }
+
+                        return hidden;
+                    },
+                    'exclude': ['gatewayid', 'transactionDate' , 'action', 'amount']
+                },
+                //'dom': "<'row m-b-10'<'col-md-12'<'pull-right'C>>><'row form-inline'<'col-md-6 col-sm-6 col-xs-6'l><'col-md-6 col-sm-6 col-xs-6 text-right'>>t",
+                'featuresDom': "<'form-inline'"
+                + "<'form-group m-r-10 ft-date'<'xs-date'ft>>"
+                + "fTyxzdb"
+                + "<'form-group'b>>",
+                'features': {
+                    'from': {
+                        'dom': "<'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>",
+                        'type': 'date',
+                        'symbol': 'f',
+                        'attrs': {
+                            'placeholder': 'From'
+                        },
+                        'applyOnChanged': false
+                    },
+                    'to': {
+                        'dom': "<'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>",
+                        'type': 'date',
+                        'symbol': 'T',
+                        'attrs': {
+                            'placeholder': 'To'
+                        },
+                        'applyOnChanged': false
+                    },
+                    'operation': {
+                        'dom': "<'form-group form-group-sm m-r-10 xs-filter'i>",
+                        'type': 'select',
+                        'label': 'Operation',
+                        'symbol': 'x',
+                        'class': 'selectpicker',
+                        'applyOnChanged': false,
+                        'attrs': {
+                            'data-style': 'btn-white btn-sm',
+                            'title': 'Select Operation',
+                            'multiple': 'multiple'
+                        },
+                        'resetValue': function (feature) {
+                            $(feature.input).selectpicker('val', feature.feature.value);
+                        },
+                        'getValue': function (feature) {
+                            var value = $(feature.input).val();
+                            if (value === null) {
+                                value = [];
+                            }
+                            var operations = [];
+                            if (value.length > 0 && value.indexOf('create') !== Global.variables.indexNotFound) {
+                                operations.push(Global.audit.operations.create.value);
+                            }
+                            if (value.length > 0 && value.indexOf('update') !== Global.variables.indexNotFound) {
+                                operations.push(Global.audit.operations.update.value);
+                            }
+                            if (value.length > 0 && value.indexOf('delete') !== Global.variables.indexNotFound) {
+                                operations.push(Global.audit.operations.delete.value);
+                            }
+                            if (value.length > 0 && value.indexOf('login') !== Global.variables.indexNotFound) {
+                                operations.push(Global.audit.operations.login.value);
+                            }
+                            if (value.length > 0 && value.indexOf('logout') !== Global.variables.indexNotFound) {
+                                operations.push(Global.audit.operations.logout.value);
+                            }
+
+                            return operations;
+                        },
+                        'rendered': function (feature) {
+                            $(feature.input).val(feature.feature.value);
+                        },
+                        'choices': {
+                            'create': "{{ "operation.create"|trans({}, "AuditBundle") }}",
+                            'update': "{{ "operation.update"|trans({}, "AuditBundle") }}",
+                            'delete': "{{ "operation.delete"|trans({}, "AuditBundle") }}",
+                            'login': "{{ "operation.login"|trans({}, "AuditBundle") }}",
+                            'logout': "{{ "operation.logout"|trans({}, "AuditBundle") }}"
+                        },
+                        'value': ''
+                    },
+                    'category': {
+                        'dom': "<'form-group form-group-sm m-r-10 xs-filter'i>",
+                        'type': 'select',
+                        'label': 'Category',
+                        'symbol': 'z',
+                        'class': 'selectpicker',
+                        'applyOnChanged': false,
+                        'attrs': {
+                            'data-style': 'btn-white btn-sm',
+                            'data-size': 10,
+                            'data-container': 'body',
+                            'data-width': 'auto',
+                            'title': 'Select Category',
+                            'multiple': 'multiple',
+                            'class' : 'support-log-cls'
+                        },
+                        'resetValue': function (feature) {
+                            $(feature.input).selectpicker('val', feature.feature.value);
+                        },
+                        'getValue': function (feature) {
+                            var value = $(feature.input).val();
+                            if (value === null) {
+                                value = [];
+                            }
+                            var categories = [];
+                            if (value.length > 0 && value.indexOf('bonus') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.bonus.value);
+                            }
+                            if (value.length > 0 && value.indexOf('country') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.country.value);
+                            }
+                            if (value.length > 0 && value.indexOf('currency') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.currency.value);
+                            }
+                            if (value.length > 0 && value.indexOf('customer') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.customer.value);
+                            }
+                            if (value.length > 0 && value.indexOf('customerGroup') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.customerGroup.value);
+                            }
+                            if (value.length > 0 && value.indexOf('dwl') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.dwl.value);
+                            }
+                            if (value.length > 0 && value.indexOf('gateway') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.gateway.value);
+                            }
+                            if (value.length > 0 && value.indexOf('gatewayTransaction') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.gatewayTransaction.value);
+                            }
+                            if (value.length > 0 && value.indexOf('notice') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.notice.value);
+                            }
+                            if (value.length > 0 && value.indexOf('paymentOption') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.paymentOption.value);
+                            }
+                            if (value.length > 0 && value.indexOf('product') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.product.value);
+                            }
+                            if (value.length > 0 && value.indexOf('deposit') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.deposit.value);
+                            }
+                            if (value.length > 0 && value.indexOf('user') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.user.value);
+                            }
+                            if (value.length > 0 && value.indexOf('userGroup') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.userGroup.value);
+                            }
+                            if (value.length > 0 && value.indexOf('login') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.login.value);
+                            }
+                            if (value.length > 0 && value.indexOf('logout') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.logout.value);
+                            }
+                            if (value.length > 0 && value.indexOf('customerProduct') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.customerProduct.value);
+                            }
+                            if (value.length > 0 && value.indexOf('customerPaymentOption') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.customerPaymentOption.value);
+                            }
+                            if (value.length > 0 && value.indexOf('withdrawal') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.withdrawal.value);
+                            }
+                            if (value.length > 0 && value.indexOf('transfer') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.transfer.value);
+                            }
+                            if (value.length > 0 && value.indexOf('p2pTransfer') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.p2pTransfer.value);
+                            }
+                            if (value.length > 0 && value.indexOf('cDwl') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.cDwl.value);
+                            }
+                            if (value.length > 0 && value.indexOf('bet') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.bet.value);
+                            }
+                            if (value.length > 0 && value.indexOf('transactionBonus') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.transactionBonus.value);
+                            }
+                            if (value.length > 0 && value.indexOf('memberBanner') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.memberBanner.value);
+                            }
+                            if (value.length > 0 && value.indexOf('memberWebsite') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.memberWebsite.value);
+                            }
+                            if (value.length > 0 && value.indexOf('memberReferralName') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.memberReferralName.value);
+                            }
+                            if (value.length > 0 && value.indexOf('bannerImage') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.bannerImage.value);
+                            }
+
+                            return categories;
+                        },
+                        'rendered': function (feature) {
+                            $(feature.input).val(feature.feature.value);
+                        },
+                        'choices': {
+                            'transactionBonus': "{{ "category.bonus"|trans({}, "AuditBundle") }}",
+                            'country': "{{ "category.country"|trans({}, "AuditBundle") }}",
+                            'currency': "{{ "category.currency"|trans({}, "AuditBundle") }}",
+                            'customer': "{{ "category.member"|trans({}, "AuditBundle") }}",
+                            'customerGroup': "{{ "category.memberGroup"|trans({}, "AuditBundle") }}",
+                            'dwl': "{{ "category.dwl"|trans({}, "AuditBundle") }}",
+                            'gateway': "{{ "category.gateway"|trans({}, "AuditBundle") }}",
+                            'gatewayTransaction': "{{ "category.gatewayTransaction"|trans({}, "AuditBundle") }}",
+                            'notice': "{{ "category.notice"|trans({}, "AuditBundle") }}",
+                            'paymentOption': "{{ "category.paymentOption"|trans({}, "AuditBundle") }}",
+                            'product': "{{ "category.product"|trans({}, "AuditBundle") }}",
+                            'deposit': "{{ "category.deposit"|trans({}, "AuditBundle") }}",
+                            'user': "{{ "category.user"|trans({}, "AuditBundle") }}",
+                            'userGroup': "{{ "category.userGroup"|trans({}, "AuditBundle") }}",
+                            'login': "{{ "category.login"|trans({}, "AuditBundle") }}",
+                            'logout': "{{ "category.logout"|trans({}, "AuditBundle") }}",
+                            'customerProduct': "{{ "category.memberProduct"|trans({}, "AuditBundle") }}",
+                            'customerPaymentOption': "{{ "category.memberPaymentOption"|trans({}, "AuditBundle") }}",
+                            'withdrawal': "{{ "category.withdrawal"|trans({}, "AuditBundle") }}",
+                            'transfer': "{{ "category.transfer"|trans({}, "AuditBundle") }}",
+                            'p2pTransfer': "{{ "category.p2pTransfer"|trans({}, "AuditBundle") }}",
+                            'cDwl': "{{ "category.cDwl"|trans({}, "AuditBundle") }}",
+                            'riskSetting': "{{ "category.riskSetting"|trans({}, "AuditBundle") }}",
+                            'bet': "{{ "category.bet"|trans({}, "AuditBundle") }}",
+                            'memberBanner': "{{ "category.memberBanner"|trans({}, "AuditBundle") }}",
+                            'memberWebsite': "{{ "category.memberWebsite"|trans({}, "AuditBundle") }}",
+                            'memberReferralName': "{{ "category.memberReferralName"|trans({}, "AuditBundle") }}",
+                            'bannerImage': "{{ "category.bannerImage"|trans({}, "AuditBundle") }}"
+                        },
+                        'value': ''
+                    },
+                    'applyFilter': {
+                        'type': 'button',
+                        'label': 'Apply Filter',
+                        'symbol': 'd',
+                        'attrs': {
+                            'type': 'button',
+                            'class': 'btn btn-sm btn-default'
+                        },
+                        'initialized': function (feature) {
+                            $(feature.input).click(function () {
+                                feature.ztable.forceReloadTable();
+                            });
+                        }
+                    },
+                    'resetFilter': {
+                        'type': 'button',
+                        'label': 'Reset Filter',
+                        'symbol': 'b',
+                        'attrs': {
+                            'type': 'button',
+                            'class': 'btn btn-sm btn-inverse'
+                        },
+                        'initialized': function (feature) {
+                            $(feature.input).click(function () {
+                                $("select.ztable_length_input").val('10').change();
+                                feature.ztable.reset();
+                            });
+                        }
+                    }
+                },
+                'columns': [
+                    {
+                        'data': 'user.username',
+                        'name': 'u.username',
+                        'defaultContent': ''
+                    },
+                    {
+                        'data': 'timestamp',
+                        'name': 'ar.timestamp',
+                        'defaultContent': '',
+                        'render': function (data, type, full) {
+                            return moment(data).format('MMM D, YYYY h:mm A');
+                        }
+                    },
+                    {
+                        'data': 'client_ip',
+                        'name': 'ar.clientIp',
+                        'defaultContent': ''
+                    },
+                    {
+                        'data': 'details',
+                        'defaultContent': '',
+                        'render': function (data, type, full) {
+                            var description = '';
+                            var operations = {
+                                'create': "{{ "operation.create"|trans({}, "AuditBundle") }}",
+                                'update': "{{ "operation.update"|trans({}, "AuditBundle") }}",
+                                'delete': "{{ "operation.delete"|trans({}, "AuditBundle") }}",
+                                'login': "{{ "operation.login"|trans({}, "AuditBundle") }}",
+                                'logout': "{{ "operation.logout"|trans({}, "AuditBundle") }}",
+                            };
+                            var categories = {
+                                'transactionBonus': "{{ "category.bonus"|trans({}, "AuditBundle") }}",
+                                'country': "{{ "category.country"|trans({}, "AuditBundle") }}",
+                                'currency': "{{ "category.currency"|trans({}, "AuditBundle") }}",
+                                'customer': "{{ "category.member"|trans({}, "AuditBundle") }}",
+                                'customerGroup': "{{ "category.memberGroup"|trans({}, "AuditBundle") }}",
+                                'dwl': "{{ "category.dwl"|trans({}, "AuditBundle") }}",
+                                'gateway': "{{ "category.gateway"|trans({}, "AuditBundle") }}",
+                                'gatewayTransaction': "{{ "category.gatewayTransaction"|trans({}, "AuditBundle") }}",
+                                'notice': "{{ "category.notice"|trans({}, "AuditBundle") }}",
+                                'paymentOption': "{{ "category.paymentOption"|trans({}, "AuditBundle") }}",
+                                'product': "{{ "category.product"|trans({}, "AuditBundle") }}",
+                                'deposit': "{{ "category.deposit"|trans({}, "AuditBundle") }}",
+                                'user': "{{ "category.user"|trans({}, "AuditBundle") }}",
+                                'userGroup': "{{ "category.userGroup"|trans({}, "AuditBundle") }}",
+                                'login': "{{ "category.login"|trans({}, "AuditBundle") }}",
+                                'logout': "{{ "category.logout"|trans({}, "AuditBundle") }}",
+                                'customerProduct': "{{ "category.memberProduct"|trans({}, "AuditBundle") }}",
+                                'customerPaymentOption': "{{ "category.memberPaymentOption"|trans({}, "AuditBundle") }}",
+                                'withdrawal': "{{ "category.withdrawal"|trans({}, "AuditBundle") }}",
+                                'transfer': "{{ "category.transfer"|trans({}, "AuditBundle") }}",
+                                'p2pTransfer': "{{ "category.p2pTransfer"|trans({}, "AuditBundle") }}",
+                                'cDwl': "{{ "category.cDwl"|trans({}, "AuditBundle") }}",
+                                'riskSetting': "{{ "category.riskSetting"|trans({}, "AuditBundle") }}",
+                                'bet': "{{ "category.bet"|trans({}, "AuditBundle") }}",
+                                'memberBanner': "{{ "category.memberBanner"|trans({}, "AuditBundle") }}",
+                                'memberWebsite': "{{ "category.memberWebsite"|trans({}, "AuditBundle") }}",
+                                'memberReferralName': "{{ "category.memberReferralName"|trans({}, "AuditBundle") }}",
+                                'bannerImage': "{{ "category.bannerImage"|trans({}, "AuditBundle") }}"
+                            };
+
+                            $.each(full.logs, function(index, log) {
+                                var categoryKey = log.category_key;
+
+                                if ($.inArray(categoryKey, ['deposit', 'transfer', 'withdrawal', 'p2pTransfer', 'cDwl', 'transactionBonus', 'bet']) != -1) {
+                                    categoryKey = 'transaction';
+                                }
+
+                                description += '<strong>' + operations[log.operation_key];
+
+                                if ($.inArray(log.operation_key, ['login', 'logout']) == -1) {
+                                    description += ' ' + categories[log.category_key] + ' ' + log.label + ':</strong><br/>';
+
+                                    description += '<ul>';
+
+                                    if (typeof logDetails[categoryKey] !== 'undefined') {
+                                        var logDetail = logDetails[categoryKey];
+
+                                        $.each(logDetail, function(field, value) {
+                                            if (log.fields !== null) {
+                                                var toValue = getFieldValue(value.to, log.fields);
+
+                                                if (log.operation_key == 'update') {
+                                                    var fromValue = getFieldValue(value.from, log.fields);
+                                                }
+
+                                                if (toValue || fromValue) {
+                                                    description += '<li>' + value.label + ': ';
+
+                                                    var fieldOptions = {
+                                                        'isNested': value.isNested,
+                                                        'isSensitive': value.isSensitive,
+                                                        'values': value.values,
+                                                    };
+
+                                                    if (log.operation_key == 'update') {
+                                                        description +=
+                                                            formatFieldValue(fromValue, fieldOptions) +
+                                                            ' -> ' +
+                                                            formatFieldValue(toValue, fieldOptions);
+                                                    } else if (log.operation_key == 'create') {
+                                                        description += formatFieldValue(toValue, fieldOptions);
+                                                    }
+
+                                                    description += '</li>';
+                                                }
+                                            }
+                                        });
+
+                                        if ((typeof log.entity_details !== 'undefined')
+                                            && (typeof logEntityDetails[log.category_key] !== 'undefined')
+                                            && (typeof logEntityDetails[log.category_key][log.operation_key] !== 'undefined')
+                                        ) {
+                                            var entityDetails = log.entity_details;
+                                            $.each(logEntityDetails[log.category_key][log.operation_key], function (field, value) {
+                                                var parameters = [];
+                                                for (var i = 0; i < value.params.length; i++) {
+                                                    parameters.push(window.lodash.get(entityDetails, value.params[i], ''));
+                                                }
+                                                description += "<li>";
+                                                description += vsprintf(value.message, parameters);
+                                                description += "</li>";
+                                            });
+                                        }
+                                    }
+
+
+                                    description += '</ul><br/>';
+                                } else {
+                                    description += '</strong>';
+                                }
+                            });
+
+                            return description;
+                        }
+                    },
+                ],
+                'ordering': true,
+                'columnDefs': [
+                    { "orderable": false, "targets": [3] }
+                ]
+            });
+            
+            $(document).on('onWebsocketOpen', function (e, session) {
+                session.subscribe('bo.topic.transaction_declined', function(args) {
+                    var data = args[0];
+                    if (data.forTableReload) {
+                        listTable.reloadTable();    
+                    }
+                });
+            });
+
+            function formatFieldValue(value, fieldOptions) {
+                if (value == null || value == '' && value !== false) {
+                  value = 'N/A';
+                } else if (value === true) {
+                    value = 'Yes';
+                } else if (value === false) {
+                    value = 'No';
+                } else if (value.date) {
+                    value = moment(value.date).format('MMM D, YYYY');
+                } else if (fieldOptions.isNested == true) {
+                    value = '<ul>' + concatObjectProperties(value) + '</ul>';
+                } else if (fieldOptions.isSensitive == true) {
+                    value = '(encoded value)';
+                }  else if ((new RegExp('&lt;br /&gt;')).test(value) > 0) {
+                    value = encloseWithLinebreaks(value, true);
+                }
+
+                if (!$.isEmptyObject(fieldOptions.values)) {
+                    value = fieldOptions.values[value];
+                }
+
+                return value;
+            };
+
+            function concatObjectProperties(obj) {
+                var objectString = '';
+
+                $.each(obj, function(field, value) {
+                    if (value !== null && typeof value === 'object') {
+                        objectString += concatObjectProperties(value);
+                    } else {
+                        objectString += '<li>';
+
+                        if (isNaN(field)) {
+                            objectString += removeUnderscores(field) + ': ';
+                        }
+
+                        if (value == 1) {
+                            value = 'No';
+                        } else if (value == 2) {
+                            value = 'Yes';
+                        } else if (typeof value == 'string') {
+                            value = removeUnderscores(value);
+                        } else if (value == null) {
+                            value = 'N/A';
+                        }
+
+                        objectString += value + '</li>';
+                    }
+                });
+
+                return objectString;
+            };
+
+            function removeUnderscores(value) {
+                return value.replace(new RegExp('_', 'g'), ' ');
+            };
+            
+            function encloseWithLinebreaks(value, addBrFirstAndLast) {
+                if (addBrFirstAndLast) {
+                    value = '<br />' + value + '<br />';
+                }
+
+                return value.replace(new RegExp('&lt;br /&gt;', 'g'), '<br />');
+            };
+
+            function getFieldValue(keyString, fields) {
+                var keys = keyString.split('.');
+                var logField = fields[keys[0]];
+
+                for (var index = 1; index < keys.length; index++) {
+                    if (typeof logField !== 'undefined') {
+                        logField = logField[keys[index]];
+                    }
+                }
+
+                return logField;
+            };
+
+            $('#auditLog').on('ztable.change.column.visible', function (e, colvis, ztable) {
+                saveUserPreferences({'ui.auditLog.list.column.visibility': ztable.getColumnVisibility()});
+            });
+        });
+    </script>
+{% endblock %}

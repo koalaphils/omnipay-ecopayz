@@ -1,0 +1,14 @@
+#web_socket_homepage:
+#    path:     /
+#    defaults: { _controller: WebSocketBundle:Default:index }
+web_socket_notification:
+    channel: topic/notification
+    handler: 
+        callback: 'websocket.topic.notification'
+websocket_rpc:
+    channel: socket/{method}
+    handler:
+        callback: 'websocket.rpc'
+    requirements:
+        method:
+            pattern: 'authenticate'

@@ -1,0 +1,38 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}{{ "page.title.view"|trans({'%title%':notice.title},"NoticeBundle") }}{% endblock %}
+
+{% block stylesheets %}
+{% endblock %}
+
+{% block content %}
+    <!-- Page-Title -->
+    <div class="row">
+        <div class="col-sm-12">
+            <h4 class="page-title">{{ "page.View Notice"|trans({},"NoticeBundle") }}</h4>
+            <ol class="breadcrumb">
+                <li>
+                    <a href="{{ path("app.dashboard_page") }}">{{ "menus.Dashboard"|trans({},"AppBundle") }}</a>
+                </li>
+                <li>
+                    <a href="{{ path("notice.list_page") }}">{{ "menus.Notice"|trans({},"NoticeBundle") }}</a>
+                </li>
+                <li>
+                    <a href="{{ path("notice.view_page",{'id':notice.id}) }}">{{ "menus.View"|trans({},"AppBundle") }}</a>
+                </li>
+            </ol>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card-box">
+                {% include "NoticeBundle:Form:notice-form.html.twig" %}
+            </div>
+        </div>
+    </div>
+    
+{% endblock %}
+
+{% block javascripts %}
+    {{ form_javascript(form) }}
+{% endblock %}

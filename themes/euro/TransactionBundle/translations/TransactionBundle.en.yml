@@ -1,0 +1,104 @@
+tag:
+    list_title: Transaction | List
+    create_title: Transaction | Request - {type}
+
+page:
+    create_title: Request {type} Transaction
+    update_title: Update {type} Transaction
+    setting: Transaction
+    title:
+        setting: Settings | Transaction
+
+breadcrumb:
+    text: Group
+    create: Request
+    list: Transaction List
+    setting: Transaction Setting
+
+types:
+    deposit: Deposit
+    withdraw: Withdraw
+    bonus: Bonus
+    p2p_transfer: P2P Transfer
+    transfer: Transfer
+    dwl: Daily Win Loss
+    bet: Bet
+    commission: Commission
+fields:
+    number: Number
+    currency: Currency
+    date: Date
+    memberFee: Member Fee
+    companyFee: Company Fee
+    subTransaction:
+        product: Product
+        amount: Amount
+    status: Status
+    amount: Amount
+    member: Member
+    productUsername: Product (Username)
+    paymentOption: Payment Option
+    type: Type
+    action: Action
+
+menus:
+    Transaction: Transaction
+    History: List
+    Deposit: Deposit
+    Withdraw: Withdraw
+    Transfer: Transfer
+    P2PTransfer: P2P Transfer
+    DWL: Daily Win/Loss
+    Bonus: Bonus
+
+quicklinks:
+    name: Quick Links
+    product: Product
+    customerList: Member List
+    memberGroup: Member Group
+    pendingTransaction: Pending Transaction
+
+roles:
+    groups:
+        transaction: Transaction
+    transaction:
+        view: View Transaction
+        update: Update Transaction
+        create: Create Transaction
+        changeProcess: Change Transaction Process
+
+voided: Voided
+
+settings:
+    transaction:
+        label: Transaction
+        fields:
+            status:
+                label: Status
+                cms_label: CMS Status
+                ams_label: AMS Status
+                actions: Actions
+                edit_bonus_amount: Edit Bonus Amount
+                edit_amount: Edit Amount
+                edit_date: Edit Date
+                editGateway: Edit Payment Gateway
+                editFees: Edit Fees
+            action:
+                label: Action Label
+                status: To Status
+                class: Button Class
+        admin:
+            start_status: Admin Start Status
+        customer:
+            start_status: Member Start Status
+    paymentGateway:
+        label: Selection method for payment gateway
+        description: This is for the method of on how the transaction will select the payment gateway
+        choices:
+            manual: Manual
+            customerLevel: Member Level
+            customerGroup: Member Group
+            customerCurrency: Member Currency
+
+Payment Option on Record: Payment Option on Record
+Payment Option on Transaction: Payment Option on Transaction

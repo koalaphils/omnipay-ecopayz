@@ -1,0 +1,35 @@
+CommissionBundle\Request\CommissionSettingRequest:
+    properties:
+        enable:
+            - Type:
+                type: bool
+        startDate:
+            - NotBlank: ~
+            - Date: ~
+        every:
+            - NotBlank: ~
+            - GreaterThan: 0
+        frequency:
+            - NotBlank: ~
+            - Choice:
+                strict: true
+                choices: [monthly, weekly, daily]
+        conditions:
+            - Count:
+                min: 1
+                minMessage: You must add at least one condition
+            - All:
+                - Collection:
+                    fields:
+                        field:
+                            - Required:
+                                - NotBlank: ~
+                                - Choice:
+                                    strict: true
+                                    choices: ['active_member', 'active_member_product']
+                        value:
+                            - Required:
+                                - NotBlank: ~
+DbBundle\Entity\CommissionPeriod:
+    constraints:
+        - CommissionBundle\Validator\Constraints\ValidCommissionPeriod: ~

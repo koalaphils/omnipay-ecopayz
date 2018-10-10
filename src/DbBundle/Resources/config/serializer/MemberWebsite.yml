@@ -1,0 +1,7 @@
+DbBundle\Entity\MemberWebsite:
+    exclusion_policy: ALL
+    properties:
+        website:
+            expose: true
+        isActive:
+            expose: true

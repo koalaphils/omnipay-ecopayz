@@ -1,0 +1,19 @@
+services:
+    brokerage.brokerage_manager:
+        class: BrokerageBundle\Manager\BrokerageManager
+        parent: app.base_manager
+        arguments: [ "@logger" ]
+    brokerage.winloss_manager:
+        class: BrokerageBundle\Manager\WinLossManager
+        parent: app.base_manager
+    brokerage.transaction_listener:
+        class: BrokerageBundle\Listener\TransactionListener
+        calls:
+            - [ setContainer, [ "@service_container" ] ]
+        tags:
+            - { name: "kernel.event_listener", event: "transaction.saved", method: "onTransactionSaved" }
+    brokerage.customer_product_repository:
+        class: BrokerageBundle\Repository\CustomerProductRepository
+        factory_service: doctrine # this is an instance of Registry
+        factory_method: getRepository
+        arguments: [ "@doctrine.orm.entity_manager", "DbBundle\\Entity\\CustomerProduct" ]

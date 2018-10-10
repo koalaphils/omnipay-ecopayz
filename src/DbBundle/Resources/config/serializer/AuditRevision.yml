@@ -1,0 +1,12 @@
+DbBundle\Entity\AuditRevision:
+    exclusion_policy: ALL
+    properties:
+        clientIp:
+            expose: true
+        timestamp:
+            expose: true
+            type: DateTime<'Y-m-d H:i:s'>
+        user:
+            expose: true
+        logs:
+            type: array<DbBundle\Entity\AuditRevisionLog>

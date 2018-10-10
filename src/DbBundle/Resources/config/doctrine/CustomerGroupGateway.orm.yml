@@ -1,0 +1,49 @@
+DbBundle\Entity\CustomerGroupGateway:
+    type: entity
+    table: null
+    repositoryClass: DbBundle\Repository\CustomerGroupGatewayRepository
+    id:
+        gateway:
+            associationKey: true
+        customerGroup:
+            associationKey: true
+            
+    fields:
+        conditions:
+            type: text
+            column: cgg_conditions
+        createdBy:
+            type: bigint
+            column: cgg_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: cgg_created_at
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: cgg_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            column: cgg_updated_at
+            nullable: true
+    manyToOne:
+        gateway:
+            targetEntity: DbBundle\Entity\Gateway
+            joinColumn:
+                name: cgg_gateway_id
+                referencedColumnName: gateway_id
+            fetch: EAGER
+            inversedBy: groups
+        customerGroup:
+            targetEntity: DbBundle\Entity\CustomerGroup
+            joinColumn:
+                name: cgg_customer_group_id
+                referencedColumnName: customer_group_id
+            fetch: EAGER
+            inversedBy: gateways
+    
+    lifecycleCallbacks: {  }

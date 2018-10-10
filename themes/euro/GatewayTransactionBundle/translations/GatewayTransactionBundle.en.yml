@@ -1,0 +1,102 @@
+menus:
+    GatewayTransaction: Gateway Transaction
+    Create: Create
+    BackToList: Back to Gateway Transaction List
+    GatewayLog: Gateway Transaction History
+    GatewayLoglist: Gateway Transaction History List
+
+page:
+    title:
+        logList: Gateway Transaction | History
+        list: Gateway Transaction | List
+        update: Gateway Transaction | Update - %type%
+        create: Gateway Transaction | Create - %type%
+    Create Gateway Transaction: Create %type% Gateway Transaction
+    Update Gateway Transaction: Update %type% Gateway Transaction
+
+fields:
+    id: 'Transaction #'
+    number: Number
+    date: Transaction Date
+    gateway: Gateway
+    gatewayTo: To Gateway
+    currency: Currency
+    type: Type
+    amount: Amount
+    amountTo: Amount To
+    updatedAt: Last Updated
+    status: Status
+    notes: Notes
+    action: Action
+    paymentOption: Payment Option
+    fee: Fee
+    feeTo: Fee To
+    netAmount: Net Amount
+    netAmountTo: Net Amount To
+    log:
+        timestamp: Date & Time
+        gateway: Gateway
+        currency: Currency
+        type: Type
+        previousBalance: Previous Balance
+        amount: Amount
+        currentBalance: Current Balance
+        reference: 'Reference #'
+
+types:
+   Deposit: Deposit
+   Withdraw: Withdraw
+   Transfer: Transfer
+   log:
+       Deposit: Deposit
+       Withdraw: Withdraw
+
+notification:
+    title: Success
+    created: %name% was successfully created
+    updated: %name% was successfully updated
+    error:
+        lock:
+            title: Error
+            message: Unable to update the current transaction, please refresh the page and try again.
+
+roles:
+    gatewayTransaction:
+        view: View Gateway Transaction
+        create: Create Gateway Transaction
+        update: Update Gateway Transaction
+        logView: View Gateway Transaction Logs
+    groups:
+        gatewayTransaction: Gateway Transaction
+
+form:
+    saveApproved: Approve
+    saveVoid: Void
+
+quickLinks:
+    name: Quick Links
+    addMember: Add Member
+    memberList: Member List
+    memberGroup: Member Group
+    transactionHistory: Transaction History
+    addDeposit: Add Gateway Deposit
+    addWithdraw: Add Gateway Withdrawal
+    addTransfer: Add Gateway Transfer
+    gatewayTrans: Gateway Transactions
+    gateway: Gateway
+    dwl: Daily Win/Loss
+    transactBtn: Transact
+
+breadcrumb:
+    list: Gateway Transaction List
+
+status:
+    Pending: Pending
+    Approved: Approved
+    Void: Void
+
+origin:
+    transaction: Member
+    gatewayTransaction: Payment Gateway
+    gateway: Manual Update
+

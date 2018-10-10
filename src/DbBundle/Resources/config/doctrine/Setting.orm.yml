@@ -1,0 +1,23 @@
+DbBundle\Entity\Setting:
+    type: entity
+    table: setting
+    repositoryClass: DbBundle\Repository\SettingRepository
+    id:
+        id:
+            type: integer
+            id: true
+            generator:
+                strategy: AUTO
+            column: setting_id
+            options:
+                unsigned: true
+    fields:
+        code:
+            type: string
+            length: '64'
+            unique: true
+            column: setting_code
+        value:
+            type: json
+            column: setting_value
+    lifecycleCallbacks: {  }

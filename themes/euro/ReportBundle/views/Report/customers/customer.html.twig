@@ -1,0 +1,289 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}Reports | Product {% endblock %}
+
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+{% block pageTitle -%}
+    {{ customer.getFullName() }} Report
+    - ( {{ (filters.from|default('')) == '' ? '' : '' ~ filters.from|date('M d, Y') ~ ' to ' }}{{ (filters.to|default('')) == '' ? 'Today' : filters.to|date('M d, Y')  }} )
+{%- endblock pageTitle %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.report"|trans({},"AppBundle") }}</li>
+    <li>{{ "breadcrumb.memberSummary"|trans({},"AppBundle") }}</li>
+    <li class="active">
+        {{ customer.getFullName() }}
+    </li>
+{%- endblock breadcrumb %}
+
+{% block page %}
+    <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+        <div class="card-box">
+            <div class="bar-widget">
+                <div class="table-box">
+                    <div class="table-detail">
+                        <div class="iconbox bg-primary">
+                            <i class="md md-account-balance-wallet"></i>
+                        </div>
+                    </div>
+                    <div class="table-detail text-right">
+                        <h4 class="m-t-0 m-b-5">{{ report.dwl.turnover|number_format(2, '.', ',') }}</h4>
+                        <h5 class="text-muted m-b-0 m-t-0">Total Turnover</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+        <div class="card-box">
+            <div class="bar-widget">
+                <div class="table-box">
+                    <div class="table-detail">
+                        <div class="iconbox bg-primary">
+                            <i class="md md-account-balance-wallet"></i>
+                        </div>
+                    </div>
+                    <div class="table-detail text-right">
+                        <h4 class="m-t-0 m-b-5">{{ report.dwl.win_loss|number_format(2, '.', ',') }}</h4>
+                        <h5 class="text-muted m-b-0 m-t-0">Total Win Loss</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+        <div class="card-box">
+            <div class="bar-widget">
+                <div class="table-box">
+                    <div class="table-detail">
+                        <div class="iconbox bg-primary">
+                            <i class="md md-account-balance-wallet"></i>
+                        </div>
+                    </div>
+                    <div class="table-detail text-right">
+                        <h4 class="m-t-0 m-b-5">{{ report.dwl.commission|number_format(2, '.', ',') }}</h4>
+                        <h5 class="text-muted m-b-0 m-t-0">Commission</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+        <div class="card-box">
+            <div class="bar-widget">
+                <div class="table-box">
+                    <div class="table-detail">
+                        <div class="iconbox bg-primary">
+                            <i class="md md-account-balance-wallet"></i>
+                        </div>
+                    </div>
+                    <div class="table-detail text-right">
+                        <h4 class="m-t-0 m-b-5">{{ report.customer_current_balance|number_format(2, '.', ',') }}</h4>
+                        <h5 class="text-muted m-b-0 m-t-0">Current Balance</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12">
+        <div class="card-box">
+            <h5 class="text-muted text-uppercase m-t-0 m-b-20"><b>Member Products</b></h5>
+            <div id="report">
+                <table
+                    class="table table-striped table-bordered dt-responsive nowrap"
+                    cellspacing="0"
+                    width="100%">
+                    <thead>
+                        <tr>
+                            <th>Member Product</th>
+                            <th>Turnover</th>
+                            <th>Gross Comm.</th>
+                            <th>Win/Loss</th>
+                            <th>Commission</th>
+                            <th>Balance: {{ (filters.to|default('')) == '' ? 'Today' : filters.to|date('M d, Y')  }}</th>
+                            <th>Current Balance</th>
+                            <th>Status<th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot>
+                        <tr>
+                            <th>Total</th>
+                            <th>{{ report.dwl.turnover|number_format(2, '.', ',') }}</th>
+                            <th>{{ report.dwl.gross|number_format(2, '.', ',') }}</th>
+                            <th>{{ report.dwl.win_loss|number_format(2, '.', ',') }}</th>
+                            <th>{{ report.dwl.commission|number_format(2, '.', ',') }}</th>
+                            <th>{{ number(report.customer_current_balance).minus(report.after.total).__toString()|number_format(2, '.', ',') }}</th>
+                            <th>{{ report.customer_current_balance|number_format(2, '.', ',') }}</th>
+                            <th>&nbsp;</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock page %}
+
+{% block javascripts %}
+    <script src="{{ asset('bundles/app/js/ZTable.js') }}"></script>
+    <script type="text/javascript">
+        $(function () {
+            var listTable = new ZTable('#report', {
+                'ajax': {
+                    'type': 'GET',
+                    'url': '{{ path('report.customer_products') }}',
+                    'data': function (data, dataTable) {
+                        data.filters.from = '{{ filters.from }}';
+                        data.filters.to = '{{ filters.to }}';
+                        data.filters.customer = '{{ customer.id }}'
+
+                        return data;
+                    }
+                },
+                'featuresDom': "b",
+                'features': {
+                    'btnExportCsv': {
+                        'type': 'button',
+                        'label': 'Export to CSV',
+                        'symbol': 'b',
+                        'attrs': {
+                            'type': 'button',
+                            'class': 'btn btn-sm btn-inverse'
+                        },
+                        'initialized': function (feature) {
+                        },
+                        'rendered': function (feature) {
+                            $(feature.input).click(function () {
+                                var query = {
+                                    'filters': {
+                                        'from': '{{ filters.from }}',
+                                        'to': '{{ filters.to }}',
+                                        'customer': '{{ customer.id }}'
+                                    },
+                                    'filename': '{{ customer.fName }}_{{ customer.lName }}'
+                                }
+                                window.open('{{ path('report.customer_products_export') }}?' + $.param(query), '_blank');
+                            });
+                        }
+                    }
+                },
+                'columns': [
+                    {
+                        'data': 'cproduct_username',
+                        'render': function (data, type, full) {
+                            return '<a class="dwl-link" href="' + full.link + '" target="_blank">' + data + '</a>';
+                        }
+                    },
+                    {
+                        'data': 'turnover',
+                        'render': function (data, type, full) {
+                            return (new Decimal(data)).toFixed(2);
+                        }
+                    },
+                    {
+                        'data': 'gross',
+                        'render': function (data, type, full) {
+                            return (new Decimal(data)).toFixed(2);
+                        }
+                    },
+                    {
+                        'data': 'win_loss',
+                        'render': function (data, type, full) {
+                            return (new Decimal(data)).toFixed(2);
+                        }
+                    },
+                    {
+                        'data': 'commission',
+                        'render': function (data, type, full) {
+                            return (new Decimal(data)).toFixed(2);
+                        }
+                    },
+                    {
+                        'data': 'after.total',
+                        'render': function (data, type, full) {
+                            return Decimal.sub(full.current_balance, data).toFixed(2);
+                        }
+                    },
+                    {
+                        'data': 'current_balance',
+                        'render': function (data, type, full) {
+                            return (new Decimal(data)).toFixed(2);
+                        }
+                    },
+                    {
+                        'data': 'product_deleted_at',
+                        'render': function (data, type, full) {
+                            var status = 'Enabled';
+                            if (data !== null) {
+                                var fromDate, toDate, deletedDate;
+                                fromDate = new Date('{{ filters.from }}');
+                                toDate = new Date('{{ filters.to }}');
+                                deletedDate = new Date(moment(data.date).format('MM/D/YYYY'));
+
+                                if(deletedDate <= toDate && deletedDate >= fromDate) {
+                                    status = 'Deleted (' + moment(data.date).format('MMM D, YYYY') + ')';
+                                }
+                            }
+                            
+                            return status;
+                        }
+                    }
+                ]
+            });
+
+            var dwlTable = new ZTable('#dwlContainer', {
+                'dom': 't',
+                'ajax': {
+                    'type': 'GET'
+                },
+                'autoloadTable': false,
+                'columns': [
+                    {'data': 'dwl_date'},
+                    {
+                        'data': 'subtransaction_details.dwl.turnover',
+                        'render': function (data) {
+                            return (new Decimal(data)).toFixed(2);
+                        }
+                    },
+                    {
+                        'data': 'subtransaction_details.dwl.winLoss',
+                        'render': function (data) {
+                            return (new Decimal(data)).toFixed(2);
+                        }
+                    },
+                    {
+                        'data': 'subtransaction_details.dwl.gross',
+                        'render': function (data) {
+                            return (new Decimal(data)).toFixed(2);
+                        }
+                    }
+                ],
+                'dt': {
+                    'deferLoading': 1
+                }
+            });
+            $('#report').on('click', '.dwl-link', function (e) {
+                var tr = $(this).closest('tr');
+                var data = listTable.dataTable.api().row(tr).data();
+
+                e.preventDefault();
+                dwlTable.dataTable.api().ajax.url($(this).attr('href'));
+
+                $('#customerProductUsername').html(data.cproduct_username);
+                $('#dwlModal').modal('show');
+            });
+            $('#dwlModal').on('show.bs.modal', function (e) {
+                dwlTable.dataTable.api().ajax.reload();
+            });
+            $('#dwlModal').on('hide.bs.modal', function (e) {
+                dwlTable.dataTable.api().clear().draw();
+            });
+        });
+    </script>
+{% endblock javascripts %}
+
+{% block modals %}
+    {% include 'ReportBundle:Report:customers/dwl-modal.html.twig' with {'customer': customer, 'filters': filters, 'currency': currency} only %}
+{% endblock modals %}

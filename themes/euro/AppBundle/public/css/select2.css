@@ -1,0 +1,9 @@
+.select2-container .select2-selection--single .select2-selection__clear {
+    width: 34px;
+    text-align: center;
+    margin-right: 14px;
+}
+.select2-container .select2-selection--single .select2-selection__clear:hover {
+    background-color: #f05050 !important;
+    border: 1px solid #f05050 !important;
+}

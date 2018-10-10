@@ -1,0 +1,10 @@
+actor: UnitTester
+modules:
+    enabled:
+        - Symfony
+        - Doctrine2:
+            depends: Symfony2
+        - DataFactory:
+            depends: Doctrine2
+        - \Helper\Factories
+        - \Helper\Unit

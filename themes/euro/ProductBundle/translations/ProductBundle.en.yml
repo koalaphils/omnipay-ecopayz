@@ -1,0 +1,58 @@
+menus:
+    Product: Product
+    List: List
+    Create: Create
+    Update: Update
+
+page:
+    title:
+        list: Finance | Product
+        update: Product | Update %code%
+        create: Product | Create
+    Create Product: Create Product
+    Update Product: Update Product
+
+fields:
+    id: ID
+    code: Product Code
+    name: Product Name
+    betadminToSync: Betadmin To Sync
+    isActive: Status
+    logo: Logo
+    url: Url
+    action: Action
+    commission: Default Commission
+
+breadcrumb:
+    list: Product List
+
+quicklink:
+    add: Add Product
+
+productType:
+    member: Member
+    admin: Admin
+    cashPayer: Cash Payer
+
+notification:
+    title: Success
+    created: %name% was successfully created
+    updated: %name% was successfully updated
+    suspended:
+        title: Suspended
+        message: %name% was successfully suspended
+    activated:
+        title: Activated
+        message: %name% was successfully activated
+    deleted:
+        title: Deleted
+        message: %name% was successfully deleted    
+        
+roles:
+    groups:
+        product: Product
+    product:
+        view: View Product
+        update: Update Product
+        create: Create Product
+        delete: Delete Product

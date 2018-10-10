@@ -1,0 +1,23 @@
+services:
+    gateway.manager:
+        class: GatewayBundle\Manager\GatewayManager
+        parent: app.base_manager
+
+    # form type
+    gateway.form_type.gateway:
+        class: GatewayBundle\Form\GatewayType
+        arguments:
+            - "@doctrine"
+            - "@app.setting_manager"
+            - "@router"
+            - "@translator"
+            - "@security.authorization_checker"
+        tags:
+            - { name: form.type }
+
+    # validator
+    gateway.validator:
+        class: GatewayBundle\Validator\Constraints\GatewayValidator
+        arguments: [ "@doctrine", "@app.setting_manager" ]
+        tags:
+            - { name: validator.constraint_validator, alias: gateway.validator }

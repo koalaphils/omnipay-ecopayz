@@ -1,0 +1,12 @@
+# api_customers.check_credential:
+#    path: /check-credential
+#    defaults: { _controller: ApiBundle:Customer:checkCredential }
+#    methods: [POST]
+
+api_customers.me:
+    path: /
+    defaults: { _controller: ApiBundle:Customer:getCustomer }
+    methods: [GET]
+
+api_customers.me_products:
+    path: /products

@@ -1,0 +1,209 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% form_theme form "CustomerBundle:Group:form.html.twig" %}
+
+{% block title %}{{ "tag.update_title"|trans({}, "CustomerGroupBundle") }}{% endblock title %}
+
+{% block stylesheet_plugins %}
+    {{ asset_add('css', asset('assets/plugins/select2/css/select2.min.css'), 'form.asset') }}
+    {{ form_assetcss(form) }}
+{% endblock stylesheet_plugins %}
+
+{% block stylesheets %}
+    {{ form_stylesheet(form) }}
+    <link rel="stylesheet" href="{{ asset('bundles/customer/css/customerGroup.css') }}" />
+{% endblock stylesheets %}
+
+{% block pageTitle %}{{ "page.update_title"|trans({},"CustomerGroupBundle") }}{% endblock pageTitle %}
+
+{% block breadcrumb %}
+    <li>{{ "breadcrumb.member"|trans({},"AppBundle") }}</li>
+    <li>
+        <a href="{{ path("customer.group_list_page") }}">{{ "breadcrumb.list"|trans({},"CustomerGroupBundle") }}</a>
+    </li>
+    <li class='active'>{{ "menus.Update"|trans({}, "AppBundle") }}</li>
+{% endblock breadcrumb %}
+
+{% block pageHeaderExtra %}
+    <div class="pull-right">
+        {% if is_granted('ROLE_CUSTOMER_GROUP_VIEW') %}
+        <a class="btn btn-inverse waves-effect waves-light pull-right m-b-10" href="{{ path("customer.group_list_page") }}">{{ "menus.BackToCustomerGroupList"|trans({},"CustomerBundle") }}<span><i class="ti-arrow-left m-r-5 cls-icn-plus"></i></span></a>
+        {% endif %}
+        <ul class="list-inline quicklinks font-13 font-normal text-right">
+            <li>Quick Links:</li>
+            {% if is_granted('ROLE_CUSTOMER_CREATE') %}
+            <li><a href="{{ path("member.create_page") }}"> {{ "quickLinks.addMember"|trans({},"MemberBundle") }}</a></li>|
+            {% endif %}
+            {% if is_granted('ROLE_CUSTOMER_VIEW') %}
+            <li><a href="{{ path("member.list_page") }}"> {{ "Member List"|trans({},"MemberBundle") }}</a></li>|
+            {% endif %}
+            {% if is_granted('ROLE_TRANSACTION_VIEW') %}
+            <li><a href="{{ path("transaction.list_page") }}">{{ "breadcrumb.transList"|trans({},"CustomerGroupBundle") }}</a></li>
+            {% endif %}
+        </ul>
+    </div>
+{% endblock pageHeaderExtra %}
+
+{% block page %}
+    <div class="col-sm-12">
+        {{ form_start(form) }}
+            <div class="card-box">
+                <div class="row">
+                    {{ form_row(form.name) }}
+                    {{ form_row(form.isDefault) }}
+                    {{ form_row(form.gateways) }}
+                </div>
+                <button id="btnSave" class="btn btn-success pull-right">Save</button>
+                <div class="clearfix"></div>
+            </div>
+        {{ form_end(form) }}
+    </div>
+{% endblock page %}
+
+{% block javascript_plugins %}
+    {{ asset_add('js', asset('assets/plugins/select2/js/select2.min.js'), 'form.asset') }}
+    {{ form_assetjs(form) }}
+{% endblock javascript_plugins %}
+
+{% block javascripts %}
+    {{ form_javascript(form) }}
+    <script type="text/javascript" src="{{ asset('bundles/customer/js/group/form.js') }}"></script>
+    <script type="text/javascript">
+        $(function () {
+            $('#{{ form.vars.id }}').on('gateway:added', function (e, data, html) {
+                initGateway({'id': $(html).attr('id') + '_' + '{{ form.gateways.vars.prototype.gateway.vars.name }}', 'value': data.gateway});
+            });
+
+            $('#{{ form.vars.id }}').form({
+                'action': '{{ form.vars.action }}',
+                'ajax': {
+                    'success': function (data) {
+                        if (data.success) {
+                            notification('Saved', 'You have successfully saved customer group', 'success');
+                            setTimeout(function () {
+                                window.location = data.data._ref;
+                            }, 2000);
+                        } else if (typeof data._notifications  !== "undefined") {
+                            var notifications = data._notifications || [];
+                            swal({
+                                'type': notifications.type,
+                                'title': notifications.title,
+                                'text': notifications.message
+                            }, function() {
+                                setTimeout(function () {
+                                    window.location = notifications.location;
+                                }, 2000);
+                            });
+                        } else if (typeof data.errors !== 'undefined') {
+                            for (var i in data.errors) {
+                                var error = data.errors[i];
+                                $('#' + error.formId)
+                                    .closest('.form-group').addClass('has-error')
+                                    .find('.help-block ul')
+                                    .append('<li>' + error.message + '</li>');
+                            }
+                        }
+                    },
+                    'beforeSend': function (xhr, settings) {
+                        $('#{{ form.vars.id }}').find('.form-group').removeClass('has-error');
+                        $('#{{ form.vars.id }}').find('.help-block ul li').remove();
+                        $('#btnSave').attr('disabled', 'disabled');
+                    },
+                    'complete': function (xhr, textStatus) {
+                        $('#btnSave').removeAttr('disabled');
+                    }
+                },
+                'gateways': {
+                    {% set gateways = [] -%}
+                    {%- for gateway in form.gateways.vars.data -%}
+                        {% set gateways = gateways|merge([{'gateway': [{'id': gateway.gateway.id, 'text': gateway.gateway.name, 'currency': {'code': gateway.gateway.currency.code}}], 'conditions': gateway.conditions}]) %}
+                    {%- endfor -%}
+                    'data': {{- gateways|json_encode()|raw -}},
+                    'prototype': '{{- form_row(form.gateways.vars.prototype)|e('js') -}}',
+                    'container': '#{{ form.gateways.vars.id }}',
+                    'name': '{{ form.gateways.vars.prototype.vars.name }}',
+                    'gateway': {
+                        'id': '{{ form.gateways.vars.prototype.gateway.vars.id }}',
+                        'fullName': '{{ form.gateways.vars.prototype.gateway.vars.full_name }}',
+                    },
+                    'conditions': {
+                        'id': '{{ form.gateways.vars.prototype.conditions.vars.id }}',
+                        'fullName': '{{ form.gateways.vars.prototype.conditions.vars.full_name }}',
+                    }
+                }
+            });
+
+            $('#btnSave').click(function () {
+                $('#{{ form.vars.id }}').submit();
+            });
+        });
+
+        function initGateway(gateway) {
+            $('#' + gateway.id).select2({
+                'data': gateway.value,
+                'ajax': {
+                    'url': '{{ path('gateway.list_search') }}',
+                    'data': function(params) {
+                        var page = params.page || 1;
+                        var length = $(this).data('length');
+                        var start = (page - 1) * length;
+                        return {
+                            'idColumn': $('#' + gateway.id).data('id-column'),
+                            'select2': 1,
+                            'search': params.term,
+                            'length': length,
+                            'start': start
+                        };
+                    },
+                    'processResults': function(data, page) {
+                        return {
+                            'results': data.items,
+                            'pagination': {
+                                'more': (page * $(this).data('length')) < data.recordsFiltered
+                            }
+                        };
+                    }
+                },
+                'templateResult': function(data) {
+                    if(window[$('#' + gateway.id).data('useTemplateResult')]) {
+                        return window[$('#' + gateway.id).data('useTemplateResult')](data);
+                    }
+                    if(data.id === null || data.id === '' || !data.id) return data.text;
+                    var text = "{text}";
+                    for(var col in data) {
+                        var regex = new RegExp('\{' + col + '\}','g');
+                        text = text.replace(regex, data[col]);
+                    }
+
+                    return text + " | <i class='fa fa-money'></i> " + data.currency.code;
+                },
+                'templateSelection': function(data, container) {
+                    if(window[$('#' + gateway.id).data('useTemplateSelection')]) {
+                        return window[$('#' + gateway.id).data('useTemplateSelection')](data, container);
+                    }
+                    if(data.id === null || data.id === '' || !data.id) return data.text;
+                    var text = "{text}";
+                    for(var col in data) {
+                        var regex = new RegExp('\{' + col + '\}','g');
+                        text = text.replace(regex, data[col]);
+                    }
+
+                    return text + " | <i class='fa fa-money'></i> " + data.currency.code;
+                },
+                'placeholder': {
+                    'id': null,
+                    'text': "Select an Gateway"
+                },
+                'escapeMarkup': function(markup) {
+                    return markup;
+                }
+            });
+        }
+    </script>
+{% endblock javascripts %}
+
+{% block modals -%}
+    <div id="helpModal" class="modal fade" tabindex="-1" style="display: none;" data-keyboard="false" data-backdrop="static">
+        {% include "CustomerBundle:Modal:help.html.twig" %}
+    </div>
+{%- endblock modals %}

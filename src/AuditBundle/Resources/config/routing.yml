@@ -1,0 +1,16 @@
+audit.list_page:
+    path:     /{type}
+    defaults: { _controller: AuditBundle:Default:index }
+    requirements:
+        type: support|member
+
+audit.list_search:
+    path:     /search/{type}
+    defaults: { _controller: AuditBundle:Default:search }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+    requirements:
+        type: support|member
+
+audit.redirect_page:
+    path:       /{id}
+    defaults:   { _controller: AuditBundle:Default:redirect }

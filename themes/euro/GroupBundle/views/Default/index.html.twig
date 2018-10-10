@@ -1,0 +1,173 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}{{ "page.title.list"|trans({},"GroupBundle") }}{% endblock %}
+
+{% block stylesheets %}
+    <!-- DataTables -->
+    <link href="{{ asset('assets/plugins/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/buttons.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/responsive.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/dataTables.colVis.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/dataTables.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+{% endblock %}
+
+{% block pageTitle -%}{{ "page.title.name"|trans({},"GroupBundle") }}{%- endblock pageTitle %}
+
+{% block pageHeaderExtra %}
+<div class="pull-right">
+    <a class="btn btn-primary waves-effect waves-light pull-right m-b-10" href="{{ path("group.create_page") }}"><span><i class="ti-plus m-r-5"></i></span> {{ "quickLinks.addUserGroup"|trans({}, 'GroupBundle') }}</a>
+    <ul class="list-inline quicklinks font-13 font-normal text-right">
+        <li>{{ "quickLinks.name"|trans({}, 'GroupBundle') }}:</li>
+        <li><a href="{{ path("user.list_page") }}">{{ "quickLinks.user"|trans({}, 'GroupBundle') }}</a></li>|
+        <li><a href="{{ path("country.list_page") }}">{{ "quickLinks.country"|trans({}, 'GroupBundle') }}</a></li>
+    </ul>
+</div>    
+{% endblock pageHeaderExtra %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.admin"|trans({},"AppBundle") }}</li>
+    <li class="active">{{ "breadcrumb.list"|trans({},"GroupBundle") }}</li>
+{%- endblock breadcrumb %}
+
+{% block page %}
+    <div class="col-sm-12">
+        <div class="card-box">
+            <div id="groupList">
+                <table id="datatable-responsive"
+                    class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0"
+                    width="100%">
+                    <thead>
+                        <tr>
+                            <th>{{ "fields.id"|trans({}, "GroupBundle") }}</th>
+                            <th>{{ "fields.name"|trans({}, "GroupBundle") }}</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot></tfoot>
+                </table>
+            </div>
+        </div>
+    </div>    
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('bundles/app/js/ZTable.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/dataTables.bootstrap.js') }}"></script>
+
+    <script src="{{ asset('assets/plugins/datatables/dataTables.buttons.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/buttons.bootstrap.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/vfs_fonts.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/buttons.html5.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/dataTables.responsive.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/responsive.bootstrap.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/dataTables.colVis.js') }}"></script>
+    
+    <script type="text/javascript">
+        (function($){
+            $.fn.list = function(options, params){
+                var settings = options;
+                params = params || [];
+                return this.each(function(){
+                    var elem = $(this);
+                    settings = $.extend(true,_defaults(),options);
+                    init(elem, settings);
+                });
+            };
+
+            function init(elem, settings) {
+                initTable(elem, settings);
+            }
+
+            function initTable(elem, settings) {
+                var table = $(elem).find('table');
+                var listUrl = settings.url.list;
+                var userPreferences = {{ app.user.getPreference('ui.group.list.column.visibility')|json_encode()|raw }};
+                var dataTable = new ZTable('#groupList',  {
+                    'ajax': {
+                        'url': settings.url.list,
+                        'data': function (data, dataTable) {
+                            return {
+                                'search': data.filters.search,
+                                'length': data.length,
+                                'start': dataTable.start,
+                                'datatable': true,
+                                'route': true,
+                                'draw': dataTable.draw,
+                                'order': data.order
+                            };
+                        },
+                        'dataFilter': function (str) {
+                            return str;
+                        }
+                    },
+                    'colvis': {
+                        'hidden': function () {
+                            var hidden = [];
+                            for (var i in userPreferences) {
+                                if (userPreferences[i] == 'false') {
+                                    hidden.push(eval(i));
+                                }
+                            }
+                            return hidden;
+                        },
+                        'exclude': ['name']
+                    },
+                    'columns': settings.columns,
+                    'ordering': true,
+                    'attrs': {
+                        'colvisButton' : {
+                            'data-style': 'btn-primary'
+                        } 
+                    },
+                    'ordering': true
+                });
+
+                $(table).on('click', 'td a.active-state-action', function(e) {
+                    settings.rowOnclick(e, dataTable);
+                });
+
+                $('#groupList table').on('draw.dt', function () {
+                    dataTable.dataTable.api().columns.adjust().responsive.recalc();
+                });
+
+                $(elem).on('refresh', { "dataTable": dataTable}, function(event){
+                    dataTable.reloadTable();
+                });
+            }
+
+            function _defaults() {
+                return {
+                    'columns': [
+                        {
+                            'data': 'group.id',
+                            'name': 'id',
+                            'defaultContent': '',
+                            'render': function(data, type, full) {
+                                return "<a href='"+full.routes.update+"'>"+data+"</a>";
+                            }
+                        },
+                        {   'data': 'group.name',
+                            'name': 'name',
+                            'defaultContent': '' 
+                        }
+                    ]
+                };
+            }
+
+        })(jQuery);
+    </script>
+    <script type="text/javascript" >
+        $(function(){
+            $('#groupList').list({
+                'url': {
+                    'list': '{{ path("group.list_search") }}'
+                }
+            });
+            
+            $('#groupList').on('ztable.change.column.visible', function (e, colvis, ztable) {
+                saveUserPreferences({'ui.group.list.column.visibility': ztable.getColumnVisibility()});
+            });
+        });
+    </script>
+{% endblock %}

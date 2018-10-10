@@ -1,0 +1,5 @@
+services:
+    session.session_manager:
+        class: SessionBundle\Manager\SessionManager
+        calls:
+            - [ setContainer, [ '@service_container' ] ]

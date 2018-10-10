@@ -1,0 +1,7 @@
+imports:
+    - { resource: log_details.yml }
+
+services:
+    audit.manager:
+        class: AuditBundle\Manager\AuditManager
+        parent: app.base_manager

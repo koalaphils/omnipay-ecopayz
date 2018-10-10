@@ -1,0 +1,1224 @@
+{% extends 'AppBundle:Layout:base-v2.html.twig' %}
+
+{% widget_template widgets.productForm 'MemberBundle:Member:widgets/update-widgets.html.twig' %}
+{% widget_template widgets.updateProductForm 'MemberBundle:Member:widgets/update-widgets.html.twig' %}
+{% widget_template widgets.linkForm 'MemberBundle:Member:widgets/update-widgets.html.twig' %}
+{% widget_template widgets.addCommissionForm 'MemberBundle:Member:widgets/update-widgets.html.twig' %}
+{% widget_template widgets.updateCommissionForm 'MemberBundle:Member:widgets/update-widgets.html.twig' %}
+{% widget_template widgets.paymentOptions 'MemberBundle:Member:widgets/update-widgets.html.twig' %}
+{% widget_template widgets.profileForm 'MemberBundle:Member:widgets/update-widgets.html.twig' %}
+{% widget_template widgets.createMemberReferralNameForm 'MemberBundle:Member:widgets/update-widgets.html.twig' %}
+{% widget_template widgets.createWebsiteForm 'MemberBundle:Member:widgets/update-widgets.html.twig' %}
+{% form_theme widgets.profileForm.getFormView() 'MemberBundle:Member:widgets/update-profile-form.html.twig' %}
+{% widget_template widgets.banners 'MemberBundle:Member:widgets/update-banners.html.twig' %}
+
+{% block title %}{{ "page.title.update"|trans({'%fullName%':customer.fullName},"MemberBundle") }}{% endblock %}
+
+{% block stylesheet_plugins %}
+    {% for widget in widgets %}
+        {{ widget_render_block(widget, 'assetcss') }}
+    {% endfor %}
+{% endblock stylesheet_plugins %}
+
+{% block stylesheets %}
+    {% for widget in widgets %}
+        {{ widget_render_block(widget, 'stylesheet') }}
+    {% endfor %}
+{% endblock stylesheets %}
+
+{% block pageTitle -%}{{ "Update Member"|trans({},"MemberBundle") }}{%- endblock %}
+
+{% block pageHeaderExtra %}
+    <div class="pull-right">
+        <a class="btn btn-inverse waves-effect waves-light pull-right m-b-10" href="{{ path("member.list_page") }}">{{ "menus.BactToMemberList"|trans({},"MemberBundle") }}<span><i class="ti-arrow-left m-r-5 cls-icn-plus"></i></span></a>
+        <ul class="list-inline quicklinks font-13 font-normal text-right">
+            <li>Quick Links:</li>
+            <li><a href="{{ path("member.create_page") }}"> {{ "quickLinks.addMember"|trans({},"MemberBundle") }}</a></li>|
+            <li><a href="{{ path("customer.group_list_page") }}"> {{ "quickLinks.memberGroup"|trans({},"MemberBundle") }}</a></li>|
+            <li><a href="{{ path("transaction.list_page") }}"> {{ "Transaction List"|trans({},"CustomerBundle") }}</a></li>
+        </ul>
+    </div>
+{% endblock pageHeaderExtra %}
+
+{% block breadcrumb -%}
+    <li>{{ "Member"|trans({},"MemberBundle") }}</li>
+    <li>
+        <a href="{{ path("member.list_page") }}">{{ "Member List"|trans({},"MemberBundle") }}</a>
+    </li>
+    <li class="active">
+        {{ customer.user.username }}
+    </li>
+{%- endblock  %}
+
+{% block page %}
+    <div class="col-sm-12">
+        <div class="tabs-vertical-env">
+            {% include "MemberBundle:Member:update-tabs.html.twig" %}
+            <div class="tab-content" style="width : 100%">
+                <div class="tab-pane active" id="profile">
+                    {{ widget_render(page.getWidget('profileForm')) }}
+                </div>
+                <div class="tab-pane" id="security">
+                    <div class="col-md-6 m-b-20">
+                    {{ widget_render(page.getWidget('passwordForm')) }}
+                    </div>
+                    <div class="col-md-6 m-b-20">
+                    {{ widget_render(page.getWidget('transactionPasswordForm')) }}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 class="header-title">
+                                <b>{{ "activation.title"|trans({},'CustomerBundle') }}</b>
+                            </h4>
+                            <p>
+                                <em>{{ "activation.sentOn"|trans({},'CustomerBundle') }} {{ customer.user.activationSentTimestamp|date('m/d/Y H:i:s') }}.</em>
+
+                                {% if customer.user.activationTimestamp %}
+                                    <br/>
+                                    <em>{{ "activation.activatedOn"|trans({},'CustomerBundle') }} {{ customer.user.activationTimestamp|date('m/d/Y H:i:s') }}.</em>
+                                {% endif %}
+                            </p>
+                            {% if not customer.user.activationTimestamp %}
+                                <a href="#activate" id="activate" class="btn btn-success">{{ "activation.button"|trans({},'CustomerBundle') }}</a>
+                                <button id="activateCustomer" class="btn btn-primary">{{ "activation.buttonActivate"|trans({},'CustomerBundle') }}</button>
+                            {% endif %}
+                        </div>
+                        {% if customer.user.activationTimestamp %}
+                        <div class="col-md-6">
+                            <div class="card-box">
+                                <h4 class="header-title">
+                                    <b>{{ "resetPassword.title"|trans({},'CustomerBundle') }}</b>
+                                </h4>
+                                {% if customer.user.resetPasswordSentTimestamp %}
+                                    <p>
+                                        <em>{{ "resetPassword.sentOn"|trans({},'CustomerBundle') }} {{ customer.user.resetPasswordSentTimestamp|date('m/d/Y H:i:s') }}.</em>
+                                    </p>
+                                {% endif %}
+                                <div class="row">
+                                    {{ widget_render(page.getWidget('sendResetPasswordForm')) }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="tab-pane" id="payments">
+                    {{ widget_render(page.getWidget('paymentOptions')) }}
+                </div>
+                <div class="tab-pane" id="product">
+                    <div class='pull-right m-b-10 m-l-5'><button id="addProduct" class='btn btn-sm btn-primary'>Add Product</button></div>
+                    {{ widget_render(page.getWidget('productList')) }}
+                </div>
+                <div class="tab-pane" id="commissions">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="commissions">
+                                 <div class="row">
+                                    <ul class="nav nav-tabs navtab-bg nav-justified">
+                                        <li class="active">
+                                            <a href="#running-commission" data-toggle="tab" aria-expanded="false">
+                                                <span class="visible-xs"><i class="fa fa-home"></i></span>
+                                                <span class="hidden-xs">Running Commissions</span>
+                                            </a>
+                                        </li>
+                                        <li class="">
+                                            <a href="#commission-setting" data-toggle="tab" aria-expanded="true">
+                                                <span class="visible-xs"><i class="fa fa-user"></i></span>
+                                                <span class="hidden-xs">Commission Settings</span>
+                                            </a>
+                                        </li>
+                                        <li class="">
+                                            <a href="#turnover-commission-product" data-toggle="tab" aria-expanded="false">
+                                                <span class="visible-xs"><i class="fa fa-envelope-o"></i></span>
+                                                <span class="hidden-xs">Turnover/Commission (Product)</span>
+                                            </a>
+                                        </li>
+                                        <li class="">
+                                            <a href="#turnover-commission-member" data-toggle="tab" aria-expanded="false">
+                                                <span class="visible-xs"><i class="fa fa-envelope-o"></i></span>
+                                                <span class="hidden-xs">Turnover/Commission (Member)</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+
+                                    <div class="tab-content" style="display: block">
+                                        <div class="tab-pane active" id="running-commission">
+                                            <div class="card-box table-responsive">
+                                               {{ widget_render(page.getWidget('runningCommissionList')) }}
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane" id="commission-setting">
+                                            <div class="card-box table-responsive">
+                                                {{ widget_render(page.getWidget('commissions')) }}
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane" id="turnover-commission-product">
+                                            <div class="card-box table-responsive">
+                                                {{ widget_render(page.getWidget('turnoverCommissionByProductList')) }}
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane" id="turnover-commission-member">
+                                            <div class="card-box table-responsive">
+                                                {{ widget_render(page.getWidget('turnoverCommissionByMemberList')) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="transactions">
+                    {{ widget_render(page.getWidget('transactionList')) }}
+                </div>
+                <div class="tab-pane" id="contacts">
+                    {{ widget_render(page.getWidget('contactsForm')) }}
+                </div>
+                <div class="tab-pane" id="socials">
+                    {{ widget_render(page.getWidget('socialsForm')) }}
+                </div>
+                <div class="tab-pane" id="docs">
+                    <div class="form-group">
+                        <label class="control-label" for="verifyCustomer">Verify Customer</label>
+                        <input type="checkbox" id="verifyCustomer" {{ customer.isVerified() ? "checked='checked'" : "" }} data-plugin="switchery" data-color="#81c868" data-secondary-color="#f05050" />
+                    </div>
+                    {{ widget_render(page.getWidget('documents')) }}
+                </div>
+                <div class="tab-pane" id="referrals">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button id="linkCustomersBtn" class="btn btn-success waves-effect waves-light" data-toggle="modal" data-target="#{{ widgets.linkForm.getFullId() }}_container"> <span> <i class="ti-link"></i> </span>
+                                Link Customers
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">{{ widget_render(widgets.referrals) }}</div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="referral_tool">
+                    <!-- ================= STATIC UI ================== -->
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="referral_tool">
+                             <div class="row">
+                                <ul class="nav nav-tabs navtab-bg nav-justified">
+                                    <li class="active">
+                                        <a href="#website" data-toggle="tab" aria-expanded="false">
+                                            <span class="visible-xs"><i class="fa fa-home"></i></span>
+                                            <span class="hidden-xs">Websites</span>
+                                        </a>
+                                    </li>
+                                    <li class="">
+                                        <a href="#referral_names" data-toggle="tab" aria-expanded="true">
+                                            <span class="visible-xs"><i class="fa fa-user"></i></span>
+                                            <span class="hidden-xs">Referral Codes</span>
+                                        </a>
+                                    </li>
+                                    <li class="">
+                                        <a href="#campaign_names" data-toggle="tab" aria-expanded="false">
+                                            <span class="visible-xs"><i class="fa fa-envelope-o"></i></span>
+                                            <span class="hidden-xs">Campaign Names</span>
+                                        </a>
+                                    </li>
+                                    <li class="">
+                                        <a href="#banners" data-toggle="tab" aria-expanded="false">
+                                            <span class="visible-xs"><i class="fa fa-cog"></i></span>
+                                            <span class="hidden-xs">Banners</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content" style="display: block">
+                                    <div class="tab-pane active" id="website">
+                                        <button id="createWebsiteBtn" class="btn btn-primary waves-effect waves-light pull-right btn-prd"><span><i class="ti-plus"></i></span> Add Website</button>
+                                        <div class="clearfix"></div>
+                                        <div class="card-box table-responsive">
+                                            {{ widget_render(widgets.websites) }}
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane" id="referral_names">
+                                        <button id="btnCreateReferralName" class="btn btn-primary waves-effect waves-light pull-right btn-prd"><span><i class="ti-plus"></i></span> Add Referral Code</button>
+                                        <div class="clearfix"></div>
+                                        <div class="card-box table-responsive">
+                                        {{ widget_render(widgets.memberReferralName) }}
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane" id="campaign_names">
+                                        <div class="clearfix"></div>
+                                        <div class="card-box table-responsive">
+                                            {{ widget_render(widgets.memberCampaignName) }}
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane" id="banners">
+                                        <div class="card-box table-responsive">
+                                            {{ widget_render(widgets.banners) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block modals %}
+    {{ widget_render(page.getWidget('productForm')) }}
+    {{ widget_render(page.getWidget('updateProductForm')) }}
+    {{ widget_render(page.getWidget('linkForm')) }}
+    {{ widget_render(page.getWidget('addCommissionForm')) }}
+    {{ widget_render(page.getWidget('updateCommissionForm')) }}
+    {{ widget_render(widgets.createMemberReferralNameForm) }}
+    {{ widget_render(page.getWidget('createWebsiteForm')) }}
+{% endblock modals %}
+
+{% block javascript_plugins %}
+    {% for widget in widgets %}
+        {{ widget_render_block(widget, 'assetjs') }}
+    {% endfor %}
+{% endblock javascript_plugins %}
+
+{% block javascripts %}
+    <script type="text/javascript">
+        var transactionUrl = "{{ path('transaction.update_page', {"type":"__type__", "id":"__id__"}) }}";
+        var locationHref = getLocation(window.location.href);
+        var turnoverCommissionReport = {
+            'exportUrl': '{{ path('member.turnover_commission.download', { 'id': '__id__', 'orderBy': '__orderBy__' }) }}',
+            'filters': {
+                'memberId': {},
+                'productName': {}
+            }
+        };
+        goToDefaultUrlWhenInCorrectURL(locationHref);
+
+        function goToDefaultUrlWhenInCorrectURL(href) {
+            if (!href.pathname.match(/\/(\d+)\/(.*)/)) {
+                location.href = href.href + '/profile';
+            }
+        }
+
+        function getLocation(href) {
+            var location = document.createElement("a");
+            location.href = href;
+
+            if (location.host == "") {
+              location.href = location.href;
+            }
+
+            return location;
+        }
+
+        function turnoverCommissionDwlAmount(data, type, full) {
+            return full.currencyCode + ' ' + formatAmount(data);
+        }
+
+        function turnoverCommissionAffiliateAmount(data, type, full) {
+            return '{{ customer.currencyCode }} ' + formatAmount(data);
+        }
+
+        function turnoverCommissionTotalTurnover(totals) {
+            var value = '{{ customer.currencyCode }} ' + formatAmount(0);
+
+            if (!$.isEmptyObject(totals)) {
+                value = '';
+
+                $.each(totals, function(key, total) {
+                    value += total.currencyCode + ' ' + formatAmount(total.totalTurnover) + "<br/>";
+                });
+            }
+
+            return value;
+        }
+
+        function turnoverCommissionTotalWinLoss(totals) {
+            var value = '{{ customer.currencyCode }} ' + formatAmount(0);
+
+            if (!$.isEmptyObject(totals)) {
+                value = '';
+
+                $.each(totals, function(key, total) {
+                    value += total.currencyCode + ' ' + formatAmount(total.totalWinLoss) + "<br/>";
+                });
+            }
+
+            return value;
+        }
+
+        function turnoverCommissionTotalCommission(totals) {
+            var memberCurrencyCode = '{{ customer.currencyCode }}';
+            var value = memberCurrencyCode + ' ' + formatAmount(0);
+
+            if (!$.isEmptyObject(totals)) {
+                var total = totals.filter(obj => {
+                    return obj.currencyCode == memberCurrencyCode;
+                })[0];
+
+                if (typeof total == 'undefined') {
+                    total = { 'totalAffiliateCommission' : 0 };
+                }
+
+                value = memberCurrencyCode + ' ' + formatAmount(total.totalAffiliateCommission);
+            }
+
+            return value;
+        }
+
+        function formatAmount(amount) {
+            return (new Decimal(amount)).toFixed(2);
+        }
+
+        function turnoverCommissionPeriod(period) {
+            return 'Date Covered: ' +
+            moment(period.dwlDateFrom).format('MMM D, YYYY') + ' - ' +
+            moment(period.dwlDateTo).format('MMM D, YYYY');
+        }
+
+        function {{ widgets.turnoverCommissionByMemberList.getId() }}_extendCreatedRow(row, data, dataIndex) {
+            if (data.memberProductId === null) {
+                $('td:eq(1)', row).attr('colspan', 4);
+                $('td:eq(1)', row).attr('align', 'center');
+                $('td:eq(2)', row).css('display', 'none');
+                $('td:eq(3)', row).css('display', 'none');
+                $('td:eq(4)', row).css('display', 'none');
+                {{ widgets.turnoverCommissionByMemberList.getFullId() }}Table.dataTable.api().cell($('td:eq(1)', row)).data('No products');
+            }
+        }
+
+        $('#{{ widgets.turnoverCommissionByMemberList.getFullId() }}_container, #{{ widgets.turnoverCommissionByProductList.getFullId() }}_container')
+            .on('xhr.dt', function (e, settings, json, xhr) {
+                var table = $(this);
+                var response = JSON.parse(xhr.responseText);
+                var period = response.period;
+
+                turnoverCommissionReport.filters[response.filters.orderBy] = response.filters;
+
+                table.find('input[name=dwlDateFrom]').val(moment(period.dwlDateFrom).format('L'));
+                table.find('input[name=dwlDateTo]').val(moment(period.dwlDateTo).format('L'));
+            });
+
+        $('#{{ widgets.turnoverCommissionByProductList.getFullId() }}_container').on('click', 'button[name=btnExportCsv]', function () {
+            exportTurnoverCommissionToCsv('productName');
+        });
+
+        $('#{{ widgets.turnoverCommissionByMemberList.getFullId() }}_container').on('click', 'button[name=btnExportCsv]', function () {
+            exportTurnoverCommissionToCsv('memberId');
+        });
+
+        function exportTurnoverCommissionToCsv(orderBy) {
+            var filters = { 'filters': turnoverCommissionReport.filters[orderBy] };
+            var exportUrl = turnoverCommissionReport.exportUrl.replace('__orderBy__', orderBy);
+            exportUrl = exportUrl.replace('__id__', '{{ customer.id }}');
+
+            window.open(exportUrl + '?' + $.param(filters), '_blank');
+        }
+
+        function transactionListStatus(data, type, full)
+        {
+            if (full.is_voided) {
+                return '{{ 'voided'|trans({}, 'TransactionBundle') }}';
+            }
+
+            return data;
+        }
+
+        function translateTypeText(data, type, full)
+        {
+            var typeText = {
+                'deposit': "{{ "types.deposit"|trans({}, "TransactionBundle") }}",
+                'withdraw': "{{ "types.withdraw"|trans({}, "TransactionBundle") }}",
+                'transfer': "{{ "types.transfer"|trans({}, "TransactionBundle") }}",
+                'bonus': "{{ "types.bonus"|trans({}, "TransactionBundle") }}",
+                'p2p_transfer': "{{ "types.p2p_transfer"|trans({}, "TransactionBundle") }}",
+                'dwl': "{{ "types.dwl"|trans({}, "TransactionBundle") }}",
+                'bet': "{{ "types.bet"|trans({}, "TransactionBundle") }}",
+                'commission': "{{ "types.commission"|trans({}, 'TransactionBundle') }}"
+            };
+
+            if (data === 'dwl') {
+                if (typeof full.dwl != 'undefined') {
+                    return typeText[data] + ' - ' + moment(full.dwl.date).format('MMM D, YYYY');
+                }
+            }
+
+            return typeText[data];
+        }
+
+        function transactionListAmount(data, type, full)
+        {
+            if (full.type == {{ constant('DbBundle\\Entity\\Transaction::TRANSACTION_TYPE_DEPOSIT') }}) {
+                return full.customer_amount;
+            }
+
+            return data;
+        }
+
+        function transactionListFee(data, type, full)
+        {
+            return (new Decimal(data)).toFixed(2);
+        }
+
+        function transactionListNumber(data, type, full)
+        {
+            var path = transactionUrl;
+            path = path.replace('__type__', full.type_text);
+            path = path.replace('__id__', full.id);
+
+            return "<a href='" + path + "' target='__blank'>" + data + "</a>";
+        }
+
+        function productListStatus(data, type, full) {
+            if (data == 1) {
+                return 'Active';
+            } else {
+                return 'Disabled';
+            }
+        }
+
+        function productListAction(data, type, full)
+        {
+            var action = "<button class='btn btn-xs btn-primary btn-edit'>Edit</button>";
+            var productDetails = JSON.parse(full.product.details);
+            
+            if (productDetails == null || typeof productDetails['ac_wallet']  == 'undefined') {
+                if (full.isActive == 1) {
+                    action += " <button class='btn btn-xs btn-danger btn-suspend'>Suspend</button>";
+                } else {
+                    action += " <button class='btn btn-xs btn-info btn-activate'>Activate</button>";
+                }
+            }
+
+            return action;
+        }
+
+        function commissionListAction(data, type, full)
+        {
+            var action = "<button class='btn btn-xs btn-primary btn-edit'>Edit</button>";
+            // NOTE: see https://ac88dev.atlassian.net/browse/AC66-1017
+            /*if (full.commission.status) {
+                action += " <button class='btn btn-xs btn-danger btn-suspend'>Suspend</button>";
+            } else {
+                action += " <button class='btn btn-xs btn-danger btn-activate'>Activate</button>";
+            }*/
+
+            return action;
+        }
+
+        function getTransactionProductUsernames(data, type, full)
+        {
+            if (data === null) {
+                return '';
+            }
+
+            var productUsername = '';
+            $.each(data , function(key,val) {
+                productUsername  += '&nbsp;' + val.customer_product.product.name + '(' + val.immutable_customer_product_data + '),';
+            });
+            productUsername = productUsername.replace(/,*$/, "");
+            productUsername = productUsername.split(",");
+            var moreThan = '';
+            $i = 1;
+            if (productUsername.length > 2) {
+
+                $.each(productUsername , function(key,val) {
+                    moreThan  += val + ',';
+                    if ($i == 2) {
+                        productUsername = moreThan;
+                    }
+                    $i++;
+                });
+                productUsername = productUsername.replace(/,*$/, "...");
+            }
+
+            return productUsername;
+        }
+
+        function getTransactionPaymentOptions(data, type, full)
+        {
+            var paymentOption = data;
+            if (data.trim() == '()') {
+                paymentOption = '';
+            }
+
+            return paymentOption;
+        }
+
+        function listFullname(data, type, full)
+        {
+            return data.fullName;
+        }
+
+        function referralsAction(data, type, full)
+        {
+            var view = '<a href="' + full.routes.update + '/profile" class="btn btn-xs btn-primary">View</a>';
+            view += '<button class="btn btn-icon waves-effect waves-light btn-warning btn-xs btn-icn btn-unlink"><i class="ti-unlink"></i></button>';
+
+            return view;
+        }
+
+        function unlinkCustomer(data)
+        {
+            confirm2(
+                'Are you sure you want to unlink <b>' + data.customer.fullName + '</b> to <b>{{ customer.fullName }}</b>?',
+                'Unlink Customer',
+                {
+                    'type': null,
+                    'confirmButtonClass': 'btn-warning btn-md',
+                    'confirmButtonText': 'Unlink',
+                    'cancelButtonClass': 'btn-inverse btn-md',
+                    'cancelButtonText': 'Cancel',
+                    'html': true,
+                    'showLoaderOnConfirm': true
+                },
+                function (isUnlink) {
+                    if (isUnlink) {
+                        $.ajax({
+                            'globalAjaxComplete': false,
+                            'globalAjaxError': false,
+                            'headers': {
+                                'X-WIDGET-REQUEST': 'OnUnlinkMember'
+                            },
+                            'data': {'data': {'id': data.customer.id}},
+                            'type': 'POST',
+                        }).always(function (data) {
+                            var notifications = typeof data.responseJSON !== 'undefined' ? data.responseJSON.__notifications[0] : data.__notifications[0];
+                            swal({
+                                'type': notifications.type,
+                                'title': notifications.title,
+                                'text': notifications.message
+                            }, function() {
+                                {{ widgets.referrals.getFullId() }}Table.reloadTable();
+                                {{ widgets.commissions.getFullId() }}Table.reloadTable();
+                            });
+                        });
+                    }
+                }
+            );
+        }
+
+        $(function () {
+            $('#{{ widgets.referrals.getFullId() }}_container').on('click', '.btn-unlink', function () {
+                var currentRow = $(this).closest('tr');
+                var data = {{ widgets.referrals.getFullId() }}Table.dataTable.api().row(currentRow).data();
+                unlinkCustomer(data);
+            });
+        });
+
+        $(function () {
+
+            var verifyAjax = null;
+            $('#verifyCustomer').on('change', function () {
+                var isChecked = this.checked;
+                var request = 'onVerifyCustomer';
+                if (!isChecked) {
+                    request = 'onUnverifyCustomer';
+                }
+
+                if (verifyAjax !== null) {
+                    verifyAjax.abort();
+                    verifyAjax = null;
+                }
+
+                verifyAjax = $.ajax({
+                    'headers': {
+                        'X-WIDGET-REQUEST': request
+                    },
+                    'success': function () {
+                        if (isChecked) {
+                            notification('Saved', 'Successfully Verified Customer', 'success');
+                        } else {
+                            notification('Saved', 'Successfully Unverified Customer', 'success');
+                        }
+                    }
+                });
+            });
+            $('#{{ widgets.productForm.getFormView().vars.id }}').on('form.success', function (e, data) {
+                {{ widgets.productList.getFullId() }}Table.reloadTable();
+            });
+            $('#{{ widgets.updateProductForm.getFormView().vars.id }}').on('form.success', function (e, data) {
+                {{ widgets.productList.getFullId() }}Table.reloadTable();
+            });
+            $('#{{ widgets.linkForm.getFormView().vars.id }}').on('form.success', function (e, data) {
+                $('#{{ widgets.linkForm.getFormView().vars.id }} select').val(null).trigger('change');
+                {{ widgets.referrals.getFullId() }}Table.reloadTable();
+                {{ widgets.commissions.getFullId() }}Table.reloadTable();
+            });
+            $('#{{ widgets.createWebsiteForm.getFormView().vars.id }}').on('form.success', function (e, data) {
+                {{ widgets.websites.getFullId() }}Table.reloadTable();
+            });
+
+            $('#{{ widgets.transactionList.getFullId() }}_container').on('ztable.change.column.visible', function (e, colvis, ztable) {
+                saveUserPreferences({'ui.transaction.list.column.visibility': ztable.getColumnVisibility()});
+            });
+
+            $('#{{ widgets.productList.getFullId() }}_container').on('click', '.btn-edit', function () {
+                var tr = $(this).closest('tr');
+                var data = {{ widgets.productList.getFullId() }}Table.dataTable.api().row(tr).data();
+                $('#{{ widgets.updateProductForm.getFullId() }}_container').data('customerProductData', data);
+                $('#{{ widgets.updateProductForm.getFullId() }}_container').modal('show');
+            });
+
+            $('#{{ widgets.productList.getFullId() }}_container').on('click', '.btn-suspend', function () {
+                var tr = $(this).closest('tr');
+                var data = {{ widgets.productList.getFullId() }}Table.dataTable.api().row(tr).data();
+                var postURL = "{{ path('customerProduct.suspend', {'id': 'customerProduct_id' }) -}}";
+
+                confirm2('Are you sure you want to suspend '+ data.userName + '('+ data.product.name +')' , 'Suspend Customer Product', {
+                    'type': null,
+                    'confirmButtonClass': 'btn-success btn-md',
+                    'confirmButtonText': 'Yes',
+                    'html': true,
+                    'showLoaderOnConfirm': true
+                }, function(isSuspended) {
+                    if(isSuspended) {
+                        $.ajax({
+                            url : postURL.replace("customerProduct_id", data.id),
+                            globalAjaxComplete : false,
+                            type: "POST",
+                            dataType: "JSON",
+                            success : function (data) {
+                                var notifications = data.__notifications || [];
+                                swal({
+                                    'type': notifications.type,
+                                    'title': notifications.title,
+                                    'text': notifications.message
+                                }, function() {
+                                    var productTable = {{ widgets.productList.getFullId() }}Table;
+                                    productTable.reloadTable();
+                                    productTable.goToLastPageNumber();
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+
+            $('#{{ widgets.productList.getFullId() }}_container').on('click', '.btn-activate', function () {
+                var tr = $(this).closest('tr');
+                var data = {{ widgets.productList.getFullId() }}Table.dataTable.api().row(tr).data();
+                var postURL = "{{ path('customerProduct.activate', {'id': 'customerProduct_id' }) -}}";
+
+                confirm2('Are you sure you want to enable '+ data.userName + '('+ data.product.name +')' , 'Enable Customer Product', {
+                    'type': null,
+                    'confirmButtonClass': 'btn-success btn-md',
+                    'confirmButtonText': 'Yes',
+                    'html': true,
+                    'showLoaderOnConfirm': true
+                }, function(isActivated) {
+                    if(isActivated) {
+                        $.ajax({
+                            url : postURL.replace("customerProduct_id", data.id),
+                            globalAjaxComplete : false,
+                            type: "POST",
+                            dataType: "JSON",
+                            'success': function (data) {
+                                var notifications = data.__notifications || [];
+                                swal({
+                                    'type': notifications.type,
+                                    'title': notifications.title,
+                                    'text': notifications.message
+                                }, function() {
+                                    {{ widgets.productList.getFullId() }}Table.reloadTable();
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Commission
+            $('#{{ widgets.commissions.getFullId() }}_container').on('click', '.btn-edit', function () {
+                var tr = $(this).closest('tr');
+                var data = {{ widgets.commissions.getFullId() }}Table.dataTable.api().row(tr).data();
+                $('#{{ widgets.updateCommissionForm.getFullId() }}_container').data('commission', data);
+                $('#{{ widgets.updateCommissionForm.getFullId() }}_container').modal('show');
+            });
+
+            $('#{{ widgets.addCommissionForm.getFormView().vars.id }}').on('form.success', function (e, data) {
+                {{ widgets.commissions.getFullId() }}Table.reloadTable();
+            });
+            $('#{{ widgets.updateCommissionForm.getFormView().vars.id }}').on('form.success', function (e, data) {
+                {{ widgets.commissions.getFullId() }}Table.reloadTable();
+            });
+        });
+
+        $(function () {
+            displayAffiliateLinkVersions();
+            displayLoginHistory();
+            displayActiveTab();
+        });
+
+        $('#update_profileForm_data_btnSave').on('click', function() {
+            setTimeout(function () {
+                displayAffiliateLinkVersions();
+                displayLoginHistory();
+            }, 3000);
+        });
+
+        function discardChanges(form, targetLink)
+        {
+            var hasChanged = false;
+            $(form).each(function () {
+                if (formHasChanged(this)) {
+                    hasChanged = true;
+                };
+            });
+
+            if (hasChanged) {
+                confirm2(
+                    'Are you sure you want to discard changes?',
+                    'Unsaved data will lost',
+                    {'closeOnConfirm': true},
+                    function (confirmed) {
+                        if (confirmed) {
+                            $(form).each(function () {
+                                this.reset();
+                                $(this).find('.bootstrap-select select').selectpicker("refresh");
+                                $(this).find('.repeatable-field').each(function () {
+                                    $(this).html($(this).data('initialState'));
+                                });
+                            });
+                            $(targetLink).click();
+                        }
+                    }
+                );
+            }
+
+            return hasChanged;
+        }
+
+        $(document).ajaxStop(function() {
+            $('.customer-tab').click(function(e){
+                e.preventDefault();
+                var currentTab = $($('.li-customer-tab.active .customer-tab').attr('href') + '.tab-pane');
+
+                if (
+                    $(currentTab).attr('id') == 'profile'
+                    && discardChanges($('#{{ widgets.profileForm.getFormView().vars.id }}'), this)
+                ) {
+                    return;
+                } else if (
+                    $(currentTab).attr('id') == 'security'
+                    && discardChanges('#{{ widgets.passwordForm.getFormView().vars.id }}, '
+                        + '#{{ widgets.transactionPasswordForm.getFormView().vars.id }}', this)
+                ) {
+                    return;
+                } else if (
+                    $(currentTab).attr('id') == 'socials'
+                    && discardChanges($('#{{ widgets.socialsForm.getFormView().vars.id }}'), this)
+                ) {
+                    return;
+                } else if (
+                    $(currentTab).attr('id') == 'contacts'
+                    && discardChanges($('#{{ widgets.contactsForm.getFormView().vars.id }}'), this)
+                ) {
+                    return;
+                }
+
+                var customerTab = $(this).attr('href');
+
+                currentTab.removeClass('active');
+                $('.li-customer-tab.active').removeClass('active');
+
+                $(this).closest('li').addClass('active');
+                $($(this).attr('href') + '.tab-pane').addClass('active');
+                history.pushState({}, null, customerTab.replace("#",''));
+            });
+        });
+
+        function displayActiveTab() {
+            var activeTab = '{{app.request.attributes.get('activeTab')}}';
+            $('.tabs-vertical-env a[href="#' +  activeTab + '"]').tab('show');
+        }
+
+        function displayAffiliateLinkVersions() {
+            var url = window.location.pathname;
+            var memberId = '';
+            var urlParts = url.replace(/\/\s*$/,'').split('/');
+            urlParts.shift();
+            $.each(urlParts, function (index, value) {
+                if (value % 1 === 0) {
+                   memberId = value;
+                }
+            });
+            $.ajax({
+                'url': '{{ path('member.affiliate_link_versionable') }}',
+                'type': 'POST',
+                'data': {'memberId': memberId},
+                'success': function (data) {
+                    if (data) {
+                        var affiliateLink = '';
+                        $.each(data, function (index, value) {
+                            affiliateLink += value.mt_affiliateLink + '<br>';
+                        });
+                        $('#affiliate-link-versions').attr('data-original-title', '<strong>Modified versions</strong><br>'+ affiliateLink);
+                    }
+                }
+            });
+        }
+
+        function displayLoginHistory() {
+            $.ajax({
+                'url': '{{ path('member.login_history') }}',
+                'type': 'POST',
+                'data': {'userId': {{ customer.user.id }}},
+                'success': function (data) {
+                    if (data) {
+                        var clientIp = '';
+                        $.each(data, function (index, value) {
+                            clientIp += value.clientIp + '<br>';
+                        });
+                        $('#client-ip').attr('data-original-title', '<strong>Last Ten IPs</strong><br>'+ clientIp);
+                    }
+                }
+            });
+        }
+
+        // Send Activation Email
+        $('#activate').click(function(e) {
+            e.preventDefault();
+            confirm2('Are you sure you want to resend the activation email for: <b>{{ customer.fName }} {{ customer.lName }} ({{ customer.user.username }})</b>', 'Resend Activation Email', {
+                'type': null,
+                'confirmButtonClass': 'btn-success btn-md',
+                'confirmButtonText': 'Send',
+                'cancelButtonClass': 'btn-inverse btn-md',
+                'cancelButtonText': 'Cancel',
+                'html': true,
+                'showLoaderOnConfirm': true
+            }, function(isResend) {
+                if(isResend) {
+                    $.ajax({
+                        'url': "{{ path('customer.resend_activation', { 'id': customer.user.id }) }}",
+                        'globalAjaxComplete' : false,
+                        'success': function (data) {
+                            var notifications = data.__notifications || [];
+                            $.each(notifications, function(e) {
+                                swal({
+                                    'type': this.type,
+                                    'title': this.title,
+                                    'text': this.message
+                                }, function() {
+                                    window.location = "{{ path('member.update_page', { "id": customer.id, "activeTab": 'security'}) }}";
+                                });
+                            });
+                        }
+                    });
+                }
+            });
+        });
+
+        // Reset Password
+        $('#resetPassword').click(function(e) {
+            e.preventDefault();
+            confirm2('Are you sure you want to send the reset password email for: <b>{{ customer.fName }} {{ customer.lName }} ({{ customer.user.username }})</b>', 'Send Reset Password Email', {
+                'type': null,
+                'confirmButtonClass': 'btn-success btn-md',
+                'confirmButtonText': 'Send',
+                'html': true,
+                'showLoaderOnConfirm': true
+            }, function(isResend) {
+                if(isResend) {
+                    $.ajax({
+                        'url': "{{ path('customer.send_reset_password', { 'id': customer.user.id }) }}",
+                        'data': {'origin': $('#resetPasswordOrigin').val() },
+                        'globalAjaxComplete' : false,
+                        'success': function (data) {
+                            var notifications = data.__notifications || [];
+                            $.each(notifications, function(e) {
+                                swal({
+                                    'type': this.type,
+                                    'title': this.title,
+                                    'text': this.message
+                                }, function() {
+                                });
+                            });
+                        }
+                    });
+                }
+            });
+        });
+
+        // Activate Customer Manually
+        $('#activateCustomer').on('click', function (e) {
+            e.preventDefault();
+            var passwordCharSet = 'a-z,A-Z,0-9,#';
+            var transactionPassCharSect = 'a-z,A-Z,0-9';
+            var password = randomPassword(passwordCharSet, 10);
+            var transactionPassword = randomPassword(transactionPassCharSect, 6);
+
+            confirm2('Are you sure you want to activate <b>{{ customer.fName }} {{ customer.lName }}</b>?</p>',
+            'Activate Customer', {
+                'type': null,
+                'confirmButtonClass': 'btn-success btn-md',
+                'confirmButtonText': 'Activate',
+                'cancelButtonClass': 'btn-inverse btn-md',
+                'cancelButtonText': 'Cancel',
+                'html': true,
+                'showLoaderOnConfirm': true
+            }, function(isResend) {
+
+                if(isResend) {
+                    $.ajax({
+                        'url': "{{ path('customer.activate_customer', { 'id': customer.user.id }) }}",
+                        'type': "POST",
+                        'data': {'customerId': {{ customer.user.id}}, 'password': password, 'transactionPassword': transactionPassword },
+                        'success': function(data) {
+                            var notifications = data.__notifications || [];
+                            $.each(notifications, function(e) {
+                                swal({
+                                    'type': this.type,
+                                    'title': 'Account Activated',
+                                    'text': this.message + ' \n Username: {{ customer.user.username }} \n Password:'+ password + ' \n Transaction Password:' + transactionPassword,
+                                }, function() {
+                                    window.location = "{{ path('member.update_page', { "id": customer.id, 'activeTab': 'security'}) }}";
+                                });
+                            });
+                        }
+                    });
+                }
+            });
+        });
+
+        //Password and Trasction Password Generator
+        function randomPassword(charSet, size) {
+            var dataSet = charSet.split(',');
+            var combination = '';
+            var result = '';
+
+            if ($.inArray('a-z', dataSet) >= 0) {
+                combination += 'abcdefghijklmnopqrstuvwxyz';
+            }
+            if ($.inArray('A-Z', dataSet) >= 0) {
+                combination += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            }
+            if ($.inArray('0-9', dataSet) >= 0) {
+                combination += '0123456789';
+            }
+            if ($.inArray('#', dataSet) >= 0) {
+                combination += '![]{}()%&*$#^<>~@|';
+            }
+
+            result = generateCharSet(combination, size);
+            if (!(/[^a-zA-Z 0-9]+/.test(result))) {
+                result = '';
+                result = generateCharSet(combination, size);
+            }
+
+            return result;
+        }
+
+        function generateCharSet(combination, size) {
+            var text = '';
+            for (var i=0; i < size; i++) {
+                text += combination.charAt(Math.floor(Math.random() * combination.length));
+            }
+
+            return text;
+        }
+
+        function {{ widgets.transactionList.getId() }}_extendData(data, dataTable) {
+            var newData = data.data;
+            newData.search = newData.filters.search;
+
+            return newData;
+        }
+
+        function {{ widgets.transactionList.getId() }}_extendColvisHidden() {
+            var userPreferences = {{ app.user.getPreference('ui.transaction.list.column.visibility')|json_encode()|raw }};
+            var hidden = [];
+
+            for (var i in userPreferences) {
+                if (userPreferences[i] == 'false') {
+                    hidden.push(eval(i));
+                }
+            }
+
+            return hidden;
+        }
+
+        function websitesAction(data, type, full)
+        {
+            if (full.is_active) {
+                return '<button class="btn btn-xs btn-danger btn-website-suspend">Suspend</button>';
+            } else {
+                return '<button class="btn btn-xs btn-success btn-website-enable">Enable</button>';
+            }
+        }
+
+        $(function () {
+            $('#{{ widgets.websites.getFullId() }}_container').on('click', '.btn-website-suspend', function (e) {
+                var tr = $(this).closest('tr');
+                var data = {{ widgets.websites.getFullId() }}Table.dataTable.api().row(tr).data();
+
+                confirm2('Are you sure you want to suspend '+ data.website, 'Suspend Website', {
+                    'type': null,
+                    'confirmButtonClass': 'btn-success btn-md',
+                    'confirmButtonText': 'Yes',
+                    'html': true,
+                    'showLoaderOnConfirm': true
+                }, function(isSuspended) {
+                    if(isSuspended) {
+                        $.ajax({
+                            globalAjaxComplete : false,
+                            type: "POST",
+                            dataType: "JSON",
+                            data: {'data': {'memberWebsiteId': data.id}},
+                            headers: {
+                                'X-WIDGET-REQUEST': 'onSuspendWebsite'
+                            },
+                            success : function (data) {
+                                swal({
+                                    'type': 'success',
+                                    'title': 'Successfull',
+                                    'text': 'You have successfully suspended a website.'
+                                }, function() {
+                                    {{ widgets.websites.getFullId() }}Table.reloadTable();
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+
+            $('#{{ widgets.websites.getFullId() }}_container').on('click', '.btn-website-enable', function (e) {
+                var tr = $(this).closest('tr');
+                var data = {{ widgets.websites.getFullId() }}Table.dataTable.api().row(tr).data();
+
+                confirm2('Are you sure you want to enable '+ data.website, 'Enable Website', {
+                    'type': null,
+                    'confirmButtonClass': 'btn-success btn-md',
+                    'confirmButtonText': 'Yes',
+                    'html': true,
+                    'showLoaderOnConfirm': true
+                }, function(isSuspended) {
+                    if(isSuspended) {
+                        $.ajax({
+                            globalAjaxComplete : false,
+                            type: "POST",
+                            dataType: "JSON",
+                            data: {'data': {'memberWebsiteId': data.id}},
+                            headers: {
+                                'X-WIDGET-REQUEST': 'onActivateWebsite'
+                            },
+                            success : function (data) {
+                                {{ widgets.websites.getFullId() }}Table.reloadTable();
+                                swal({
+                                    'type': 'success',
+                                    'title': 'Successfull',
+                                    'text': 'You have successfully enabled a website.'
+                                });
+                            },
+                            statusCode: {
+                                422: function (xhr, status, error) {
+                                    this.globalAjaxError = false;
+                                    swal({
+                                        'type': 'error',
+                                        'title': 'Unable to Enable Website',
+                                        'text': xhr.responseJSON.error
+                                    });
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+        });
+
+        function referralNameAction(data, type, full)
+        {
+            if (full.is_active) {
+                return '<button class="btn btn-xs btn-danger btn-referral-name-suspend">Suspend</button>';
+            } else {
+                return '<button class="btn btn-xs btn-success btn-referral-name-enable">Enable</button>';
+            }
+        }
+
+        $(function () {
+            $('#{{ widgets.memberReferralName.getFullId() }}_container').on('click', '.btn-referral-name-suspend', function (e) {
+                var tr = $(this).closest('tr');
+                var data = {{ widgets.memberReferralName.getFullId() }}Table.dataTable.api().row(tr).data();
+
+                confirm2('Are you sure you want to suspend '+ data.name, 'Suspend Referral Code', {
+                    'type': null,
+                    'confirmButtonClass': 'btn-success btn-md',
+                    'confirmButtonText': 'Yes',
+                    'html': true,
+                    'showLoaderOnConfirm': true
+                }, function(isSuspended) {
+                    if(isSuspended) {
+                        $.ajax({
+                            globalAjaxComplete : false,
+                            type: "POST",
+                            dataType: "JSON",
+                            data: {'data': {'memberReferralNameId': data.id}},
+                            headers: {
+                                'X-WIDGET-REQUEST': 'onSuspendReferralName'
+                            },
+                            success : function (data) {
+                                swal({
+                                    'type': 'success',
+                                    'title': 'Successfull',
+                                    'text': 'You have successfully suspended a referral code.'
+                                }, function() {
+                                    {{ widgets.memberReferralName.getFullId() }}Table.reloadTable();
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+
+            $('#{{ widgets.memberReferralName.getFullId() }}_container').on('click', '.btn-referral-name-enable', function (e) {
+                var tr = $(this).closest('tr');
+                var data = {{ widgets.memberReferralName.getFullId() }}Table.dataTable.api().row(tr).data();
+
+                confirm2('Are you sure you want to enable '+ data.name, 'Enable Referral Code', {
+                    'type': null,
+                    'confirmButtonClass': 'btn-success btn-md',
+                    'confirmButtonText': 'Yes',
+                    'html': true,
+                    'showLoaderOnConfirm': true
+                }, function(isSuspended) {
+                    if(isSuspended) {
+                        $.ajax({
+                            globalAjaxComplete : false,
+                            type: "POST",
+                            dataType: "JSON",
+                            data: {'data': {'memberReferralNameId': data.id}},
+                            headers: {
+                                'X-WIDGET-REQUEST': 'onActivateReferralName'
+                            },
+                            success : function (data) {
+                                swal({
+                                    'type': 'success',
+                                    'title': 'Successfull',
+                                    'text': 'You have successfully enabled a referral code.'
+                                }, function() {
+                                    {{ widgets.memberReferralName.getFullId() }}Table.reloadTable();
+                                });
+                            },
+                            statusCode: {
+                                422: function (xhr, status, error) {
+                                    this.globalAjaxError = false;
+                                    swal({
+                                        'type': 'error',
+                                        'title': 'Unable to Enable referral code',
+                                        'text': xhr.responseJSON.error
+                                    });
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+
+            $('#{{ widgets.createMemberReferralNameForm.getFormView().vars.id }}').on('form.success', function (e, data) {
+                {{ widgets.memberReferralName.getFullId() }}Table.reloadTable();
+            });
+        });
+    </script>
+    {% for widget in widgets %}
+        {{ widget_render_block(widget, 'javascript') }}
+    {% endfor %}
+{% endblock javascripts %}

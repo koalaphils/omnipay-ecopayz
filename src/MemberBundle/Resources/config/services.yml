@@ -1,0 +1,54 @@
+imports:
+    - { resource: handler.yml }
+
+services:
+    member.transformer.referrerTransformer:
+        class: MemberBundle\Transformer\ReferrerTransformer
+        lazy: true
+        arguments:
+            - '@doctrine'
+
+    member.manager:
+        class: MemberBundle\Manager\MemberManager
+        parent: app.base_manager
+        arguments: [ "@app.setting_manager" ]
+        calls:
+            - ['setSettingManager', ['@app.setting_manager']]
+            - ['setCommissionManager', ['@commission.manager']]
+            - ['setMemberProductRepository', ['@=service("doctrine").getRepository("DbBundle\\Entity\\CustomerProduct")']]
+    
+    member.commission_manager:
+        class: MemberBundle\Manager\MemberCommissionManager
+        parent: app.base_manager
+        
+    member.referral_name_manager:
+        class: MemberBundle\Manager\MemberReferralNameManager
+        parent: app.base_manager
+        
+    validator.member.max_active_referral_name_validator:
+        class: MemberBundle\Constraints\MaxActiveReferralNameConstraintValidator
+        arguments: [ "@doctrine", "@app.setting_manager" ]
+        tags:
+            - { name: validator.constraint_validator }
+
+    member.website_manager:
+        class: MemberBundle\Manager\MemberWebsiteManager
+        parent: app.base_manager
+
+    validator.member.unique_customer_product_constraint_validator:
+        class: MemberBundle\Constraints\UniqueCustomerProductConstraintValidator
+        arguments: [ "@doctrine.orm.entity_manager" ]
+        tags:
+            - { name: validator.constraint_validator, alias: alias }
+
+    validator.member.sync_id_constraint_validator:
+        class: MemberBundle\Constraints\SyncIdConstraintValidator
+        arguments: [ "@customerproduct.manager" ]
+        tags:
+            - { name: validator.constraint_validator, alias: alias }
+
+    validator.member.max_active_website_validator:
+        class: MemberBundle\Constraints\MaxActiveWebsiteConstraintValidator
+        arguments: [ "@doctrine", "@app.setting_manager" ]
+        tags:
+            - { name: validator.constraint_validator }

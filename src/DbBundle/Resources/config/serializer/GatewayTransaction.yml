@@ -1,0 +1,35 @@
+DbBundle\Entity\GatewayTransaction:
+    exclusion_policy: ALL
+    properties:
+        id:
+            expose: true
+        number:
+            expose: true
+        type:
+            expose: true
+        date:
+            expose: true
+            type: DateTime<'Y-m-d H:i:s'>
+        amount:
+            expose: true
+        isVoided:
+            expose: true
+        details:
+            expose: true
+        currency:
+            expose: true
+        gateway:
+            expose: true
+        gatewayTo:
+            expose_if: "object.isTransfer() == true"
+        updatedAt:
+            expose: true
+            type: DateTime<'Y-m-d H:i:s'>
+
+    virtual_properties:
+        typeText:
+            exp: "object.translateType(object.getType(), true)"
+            expose: true
+        statusText:
+            exp: "object.translateStatus()"
+            expose: true

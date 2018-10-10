@@ -1,0 +1,187 @@
+#Customer
+customer.list_page:
+    path:       /
+    defaults:   { _controller: CustomerBundle:Customer:index }
+
+customer.list_search:
+    path:       /search
+    defaults:   { _controller: CustomerBundle:Customer:search }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+
+customer.list:
+    path: /list
+    defaults: { _controller: CustomerBundle:Customer:list }
+
+customer.create_page:
+    path:       /create
+    defaults:   { _controller: CustomerBundle:Customer:createPage }
+    condition:  "context.getMethod() in ['GET']"
+
+customer.create:
+    path:       /create
+    defaults:   { _controller: CustomerBundle:Customer:create }
+    condition:  "context.getMethod() in ['POST']"
+
+customer.view_page:
+    path:       /view/{id}
+    defaults:   { _controller: CustomerBundle:Customer:view }
+
+customer.update_page:
+    path:       /update/{id}/{activeTab}
+    defaults:   { _controller: CustomerBundle:Customer:update, activeTab: profile }
+
+customer.save:
+    path:       /save/{id}
+    defaults:   {_controller: CustomerBundle:Customer:save, id: new }
+    condition:  "context.getMethod() in ['POST']"
+
+customer.security_save:
+    path:       /{id}/security/save
+    defaults:   {_controller: CustomerBundle:Customer:securitySave}
+    condition:  "context.getMethod() in ['POST']"
+
+customer.bank_save:
+    path:       /{id}/bank/save
+    defaults:   {_controller: CustomerBundle:Customer:bankSave}
+    condition:  "context.getMethod() in ['POST']"
+
+customer.verify:
+    path:       /{id}/verify
+    defaults:   { _controller: CustomerBundle:Customer:verify }
+
+customer.activate:
+    path:       /activate
+    defaults:   { _controller: CustomerBundle:Customer:activate }
+
+customer.suspend:
+    path:       /suspend
+    defaults:   { _controller: CustomerBundle:Customer:suspend }
+
+customer.document_save:
+    path:       /{id}/document/save
+    defaults:   { _controller: CustomerBundle:Customer:saveDocument }
+
+customer.contact_save:
+    path:       /{id}/contact/save
+    defaults:   { _controller: CustomerBundle:Customer:saveContact }
+
+customer.read:
+    path:       /read
+    defaults:   {_controller: CustomerBundle:Customer:read }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+
+customer.document_list:
+    path:       /{id}/document/list
+    defaults:   { _controller: CustomerBundle:Customer:documentList }
+
+customer.document_upload:
+    path:       /{id}/document/upload
+    defaults:   { _controller: CustomerBundle:Customer:upload }
+
+customer.document_delete:
+    path:       /{id}/document/delete
+    defaults:   { _controller: CustomerBundle:Customer:deleteFile }
+
+customer.social_save:
+    path:       /{id}/social/save
+    defaults:   { _controller: CustomerBundle:Customer:saveSocial }
+
+customer.payment_option_list:
+    path:       /{id}/paymentoption
+    defaults:   { _controller: CustomerBundle:CustomerPaymentOption:listByCustomer }
+
+customer.payment_option_save:
+    path:       /{id}/paymentoption/{paymentOptionId}/save
+    defaults:   { _controller: CustomerBundle:CustomerPaymentOption:save, paymentOptionId: 'new' }
+
+customer.payment_option_delete:
+    path:       /{id}/paymentoption/delete
+    defaults:   { _controller: CustomerBundle:Customer:deletePaymentOption }
+
+customer.convert_to_affiliate:
+    path:       /{id}/convert
+    defaults:   { _controller: CustomerBundle:Affiliate:convert }
+
+customer.login_history:
+    path:       /login/history
+    defaults:   { _controller: CustomerBundle:Customer:loginHistory }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+
+customerProduct.list_search:
+    path:       /product/search/{id}
+    defaults:   { _controller: CustomerBundle:CustomerProduct:search }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+
+customerProduct.create_page:
+    path:       /product/create/{id}
+    defaults:   { _controller: CustomerBundle:CustomerProduct:create }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+
+customerProduct.view_page:
+    path:       /product/view/{id}
+    defaults:   { _controller: CustomerBundle:CustomerProduct:view }
+
+customerProduct.update_page:
+    path:       /product/update/{id}
+    defaults:   { _controller: CustomerBundle:CustomerProduct:update }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+
+customerProduct.save:
+    #path:       /product/save/{customer_id}/{id}
+    path:       /product/save/{id}
+    defaults:   {_controller: CustomerBundle:CustomerProduct:save, id: new }
+    #condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+
+customerProduct.activate:
+    path:       /{id}/activate
+    defaults:   { _controller: CustomerBundle:CustomerProduct:activate }
+
+customerProduct.suspend:
+    path:       /{id}/suspend
+    defaults:   { _controller: CustomerBundle:CustomerProduct:suspend }
+
+customer.resend_activation:
+    path:       /{id}/activation/resend
+    defaults:   { _controller: CustomerBundle:Customer:resendActivation }
+    condition:  "context.getMethod() in ['GET'] and request.isXMLHttpRequest()"
+
+customer.activate_customer:
+    path:       /{id}/activate/customer
+    defaults:   { _controller: CustomerBundle:Customer:activateCustomer }
+
+customer.send_reset_password:
+    path:       /{id}/reset-password/send
+    defaults:   { _controller: CustomerBundle:Customer:sendResetPassword }
+    condition:  "context.getMethod() in ['GET'] and request.isXMLHttpRequest()"
+
+customer.risk_setting:
+    path:       /risk_setting/list
+    defaults:   { _controller: CustomerBundle:RiskSetting:index }
+
+customer.risk_setting.search:
+    path:       /risk_setting/search
+    defaults:   { _controller: CustomerBundle:RiskSetting:search }
+
+customer.risk_setting.create:
+    path:       /risk_setting/create
+    defaults:   { _controller: CustomerBundle:RiskSetting:create }
+
+customer.risk_setting.update:
+    path:       /risk_setting/update/{id}
+    defaults:   { _controller: CustomerBundle:RiskSetting:update }
+
+customer.risk_setting.save:
+    path:       /risk_setting/save/{id}
+    defaults:   { _controller: CustomerBundle:RiskSetting:save }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+
+customer.risk_setting.activate:
+    path:       /activate-risksetting
+    defaults:   { _controller: CustomerBundle:RiskSetting:activate }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+
+customer.risk_setting.suspend:
+    path:       /suspend-risksetting
+    defaults:   { _controller: CustomerBundle:RiskSetting:suspend }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"

@@ -1,0 +1,5 @@
+ticket:
+    requester:
+        regex: Requester has invalid characters, Valid characters (Letter, Number and Internationalize Characters)
+        min: Requester must be at least {{ limit }} characters long
+        max: Requester cannot be longer than {{ limit }} chatacters

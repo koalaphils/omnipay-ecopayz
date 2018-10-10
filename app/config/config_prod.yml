@@ -1,0 +1,43 @@
+imports:
+    - { resource: config.yml }
+
+#framework:
+#    validation:
+#        cache: validator.mapping.cache.doctrine.apc
+#    serializer:
+#        cache: serializer.mapping.cache.apc
+
+doctrine:
+    orm:
+        metadata_cache_driver: apcu
+        result_cache_driver: apcu
+        query_cache_driver: apcu
+
+monolog:
+    channels: ["dwl_submit"]
+    handlers:
+        main:
+            formatter: app.monolog_formatter
+            type:         fingers_crossed
+            action_level: error
+            handler:      nested
+        nested:
+            type:  stream
+            path:  "%kernel.logs_dir%/%kernel.environment%.log"
+            level: debug
+        console:
+            type:  console
+        dwl_submit:
+            type: stream
+            path: "%kernel.logs_dir%/%kernel.environment%_%upload_dwl_filename%"
+            channels: ["dwl_submit"]
+        slack:
+            formatter: app.monolog_formatter
+            type: slack
+            token: "%slack.token%"
+            channel: ac66-prod-errors
+            bot_name: zmtsys
+            level: critical
+            use_attachment: true
+            include_extra: true
+

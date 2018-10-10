@@ -1,0 +1,209 @@
+<div style="background-color:#ddd">
+	<table width="100%">
+	<tbody>
+		<tr>
+		<td>
+			<table width="550px" align="center">
+			<tbody>
+				<tr>
+				<td>
+					<div style="border-radius:8px 8px 7px 7px;border:1px solid #dddddd;border-color:rgba(0,0,0,0.13);background-color:#fff">
+						<!--header-->
+							<div style="border-radius:7px 7px 0 0;font-size:24px;background-color:#DA0000;padding:17px 20px 13px;color:#fff;font-weight:bold">
+							<span style="font-size:18px;font:Helvetica Neue;color:#ffffff;display:inline-block;line-height:25pt;margin-right:1em">
+							<!--Logo here-->
+							</span>
+							</div>
+						<!--header-->
+						<div style="padding:25px">
+						<div style="font-size:14px;line-height:18px">
+						
+						<div class="table" style="display: table; width: 650px; float: left; min-height: 100px; border: 1px solid #000;">
+                    		<div class="Title">
+                    			<img class="aligncenter" style="text-align: center; margin-left: 15px;" src="{{ asianconnect_url }}wp-content/uploads/2016/09/email-notif-banner.jpg" alt="" width="622" height="113" />
+                    		</div>
+                    		<div class="row" style="display: table-row; width: 600px; float: left; margin-left: 25px;">
+                    		<div class="cell" style="display: table-cell; width: 600px; float: left;">
+                    		<p style="margin-left: 40px;">Please note the following:</p>
+                    
+                    		</div>
+                    		</div>
+                    		<div class="row" style="display: table-row; width: 290px; float: left; margin-left: 25px;">
+                    		<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+                    
+                    		Full Name
+                    
+                    		</div>
+                    		<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+                    
+                    		Country
+                    
+                    		</div>
+
+																						{% if not isAffiliate %}
+																							<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+																							                  
+																							Contact details
+																							                 
+																							</div> 
+																						{% endif %}                    		
+                  		
+                    		<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+                    
+                    		Email Address
+                    
+                    		</div>
+
+                    		{% if not isAffiliate %}
+                    		<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+                    
+                    		Date of Birth (mm/dd/yyyy)
+                    
+                    		</div>
+                    		{% endif %} 
+
+                    		{% if not isAffiliate %}
+                    		<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+                    
+                    		Currency
+                    
+                    		</div>
+                    		{% endif %} 
+
+                 		
+                    		<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+                    
+                    		IP address
+                    
+                    		</div>
+
+                    		<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+                    
+                    		Affiliates
+                    
+																						</div>
+
+																						<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+																							
+																						Registration Site
+																				
+																						</div>
+																						<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+																							
+																						Referrer Site
+																				
+																						</div>
+
+																						{% if not isAffiliate %}
+																						<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted; min-height: 80px;">
+																						                    
+																						Preferred Services
+																						               
+																						</div>
+																					{% endif %}
+
+                    		</div>
+                    
+                    		<div class="row" style="display: table-row; width: 290px; float: left; margin-left: 25px;">
+                    		<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+                    
+                    		{{ fullName }}
+                    
+                    		</div>
+                    		<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+                    
+                    		{{ country }}
+                    
+                    		</div>
+
+                    		{% if not isAffiliate %}
+																						<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+																						                    
+																						{{ phone.value|default('N/A') }}
+																						                    
+																						</div>  
+																						{% endif %}
+
+                    		<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+                    
+                    		{{ email }}
+                    
+                    		</div>
+
+                    		{% if not isAffiliate %}
+                    		<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+                    
+                    		{{ birthDate|date('M d, Y') }}
+                    
+                    		</div>
+                    		{% endif %}
+
+                    		{% if not isAffiliate %}
+                    		<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+                    
+                    		{{ currency }}
+                    
+                    		</div>
+                    		{% endif %}
+
+                    		<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+                    
+                    		{{ ipAddress }}
+                    
+                    		</div>
+
+                    		<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+                              {{ affiliate.name|default('N/A') }}
+																					</div>
+																					<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+														                 {{ originFrom|default('N/A') }}
+																					</div>
+																					<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted;">
+                               {{ referrer|default('Direct') }}
+                   		</div>
+
+                   		{% if not isAffiliate %}
+																							<div class="cell" style="display: table-cell; width: 250px; float: left; border-top: 1px #000 dotted; min-height: 80px;">
+																							{% for key, prod in products %}
+																									<p>Product: {{ prod.product.name }} <br/>
+																									Username: {{ prod.username }}</p>
+																							{% endfor %}
+																					</div>  
+																					{% endif %}
+
+                    		</div>
+                    		</div>	
+							</div>
+							</div>
+							<!--Footer-->
+							<div style="padding:15px 25px;color:#6c6c67;border-top:2px solid #dddddd;line-height:18px">
+								<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+								<tbody>
+									<tr>
+									<td>
+										<div style="font-size:10px;color:#6c6c67;text-align:left">
+											<a href="{{ asianconnect_url }}terms/" style="color:#6c6c67;text-decoration:none" target="_blank">Terms & Condition</a>
+											|
+											<a href="{{ asianconnect_url }}privacy-policy-2/" style="color:#6c6c67;text-decoration:none" target="_blank">Privacy Policy</a>
+										</div>
+										<p style="color:#808080;font-size:10px;line-height:18px;margin:0">
+										&copy; 2017 <a href="#" style="color:#6c6c67;text-decoration:none" target="_blank">Asianconnect88</a> | All Rights Reserved
+										</p>
+									</td>	
+									</tr>
+								</tbody>
+								</table>
+							</div>
+							<!--Footer-->
+						<div>
+					</td>
+					</tr>
+				</tbody>
+				</table>
+			</td>
+			</tr>
+		</tbody>
+		</table>
+	</div>
+											
+											

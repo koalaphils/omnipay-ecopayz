@@ -1,0 +1,88 @@
+DbBundle\Entity\Transaction:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+            fields: number
+            groups: ['default']
+        - Callback:
+            callback: [TransactionBundle\Validator\TransactionValidator, validate]
+            groups: ['default']
+    properties:
+        number:
+            - NotBlank:
+                groups: ['default']
+        customer:
+            - NotBlank:
+                groups: ['default']
+        date:
+            - NotBlank:
+                groups: ['default']
+            - DateTime:
+                groups: ['default']
+            - LessThan:
+                value: tomorrow
+                groups: ['default']
+                message: 'Transaction date should be on or before today.'
+        gateway:
+            - NotBlank:
+                groups: ['withGateway']
+        paymentOption:
+            - NotBlank:
+                groups: ['withPaymentOption']
+        fees:
+            - Collection:
+                allowExtraFields: true
+                groups: ['hasFees']
+                missingFieldsMessage: 'This should not be blank'
+                fields:
+                    company_fee:
+                        - NotBlank:
+                            groups: ['hasFees']
+                    customer_fee:
+                        - NotBlank:
+                            groups: ['hasFees']
+        details:
+            - Collection:
+                groups: ['default']
+                allowMissingFields: true
+                allowExtraFields: true
+                fields:
+                    notes:
+                        - Length:
+                            min: 5
+                            max: 255
+                            groups: ['default']
+                        - Regex:
+                            groups: ['default']
+                            pattern: '/^[a-zA-Z0-9\.\,\#\s\-]+/'
+                            message: 'Only accepts Alphanumeric, space, dot, dash, comma and hash'
+        subTransactions:
+            - Count:
+                groups: ['default']
+                min: 1
+DbBundle\Entity\SubTransaction:
+    constraints:
+        - Callback:
+            callback: [TransactionBundle\Validator\TransactionValidator, validateSub]
+            groups: ['default']
+    properties:
+        customerProduct:
+            - NotBlank:
+                groups: ['default']
+        amount:
+            - NotBlank:
+                groups: ['default']
+            - NotEqualTo:
+                value: 0
+                groups: ['default']
+                message: Amount should be greater than 0
+            - Regex:
+                pattern: '/^(?:\d+|\d*\.\d{1,2}+)$/'
+                groups: ['default']
+                message: Max of 2 decimal places
+            - Type:
+                type: numeric
+                groups: ['default']
+                message: customer.balance.type
+        type:
+            - NotBlank:
+                groups: ['default']

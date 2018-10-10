@@ -1,0 +1,160 @@
+template: CommissionBundle:Setting:setting.html.twig
+widgets:
+    periods:
+        type: \AppBundle\Widget\Page\ListWidget
+        properties:
+            class: DbBundle\Entity\CommissionPeriod
+            methods:
+                records:
+                    name: getCommissionPeriodListWithStatuses
+                    params:
+                        filters: []
+                        limit: 20
+                        offset: 0
+                totalFiltered:
+                    name: countCommissionList
+                    params:
+                        filters: []
+                total:
+                    name: countCommissionList
+                    params:
+                        filters: []
+            columns:
+                dwl_date_from:
+                    from: commissionPeriod.dwl_date_from
+                    label: Date From
+                    type: date
+                    format: F j, Y
+                dwl_date_to:
+                    from: commissionPeriod.dwl_date_to
+                    label: Date To
+                    type: date
+                    format: F j, Y
+                payout_at:
+                    from: commissionPeriod.payout_at
+                    label: Payout Date
+                    type: date
+                    format: F j, Y h:i:s A
+                status:
+                    from: commissionPeriod.status
+                    label: Status
+                    type: choice
+                    choices:
+                        !php/const:DbBundle\Entity\CommissionPeriod::STATUS_NOT_YET_COMPUTED: Not Yet Executed
+                        !php/const:DbBundle\Entity\CommissionPeriod::STATUS_COMPUTING: Computing
+                        !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION: Successfull Computation
+                        !php/const:DbBundle\Entity\CommissionPeriod::STATUS_FAILED_COMPUTATION: Failed Computation
+                        !php/const:DbBundle\Entity\CommissionPeriod::STATUS_EXECUTING_PAYOUT: Executing Payout
+                        !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT: Successfull Payout
+                        !php/const:DbBundle\Entity\CommissionPeriod::STATUS_FAILED_PAYOUT: Failed Payout
+                action:
+                    label: Action
+                    type: function
+                    function: getComputeButton
+    setting:
+        type: \AppBundle\Widget\Page\FormWidget
+        properties:
+            modelClass: CommissionBundle\Request\CommissionSettingRequest
+            handler: '@commission.service::handleCommissionSettingRequest'
+            data:
+                class: '@app.setting_manager'
+                method: 'getSetting'
+                arguments:
+                    - 'commission'
+            notifications:
+                success:
+                    message: You have successfully save commission setting
+                    title: Saved
+            groups:
+                Setting:
+                    groups:
+                        Period:
+                            label: Period Generator
+                            class: card-box   
+                            size: 6     
+                        Left:
+                            size: 6
+                            groups:
+                                Conditions:
+                                    label: Payout Conditions
+                                    class: card-box                                
+                                Schedule:
+                                    label: Payout Schedule
+                                    class: card-box                             
+            useTab: false
+            fields:
+                enable:
+                    type: switch
+                    options:
+                        label: Enable Commission
+                        required: false
+                    group: Period
+                startDate:
+                    type: date
+                    options:
+                        label: Start Date                       
+                        widget: 'single_text'
+                        format: 'M/dd/yyyy'
+                        attr:
+                            title: Date when commission will start to be computed in relation to submitted DWL date.                         
+                    group: Period
+                frequency:
+                    type: dropdown
+                    options:
+                        label: Schedule
+                        choices:
+                            Month: monthly
+                            Day: daily
+                            Week: weekly
+                    group: Period                    
+                every:
+                    type: text
+                    options:
+                        label: Frequency
+                        attr:
+                            title: Range between Schedule
+                    group: Period
+                day:
+                    type: text
+                    options:
+                        label: Day
+                        required: false
+                    group: Period
+                payoutDay:
+                    type: text
+                    options:
+                        label: Day/s after end of period
+                        required: true
+                        attr:
+                            title: Number of days after end of period when commission computed will be credited to AC wallet product
+                    group: Schedule
+                time:
+                    type: text
+                    options:
+                        label: Time of payout
+                        required: true
+                        attr:
+                            title: Time within the day when when commission computed will be credited to AC wallet product
+                    group: Schedule
+                conditions:
+                    group: Conditions
+                    type: repeatable
+                    options:
+                        label: Conditions
+                        required: false
+                    fields:
+                        field:
+                            type: dropdown
+                            size: 6
+                            options:
+                                label: Criteria
+                                choices:
+                                    Active Member: active_member
+                                    Active Member Product: active_member_product
+                        value:
+                            type: text
+                            size: 6
+                            options:
+                                label: Condition
+                                attr:
+                                    title: Value that should be met on the selected criteria

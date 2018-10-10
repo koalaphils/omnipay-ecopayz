@@ -1,0 +1,38 @@
+{% include "CustomerBundle:Modal:create.html.twig" with {'form': customerProductForm} %}
+<div class="row">                                  
+    <div class="col-sm-12">                    
+        <div class="m-b-30">      
+            {% if is_granted('ROLE_CUSTOMER_PRODUCT_CREATE') %}            
+            <button id="addCProductButton" class="btn btn-primary waves-effect waves-light pull-right btn-prd" data-toggle="modal" data-target="#customerProductModal" ><span><i class="ti-plus"></i></span> Add Product</button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card-box">
+            <div id="customerProductList">
+                <table id="datatable-responsive"
+                     class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0"
+                    width="100%">
+                    <thead>
+                        <tr>
+                            <th>{{ "fields.id"|trans({}, "CustomerProductBundle") }}</th>
+                            {% if is_granted('ROLE_CUSTOMER_PRODUCT_UPDATE') %}  
+                            <th>{{ "fields.userName"|trans({}, "CustomerProductBundle") }}</th>
+                            {% endif %}
+                            <th>{{ "fields.productName"|trans({}, "CustomerProductBundle") }}</th>
+                            <th>{{ "fields.balance"|trans({}, "CustomerProductBundle") }}</th>
+                            <th>{{ "fields.isActive"|trans({}, "CustomerProductBundle") }}</th>
+                            {% if is_granted('ROLE_CUSTOMER_PRODUCT_UPDATE') %} 
+                            <th>{{ "fields.action"|trans({}, "AppBundle") }}</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot></tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

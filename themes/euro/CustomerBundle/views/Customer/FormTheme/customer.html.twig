@@ -1,0 +1,183 @@
+{% block _Customer_groups_javascript %}
+    {% set view = view|default(false) %}
+    <script type="text/javascript">
+        $(function() {
+            $('#{{ id }}').select2({
+                'data': {{ value|json_encode()|raw }},
+                'ajax': {
+                    'data': function(params) {
+                        var page = params.page || 1;
+                        var length = $(this).data('length');
+                        var start = (page - 1) * length;
+                        return {
+                            'idColumn': $('#{{ id }}').data('id-column'),
+                            'select2': 1,
+                            'search': params.term,
+                            'length': length,
+                            'start': start
+                        };
+                    },
+                    'processResults': function(data, page) {
+                        return {
+                            'results': data.data,
+                            'pagination': {
+                                'more': (page * $(this).data('length')) < data.recordsFiltered
+                            }
+                        };
+                    }
+                },
+                'templateResult': function(data) {
+                    if(window[$('#{{ id }}').data('useTemplateResult')]) {
+                        return window[$('#{{ id }}').data('useTemplateResult')](data);
+                    }
+                    if(data.id === null || data.id === '' || !data.id) return data.text;
+                    var text = "{{ selectText|raw }}";
+                    for(var col in data) {
+                        var regex = new RegExp('\{' + col + '\}','g');
+                        text = text.replace(regex, data[col]);
+                    }
+                    
+                    return text;
+                },
+                'templateSelection': function(data, container) {
+                    if(window[$('#{{ id }}').data('useTemplateSelection')]) {
+                        return window[$('#{{ id }}').data('useTemplateSelection')](data, container);
+                    }
+                    if(data.id === null || data.id === '' || !data.id) return data.text;
+                    var text = "{{ selectText|raw }}";
+                    for(var col in data) {
+                        var regex = new RegExp('\{' + col + '\}','g');
+                        text = text.replace(regex, data[col]);
+                    }
+                    
+                    return text;
+                },
+                'placeholder': {
+                    'id': null,
+                    'text': "{{ placeholder|trans({}, translation_domain) }}"
+                },
+                'escapeMarkup': function(markup) {
+                    return markup;
+                }
+            });
+            
+            var defaultData = [];
+            {% for item in value %}
+                defaultData.push({{ item.id is defined ? item.id : item }});
+            {% endfor %}
+
+            $('#{{ id }}').val(defaultData).trigger('change');
+
+            {% if view %}
+            $('#{{ id }}').select2("enable",false);
+            $($('#{{ id }}').data('select2').$container).find('.select2-selection').css({'background-color': "rgba(0,0,0,0)"});
+            {% endif %}
+        });
+    </script>
+{% endblock _Customer_groups_javascript %}
+
+{% block _Customer_affiliate_javascript %}
+    {% set view = view|default(false) %}
+    <script type="text/javascript">
+        $(function() {
+            $('#{{ id }}').select2({
+                'data': {{ value|json_encode()|raw }},
+                'allowClear': true,
+                'ajax': {
+                    'data': function(params) {
+                        var page = params.page || 1;
+                        var length = $('#{{ id }}').data('length');
+                        var start = (page - 1) * length;
+
+                        return {
+                            'idColumn': $('#{{ id }}').data('id-column'),
+                            'select2': 1,
+                            'search': params.term,
+                            'length': length,
+                            'start': start,
+                            'withReferralCount': 0,
+                        };
+                    },
+                    'processResults': function(data, params) {
+                        var page = params.page || 1;
+
+                        return {
+                            'results': data.items,
+                            'pagination': {
+                                'more': (page * $('#{{ id }}').data('length')) < data.recordsFiltered
+                            }
+                        };
+                    }
+                },
+                'templateResult': function(data) {
+                    if (typeof data[0] !== "undefined") {
+                        data = data[0];
+                    }
+
+                    if(window[$('#{{ id }}').data('useTemplateResult')]) {
+                        return window[$('#{{ id }}').data('useTemplateResult')](data);
+                    }
+                    if(data.id === null || data.id === '' || !data.id) return data.text;
+                    var text = "{{ selectText|raw }}";
+                    for(var col in data) {
+                        var regex = new RegExp('\{' + col + '\}','g');
+                        text = text.replace(regex, data[col]);
+                    }
+
+                    return text;
+                },
+                'templateSelection': function(data, container) {
+                    if (typeof data[0] !== "undefined") {
+                        data = data[0];
+                    }
+
+                    if(window[$('#{{ id }}').data('useTemplateSelection')]) {
+                        return window[$('#{{ id }}').data('useTemplateSelection')](data, container);
+                    }
+                    if(data.id === null || data.id === '' || !data.id) return data.text;
+                    var text = "{{ selectText|raw }}";
+                    for(var col in data) {
+                        var regex = new RegExp('\{' + col + '\}','g');
+                        text = text.replace(regex, data[col]);
+                    }
+
+                    return text;
+                },
+                'placeholder': {
+                    'id': null,
+                    'text': "{{ placeholder|trans({}, translation_domain) }}"
+                },
+                'escapeMarkup': function(markup) {
+                    return markup;
+                }
+            });
+
+            {% if view %}
+            $('#{{ id }}').select2("enable",false);
+            $($('#{{ id }}').data('select2').$container).find('.select2-selection').css({'background-color': "rgba(0,0,0,0)"});
+            {% endif %}
+        });
+    </script>
+{% endblock %}
+
+{% block _Customer_joinedAt_javascript %}
+    {% if widget == 'single_text'%}
+        {% set view = view|default(false) %}
+        {% if not view %}
+            <script type="text/javascript">
+                $(function(){
+                    $('#{{ id }}').datetimepicker({
+                        'format': 'MM/DD/YYYY h:mm:ss A',
+                        'widgetPositioning': {
+                            'horizontal': '{{ widget_option.position.horizontal|default('auto') }}',
+                            'vertical': '{{ widget_option.position.vertical|default('top') }}'
+                        },
+                        'useCurrent': false,
+                        'maxDate': 'now'
+                    });
+                    $('#{{ id }}').data('DateTimePicker').date(moment('{{ value }}'));
+                });
+            </script>
+        {% endif %}
+    {% endif %}
+{% endblock _Customer_joinedAt_javascript %}

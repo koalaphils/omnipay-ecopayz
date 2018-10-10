@@ -1,0 +1,46 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}{{ "page.title.update_affiliate"|trans({'%fullName%':customer.fName ~ ' ' ~ customer.lname},"CustomerBundle") }}{% endblock %}
+
+{% block stylesheets %}
+    {{ widget_render_block(widget, 'assetcss') }}
+    {{ widget_render_block(widget, 'stylesheet') }}
+{% endblock %}
+
+{% block pageTitle -%}{{ "page.Update Affiliate"|trans({},"CustomerBundle") }}{%- endblock %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.marketing"|trans({},"AppBundle") }}</li>
+    <li>
+        <a href="{{ path("affiliate.list_page") }}">{{ "breadcrumb.list"|trans({},"CustomerBundle") }}</a>
+    </li>
+    <li class="active">
+        {{ customer.user.username }}
+    </li>
+{%- endblock  %}
+
+{% block page %}
+    <div class="col-sm-12">
+        <div class="tabs-vertical-env">
+            {% include "CustomerBundle:Affiliate:tabs.html.twig" %}
+            <div class="tab-content" style="width : 100%">
+                <div class="tab-pane active" id="commission">
+                    {{ block('commissionPage') }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock page %}
+
+{% block commissionPage %}
+    <div class="row">
+        <div class="col-md-12">
+            {{ widget_render(widget) }}
+        </div>
+    </div>
+{% endblock commissionPage %}
+
+{% block javascripts %}
+    {{ widget_render_block(widget, 'assetjs') }}
+    {{ widget_render_block(widget, 'javascript') }}
+{% endblock javascripts %}

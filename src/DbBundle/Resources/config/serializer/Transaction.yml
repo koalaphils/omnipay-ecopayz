@@ -1,0 +1,86 @@
+DbBundle\Entity\Transaction:
+    exclusion_policy: ALL
+    properties:
+        id:
+            expose: true
+        number:
+            expose: true
+        amount:
+            expose: true
+        fees:
+            groups: ['fees']
+        type:
+            expose: true
+        date:
+            expose: true
+            type: DateTime<'Y-m-d H:i:s'>
+        status:
+            expose: true
+        isVoided:
+            expose: true
+        details:
+            groups: ['details']
+        paymentOption:
+            groups: ['Default']
+        customer:
+            groups: ['customer', 'transaction_exp']
+        currency:
+            expose: true
+        subTransactions:
+            groups: ['subtransactions_group']
+            type: array<DbBundle\Entity\SubTransaction>
+        gateway:
+            expose_if: object.getType() == 1 || object.getType() == 2
+        createdBy:
+            expose: true
+    virtual_properties:
+        typeText:
+            exp: "object.getTypeText()"
+            expose: true
+        type_as_string:
+            exp: "object.getTypeText()"
+            groups: ['transaction_exp']
+            serialized_name: type
+        currency_code:
+            exp: "object.getCurrency() ? object.getCurrency().getCode() : null"
+            groups: ['transaction_exp']
+            serialized_name: currency
+        customerFee:
+            exp: "object.getFee('total_customer_fee', 0)"
+            type: float
+            groups: ['Default', 'API', 'transaction_exp']
+        company_fee:
+            exp: object.getFee('total_company_fee', 0)
+            type: float
+            groups: ['Default', 'API', 'transaction_exp']
+        customer_amount:
+            exp: object.getCustomerAmount()
+            type: float
+            groups: ['Default', 'API', 'transaction_exp']
+        amount:
+            exp: object.getDetail('summary.total_amount', 0)
+            groups: ['Default','API', 'transaction_exp']
+            type: float
+        getImmutablePaymentOptionData:
+            exp: object.getImmutablePaymentOptionData()
+            groups: ['API','Default']
+            serialized_name: "immutable_payment_option_data"
+        getPatmentOptionType:
+            exp: "object.getPaymentOptionType() !== null ? object.getPaymentOptionType().getCode() : null"
+            groups: ['transaction_exp']
+            serialized_name: "payment_option"
+            type: "string"
+        wasCreatedFromAms:
+            exp: "object.getCreator() === null ? false : object.getCreator().isCustomer()"
+            expose: true
+        customerGroups:
+            exp: "object.getDetail('customer.groups', null)"
+            groups: ['Default']
+            serialized_name: "customer_groups"
+            type: array
+        getVoidingReason:
+            expose: true
+            groups: ['API']
+        commissionConvertions:
+            exp: "object.getCommissionConvertions()"
+            groups: ['API']

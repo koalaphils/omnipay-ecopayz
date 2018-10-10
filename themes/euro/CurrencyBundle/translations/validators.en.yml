@@ -1,0 +1,11 @@
+currency:
+    name:
+        min: Currency name must be at least {{ limit }} characters long
+        max: Currency name cannot be longer than {{ limit }} chatacters
+        regex: Currency name should contain only alphanumeric characters.
+    code:
+        min: Currency code must be at least {{ limit }} characters long
+        max: Currency code cannot be longer than {{ limit }} chatacters
+        regex: Currency code should contain only alphanumeric characters.
+    rate:
+        regex: Only positive numbers and maximum of 10 decimal places are allowed.

@@ -1,0 +1,53 @@
+imports:
+    - { resource: widgets.yml }
+services:
+    transaction.manager:
+        class: TransactionBundle\Manager\TransactionManager
+        parent: app.base_manager
+
+    # form type
+    transaction.form_type.bonus:
+        class: TransactionBundle\Form\BonusType
+        arguments: [ "@doctrine", "@router" ]
+        tags:
+            - { name: form.type }
+
+    transaction.form_type.sub_transaction:
+        class: TransactionBundle\Form\SubTransactionType
+        arguments: [ "@doctrine" ]
+        tags:
+            - { name: form.type }
+
+    transaction.form_type.transaction:
+        class: TransactionBundle\Form\TransactionType
+        arguments: [ "@doctrine", "@router", "@app.setting_manager", "@jms_serializer" ]
+        tags:
+            - { name: form.type }
+
+    transaction.workflow:
+        factory: [TransactionBundle\Factory\TransactionWorkflowFactory, "generateTransactionWorkflow"]
+        arguments: ['@app.setting_manager', '@event_dispatcher']
+
+    transaction.process_subscriber:
+        class: TransactionBundle\EventHandler\TransactionProcessSubscriber
+        calls:
+            - [ 'setContainer', ['@service_container'] ]
+        tags:
+            - { name: kernel.event_subscriber }
+
+    transaction.transaction_subscriber_for_websocket:
+        class: TransactionBundle\EventHandler\TransactionSubscriberForWebsocket
+        arguments: ['@app.publisher']
+        tags:
+            - { name: kernel.event_subscriber }
+            
+    transaction.decline.service:
+        class: TransactionBundle\Service\TransactionDeclineService
+        calls:
+            - [ "setContainer", ["@service_container"] ]
+        shared: false
+        
+    transaction.transaction_repository:
+        class: TransactionBundle\Repository\TransactionRepository
+        lazy: true
+        arguments: [ "@doctrine.orm.entity_manager"]

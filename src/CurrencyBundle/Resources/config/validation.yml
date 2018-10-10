@@ -1,0 +1,45 @@
+DbBundle\Entity\Currency:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+            fields: name
+            groups: ['default']
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+            fields: code
+            groups: ['default']
+    properties:
+        rate:
+            - NotBlank:
+                groups: ['hasRate']
+            - Regex:
+                groups: ['hasRate']
+                pattern: '/^\s*(?=.*[1-9])\d*(?:\.\d{0,10})?\s*$/'
+                match: true
+                message: currency.rate.regex
+        name:
+            - NotBlank:
+                groups: ['default']
+            - Length:
+                groups: ['default']
+                min: 3
+                max: 250
+                minMessage: currency.name.min
+                maxMessage: currency.name.max
+            - Regex:
+                groups: ['default']
+                pattern: '/^[a-zA-Z0-9 ]+$/'
+                match: true
+                message: currency.name.regex
+        code:
+            - NotBlank:
+                groups: ['default']
+            - Length:
+                groups: ['default']
+                min: 3
+                max: 5
+                minMessage: currency.code.min
+                maxMessage: currency.code.max
+            - Regex:
+                groups: ['default']
+                pattern: '/^[a-zA-Z0-9]+$/'
+                match: true
+                message: currency.code.regex

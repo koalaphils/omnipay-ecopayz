@@ -1,0 +1,76 @@
+menus:
+    Ticket: Ticket
+    List: List
+    Create: Create
+    Update: Update
+    Reply: Reply
+
+
+page:
+    title:
+        list: Ticket | List
+        create: Ticket | Create
+        reply: Ticket | Reply
+        
+fields:
+    id: ID
+    subject: Subject
+    requester: Requester
+    group: Group
+    tag: Tag
+    status: Status
+    priority: Priority
+    type: Type
+    status: Status
+    assignee: Assignee
+    description: Description
+
+type:
+    question: Question
+    incident: Incident
+    problem: Problem
+    task: Task
+
+priority:
+    low: Low
+    normal: Normal
+    high: High
+    urgent: Urgent
+    
+status:
+    open: Open
+    pending: Pending
+    hold: Hold
+    solved: Solved
+    closed: Closed
+
+elapsedTime:
+    year: year
+    month: month
+    week: week
+    day: day
+    hour: hour
+    minute: minute
+    second: second   
+    ago: ago
+    justnow: just now
+    plural: s
+    
+roles:
+    groups:
+        ticket: Ticket
+    ticket:
+        view: View Ticket
+        create: Create Ticket
+        update: Update Ticket
+        reply: Reply Ticket
+        delete: Delete Ticket
+    
+    
+notification:
+    title: Success
+    #created: %name% was successfully created
+    #updated: %name% was successfully updated
+    created: Ticket was successfully created
+    sent: Ticket was successfully sent
+    deleted: Ticket was successfully deleted

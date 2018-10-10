@@ -1,0 +1,41 @@
+DbBundle\Entity\UserGroup:
+    type: entity
+    table: user_group
+    repositoryClass: DbBundle\Repository\UserGroupRepository
+    id:
+        id:
+            type: integer
+            id: true
+            generator:
+                strategy: AUTO
+            column: group_id
+            options:
+                unsigned: true
+    fields:
+        name:
+            type: string
+            length: '64'
+            unique: true
+            column: group_name
+        roles:
+            type: json
+            column: group_roles
+        createdBy:
+            type: bigint
+            column: group_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: group_created_at
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: group_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            column: group_updated_at
+            nullable: true
+    lifecycleCallbacks: {  }

@@ -1,0 +1,1580 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% form_theme customerProductForm _self %}
+{% form_theme securityForm _self %}
+{% form_theme contactForm 'CustomerBundle:Form:Type/contact.html.twig' %}
+{% form_theme socialForm 'CustomerBundle:Form:Type/social.html.twig' %}
+{% form_theme paymentForm 'CustomerBundle:Form:Type/payment.html.twig' %}
+{% form_theme form 'CustomerBundle:Form:Type/customer.html.twig' %}
+
+{% form_theme form 'CustomerBundle:Customer:FormTheme/customer.html.twig' %}
+
+{% block title %}{{ "page.title.update_customer"|trans({'%fullName%':customer.fName ~ ' ' ~ customer.lname},"CustomerBundle") }}{% endblock %}
+
+{% block form_label_class %}{% endblock %}
+
+{% block form_group_class %}
+{% endblock %}
+
+{%- block form_start -%}
+    {% set method = method|upper %}
+    {%- if method in ["GET", "POST"] -%}
+        {% set form_method = method %}
+    {%- else -%}
+        {% set form_method = "POST" %}
+    {%- endif -%}
+    <form name="{{ name }}" class="form-danger" method="{{ form_method|lower }}"{% if action != '' %} id="{{ id }}" action="{{ action }}"{% endif %}{% for attrname, attrvalue in attr %} {{ attrname }}="{{ attrvalue }}"{% endfor %}{% if multipart %} enctype="multipart/form-data"{% endif %}>
+    {%- if form_method != method -%}
+        <input type="hidden" name="_method" value="{{ method }}" />
+    {%- endif -%}
+{%- endblock form_start -%}
+
+{% block stylesheet_plugins %}
+    <link href="{{ asset('assets/plugins/select2/css/select2.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset("assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.min.css") }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset("assets/plugins/bootstrap-select/css/bootstrap-select.min.css") }}" rel="stylesheet" type="text/css"/>
+
+    <link rel="stylesheet" type="text/css" href="{{ asset("assets/plugins/dropzone/dropzone.css") }}" />
+    <link rel='stylesheet' type="text/css" href="{{ asset("assets/plugins/x-editable/css/bootstrap-editable.css") }}" />
+    <link href="{{ asset('assets/plugins/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/buttons.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/responsive.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/dataTables.colVis.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/dataTables.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    {{ form_assetcss(form) }}
+    {{ form_assetcss(customerProductForm) }}
+    {{ form_assetcss(securityForm) }}
+    {{ form_assetcss(paymentForm) }}
+{% endblock %}
+
+{% block javascript_plugins %}
+    <script src="{{ asset('bundles/app/js/ZTable.js') }}"></script>
+    <script src="{{ asset('assets/plugins/select2/js/select2.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/bootstrap-select/js/bootstrap-select.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/bootstrap-select/js/bootstrap-select-ajax.js') }}"></script>
+    <script src="{{ asset("assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.min.js") }}"></script>
+
+    <script type="text/javascript" src="{{ asset("assets/plugins/dropzone/dropzone.js") }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/dataTables.bootstrap.js') }}"></script>
+
+    <script src="{{ asset('assets/plugins/datatables/dataTables.buttons.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/buttons.bootstrap.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/vfs_fonts.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/buttons.html5.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/dataTables.responsive.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/responsive.bootstrap.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/dataTables.colVis.js') }}"></script>
+    <script src="{{ asset('assets/plugins/x-editable/js/bootstrap-editable.min.js') }}"></script>
+    {{ form_assetjs(form) }}
+    {{ form_assetjs(customerProductForm) }}
+    {{ form_assetjs(securityForm) }}
+    {{ form_assetjs(paymentForm) }}
+{% endblock %}
+
+{% block stylesheets -%}
+    <link rel="stylesheet" type="text/css" href="{{ asset('bundles/customer/css/document.css') }}" />
+    <style rel="stylesheet">
+        .payment-list {
+            margin-top: 10px;
+        }
+
+        .payment-list .payment-item {
+            max-height: 115px;
+            height: 115px;
+        }
+
+        .payment-list .payment-item:hover {
+            background: #a9f4ff;
+            cursor: pointer;
+        }
+
+        .payment-list .payment-img-col {
+            display: table-cell;
+            float: none;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .payment-list .payment-info {
+            display: table-cell;
+            float: none;
+        }
+
+        .payment-img img {
+            max-width: 98%;
+            max-height: 98%;
+        }
+
+        .payment-list .selected .payment-item {
+            background: #4ea5e0;
+            border-color: #2581b8;
+            color: #ecf0f1;
+        }
+    </style>
+{%- endblock %}
+
+{% block pageTitle -%}{{ "page.Update Customer"|trans({},"CustomerBundle") }}{%- endblock %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.member"|trans({},"AppBundle") }}</li>
+    <li>
+        <a href="{{ path("customer.list_page") }}">{{ "Customer List"|trans({},"CustomerBundle") }}</a>
+    </li>
+    <li class="active">
+        {{ customer.user.username }}
+    </li>
+{%- endblock  %}
+
+{% block pageHeaderExtra %}
+    <div class="pull-right">
+        {% if is_granted('ROLE_CUSTOMER_VIEW') %}
+        <a class="btn btn-inverse waves-effect waves-light pull-right m-b-10" href="{{ path("customer.list_page") }}">{{ "menus.BackToCustomerList"|trans({},"CustomerBundle") }}<span><i class="ti-arrow-left m-r-5 cls-icn-plus"></i></span></a>
+        {% endif %}
+        <ul class="list-inline quicklinks font-13 font-normal text-right">
+            <li>Quick Links:</li>
+            {% if is_granted('ROLE_CUSTOMER_CREATE') %}
+            <li><a href="{{ path("customer.create_page") }}"> {{ "quickLinks.addCustomer"|trans({},"CustomerBundle") }}</a></li>|
+            {% endif %}
+            {% if is_granted('ROLE_CUSTOMER_GROUP_VIEW') %}
+            <li><a href="{{ path("customer.group_list_page") }}"> {{ "quickLinks.customerGroup"|trans({},"CustomerBundle") }}</a></li>|
+            {% endif %}
+            {% if is_granted('ROLE_TRANSACTION_VIEW') %}
+            <li><a href="{{ path("transaction.list_page") }}"> {{ "Transaction List"|trans({},"CustomerBundle") }}</a></li>
+            {% endif %}
+        </ul>
+    </div>
+{% endblock pageHeaderExtra %}
+
+{% block page %}
+    <div class="col-sm-12">
+        <div class="tabs-vertical-env">
+            {% include "CustomerBundle:Default:customer_tabs.html.twig" %}
+            <div class="tab-content" style="width : 100%">
+                {% if app.request.attributes.get('_route') == 'customer.update_page' %}
+                <div class="tab-pane active" id="profile">
+                    {% include "CustomerBundle:Form:customer-form.html.twig" %}
+                </div>
+                {% if is_granted('ROLE_CUSTOMER_PRODUCT_VIEW') %}
+                <div class="tab-pane" id="product">
+                    {% include "CustomerBundle:Default:Tabs/products.html.twig" %}
+                </div>
+                {% endif %}
+                <div class="tab-pane" id="security">
+                    {% include "CustomerBundle:Form:customerSecurity-form.html.twig" %}
+                </div>
+                <div class="tab-pane" id="contacts">
+                    {% include "CustomerBundle:Form:customerContacts-form.html.twig" %}
+                </div>
+                <div class="tab-pane" id="socials">
+                    {% include "CustomerBundle:Form:customerSocials-form.html.twig" %}
+                </div>
+                <div class="tab-pane" id="payments">
+                    {% include "CustomerBundle:Default:Tabs/payments.html.twig" %}
+                </div>
+                <div class="tab-pane" id="docs">
+                    {% include "CustomerBundle:Form:customerDocuments-form.html.twig" %}
+                </div>
+                {% if is_granted('ROLE_TRANSACTION_VIEW') %}
+                <div class="tab-pane" id="transactions">
+                    {% include "CustomerBundle:Default:Tabs/transactions.html.twig" %}
+                </div>
+                {% endif %}
+                <div class="tab-pane" id="ips">
+                    {% include "CustomerBundle:Default:Tabs/ips.html.twig" %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        var channelId = "{{ customer.webSocketDetails['channel_id'] }}";
+    </script>
+    <script src="{{ asset('assets/plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/dataTables.bootstrap.js') }}"></script>
+
+    <script src="{{ asset('assets/plugins/datatables/dataTables.buttons.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/buttons.bootstrap.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/vfs_fonts.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/buttons.html5.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/dataTables.responsive.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/responsive.bootstrap.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/dataTables.colVis.js') }}"></script>
+    <script src="{{ asset('assets/plugins/areYouSure/areYouSure.js') }}"></script>
+
+    <script src="{{ asset('bundles/customer/js/ip.js') }}" type="text/javascript" ></script>
+    <script src="{{ asset('bundles/customer/js/product.js') }}" type="text/javascript" ></script>
+    <script src="{{ asset('bundles/customer/js/document.js') }}" type="text/javascript" ></script>
+    <script src="{{ asset('bundles/customer/js/payments.js') }}" type="text/javascript" ></script>
+    {{ form_javascript(form) }}
+    {{ form_javascript(customerProductForm) }}
+    {{ form_javascript(contactForm) }}
+    {{ form_javascript(socialForm) }}
+    {{ form_javascript(paymentForm) }}
+    <script type="text/javascript" >
+        $(function(){
+            var activeTab = '{{activeTab}}';
+            var formName;
+
+            $('form').each(function(){
+                if(!$(this).parent().hasClass('modal-content')){
+                    $(this).areYouSure({'silent':true});
+                }
+            });
+
+            $('form :input').on('change input', function() {
+                formName = $(this).closest('form').attr('id');
+            });
+
+            $('.tabs-vertical-env a[href="#' +  activeTab + '"]').tab('show');
+            $('.customer-tab').click(function(e){
+                e.preventDefault();
+                var customerTab = $(this).attr('href');
+                if ( $('form[id = "'+ formName  + '" ]').hasClass('dirty') ){
+                    e.stopPropagation();
+                    location.href.split('#')[0];
+                    swal({
+                        title: "Unsaved data will be lost",
+                        text: "Are you sure you want to discard changes?",
+                        type: "warning",
+                        confirmButtonClass : 'btn-success btn-md',
+                        confirmButtonText : 'OK',
+                        cancelButtonClass: 'btn-inverse btn-md',
+                        cancelButtonText: 'Cancel',
+                        showCancelButton: true,
+                        closeOnConfirm: false
+                    },
+                    function(isProceed) {
+                        if (isProceed) {
+                            history.pushState({}, null, customerTab.replace("#",''));
+                            $('.tabs-vertical-env a[href="' +  customerTab + '"]').tab('show');
+                            location.reload();
+                        }
+                    });
+                }else{
+                    history.pushState({}, null, customerTab.replace("#",''));
+                }
+            });
+
+            $('.content-page a , #sidebar-menu a ').click(function(e){
+
+                var link = $(this).attr('href');
+                if(link == "javascript:void(0)"){
+                    e.preventDefault();
+                }else{
+                    if (!$(this).hasClass('customer-tab')){
+                        e.preventDefault();
+                        if ( $('form[id = "'+ formName  + '" ]').hasClass('dirty') ){
+                                swal({
+                                title: "Unsaved data will be lost",
+                                text: "Are you sure you want to discard changes and leave the page?",
+                                type: "warning",
+                                confirmButtonClass : 'btn-success btn-md',
+                                confirmButtonText : 'Leave',
+                                cancelButtonClass: 'btn-inverse btn-md',
+                                cancelButtonText: 'Stay',
+                                showCancelButton: true,
+                                closeOnConfirm: false
+                            },
+                            function(isProceed) {
+                                if (isProceed) {
+                                    window.location = link;
+                                }
+                            });
+                        }else{
+                            window.location = link;
+                        }
+                    }
+                }
+            });
+        });
+
+    </script>
+    <script type="text/javascript">
+        var cproductId = '';
+        var rowData = {};
+
+        $(function(){
+            changeSwitcheryState({{ kyc.verify.vars.id }},{% if not customer.isVerified -%}0{%- else %}1{%- endif %} );
+
+            $('#CustomerKyc').removeClass('dirty');
+
+            if ($('#CustomerKyc_verify').is(':checked')) {
+                $('#CustomerKyc_verify').on('change', function() {
+                    if ($(this).is(':checked')) {
+                        $('#CustomerKyc').removeClass('dirty');
+                    }else{
+                        $('#CustomerKyc').addClass('dirty');
+                    }
+                });
+            }
+
+            $('#customerProductModal').on('hide.bs.modal', function() {
+                rowData = {};
+                cproductId = '';
+                $('#{{ customerProductForm.userName.vars.id  }}').val('');
+                $("#{{ customerProductForm.product.vars.id  }}").html('');
+                $('#{{ customerProductForm.balance.vars.id  }}').val('');
+                changeSwitcheryState({{ customerProductForm.isActive.vars.id  }}, true);
+                $('#{{ customerProductForm.vars.id }}').find('.form-group').removeClass('has-error');
+                $('#{{ customerProductForm.vars.id }}').find('.form-group .help-block ul').html('');
+                $("#{{ customerProductForm.saveModal.vars.id }}").removeAttr('disabled');
+            });
+            $('#customerProductModal').on('show.bs.modal', function() {
+                toggleBalance({
+                    'product': {
+                        'details': {}
+                    }
+                });
+
+                if(cproductId == '') {
+                    $('#customerProductModal .update').addClass('hide');
+                    $('#customerProductModal .new').removeClass('hide');
+                    $('#CustomerProduct_brokerageSyncId').hide();
+                    $('label[for="CustomerProduct_brokerageSyncId"]').hide();
+                    $('#CustomerProduct_brokerageSyncId').next(".select2-container").hide();
+                    $('#CustomerProduct_brokerageSyncId option').remove();
+                    $('#{{ customerProductForm.brokerageFirstName.vars.id }}').val('');
+                    $('#{{ customerProductForm.brokerageLastName.vars.id }}').val('');
+                    $('#betAdminBalanceSpan').hide();
+                } else {
+                    $('#customerProductModal .new').addClass('hide');
+                    $('#customerProductModal .update').removeClass('hide');
+                }
+            });
+            $('#customerProductList').productList({
+                'url': {
+                    'list': '{{ path("customerProduct.list_search" , {'id': customer.id})  -}}'
+                },
+                'columnDefs': [
+                    { 'targets': [0], 'visible': false }
+                    {% if not is_granted('ROLE_CUSTOMER_PRODUCT_UPDATE') %}
+                    , { 'targets': [5], 'visible': false }
+                    {% endif %}
+                ],
+                'canUpdate': {{ is_granted('ROLE_CUSTOMER_PRODUCT_UPDATE') ? 'true' : 'false' }},
+                'rowOnclick': function(e, dataTable) {
+                    e.preventDefault();
+                    var currentRow = $(e.target).parents('tr');
+                    if (currentRow.hasClass('child')) {
+                        currentRow = currentRow.prev();
+                    }
+                    var data = dataTable.row(currentRow).data() ;
+                    var anchor = $(e.target).closest('a');
+                    var mode = anchor.attr('action');
+                    rowData = data;
+
+                    if (mode == 'edit') {
+                        openCustomerProduct(data);
+
+                        toggleBalance({
+                            'product': {
+                                'details': data.product.details
+                            },
+                            'customer': {
+                                'isEnabled': data.customer.details.enabled
+                            },
+                            'id': data.customerProduct.id
+                        });
+                    } else if (mode == 'suspend') {
+                        suspendCustomerProduct(data);
+                    } else if (mode == 'enable') {
+                        activateCustomerProduct(data);
+                    }
+                }
+            });
+
+            function openCustomerProduct(data)
+            {
+                var productName = data.product.name;
+                cproductId = '/' + data.id;
+                if (data.ba_balance) {
+                    if (!isNaN(data.ba_balance)) {
+                        var baBalance = data.ba_balance.toFixed(2);
+                        baBalanceDisplay = '(BA: ' + baBalance + ')';
+                        $('#betAdminBalanceSpan').text('(BA: ' + baBalance + ')');
+                    } else {
+                       $('#betAdminBalanceSpan').text('(' + data.ba_balance + ')');
+                    }
+
+                } else {
+                    if (isNaN(data.ba_balance)) {
+                        $('#betAdminBalanceSpan').text('');
+                    } else {
+                        $('#betAdminBalanceSpan').text('(BA: ' + data.ba_balance + ')');
+                    }
+                }
+
+                $('#customerProductModal .update .id').html(data.product.name);
+                $('#customerProductModal').modal("show");
+                $('#{{ customerProductForm.userName.vars.id  }}').val(data.userName);
+                $('#{{ customerProductForm.balance.vars.id  }}').val((new Decimal(data.balance)).toFixed(2));
+                if (data.details.brokerage !== undefined) {
+                    $('#{{ customerProductForm.brokerageSyncId.vars.id }}').html("<option value='" + data.details.brokerage.sync_id +"' selected='selected'>" + data.details.brokerage.details.first_name + " " + data.details.brokerage.details.last_name + "</option>");
+                    $('#{{ customerProductForm.brokerageFirstName.vars.id }}').val(data.details.brokerage.details.first_name);
+                    $('#{{ customerProductForm.brokerageLastName.vars.id }}').val(data.details.brokerage.details.last_name);
+                    $('#betAdminBalanceSpan').show();
+                } else {
+                    $('#{{ customerProductForm.brokerageSyncId.vars.id }}').html('');
+                    $('#{{ customerProductForm.brokerageFirstName.vars.id }}').val('');
+                    $('#{{ customerProductForm.brokerageLastName.vars.id }}').val('');
+                    $('#betAdminBalanceSpan').hide();
+                }
+                $('#{{ customerProductForm.brokerageSyncId.vars.id }}').hide();
+                $('label[for="{{ customerProductForm.brokerageSyncId.vars.id }}"]').hide();
+                $('#{{ customerProductForm.brokerageSyncId.vars.id }}').next(".select2-container").hide();
+                if (data.product.details) {
+                    if (data.product.details.betadmin !== undefined) {
+                        if (data.product.details.betadmin.tosync) {
+                            productName += ' (Betadmin)';
+                            $('#{{ customerProductForm.brokerageSyncId.vars.id }}').show();
+                            $('#{{ customerProductForm.brokerageSyncId.vars.id }}').next(".select2-container").show();
+                            $('label[for="{{ customerProductForm.brokerageSyncId.vars.id }}"]').show();
+                            $('#betAdminBalanceSpan').show();
+                        }
+                    }
+                }
+                $("#{{ customerProductForm.product.vars.id  }}").html("<option value='" + data.product.id +"' selected='selected'>" + productName +"</option>");
+                changeSwitcheryState({{ customerProductForm.isActive.vars.id  }}, data.isActive);
+            }
+
+            function suspendCustomerProduct(rowData)
+            {
+                var customerProduct = rowData;
+                var postURL = "{{ path('customerProduct.suspend', {'id': 'customerProduct_id' }) -}}";
+                confirm2('Are you sure you want to suspend '+ customerProduct.userName + '('+ customerProduct.product.name +')' , 'Suspend Customer Product', {
+                    'type': null,
+                    'confirmButtonClass': 'btn-success btn-md',
+                    'confirmButtonText': 'Yes',
+                    'html': true,
+                    'showLoaderOnConfirm': true
+                }, function(isSuspended) {
+                    if(isSuspended) {
+                        $.ajax({
+                            url : postURL.replace("customerProduct_id", customerProduct.id),
+                            globalAjaxComplete : false,
+                            type: "POST",
+                            dataType: "JSON",
+                            success : function (data) {
+                                var notifications = data.__notifications || [];
+                                swal({
+                                    'type': notifications.type,
+                                    'title': notifications.title,
+                                    'text': notifications.message
+                                }, function() {
+                                    $('#customerProductList').trigger('refresh');
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+
+            function activateCustomerProduct(rowData)
+            {
+                var customerProduct = rowData;
+                var postURL = "{{ path('customerProduct.activate', {'id': 'customerProduct_id' }) -}}";
+                confirm2('Are you sure you want to enable '+ customerProduct.userName + '('+ customerProduct.product.name +')' , 'Enable Customer Product', {
+                    'type': null,
+                    'confirmButtonClass': 'btn-success btn-md',
+                    'confirmButtonText': 'Yes',
+                    'html': true,
+                    'showLoaderOnConfirm': true
+                }, function(isActivated) {
+                    if(isActivated) {
+                        $.ajax({
+                            url : postURL.replace("customerProduct_id", customerProduct.id),
+                            globalAjaxComplete : false,
+                            type: "POST",
+                            dataType: "JSON",
+                            'success': function (data) {
+                                var notifications = data.__notifications || [];
+                                swal({
+                                    'type': notifications.type,
+                                    'title': notifications.title,
+                                    'text': notifications.message
+                                }, function() {
+                                    $('#customerProductList').trigger('refresh');
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+
+            function changeSwitcheryState(el,value){
+                if($(el).is(':checked') != value){
+                    $(el).trigger("click");
+                }
+            }
+
+            $('#{{ customerProductForm.saveModal.vars.id }}').click(function () {
+                $.ajax({
+                    url: "{{path('customerProduct.save') }}" + cproductId ,
+                    type: "POST",
+                    dataType: "JSON",
+                    data:  $("form[name={{ customerProductForm.vars.id }}]").serialize(),
+                    'beforeSend': function() {
+                        $('#{{ customerProductForm.vars.id }}').find('.form-group').removeClass('has-error');
+                        $('#{{ customerProductForm.vars.id }}').find('.form-group .help-block ul').html('');
+                        $("#{{ customerProductForm.saveModal.vars.id }}").attr('disabled', 'disabled');
+                    },
+                    'statusCode': {
+                        '422': function(jqXHR) {
+                            $(this).data('global-ajax-error', false);
+                            $.each(jqXHR.responseJSON.errors, function(i, e) {
+                                $('#' + i).closest('.form-group').addClass('has-error');
+                                if ($('#' + i).is( 'select' )) {
+                                    $('#' + i).next().next().find('ul').append('<li><span class="glyphicon glyphicon-exclamation-sign"></span> '+ this +'</li>');
+                                } else {
+                                    $('#' + i).next().find('ul').append('<li><span class="glyphicon glyphicon-exclamation-sign"></span> '+ this +'</li>');
+                                }
+                            });
+                        }
+                    },
+                    success: function(data){
+                        if(data.status) {
+
+                            var m = data.message;
+                            var t = data.message.text;
+                            if (t instanceof Array) {
+                                for (i = 0; i < t.length; i++) {
+                                    $.Notification.notify(m.type ,'top center', m.title, t[i]);
+                                }
+                            } else {
+                                $('#customerProductList').trigger('refresh');
+                                $.Notification.notify(m.type ,'top center', m.title, m.text);
+                                cproductId = '/' + data.result;
+                                $('#customerProductModal .new').addClass('hide');
+                                $('#customerProductModal .update').removeClass('hide');
+                                $('#customerProductModal .update .id').html(data.result);
+                                $('#customerProductModal').modal("hide");
+                            }
+
+
+                        } else {
+                            console.log('Message: ' + JSON.stringify(data.message));
+                        }
+                    },
+                    'complete': function(jqXHR) {
+                        $("#{{ customerProductForm.saveModal.vars.id }}").removeAttr('disabled');
+                    }
+                });
+
+            });
+
+            function toggleBalance(customerProduct) {
+                $('.balance-container').removeClass('hidden');
+                $('#{{ customerProductForm.product.vars.id }}').prop('required', true);
+
+                if (typeof customerProduct.product.details.betadmin !== 'undefined' && customerProduct.product.details.betadmin.tosync == true) {
+                    if (customerProduct.id == 'undefined' || !customerProduct.customer.isEnabled) {
+                        $('.balance-container').addClass('hidden');
+                        $('#{{ customerProductForm.product.vars.id }}').prop('required', false);
+                    }
+                }
+            };
+
+            $('#{{ customerProductForm.product.vars.id }}').on('select2:select', function(e) {
+                var data = e.params.data;
+                var isEnabled = {% if customer.isEnabled %}true{% else %}false{% endif %};
+
+                if ($.isEmptyObject(rowData)) {
+                    toggleBalance({
+                        'product': {
+                            'details': data.details
+                        },
+                        'customer': {
+                            'isEnabled': isEnabled
+                        }
+                    });
+                } else {
+                    toggleBalance({
+                        'product': {
+                            'details': data.details
+                        },
+                        'customer': {
+                            'isEnabled': isEnabled
+                        },
+                        'id': rowData.customerProduct.id
+                    });
+                }
+            });
+        });
+    </script>
+    <script type="text/javascript">
+        var oldValue = '';
+        $(function() {
+            $('#{{ kyc.save.vars.id }}').click(function () {
+                var _kycSwitch = $('#{{ kyc.verify.vars.id }}');
+                var currentValue = (_kycSwitch.is(':checked'))  ? '1' : '0';
+                if(oldValue == '') {
+                    oldValue = ('{{customer.isVerified}}') ? '1' : '0';
+                }
+                if (currentValue ==  oldValue) {
+                    swal({
+                        'type': 'error',
+                        'title': 'Error',
+                        'text': 'Nothing to save!'
+                    }, function() {
+                        return false;
+                    });
+                } else {
+                    var actionLabel = (currentValue == 1) ? 'Verify' : 'Unverify';
+                    confirm2('Are you sure you want to '+ actionLabel.toLowerCase() +': <b>{{ customer.fName }} {{ customer.lName }} ({{ customer.user.username }})</b>', actionLabel + ' Customer', {
+                        'type': null,
+                        'confirmButtonClass': 'btn-success btn-md',
+                        'confirmButtonText': actionLabel,
+                        'cancelButtonClass': 'btn-inverse btn-md',
+                        'cancelButtonText': 'Cancel',
+                        'html': true,
+                        'showLoaderOnConfirm': true
+                    }, function(isVerify) {
+                        if(isVerify) {
+                            $.ajax({
+                                url: "{{ path('customer.verify', {'id':customer.id}) }}",
+                                globalAjaxComplete : false,
+                                data: {
+                                    "_status": currentValue
+                                },
+                                'success': function (data) {
+                                    var notifications = data.__notifications || [];
+                                    $.each(notifications, function(e) {
+                                        oldValue = currentValue;
+                                        swal({
+                                            'type': this.type,
+                                            'title': this.title,
+                                            'text': this.message
+                                        }, function() {
+                                            return false;
+                                        });
+                                    });
+                                    $('form[name="CustomerKyc"]').removeClass('dirty');
+                                    location.reload();
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+
+
+        });
+    </script>
+    <script type="text/javascript">
+        var xhr = {'password':null, 'transactionPassword': null};
+        $(function() {
+            $('#{{ securityForm.vars.id }}').submit(function(e) {
+                e.preventDefault();
+                var clicked = $(this).find('button[clicked="clicked"]').attr('name');
+                if(clicked == '{{ securityForm.savePassword.vars.full_name }}') {
+                    var _xhr = 'password';
+                } else if(clicked == '{{ securityForm.saveTransactionPassword.vars.full_name }}') {
+                    var _xhr = 'transactionPassword';
+                } else var _xhr = 'undefined';
+
+                if(xhr[_xhr]) xhr[_xhr].abort();
+
+                xhr[_xhr] = $.ajax({
+                    'url': $(this).attr('action'),
+                    'type': $(this).attr('method'),
+                    'data': $(this).serialize() + "&" + clicked + "=",
+                    'beforeSend': function() {
+                        if(_xhr == 'password') {
+                            $('#{{ securityForm.user.password.first.vars.id }}').closest('.form-group').removeClass('has-error');
+                            $('#{{ securityForm.user.password.first.vars.id }}').next().find('ul').html('');
+                        } else if(_xhr == 'transactionPassword') {
+                            $('#{{ securityForm.transactionPassword.first.vars.id }}').closest('.form-group').removeClass('has-error');
+                            $('#{{ securityForm.transactionPassword.first.vars.id }}').next().find('ul').html('');
+                        }
+                        $('button[name="' + clicked + '"]').attr('disabled', 'disabled');
+                    },
+                    'statusCode': {
+                        '422': function(jqXHR) {
+                            $(this).data('global-ajax-error', false);
+                            $.each(jqXHR.responseJSON.errors, function(i, e) {
+                                $('#' + i).closest('.form-group').addClass('has-error');
+                                $('#' + i).next().find('ul').append('<li><span class="glyphicon glyphicon-exclamation-sign"></span> '+ this +'</li>');
+                            });
+                        }
+                    },
+                    'complete': function(jqXHR) {
+                        $('button[name="' + clicked + '"]').removeAttr('disabled');
+                        $('#{{ securityForm.vars.id }} button').removeAttr('clicked');
+                        if(jqXHR.responseJSON.action == 'savePassword') {
+                            $('#{{ securityForm.user.password.first.vars.id }}').val('');
+                            $('#{{ securityForm.user.password.second.vars.id }}').val('');
+                        } else if(jqXHR.responseJSON.action == 'saveTransactionPassword') {
+                            $('#{{ securityForm.transactionPassword.first.vars.id }}').val('');
+                            $('#{{ securityForm.transactionPassword.second.vars.id }}').val('');
+                        }
+                    }
+                });
+            });
+            $('#{{ securityForm.vars.id }} button[type="submit"]').click(function(e) {
+                $('#{{ securityForm.vars.id }} button').removeAttr('clicked');
+                $(this).attr('clicked', 'clicked');
+            });
+
+            // Verification
+            $('#verify').click(function(e) {
+                e.preventDefault();
+                confirm2('Are you sure you want to verify: <b>{{ customer.fName }} {{ customer.lName }} ({{ customer.user.username }})</b>', 'Verify Customer', {
+                    'type': null,
+                    'confirmButtonClass': 'btn-success btn-md',
+                    'confirmButtonText': 'Verify',
+                    'cancelButtonClass': 'btn-inverse btn-md',
+                    'cancelButtonText': 'Cancel',
+                    'html': true,
+                    'showLoaderOnConfirm': true
+                }, function(isVerify) {
+                    if(isVerify) {
+                        $.ajax({
+                            'url': "{{ path('customer.verify', {'id':customer.id}) }}",
+                            'globalAjaxComplete' : false,
+                            'success': function (data) {
+                                var notifications = data.__notifications || [];
+                                $.each(notifications, function(e) {
+                                    swal({
+                                        'type': this.type,
+                                        'title': this.title,
+                                        'text': this.message
+                                    }, function() {
+                                        window.location = "{{ path('customer.update_page', { "id": customer.id }) }}" + "/docs";
+                                    });
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Send Activation Email
+            $('#activate').click(function(e) {
+                e.preventDefault();
+                confirm2('Are you sure you want to resend the activation email for: <b>{{ customer.fName }} {{ customer.lName }} ({{ customer.user.username }})</b>', 'Resend Activation Email', {
+                    'type': null,
+                    'confirmButtonClass': 'btn-success btn-md',
+                    'confirmButtonText': 'Send',
+                    'cancelButtonClass': 'btn-inverse btn-md',
+                    'cancelButtonText': 'Cancel',
+                    'html': true,
+                    'showLoaderOnConfirm': true
+                }, function(isResend) {
+                    if(isResend) {
+                        $.ajax({
+                            'url': "{{ path('customer.resend_activation', { 'id': customer.user.id }) }}",
+                            'globalAjaxComplete' : false,
+                            'success': function (data) {
+                                var notifications = data.__notifications || [];
+                                $.each(notifications, function(e) {
+                                    swal({
+                                        'type': this.type,
+                                        'title': this.title,
+                                        'text': this.message
+                                    }, function() {
+                                        window.location = "{{ path('customer.update_page', { "id": customer.id }) }}" + "/security";
+                                    });
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Reset Password
+            $('#resetPassword').click(function(e) {
+                e.preventDefault();
+                confirm2('Are you sure you want to send the reset password email for: <b>{{ customer.fName }} {{ customer.lName }} ({{ customer.user.username }})</b>', 'Send Reset Password Email', {
+                    'type': null,
+                    'confirmButtonClass': 'btn-success btn-md',
+                    'confirmButtonText': 'Send',
+                    'html': true,
+                    'showLoaderOnConfirm': true
+                }, function(isResend) {
+                    if(isResend) {
+                        $.ajax({
+                            'url': "{{ path('customer.send_reset_password', { 'id': customer.user.id }) }}",
+                            'globalAjaxComplete' : false,
+                            'success': function (data) {
+                                var notifications = data.__notifications || [];
+                                $.each(notifications, function(e) {
+                                    swal({
+                                        'type': this.type,
+                                        'title': this.title,
+                                        'text': this.message
+                                    }, function() {
+                                        window.location = "{{ path('customer.update_page', { "id": customer.id }) }}" + '/security';
+                                    });
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+        });
+
+        // Activate Customer Manually
+        $('#activateCustomer').on('click', function (e) {
+            e.preventDefault();
+            var passwordCharSet = 'a-z,A-Z,0-9,#';
+            var transactionPassCharSect = 'a-z,A-Z,0-9';
+            var password = randomPassword(passwordCharSet, 10);
+            var transactionPassword = randomPassword(transactionPassCharSect, 6);
+
+            confirm2('Are you sure you want to activate <b>{{ customer.fName }} {{ customer.lName }}</b>?</p>',
+            'Activate Customer', {
+                'type': null,
+                'confirmButtonClass': 'btn-success btn-md',
+                'confirmButtonText': 'Activate',
+                'cancelButtonClass': 'btn-inverse btn-md',
+                'cancelButtonText': 'Cancel',
+                'html': true,
+                'showLoaderOnConfirm': true
+            }, function(isResend) {
+                if(isResend) {
+                    $.ajax({
+                        'url': "{{ path('customer.activate_customer', { 'id': customer.user.id }) }}",
+                        'type': "POST",
+                        'data': {'customerId': {{ customer.user.id}}, 'password': password, 'transactionPassword': transactionPassword },
+                        'success': function(data) {
+                            var notifications = data.__notifications || [];
+                            $.each(notifications, function(e) {
+                                swal({
+                                    'type': this.type,
+                                    'title': 'Account Activated',
+                                    'text': this.message + ' \n Username: {{ customer.user.username }} \n Password:'+ password + ' \n Transaction Password:' + transactionPassword,
+                                }, function() {
+                                    window.location = "{{ path('customer.update_page', { "id": customer.id }) }}" + '/security';
+                                });
+                            });
+                        }
+                    });
+                }
+            });
+        });
+
+        //Password and Trasction Password Generator
+        function randomPassword(charSet, size) {
+            var dataSet = charSet.split(',');
+            var combination = '';
+            var result = '';
+
+            if ($.inArray('a-z', dataSet) >= 0) {
+                combination += 'abcdefghijklmnopqrstuvwxyz';
+            }
+            if ($.inArray('A-Z', dataSet) >= 0) {
+                combination += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            }
+            if ($.inArray('0-9', dataSet) >= 0) {
+                combination += '0123456789';
+            }
+            if ($.inArray('#', dataSet) >= 0) {
+                combination += '![]{}()%&*$#^<>~@|';
+            }
+
+            result = generateCharSet(combination, size);
+            if (!(/[^a-zA-Z 0-9]+/.test(result))) {
+                result = '';
+                result = generateCharSet(combination, size);
+            }
+
+            return result;
+        }
+
+        function generateCharSet(combination, size) {
+            var text = '';
+            for (var i=0; i < size; i++) {
+                text += combination.charAt(Math.floor(Math.random() * combination.length));
+            }
+
+            return text;
+        }
+
+        function download() {
+            var file = $('#documentList').mediaLibrary('getSelectedFile');
+            var _path = $('<a>', {href: file.fileInfo.route.render })[0];
+            var path = _path.pathname;
+            if(_path.search.length > 0) path += _path.search + "&title=" + file.fileInfo.title + '.' + file.fileInfo.ext;
+            else path += "?title=" + file.fileInfo.title + '.' + file.fileInfo.ext;
+
+            window.open(path,'_blank');
+        }
+
+        function deleteFile() {
+            var file = $('#documentList').mediaLibrary('getSelectedFile');
+            $.ajax({
+                'url': "{{ path('customer.document_delete', {"id": customer.id}) }}",
+                'type': 'POST',
+                'data': {'index': file.index },
+                'success': function(data) {
+                    $('.document-details-container .document-file-none').removeClass('hide');
+                    $('.document-details-container .document-file-selected ').addClass('hide');
+                    var file = $('#documentList').mediaLibrary('getFile', data.index);
+                    file.destroy();
+                }
+            });
+        }
+
+        var url = {
+            document_save: '{{ path('customer.document_save', {'id': customer.id}) }}',
+            document_list: '{{ path('customer.document_list', {'id': customer.id}) }}',
+            'paymentOption': {
+                'templateFile': '{{ asset('assets/templates/payments.xsl') }}',
+                'saveNew': "{{path('customer.payment_option_save', {'id': customer.id, 'paymentOptionId': '__index__'}) }}"
+            }
+        };
+
+        var paymentOptions = {{ paymentOptions|json_encode()|raw }};
+        var paymentOptionsTemplate = "{{ block('paymentOptionTemplates')|escape('js') }}";
+        var customerPaymentOptions = {{ customer.paymentOptions|serialize('json')|raw }};
+
+        $(function() {
+            {%- if not customer.isAffiliate -%}
+                $('#{{ form.btnGroup.convert.vars.id }}').click(function() {
+                    confirm2(
+                        'Are you sure you want to make an affiliate account for {{customer.fName}} {{customer.lName}} customer?',
+                        'Convert Customer',
+                        {
+                            'type': null,
+                            'confirmButtonClass': 'btn-success btn-md',
+                            'confirmButtonText': 'Create',
+                            'cancelButtonClass': 'btn-inverse btn-md',
+                            'cancelButtonText': 'Cancel',
+                            'html': true,
+                            'showLoaderOnConfirm': true
+                        },
+                        function(isConverted) {
+                            if(isConverted) {
+                                $.ajax({
+                                    url : '{{ path('customer.convert_to_affiliate', {'id':customer.id, 'callback': false}) }}',
+                                    globalAjaxComplete : false,
+                                    type: "GET",
+                                    dataType: "JSON",
+                                    success : function (data) {
+                                        var notifications = data.__notifications || [];
+                                        swal({
+                                            'type': notifications.type,
+                                            'title': notifications.title,
+                                            'text': notifications.message
+                                        }, function() {
+                                            var redirectUrl = '{{path('affiliate.update_page', {"id": customer.id}) }}' + '/profile';
+                                            window.location = redirectUrl;
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                    );
+                });
+
+                $('#customerIpHistoryList').ipList({
+                    'url': {
+                        'list': '{{ path("customer.login_history", {'userId': customer.user.id}) -}}'
+                    }
+                });
+            {%- endif -%}
+            $('#{{ form.btnGroup.cancelCustomer.vars.id }}').click(function() {
+                    window.location = "{{ path('customer.list_page') }}";
+            });
+        });
+    </script>
+    <script type="text/javascript" src="{{ asset("bundles/customer/js/customer_page.js") }}"></script>
+    <script type="text/javascript">
+        var userPreferences = {{ app.user.getPreference('ui.customertransaction.list.column.visibility')|json_encode()|raw }};
+        $(function(){
+            var listTable = new ZTable('#customerTransactionList',  {
+                'colvis': {
+                    'hidden': function () {
+                        var hidden = [];
+                        for (var i in userPreferences) {
+                            if (userPreferences[i] == 'false') {
+                                hidden.push(eval(i));
+                            }
+                        }
+
+                        return hidden;
+                    },
+                    'exclude': ['number', 'date']
+                },
+                'featuresDom': "<'form-inline'"
+                    + "<'form-group m-r-10 ft-date'<'xs-date'ft>>"
+                    + "poyr"
+                    + "<'form-group form-group-sm m-r-10 xs-filter'b>>",
+                'ajax': {
+                    'url' : '{{ path("transaction.list_search" , {'customerId': customer.id })  -}}'
+                },
+                'features': {
+                    'from': {
+                        'dom': "<'form-group form-group-sm m-r-10 m-b-5'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>",
+                        'type': 'date',
+                        'label': 'From',
+                        'symbol': 'f',
+                        'attrs': {
+                            'placeholder': 'From'
+                        }
+                    },
+                    'to': {
+                        'dom': "<'form-group form-group-sm m-r-10 m-b-5'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>",
+                        'type': 'date',
+                        'label': 'To',
+                        'symbol': 't',
+                        'attrs': {
+                            'placeholder': 'To'
+                        }
+                    },
+                    'resetFilter': {
+                        'type': 'button',
+                        'label': 'Reset Filter',
+                        'symbol': 'b',
+                        'attrs': {
+                            'type': 'button',
+                            'class': 'btn btn-sm btn-inverse cls-customer-update'
+                        },
+                        'initialized': function (feature) {
+                            $(feature.input).click(function () {
+                                $("select.ztable_length_input").val('10').change();
+                                feature.ztable.reset();
+                            });
+                        }
+                    },
+                    'product': {
+                        'dom': "<'form-group form-group-sm m-r-10 m-b-5 xs-filter'i>",
+                        'type': 'select',
+                        'label': 'Product',
+                        'symbol': 'p',
+                        'class': 'selectpicker',
+                        'attrs': {
+                            'data-style': 'btn-white btn-sm',
+                            'multiple': 'multiple',
+                            'title': 'Select Product',
+                            'data-selected-text-format': 'count > 3',
+                            'data-width': 'auto',
+                            'data-size': 5
+                        },
+                        'resetValue': function (feature) {
+                            $(feature.input).selectpicker('val', feature.feature.value);
+                        },
+                        'initialized': function (feature) {
+                            feature.ztable.waitDrawTable();
+                            $.ajax({
+                                'url': '{{ path('product.list_search') }}',
+                                'success': function (data) {
+                                    var options = {};
+                                    for (var i in data) {
+                                        $(feature.input).append("<option value='" + data[i].id + "'>" + data[i].name + "</option>");
+                                    }
+                                    $(feature.input).selectpicker('refresh');
+                                    feature.ztable.reloadTable();
+                                }
+                            });
+                            $(feature.input).change(function () {
+                                feature.ztable.waitDrawTable();
+                                feature.ztable.reloadTable();
+                            });
+                        }
+                    },
+                    'paymentOption': {
+                        'dom': "<'form-group form-group-sm m-r-10 m-b-5 xs-filter'i>",
+                        'type': 'select',
+                        'label': 'P.O',
+                        'symbol': 'o',
+                        'class': 'selectpicker',
+                        'attrs': {
+                            'data-style': 'btn-white btn-sm',
+                            'multiple': 'multiple',
+                            'title': 'Select Payment Options',
+                            'data-selected-text-format': 'count > 3',
+                            'data-width': 'auto',
+                            'data-size': 5
+                        },
+                        'resetValue': function (feature) {
+                            $(feature.input).selectpicker('val', feature.feature.value);
+                        },
+                        'initialized': function (feature) {
+                            feature.ztable.waitDrawTable();
+                            $.ajax({
+                                'url': '{{ path('paymentoption.search') }}',
+                                'success': function (data) {
+                                    var options = {};
+                                    for (var i in data.data) {
+                                        $(feature.input).append("<option value='" + data.data[i].code + "'>" + data.data[i].name + "</option>");
+                                    }
+                                    $(feature.input).selectpicker('refresh');
+                                    feature.ztable.reloadTable();
+                                }
+                            });
+                            $(feature.input).change(function () {
+                                feature.ztable.waitDrawTable();
+                                feature.ztable.reloadTable();
+                            });
+                        }
+                    },
+                    'types': {
+                        'dom': "<'form-group form-group-sm m-r-10 m-b-5 xs-filter'i>",
+                        'type': 'select',
+                        'label': 'Type',
+                        'symbol': 'y',
+                        'class': 'selectpicker',
+                        'attrs': {
+                            'data-style': 'btn-white btn-sm',
+                            'multiple': 'multiple',
+                            'title': 'Select Type',
+                            'data-selected-text-format': 'count > 3',
+                            'data-width': 'auto',
+                            'data-size': 5
+                        },
+                        'resetValue': function (feature) {
+                            $(feature.input).selectpicker('val', feature.feature.value);
+                        },
+                        'rendered': function (feature) {
+                            $(feature.input).selectpicker('val', feature.feature.value);
+                        },
+                        'initialized': function (feature) {
+                            $(feature.input).change(function () {
+                                feature.ztable.waitDrawTable();
+                                feature.ztable.reloadTable();
+                            });
+                        },
+                        'choices': {
+                            'deposit': "Deposit",
+                            'withdraw': "Withdraw",
+                            'transfer': "Transfer",
+                            'p2ptransfer': "P2P Transfer",
+                            'dwl': "Win/Loss"
+                        },
+                        'value': ''
+                    }
+                },
+                'columns': [
+                    {
+                        'data': 'number',
+                        'defaultContent': '',
+                        'name': 'number',
+                        'render': function (data, type, full) {
+                            return "<a href='"+full._link.page+"' target='_blank'>"+data+"</a>";
+                        }
+                    },
+                    {
+                        'name': 'date',
+                        'data': 'date',
+                        'defaultContent': '',
+                        'render': function (data, type, full) {
+                            return moment(data).format('MMM D, YYYY h:mm A');
+                        }
+                    },
+                    {
+                        'name': 'customer.full_name',
+                        'data': 'customer.full_name',
+                        'defaultContent': ''
+                    },
+                    {
+                        'data': 'sub_transactions',
+                        'defaultContent': '',
+                        'name': 'sub_transactions',
+                        'render': function (data, type, full) {
+
+                            if (data === null) {
+                                return '';
+                            }
+
+                            var productUsername = '';
+
+                            if (full.type_text === 'p2p_transfer' || full.type_text === 'transfer') {
+                                var productUsernameTo = '';
+                                var productUsernameFrom = '';
+                                $.each(data , function(key,val) {
+                                    if (val.type == {{ constant("DbBundle\\Entity\\Transaction::TRANSACTION_TYPE_DEPOSIT") }}) {
+                                        productUsernameTo  += '&nbsp;' + val.customer_product.product.name + '(' + val.immutable_customer_product_data + '),';
+                                    } else {
+                                        productUsernameFrom += '&nbsp;' + val.customer_product.product.name + '(' + val.immutable_customer_product_data + '),';
+                                    }
+                                });
+
+                                productUsername = productUsernameFrom + productUsernameTo;
+                            } else {
+                                $.each(data , function(key,val) {
+                                    productUsername  += '&nbsp;' + val.customer_product.product.name + '(' + val.immutable_customer_product_data + '),';
+                                });
+                            }
+
+                            productUsername = productUsername.replace(/,*$/, "");
+                            productUsername = productUsername.split(",");
+                            var moreThan = '';
+                            $i = 1;
+                            if (productUsername.length > 2) {
+
+                                $.each(productUsername , function(key,val) {
+                                    moreThan  += val + ',';
+                                    if ($i == 2) {
+                                        productUsername = moreThan;
+                                    }
+                                    $i++;
+                                });
+                                productUsername = productUsername.replace(/,*$/, "...");
+                            }
+
+                            return productUsername;
+                        }
+                    },
+                    {
+                        'data': 'payment_option',
+                        'defaultContent': '',
+                        'name': 'payment_option',
+                        'render': function (data, type, full) {
+                            var paymentOption = '';
+                            if (data != null) {
+                                paymentOption = data.type + '(' + data.fields.email + ')';
+                            }
+
+                            return paymentOption;
+                        }
+                    },
+                    { 'data': 'currency.code', 'defaultContent': '' },
+                    {
+                        'name': 'amount',
+                        'data': 'customer_amount',
+                        'defaultContent': '',
+                        'render': function (data, type, full) {
+                            if (full.type_text === Global.transaction.reversed.withdraw) {
+                                var amount = new Number(data);
+                                var fee = new Number(full.customer_fee);
+                                amount += fee;
+                                
+                                return amount.toFixed(2);
+                            } else if (full.type_text === 'bet') {
+                                var betAmount = new Number(full.amount);
+
+                                return betAmount.toFixed(2);
+                            }
+
+                            return (new Decimal(data)).toFixed(2);
+                        }
+                    },
+                    {
+                        'data': 'status',
+                        'defaultContent': '',
+                        'name': 'status',
+                        'render': function(data, type, full) {
+                            if (full.is_voided) {
+                                return "{{ "voided"|trans({}, "TransactionBundle") }}";
+                            }
+
+                            return data.label;
+                        }
+                    },
+                    {
+                        'data': 'type_text',
+                        'name': 'type',
+                        'defaultContent': '',
+                        'render': function(data, text, full) {
+                            var typeText = {
+                                'deposit': "{{ "types.deposit"|trans({}, "TransactionBundle") }}",
+                                'withdraw': "{{ "types.withdraw"|trans({}, "TransactionBundle") }}",
+                                'transfer': "{{ "types.transfer"|trans({}, "TransactionBundle") }}",
+                                'bonus': "{{ "types.bonus"|trans({}, "TransactionBundle") }}",
+                                'p2p_transfer': "{{ "types.p2p_transfer"|trans({}, "TransactionBundle") }}",
+                                'dwl': "{{ "types.dwl"|trans({}, "TransactionBundle") }}",
+                                'bet': "{{ "types.bet"|trans({}, "TransactionBundle") }}"
+                            };
+
+                            if (data === 'dwl') {
+                                if (typeof full.dwl != 'undefined') {
+                                    return typeText[data] + ' - ' + moment(full.dwl.date).format('MMM D, YYYY');
+                                }
+                            }
+
+                            return typeText[data];
+                        }
+                    }
+                ]
+            });
+
+            $('#customerTransactionList').on('ztable.change.column.visible', function (e, colvis, ztable) {
+                saveUserPreferences({'ui.customertransaction.list.column.visibility': ztable.getColumnVisibility()});
+            });
+        });
+    </script>
+{% endblock %}
+{% block _CustomerProduct_product_javascript %}
+    {% set view = view|default(false) %}
+    <script type="text/javascript">
+        $(function() {
+            $('#{{ id }}').select2({
+                'data': "",
+                'allowClear': true,
+                'ajax': {
+                    'data': function(params) {
+                        var page = params.page || 1;
+                        var length = $(this).data('length');
+                        var start = (page - 1) * length;
+                        return {
+                            'idColumn': $('#{{ id }}').data('id-column'),
+                            'select2': 1,
+                            'search': params.term,
+                            'length': length,
+                            'start': start
+                        };
+                    },
+                    'processResults': function(data, page) {
+                        return {
+                            'results': data.items,
+                            'pagination': {
+                                'more': (page * $(this).data('length')) < data.recordsFiltered
+                            }
+                        };
+                    }
+                },
+                'templateResult': function(data) {
+                    if (window[$('#{{ id }}').data('useTemplateResult')]) {
+                        return window[$('#{{ id }}').data('useTemplateResult')](data);
+                    }
+                    if (data.id === null || data.id === '' || !data.id) {
+                        return data.text;
+                    }
+                    var text = "{text}";
+
+                    for (var col in data) {
+                        var regex = new RegExp('\{' + col + '\}','g');
+                        text = text.replace(regex, data[col]);
+                    }
+                    if (data.details !== undefined) {
+                        if (data.details.betadmin !== undefined) {
+                            if (data.details.betadmin.tosync) {
+                                text += ' (Betadmin)';
+                            }
+                        }
+                    }
+
+                    return text;
+                },
+                'templateSelection': function(data, container) {
+                    if (window[$('#{{ id }}').data('useTemplateSelection')]) {
+                        return window[$('#{{ id }}').data('useTemplateSelection')](data, container);
+                    }
+                    if (data.id === null || data.id === '' || !data.id) {
+                        return data.text;
+                    }
+                    var text = "{text}";
+                    for (var col in data) {
+                        var regex = new RegExp('\{' + col + '\}','g');
+                        text = text.replace(regex, data[col]);
+                    }
+                    if (data.details !== undefined) {
+                        if (data.details.betadmin !== undefined) {
+                            if (data.details.betadmin.tosync) {
+                                text += ' (Betadmin)';
+                            }
+                        }
+                    }
+
+                    return text;
+                },
+                'placeholder': {
+                    'id': null,
+                    'text': "Select an option"
+                },
+                'escapeMarkup': function(markup) {
+                    return markup;
+                }
+            });
+
+            var defaultData = [];
+
+            {% for item in value %}
+                defaultData.push('{{ item.id }}');
+            {% endfor %}
+
+            $('#{{ id }}').val(defaultData).trigger('change');
+
+            {% if view %}
+            $('#{{ id }}').select2("enable",false);
+            $($('#{{ id }}').data('select2').$container).find('.select2-selection').css({'background-color': "rgba(0,0,0,0)"});
+            {% endif %}
+
+            $('#{{ id }}').on('change', function() {
+                if ($('#select2-{{ id }}-container:contains("(Betadmin)")').text()) {
+                    $('#CustomerProduct_brokerageSyncId').show();
+                    $('#CustomerProduct_brokerageSyncId').next(".select2-container").show();
+                    $('label[for="CustomerProduct_brokerageSyncId"]').show();
+                    $('#betAdminBalanceSpan').show();
+                } else {
+                    $('#CustomerProduct_brokerageSyncId').next(".select2-container").hide();
+                    $('#betAdminBalanceSpan').hide();
+                    $('#CustomerProduct').find('.col-sm-12 .form-group').removeClass('has-error');
+                    $('#CustomerProduct').find('.col-sm-12 .form-group .help-block ul').html('');
+                    $('#CustomerProduct_brokerageSyncId').hide();
+                    $('label[for="CustomerProduct_brokerageSyncId"]').hide();
+                    $('#CustomerProduct_brokerageSyncId').html('');
+                    $('#CustomerProduct_brokerageFirstName').val('');
+                    $('#CustomerProduct_brokerageLastName').val('');
+                    $('#betAdminBalanceSpan').hide();
+                }
+            })
+        });
+    </script>
+{% endblock _CustomerProduct_product_javascript %}
+{% block _CustomerProduct_brokerageSyncId_javascript %}
+    {% set view = view|default(false) %}
+    <script type="text/javascript">
+        $(function() {
+            $('#{{ id }}').select2({
+                'data': {{ value|json_encode()|raw }},
+                'allowClear': true,
+                'ajax': {
+                    'data': function(params) {
+                        var page = params.page || 1;
+                        var length = $(this).data('length');
+                        var start = (page - 1) * length;
+                        return {
+                            'idColumn': $('#{{ id }}').data('id-column'),
+                            'select2': 1,
+                            'search': params.term,
+                            'length': length,
+                            'start': start
+                        };
+                    },
+                    'processResults': function(data, page) {
+                        return {
+                            'results': data.data,
+                            'pagination': {
+                                'more': (page * $(this).data('length')) < data.recordsFiltered
+                            }
+                        };
+                    }
+                },
+                'templateResult': function(data) {
+                    var text = data.text;
+
+                    if (data.id === null || data.id === '' || !data.id) {
+                        return null;
+                    }
+
+                    if (data.firstname !== undefined) {
+                        text = data.firstname + ' ' + data.lastname;
+                    }
+
+                    return text;
+                },
+                'templateSelection': function(data, container) {
+
+                    var text = data.text;
+                    if (window[$('#{{ id }}').data('useTemplateSelection')]) {
+                        return window[$('#{{ id }}').data('useTemplateSelection')](data, container);
+                    }
+
+                    if (data.id === null || data.id === '' || !data.id) {
+                        return null;
+                    }
+
+                    if (data.firstname !== undefined) {
+                        text = data.firstname + ' ' + data.lastname
+                    }
+
+                    return text;
+                },
+                'placeholder': {
+                    'id': null,
+                    'text': "{{ placeholder|trans({}, translation_domain) }}vccv"
+                },
+                'escapeMarkup': function(markup) {
+                    return markup;
+                }
+            });
+
+            var defaultData = [];
+
+            {% for item in value %}
+                defaultData.push('{{ item.id }}');
+            {% endfor %}
+
+            $('#{{ id }}').val(defaultData).trigger('change');
+
+            {% if view %}
+            $('#{{ id }}').select2("enable",false);
+            $($('#{{ id }}').data('select2').$container).find('.select2-selection').css({'background-color': "rgba(0,0,0,0)"});
+            {% endif %}
+
+            $('#{{ id }}').on('change', function() {
+
+                var fullName = ($('#select2-{{ id }}-container').text()).substr(1).split(' ');
+                if (fullName[2] !== undefined) {
+                    if (fullName[3] !== undefined) {
+                        $('#CustomerProduct_brokerageFirstName').val(fullName[0] + ' ' + fullName[1]);
+                        $('#CustomerProduct_brokerageLastName').val(fullName[2] + ' ' + fullName[3]);
+                    } else {
+                        $('#CustomerProduct_brokerageFirstName').val(fullName[0] + ' ' + fullName[1]);
+                        $('#CustomerProduct_brokerageLastName').val(fullName[2]);
+                    }
+                } else {
+                    $('#CustomerProduct_brokerageFirstName').val(fullName[0]);
+                    $('#CustomerProduct_brokerageLastName').val(fullName[1]);
+                }
+            })
+
+            {% if view %}
+            $('#{{ id }}').select2("enable",false);
+            $($('#{{ id }}').data('select2').$container).find('.select2-selection').css({'background-color': "rgba(0,0,0,0)"});
+            {% endif %}
+        });
+    </script>
+{% endblock _CustomerProduct_brokerageSyncId_javascript %}
+
+{% block paymentOptionTemplates %}
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+    <xsl:output method="xml"/>
+    <xsl:template match="items">
+        <div class="payment-list row">
+        </div>
+    </xsl:template>
+    <xsl:template match="item">
+        {% for paymentOption in paymentOptions %}
+            <xsl:if test="type = '{{ paymentOption.code }}'">
+            <div class="card-box p-5 payment-item" id="paymentOption_{{ paymentOption.code }}">
+                <div class="row">
+                    <div class="col-md-3 payment-img-col">
+                        <div class='payment-img'>
+                            {% if paymentOption.image == '' %}
+                                <i class='fa fa-credit-card-alt fa-5x'></i>
+                            {% else %}
+                            <img src="{{ path('app.render_file', {'fileName': paymentOption.image})|raw }}" class='paymentOptionImage'/>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-9 payment-info">
+                        <div class="text-muted m-b-5 text-center"><b>{{ paymentOption.name }}</b></div>
+                        {% set i = 0 %}
+                        {% for field in paymentOption.fields %}
+                            {% if i < 3 %}
+                            <div class="row">
+                                <div class="col-md-4 text-right"><b class="text-muted">{{ field.label }}:</b></div>
+                                <div class='col-md-8'><xsl:value-of select="fields/{{ field.code }}"/></div>
+                            </div>
+                            {% endif %}
+                            {% set i = i+1 %}
+                        {% endfor %}
+                        <div class='row'>
+                            <div class="col-md-4 text-right"><b class="text-muted">Active:</b></div>
+                            <div class='col-md-8'>
+                                <xsl:choose>
+                                    <xsl:when test="is_active = 'true'">
+                                        <i class='fa fa-check text-success'></i>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <i class='fa fa-close text-danger'></i>
+                                    </xsl:otherwise>
+                                </xsl:choose>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </xsl:if>
+        {% endfor %}
+    </xsl:template>
+</xsl:stylesheet>
+{% endblock paymentOptionTemplates %}

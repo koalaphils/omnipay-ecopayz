@@ -1,0 +1,38 @@
+DbBundle\Entity\Notice:
+    properties:
+        title:
+            - NotBlank:
+                groups: ['default']
+            - Regex:
+                pattern: '/^[A-Za-z0-9\s\P{Han}]*$/u'
+                match: true
+                message: title.regex
+                groups: ['default']
+            - Length:
+                min: 4
+                max: 64
+                minMessage: title.min
+                maxMessage: title.max
+                groups: ['default']
+        description:
+            - NotBlank:
+                groups: ['default']
+        type:
+            - NotBlank:
+                groups: ['default']
+            - Choice:
+                callback: getTypes
+                message: type.choice
+                groups: ['default']
+        startAt:
+            - NotBlank:
+                groups: ['default']
+            - DateTime:
+                message: startAt.datetime
+                groups: ['default']
+        endAt:
+            - NotBlank:
+                groups: ['default']
+            - DateTime:
+                message: endAt.datetime
+                groups: ['default']

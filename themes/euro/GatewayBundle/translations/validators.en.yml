@@ -1,0 +1,8 @@
+gateway:
+    name:
+        min: Gateway name must be at least {{ limit }} characters long
+        max: Gateway name cannot be longer than {{ limit }} chatacters
+        #regex: Gateway name has invalid characters, Only accepts Letters and space
+        regex: Gateway name has invalid characters, Valid characters (Letter, Number and Internationalize Characters)
+    balance:
+        type: Balance must be numeric

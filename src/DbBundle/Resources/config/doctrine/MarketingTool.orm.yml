@@ -1,0 +1,57 @@
+DbBundle\Entity\MarketingTool:
+    type: entity
+    table: marketing_tool
+    repositoryClass: DbBundle\Repository\MarketingToolRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: marketing_tool_id
+            options:
+                unsigned: true
+    fields:
+        affiliateLink:
+            type: string
+            nullable: false
+            column: marketing_tool_affiliate_link
+        promoCode:
+            type: string
+            nullable: flase
+            column: marketing_tool_promo_code
+            options:
+                default: ''
+        resourceId:
+            type: string
+            nullable: false
+            column: marketing_tool_resource_id
+        version:
+            type: integer
+            nullable: false
+            column: marketing_tool_version
+            options:
+                unsigned: true
+                default: 1
+        isLatest:
+            type: boolean
+            column: marketing_tool_is_latest
+            nullable: false
+            options:
+                default: 1
+                unsigned: true
+        createdBy:
+            type: bigint
+            column: marketing_tool_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: marketing_tool_created_at
+            nullable: false
+    manyToOne:
+        member:
+            targetEntity: DbBundle\Entity\Customer
+            joinColumn:
+                name: marketing_tool_member_id
+                referencedColumnName: customer_id

@@ -1,0 +1,49 @@
+imports:
+    - { resource: widgets.yml }
+services:
+    customer.manager:
+        class: CustomerBundle\Manager\CustomerManager
+        parent: app.base_manager
+
+    customerproduct.manager:
+        class: CustomerBundle\Manager\CustomerProductManager
+        parent: app.base_manager
+
+    customer.group_manager:
+        class: CustomerBundle\Manager\CustomerGroupManager
+        parent: app.base_manager
+    customer.payment_option_manager:
+        class: CustomerBundle\Manager\CustomerPaymentOptionManager
+        parent: app.base_manager
+
+    # form types
+    customer.form_type.customer:
+        class: CustomerBundle\Form\CustomerType
+        arguments: [ "@doctrine", "@router", "@app.setting_manager", "@translator" ]
+        tags:
+            - { name: form.type }
+    customer.form_type.customer_product:
+        class: CustomerBundle\Form\CustomerProductType
+        arguments:
+            - "@doctrine"
+            - "@router"
+        tags:
+            - { name: form.type }
+    customer.form_type.payment:
+        class: CustomerBundle\Form\PaymentType
+        arguments: ["@app.setting_manager", "@doctrine"]
+        tags:
+            - { name: form.type }
+    customer.form_type.customer_group_gateway:
+        class: CustomerBundle\Form\CustomerGroup\CustomerGroupGatewayType
+        arguments: [ "@doctrine" ]
+        tags:
+            - { name: form.type }
+
+    customer.riskSettingService:
+        class: CustomerBundle\Manager\RiskSettingService
+        parent: app.base_manager
+
+    CustomerBundle\Form\ProductRiskSettingType:
+        arguments: ['@doctrine.orm.entity_manager']
+        tags: [form.type]

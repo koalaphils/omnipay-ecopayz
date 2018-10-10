@@ -1,0 +1,53 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}{{ "page.title.update"|trans({'%code%':product.code},"ProductBundle") }}{% endblock %}
+
+{% block stylesheet_plugins %}
+    {{ form_assetcss(form) }}
+{% endblock %}
+
+{% block javascript_plugins %}
+    {{ form_assetjs(form) }}
+{% endblock %}
+
+{% block pageTitle -%} {{ "page.Update Product"|trans({},"ProductBundle") }} {%- endblock pageTitle %}
+
+{% block breadcrumb -%}
+<li>{{ "breadcrumb.finance"|trans({},"AppBundle") }}</li>
+<li><a href="{{ path("product.list_page") }}">{{ "Product List"|trans({},"ProductBundle") }}</a></li>
+<li>{{ "Update Product"|trans({},"ProductBundle") }}</li>
+{%- endblock breadcrumb %}
+
+{% block pageHeaderExtra %}
+<div class="pull-right">
+    {% if is_granted('ROLE_PRODUCT_VIEW') %}
+    <a class="btn btn-inverse waves-effect waves-light pull-right m-b-10" href="{{ path("product.list_page") }}">
+        <i class="ti-arrow-left m-r-5 cls-icn-plus"></i> {{ "Back to Product List"|trans({}, 'ProductBundle') }}
+    </a>
+    {% endif %}
+    <ul class="list-inline quicklinks font-13 font-normal text-right">
+        <li>Quick Links:</li>
+        {% if is_granted('ROLE_CURRENCY_VIEW') %}
+        <li><a href="{{ path("currency.list_page") }}">Currency</a></li>|
+        {% endif %}
+        {% if is_granted('ROLE_GATEWAY_VIEW') %}
+        <li><a href="{{ path("gateway.list_page") }}">Gateway</a></li>|
+        {% endif %}
+        {% if is_granted('ROLE_DWL_VIEW') %}
+        <li><a href="{{ path("dwl.list_page") }}">Daily Win/Loss</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock pageHeaderExtra %}
+
+{% block page %}
+    <div class="col-sm-12">
+        <div class="card-box">
+            {% include "ProductBundle:Form:product-form.html.twig" %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ form_javascript(form) }}
+{% endblock %}

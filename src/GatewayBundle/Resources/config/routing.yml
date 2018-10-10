@@ -1,0 +1,37 @@
+gateway.list_page:
+    path:       /
+    defaults: { _controller: GatewayBundle:Default:index }
+
+gateway.list_search:
+    path:       /search
+    defaults:   { _controller: GatewayBundle:Default:search }
+    condition:  "request.isXMLHttpRequest()"
+    
+gateway.find_by_level:
+    path:       /search/{level}
+    defaults:   { _controller: GatewayBundle:Default:findByLevel }
+    
+gateway.create_page:
+    path:       /create
+    defaults:   { _controller: GatewayBundle:Default:create }
+    
+gateway.view_page:
+    path:     /view/{id}
+    defaults: { _controller: GatewayBundle:Default:view }
+    
+gateway.update_page:
+    path:     /update/{id}
+    defaults: { _controller: GatewayBundle:Default:update }
+    
+gateway.save:
+    path:       /save/{id}
+    defaults:   {_controller: GatewayBundle:Default:save, id: new }
+    condition:  "context.getMethod() in ['POST']"
+    
+gateway.enable:
+    path:       /{id}/enable
+    defaults:   { _controller: GatewayBundle:Default:enable }
+
+gateway.suspend:
+    path:       /{id}/suspend
+    defaults:   { _controller: GatewayBundle:Default:suspend }

@@ -1,0 +1,17 @@
+DbBundle\Entity\MemberCommission:
+    exclusion_policy: ALL
+    properties:
+        resourceId:
+            expose: true
+        product:
+            expose: true
+        commission:
+            expose: true
+        member:
+            expose: true
+        createdAt:
+            expose: true
+            type: DateTime<'Y-m-d H:i:s'>
+        status:
+            expose: true
+            type: boolean

@@ -1,0 +1,18 @@
+<script type="text/javascript">
+    var _paq = _paq || [];
+    _paq.push(['trackPageView']);
+    _paq.push(['enableLinkTracking']);
+    _paq.push(['trackVisibleContentImpressions']);
+    (function() {
+        var u="https://tracker.ac66.com/";
+        _paq.push(['setTrackerUrl', u+'piwik.php']);
+        _paq.push(['setSiteId', {{ siteId }}]);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+    })();
+</script>
+<noscript><p><img src="https://tracker.ac66.com/piwik.php?idsite={{ siteId }}" style="border:0;" alt="" /></p></noscript>
+
+<a href="{{ referralLink }}" onclick="window.open(this.href); return false;" data-content-name="{{ trackingCode }}" class="piwikTrackContent" data-track-content>
+    <img src="https://tracker.ac66.com/banners/{{ filename }}" alt="asianconnect88" class="piwikContentPiece" data-content-piece="{{ trackingCode ~ '-' ~ dimension }}">
+</a>

@@ -1,0 +1,12 @@
+gateway_log.list_page:
+    path:     /
+    defaults: { _controller: GatewayTransactionBundle:GatewayLog:index }
+
+gateway_log.list_search:
+    path:     /search
+    defaults: { _controller: GatewayTransactionBundle:GatewayLog:search }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()"
+
+gateway_log.redirect_page:
+    path:       /{id}
+    defaults:   { _controller: GatewayTransactionBundle:GatewayLog:redirect }

@@ -1,0 +1,54 @@
+DbBundle\Entity\CustomerGroup:
+    type: entity
+    table: customer_group
+    repositoryClass: DbBundle\Repository\CustomerGroupRepository
+    id:
+        id:
+            type: integer
+            id: true
+            generator:
+                strategy: AUTO
+            options:
+                unsigned: true
+            column: customer_group_id
+    fields:
+        name:
+            type: string
+            unique: true
+            length: 64
+            column: customer_group_name
+        isDefault:
+            type: boolean
+            column: customer_is_default
+            options:
+                default: true     
+        createdBy:
+            type: bigint
+            column: customer_group_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: customer_group_created_at
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: customer_group_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            column: customer_group_updated_at
+            nullable: true
+    oneToMany:
+        gateways:
+            targetEntity: DbBundle\Entity\CustomerGroupGateway
+            mappedBy: customerGroup
+            cascade: ['persist']
+            fetch: LAZY
+    manyToMany:
+        customers:
+            targetEntity: DbBundle\Entity\Customer
+            mappedBy: groups
+        
+    lifecycleCallbacks: {  }

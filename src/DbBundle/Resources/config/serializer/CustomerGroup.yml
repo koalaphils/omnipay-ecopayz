@@ -1,0 +1,11 @@
+DbBundle\Entity\CustomerGroup:
+    exclusion_policy: ALL
+    properties:
+        name:
+            expose: true
+        conditions:
+            expose: true
+        gateways:
+            groups: ['gateways']
+        customers:
+            groups: ['customers']

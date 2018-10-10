@@ -1,0 +1,291 @@
+<script type="text/javascript">
+    var Global = new function () {
+        this.dateFormat = phpjs_dateFormat("{{ setting('dateFormat')|e("js") }}");
+        this.dateTimeFormat = phpjs_dateFormat("{{ setting('dateTimeFormat')|e("js") }}");
+        this.dummyTransactionUrl = "{{ path('transaction.update_page', {'type': '__type__', 'id': '__id__' }) }}";
+        this.dummyCustomerProfileUrl = "{{ path('member.update_page', {'id': '__id__', 'activeTab': '__activeTab__' }) }}";
+        this.links = {
+            user: {
+                'preferences_save': '{{ path('user.preferences_save') }}'
+            }
+        };
+        this.transaction = {
+            'type': {
+                'deposit': {{ constant('DbBundle\\Entity\\Transaction::TRANSACTION_TYPE_DEPOSIT') }},
+                'withdraw': {{ constant('DbBundle\\Entity\\Transaction::TRANSACTION_TYPE_WITHDRAW') }},
+                'transfer': {{ constant('DbBundle\\Entity\\Transaction::TRANSACTION_TYPE_TRANSFER') }},
+                'p2ptransfer': {{ constant('DbBundle\\Entity\\Transaction::TRANSACTION_TYPE_P2P_TRANSFER') }},
+                'dwl': {{ constant('DbBundle\\Entity\\Transaction::TRANSACTION_TYPE_DWL') }}
+            },
+            'reversed': {
+                'deposit': 'deposit',
+                'withdraw': 'withdraw',
+                'transfer': 'transfer',
+                'p2ptransfer': 'p2p_transfer',
+                'dwl': 'dwl'
+            }
+        };
+        this.dwl = {
+            'status_groups': ['uploaded', 'uploading', 'submiting', 'submited'],
+            'status': {
+                'uploaded': {'value': {{ constant('DbBundle\\Entity\\DWL::DWL_STATUS_UPLOADED') }}, 'group': 'uploading'},
+                'processing': {'value': {{ constant('DbBundle\\Entity\\DWL::DWL_STATUS_PROCESSING') }}, 'group': 'uploading'},
+                'processed': {'value': {{ constant('DbBundle\\Entity\\DWL::DWL_STATUS_PROCESSED') }}, 'group': 'uploaded'},
+                'submited': {'value': {{ constant('DbBundle\\Entity\\DWL::DWL_STATUS_SUBMITED') }}, 'group': 'submiting'},
+                'transacting': {'value': {{ constant('DbBundle\\Entity\\DWL::DWL_STATUS_TRANSACTING') }}, 'group': 'submiting'},
+                'completed': {'value': {{ constant('DbBundle\\Entity\\DWL::DWL_STATUS_COMPLETED') }}, 'group': 'submited'}
+            }
+        };
+        this.variables = {
+            'indexNotFound': -1
+        };
+        this.customer = {
+            'kyc' : {
+                'verified': {'value' : 1},
+                'unverified':{'value' : 0}
+            },
+            'status' : {
+                'enabled' : {'value' : 'enabled'},
+                'registered' : {'value' : 'registered'},
+                'suspended' : {'value' : 'suspended'}
+            }
+        };
+        this.gateway = {
+            'status' : {
+                'enabled' : {'value' : 1},
+                'suspended' : {'value' : 0}
+            },
+            'type' : {
+                'deposit' : { 'value' : {{ constant('DbBundle\\Entity\\GatewayTransaction::GATEWAY_TRANSACTION_TYPE_DEPOSIT') }} },
+                'withdraw' : { 'value' : {{ constant('DbBundle\\Entity\\GatewayTransaction::GATEWAY_TRANSACTION_TYPE_WITHDRAW') }} },
+                'transfer' : {'value' : {{ constant('DbBundle\\Entity\\GatewayTransaction::GATEWAY_TRANSACTION_TYPE_TRANSFER') }} }
+            },
+            'transaction_status': {
+                'pending' : { 'value' : {{ constant('DbBundle\\Entity\\GatewayTransaction::GATEWAY_TRANSACTION_STATUS_PENDING') }} },
+                'approved' : { 'value' : {{ constant('DbBundle\\Entity\\GatewayTransaction::GATEWAY_TRANSACTION_STATUS_APPROVED') }} },
+                'voided' : { 'value' : {{ constant('DbBundle\\Entity\\GatewayTransaction::GATEWAY_TRANSACTION_STATUS_VOIDED') }} }
+            }
+        };
+        this.user = {
+            'status' : {
+                'active' : {'value' : 1},
+                'suspended' : {'value' : 0}
+            }
+        };
+        this.audit = {
+            'operations' : {
+                'create': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::OPERATION_CREATE') }} },
+                'update': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::OPERATION_UPDATE') }} },
+                'delete': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::OPERATION_DELETE') }} },
+                'login': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::OPERATION_LOGIN') }} },
+                'logout': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::OPERATION_LOGOUT') }} }
+            },
+             'categories' : {
+                'bonus': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_BONUS') }} },
+                'country': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_COUNTRY') }} },
+                'currency': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CURRENCY') }} },
+                'customer': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER') }} },
+                'customerGroup': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_GROUP') }} },
+                'dwl': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_DWL') }} },
+                'gateway': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_GATEWAY') }} },
+                'gatewayTransaction': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_GATEWAY_TRANSACTION') }} },
+                'notice': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_NOTICE') }} },
+                'paymentOption': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_PAYMENT_OPTION') }} },
+                'product': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_PRODUCT') }} },
+                'deposit': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_DEPOSIT') }} },
+                'user': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_USER') }} },
+                'userGroup': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_USER_GROUP') }} },
+                'login': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_LOGIN') }} },
+                'logout': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_LOGOUT') }} },
+                'customerProduct': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_PRODUCT') }} },
+                'customerPaymentOption': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_PAYMENT_OPTION') }} },
+                'withdrawal': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_WITHDRAWAL') }} },
+                'transfer': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_TRANSFER') }} },
+                'p2pTransfer': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_P2P_TRANSFER') }} },
+                'cDwl': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_DWL') }} },
+                'bet': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_BET') }} },
+                'transactionBonus': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_BONUS') }} }
+            }
+        };
+        this.commmission = {
+            'status' : {
+                'successfulComputation': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION') }},
+                'successfulPayout': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT') }}
+            }
+        };
+    };
+
+    Decimal.set({ precision: 65, rounding: Decimal.ROUND_DOWN });
+
+    var TransactionCounter = new function () {
+        var statuses = {{ setting('transaction.status', true)|raw('js') }};
+        var sortedStatuses = [];
+
+        this.init = function()
+        {
+            generateStatusTree(1);
+            getCurrentTransactionCount();
+        }
+
+        function generateStatusTree(status)
+        {
+            if (sortedStatuses.indexOf(status) === -1) {
+                sortedStatuses.push(status);
+            }
+            if (typeof statuses[status].actions != 'undefined') {
+                var tree = [];
+                for (var i in statuses[status].actions) {
+                    tree.push(generateStatusTree(statuses[status].actions[i].status));
+                }
+            } else {
+                var tree = status;
+            }
+
+            return tree;
+        }
+
+        function getCurrentTransactionCount()
+        {
+            $.ajax({
+                'url': '{{ path('transaction.count_status') }}',
+                'beforeSend': function (xhr, ) {
+                    for (var i in sortedStatuses) {
+                        var status = statuses[sortedStatuses[i]];
+                        generateStatus(sortedStatuses[i], status.label, '<i class="fa fa-spinner fa-spin"></i>');
+                    }
+                    generateStatus('voided', 'Voided', '<i class="fa fa-spinner fa-spin"></i>');
+                },
+                'success': function (data) {
+                    for (var i in sortedStatuses) {
+                        var status = statuses[sortedStatuses[i]];
+                        generateStatus(sortedStatuses[i], status.label, data["status_" + sortedStatuses[i]]);
+                    }
+
+                    generateStatus('voided', 'Voided', data["status_voided"]);
+                }
+            });
+        }
+
+        function generateStatus(id, label, counter) {
+            var template = '<li class="status-counter"><a href="#" class="waves-effect waves-light">'
+                + '<span class="status-process" data-key="label"></span>:&nbsp;'
+                + '<strong class="status-process" data-key="counter">0</strong></a></li>';
+
+            var statusElem = document.getElementById('statusCounter_' + id);
+            if (statusElem === null) {
+                statusElem = $(template);
+                $('#statusLabel').append(statusElem);
+            } else {
+                statusElem = $(statusElem);
+            }
+            statusElem.find('[data-key="label"]').html(label);
+            statusElem.find('[data-key="counter"]').html(counter);
+            statusElem.attr('id', 'statusCounter_' + id);
+        }
+    }
+
+    var Notification = new function () {
+        this.getNotificationListCount = function () {
+            var notification = this;
+            $.ajax({
+                'url': '{{ path('app.notification.list') }}',
+                'success': function (data) {
+                    notification.iterateDataNotification(data);
+                }
+            });
+        }
+
+        this.iterateDataNotification = function (data) {
+            var counter = 0;
+
+            for (var i in data.list) {
+
+                var creationDate = new Date(data.list[i].createdAt.date);
+                var lastRead = new Date(data.lastRead.date);
+                var notifStatus = 'read';
+                var icon = '<i class="icon-envelope-open"></i>';
+                var url = '';
+                var title = '';
+                var message = '';
+
+                if (creationDate > lastRead) {
+                    notifStatus = 'unread';
+                    icon = '<i class="ti-email"></i>';
+                    counter++;
+                }
+
+                if (data.list[i].notificationType === 'transaction') {
+                    switch (data.list[i].type) {
+                        case(Global.transaction.type.deposit):
+                            var transactionType = Global.transaction.reversed.deposit;
+                            break;
+                        case(Global.transaction.type.withdraw):
+                            var transactionType = Global.transaction.reversed.withdraw;
+                            break;
+                        case(Global.transaction.type.transfer):
+                            var transactionType = Global.transaction.reversed.transfer;
+                            break;
+                        case(Global.transaction.type.p2ptransfer):
+                            var transactionType = Global.transaction.reversed.p2ptransfer;
+                            break;
+                    }
+
+                    url = Global.dummyTransactionUrl.replace('/__type__', '/'+ transactionType).replace('/__id__', '/'+ data.list[i].id);
+                    title = transactionType +' TRANSACTION';
+                    message = data.list[i].number +' '+ transactionType +' was requested.';
+                } else if (data.list[i].notificationType === 'customer') {
+                    url = Global.dummyCustomerProfileUrl.replace('/__id__', '/'+ data.list[i].id).replace('/__activeTab__', '/profile');
+                    title = 'MEMBER CREATED';
+                    if (typeof data.list[i].fullName !== 'undefined' && data.list[i].fullName !== '') {
+                        message = data.list[i].fullName +' was created.';
+                    } else {
+                        message = data.list[i].fName + ' '+ data.list[i].lName +' was created.';
+                    }
+                }
+
+                var htmlContent = '<a href="'+ url +'" class="date-created list-group-item '+ notifStatus +'" data-date="'+ creationDate +'">'
+                    + '<div class="media"><div class="media-body">'
+                    + '<h5 class="media-heading">' + title.toUpperCase() +'</h5>'
+                    + '<p class="m-0"><small>'+ message +' '+ icon +'</small></p>'
+                    + '</div></div></a>';
+
+                $('li .notification-list').append(htmlContent);
+
+                if(counter) {
+                    $('.notification-counter').html(counter);
+                }
+
+                i++;
+            }
+        };
+    }
+
+    $(function() {
+        {% for flashNotification in app.session.flashbag.get('notifications') %}
+        notification(
+            '{{ flashNotification.title }}',
+            '{{ flashNotification.message }}',
+            '{{ flashNotification.type|default('custom') }}'
+        );
+        {% endfor %}
+
+        $(".ellipsis").dotdotdot({
+            'truncate': 'letter'
+        });
+
+        TransactionCounter.init();
+        Notification.getNotificationListCount();
+
+        $('#read-notification').on('click', function () {
+            $.ajax({
+                'url': '{{ path('app.notification.save_last_read') }}',
+                'success': function (data) {
+                    if (!data.error) {
+                        $('.notification-counter').html('');
+                        $('li .notification-list a').removeClass('date-created list-group-item unread').addClass('date-created list-group-item read');
+                    }
+                }
+            });
+        });
+    });
+</script>

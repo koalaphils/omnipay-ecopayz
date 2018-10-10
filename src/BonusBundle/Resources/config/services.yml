@@ -1,0 +1,4 @@
+services:
+    bonus.manager:
+        class: BonusBundle\Manager\BonusManager
+        parent: app.base_manager

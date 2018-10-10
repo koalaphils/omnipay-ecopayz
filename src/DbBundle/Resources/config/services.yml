@@ -1,0 +1,56 @@
+services:
+    # event listener
+    db.action_listener:
+        class: DbBundle\Listener\ActionListener
+        arguments: ["%kernel.environment%","@doctrine.orm.entity_manager"]
+        tags:
+            - { name: doctrine.event_listener, event: prePersist }
+            - { name: doctrine.event_listener, event: preUpdate }
+        calls:
+            - [ setTokenStorage, ['@security.token_storage'] ]
+    db.timestamp_listener:
+        class: DbBundle\Listener\TimestampListener
+        tags:
+            - { name: doctrine.event_listener, event: prePersist }
+            - { name: doctrine.event_listener, event: preUpdate }
+
+    db.gateway_listener:
+       class: DbBundle\Listener\GatewayListener
+       tags:
+            - { name: doctrine.event_listener, event: onFlush }
+            - { name: doctrine.event_listener, event: postPersist }
+            - { name: doctrine.event_listener, event: postUpdate }
+            - { name: doctrine.event_listener, event: postFlush }
+       calls:
+            - [ setGatewayLogManager, ['@gateway_log.manager'] ]
+            - [ setArrayHelper, ['@app.array_helper'] ]
+
+    db.audit_listener:
+        class: DbBundle\Listener\AuditListener
+        tags:
+            - { name: doctrine.event_listener, event: onFlush }
+            - { name: doctrine.event_listener, event: postPersist }
+            - { name: doctrine.event_listener, event: postFlush }
+            - { name: doctrine.event_listener, event: preRemove }
+        calls:
+            - [ setAuditManager, ['@audit.manager'] ]
+            - [ setArrayHelper, ['@app.array_helper'] ]
+
+    db.versionable_listener:
+        class: DbBundle\Listener\VersionableListener
+        arguments: ['@doctrine.orm.entity_manager']
+        tags:
+            - { name: kernel.event_subscriber }
+            
+    db.link_serializer:
+        class: DbBundle\Serializer\LinkSerializerSubscriber
+        arguments: [ '@router', '@request_stack', '@doctrine']
+        tags:
+            - { name: jms_serializer.event_subscriber }
+    db.transaction_serializer:
+        class: DbBundle\Serializer\TransactionSerializerSubscriber
+        arguments: [ '@app.setting_manager', '@doctrine.orm.entity_manager']
+        tags:
+            - { name: jms_serializer.event_subscriber }
+imports:
+    - { resource: data_transfers.yml }
