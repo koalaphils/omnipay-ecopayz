@@ -77,7 +77,7 @@ class MenuManager
 
             throw new \Exception("Menu $name was not available.", 1001);
         }
-
+        
         return $this->menu;
     }
 

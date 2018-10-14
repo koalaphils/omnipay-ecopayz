@@ -10,11 +10,11 @@
 # chcon -t httpd_sys_rw_content_t app/logs
 #
 #
-echo "============================================="
+echo "=========================================================================================="
 echo "                                       ";
-echo -e " Installing SUMMIT (BackOffice) for \e[1;32m $SYMFONY_ENV \e[0m environment ";
+echo -e " Installing PIWI (BackOffice) for \e[1;32m $SYMFONY_ENV \e[0m environment ";
 echo "                                       ";
-echo "============================================="
+echo "=========================================================================================="
 sleep 3;
 
 echo -e '';
@@ -52,4 +52,3 @@ echo -e '\e[1;32mInstalling Assets...\e[0m';
 php ./app/console assets:install;
 # Dump Assetics
 php ./app/console assetic:dump;
-
