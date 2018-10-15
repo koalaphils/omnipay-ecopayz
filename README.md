@@ -95,5 +95,5 @@ update later
 
 ## License
 ```
-update later
+update later.
 ```
