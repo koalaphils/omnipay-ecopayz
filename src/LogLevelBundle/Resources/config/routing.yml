@@ -1,3 +1,0 @@
-log_level_homepage:
-    path:     /
-    defaults: { _controller: LogLevelBundle:Default:index }

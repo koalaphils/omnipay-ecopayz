@@ -156,14 +156,6 @@ country:
     defaults:
         _locale: "%locale%"
 
-log_level:
-    resource: "@LogLevelBundle/Resources/config/routing.yml"
-    prefix:   /{_locale}/log-level
-    requirements:
-        _locale: "%app_locales%"
-    defaults:
-        _locale: "%locale%"
-
 currency:
     resource: "@CurrencyBundle/Resources/config/routing.yml"
     prefix:   /{_locale}/currency
@@ -235,3 +227,4 @@ root:
         path: ""
     requirements:
         path: .*
+
