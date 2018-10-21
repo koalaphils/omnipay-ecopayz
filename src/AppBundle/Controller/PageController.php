@@ -120,7 +120,7 @@ class PageController extends AbstractController
             } else {
                 $actionPart = explode('::', $part);
                 if (count($actionPart) == 2 && substr($actionPart[0], -10) === 'Controller') {
-                    $controllerName = strtolower(substr($actionPart[0], 0, count($actionPart[0]) - 11));
+                    $controllerName = strtolower(substr($actionPart[0], 0, strlen($actionPart[0]) - 11));
                 }
             }
         }
