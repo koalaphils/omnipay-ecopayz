@@ -336,27 +336,6 @@ class CustomerController extends AbstractController
      */
     public function customerRegisterAction(Request $request)
     {
-//        $path = $this->get('kernel')->getRootDir().'/a.json';
-//        $file = file_get_contents($path);
-//        $phoneArr = [];
-//        foreach(json_decode($file) as $item){
-//            $phoneArr[$item->code] = $item;
-//        }
-//        $countries =  $this->getDoctrine()->getRepository('DbBundle:Country')->findAll();
-//        $entityManager =
-//        foreach($countries as $country){
-//            $countryCode = $country->getCode();
-//
-//            $dial_code = $phoneArr[$countryCode]->dial_code;
-//
-//            $countryEntity = new Country();
-//            $countryEntity->setPhoneCode($dial_code);
-//            $countryEntity->persist();
-//            $countryEntity->flush();
-//
-//        }
-//        var_dump(1);
-//        die;
         $registeredCustomer = $request->request->get('register');
         $originUrl = $request->headers->get('Origin');
         $referrerUrl = $request->headers->get('Referrer');

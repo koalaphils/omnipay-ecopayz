@@ -45,7 +45,7 @@ DbBundle\Entity\Country:
         phoneCode:
             type: string
             length: '6'
-            column: phone_code
+            column: country_phone_code
     manyToOne:
         currency:
             targetEntity: DbBundle\Entity\Currency
