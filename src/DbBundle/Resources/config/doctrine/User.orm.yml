@@ -36,6 +36,10 @@ DbBundle\Entity\User:
             type: string
             length: 255
             column: user_email
+        phoneNumber:
+            type: string
+            length: 255
+            column: user_phone_number
         type:
             type: integer
             length: 1

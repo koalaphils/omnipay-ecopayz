@@ -2,6 +2,7 @@
 
 namespace ApiBundle\Controller;
 
+use DbBundle\Entity\Country;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use FOS\RestBundle\Context\Context;
 use FOS\RestBundle\Request\ParamFetcher;
@@ -328,24 +329,46 @@ class CustomerController extends AbstractController
     }
 
     /**
-    * @ApiDoc(
-    *  description="Register customer",
-    *  input="ApiBundle\Form\Customer\RegisterType"
-    * )
-    */
+     * @ApiDoc(
+     *  description="Register customer",
+     *  input="ApiBundle\Form\Customer\RegisterType"
+     * )
+     */
     public function customerRegisterAction(Request $request)
     {
+//        $path = $this->get('kernel')->getRootDir().'/a.json';
+//        $file = file_get_contents($path);
+//        $phoneArr = [];
+//        foreach(json_decode($file) as $item){
+//            $phoneArr[$item->code] = $item;
+//        }
+//        $countries =  $this->getDoctrine()->getRepository('DbBundle:Country')->findAll();
+//        $entityManager =
+//        foreach($countries as $country){
+//            $countryCode = $country->getCode();
+//
+//            $dial_code = $phoneArr[$countryCode]->dial_code;
+//
+//            $countryEntity = new Country();
+//            $countryEntity->setPhoneCode($dial_code);
+//            $countryEntity->persist();
+//            $countryEntity->flush();
+//
+//        }
+//        var_dump(1);
+//        die;
         $registeredCustomer = $request->request->get('register');
         $originUrl = $request->headers->get('Origin');
         $referrerUrl = $request->headers->get('Referrer');
         $locale = $request->attributes->get('_locale');
         $ipAddress = $request->getClientIp();
-        $form = $this->createForm(\ApiBundle\Form\Customer\RegisterType::class, null, ['allow_extra_fields' => true, ]);
+        $form = $this->createForm(\ApiBundle\Form\Customer\RegisterType::class, null, ['allow_extra_fields' => true,]);
         $form->submit($registeredCustomer);
+
         if ($form->isSubmitted() && $form->isValid()) {
             $registerModel = $form->getData();
-            $customer = $this->getCustomerManager()->handleRegister($registerModel, $originUrl, $locale, $ipAddress,$referrerUrl);
-            
+            $customer = $this->getCustomerManager()->handleRegister($registerModel, $originUrl, $locale, $ipAddress, $referrerUrl);
+
             return $this->view($customer, Response::HTTP_OK);
         }
 

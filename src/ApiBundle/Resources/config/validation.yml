@@ -150,102 +150,110 @@ ApiBundle\Model\AccountActivation:
                 minMessage: "Transaction password should be at least 6 characters."
                 min: 6
                 
-ApiBundle\Model\Register: 
+ApiBundle\Model\Register:
     properties:
         email:
-            - NotBlank: ~
+#            - NotBlank: ~
             - Email: ~
             - AppBundle\Validator\Constraints\Unique:
                 entityClass: DbBundle\Entity\User
                 select: " e.email "
                 expression: " e.email = :value0 "
                 requiredKey: [email]
-        firstName:
-            - NotBlank: ~
-            - Regex:
-                pattern: /^[a-zA-Z0-9 .\-']+$/
-                match:   true
-                message: First name is invalid.
-        middleInitial:
-            - Regex:
-                pattern: '/^[a-zA-Z]+$/'
-                match:   true
-                message: Middle initial is invalid.
-        lastName:
-            - NotBlank: ~
-            - Regex:
-                pattern: /^[a-zA-Z0-9 .\-']+$/
-                match:   true
-                message: Last name is invalid.
-        birthDate:
-            - NotBlank: ~
-            - Type:
-                type: \DateTime
-            - Date: ~
-            - GreaterThanOrEqual:
-                value: -100 years
-                message: Birth date is Invalid, you must below 100 years old to join!
-            - LessThanOrEqual:
-                value: -18 years
-                message: You must be at least 18+ years old to join!
-        country:
-            - NotBlank: ~
-            - Regex:
-                pattern: '/[A-Z]{2,}/'
-                match:   true
-                message: Country code must have two or more capital character.
-            - AppBundle\Validator\Constraints\Exists:
-                entityClass: DbBundle\Entity\Country
-                valuePath: value
-                column: code         
-        currency:
-            - NotBlank: ~
-            - Regex:
-                pattern: '/[A-Z]{2,}/'
-                match:   true
-                message: Currency code must have two or more capital character.
-            - AppBundle\Validator\Constraints\Exists:
-                entityClass: DbBundle\Entity\Currency
-                valuePath: value
-                column: code
-        depositMethod:
-            - NotBlank: ~
-            - Regex:
-                pattern: '/[A-Z]{2,}/'
-                match:   true
-                message: Deposit method code must have two or more capital character.
-            - AppBundle\Validator\Constraints\Exists:
-                entityClass: DbBundle\Entity\PaymentOption
-                valuePath: value
-                column: code
-        contact:
-            - NotBlank: ~
-            - Regex:
-                pattern: '/^\(?\+?(\d{3,6})\)?[-\. ]?(\d{3,7})[-\. ]?(\d{1,7})$/'
-                match:   true
-                message: Contact number is invalid.
-        affiliate:
-            - Regex:
-                pattern: '/^[\w\._\-]+$/'
-                match:   true
-                message: Affiliate name is invalid 
-        promo:
-            - Regex:
-                pattern: '/^[\w\._\-]+$/'
-                match:   true
-                message: Promo code is invalid 
-        bookies:
-            - Count:
-                min: 1
-                minMessage: "You must add one bookie"
-            #- AppBundle\Validator\Constraints\Unique:
-            #    entityClass: DbBundle\Entity\CustomerProduct
-            #    isJoinTable: true
-            #    entityClass2: DbBundle\Entity\Product
-            #    select: " e.userName, e2.code "
-            #    expression: "e.productID = e2.id AND e.userName IN (:value0) AND e2.code in (:value1) "
-            #    requiredKey: [userName, code]
-                
+
+        phoneNumber:
+        #            - NotBlank: ~
+        - AppBundle\Validator\Constraints\Unique:
+            entityClass: DbBundle\Entity\User
+            select: " e.phone_number "
+            expression: " e.phone_number = :value0 "
+            requiredKey: [phone_number]
+#        firstName:
+#            - NotBlank: ~
+#            - Regex:
+#                pattern: /^[a-zA-Z0-9 .\-']+$/
+#                match:   true
+#                message: First name is invalid.
+#        middleInitial:
+#            - Regex:
+#                pattern: '/^[a-zA-Z]+$/'
+#                match:   true
+#                message: Middle initial is invalid.
+#        lastName:
+#            - NotBlank: ~
+#            - Regex:
+#                pattern: /^[a-zA-Z0-9 .\-']+$/
+#                match:   true
+#                message: Last name is invalid.
+#        birthDate:
+#            - NotBlank: ~
+#            - Type:
+#                type: \DateTime
+#            - Date: ~
+#            - GreaterThanOrEqual:
+#                value: -100 years
+#                message: Birth date is Invalid, you must below 100 years old to join!
+#            - LessThanOrEqual:
+#                value: -18 years
+#                message: You must be at least 18+ years old to join!
+#        country:
+#            - NotBlank: ~
+#            - Regex:
+#                pattern: '/[A-Z]{2,}/'
+#                match:   true
+#                message: Country code must have two or more capital character.
+#            - AppBundle\Validator\Constraints\Exists:
+#                entityClass: DbBundle\Entity\Country
+#                valuePath: value
+#                column: code
+#        currency:
+#            - NotBlank: ~
+#            - Regex:
+#                pattern: '/[A-Z]{2,}/'
+#                match:   true
+#                message: Currency code must have two or more capital character.
+#            - AppBundle\Validator\Constraints\Exists:
+#                entityClass: DbBundle\Entity\Currency
+#                valuePath: value
+#                column: code
+#        depositMethod:
+#            - NotBlank: ~
+#            - Regex:
+#                pattern: '/[A-Z]{2,}/'
+#                match:   true
+#                message: Deposit method code must have two or more capital character.
+#            - AppBundle\Validator\Constraints\Exists:
+#                entityClass: DbBundle\Entity\PaymentOption
+#                valuePath: value
+#                column: code
+#        contact:
+#            - NotBlank: ~
+#            - Regex:
+#                pattern: '/^\(?\+?(\d{3,6})\)?[-\. ]?(\d{3,7})[-\. ]?(\d{1,7})$/'
+#                match:   true
+#                message: Contact number is invalid.
+#        affiliate:
+#            - Regex:
+#                pattern: '/^[\w\._\-]+$/'
+#                match:   true
+#                message: Affiliate name is invalid
+#        promo:
+#            - Regex:
+#                pattern: '/^[\w\._\-]+$/'
+#                match:   true
+#                message: Promo code is invalid
+#        bookies:
+#            - Count:
+#                min: 1
+#                minMessage: "You must add one bookie"
+#            #- AppBundle\Validator\Constraints\Unique:
+#            #    entityClass: DbBundle\Entity\CustomerProduct
+#            #    isJoinTable: true
+#            #    entityClass2: DbBundle\Entity\Product
+#            #    select: " e.userName, e2.code "
+#            #    expression: "e.productID = e2.id AND e.userName IN (:value0) AND e2.code in (:value1) "
+#            #    requiredKey: [userName, code]
+#
 ApiBundle\Model\Bookie:
     constraints:
         - AppBundle\Validator\Constraints\Unique:

@@ -47,6 +47,10 @@ DbBundle\Entity\Customer:
             groups: ['paymentOptions']
         tags:
             expose: true
+        pinUserCode:
+            groups: ['Default']
+        pinLoginId:
+            groups: ['Default']
     virtual_properties:
         hasConfirmReferrerTermsAndConditions:
             type: boolean

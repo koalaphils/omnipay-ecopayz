@@ -132,7 +132,6 @@ class RestSerializerSubscriber implements \JMS\Serializer\EventDispatcher\EventS
                 $resolvedParams[$key] = $currentRequest->attributes->get('_route_params')[$explodedParam[1]];
             }
         }
-
         return $resolvedParams;
     }
 

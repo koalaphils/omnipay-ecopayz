@@ -29,13 +29,15 @@ class Register
     private $banks;
     private $affiliate;
     private $promo;
+    private $phoneNumber;
+    private $password;
 
     public function __construct()
     {
         $this->setSocials([]);
         $this->setBookies([]);
         $this->setBanks([]);
-        $this->email = $this->firstName = $this->middleInitial = $this->lastName = $this->birthDate = $this->contact = $this->country = $this->currency = $this->affiliate = $this->promo = '';
+        $this->phoneNumber = $this->email = $this->firstName = $this->middleInitial = $this->lastName = $this->birthDate = $this->contact = $this->country = $this->currency = $this->affiliate = $this->promo = '';
     }
 
     public function setPromo($promo): self
@@ -74,6 +76,18 @@ class Register
         return $this->email;
     }
 
+    public function setPhoneNumber($phoneNumber): self
+    {
+        $this->phoneNumber = $phoneNumber;
+
+        return $this;
+    }
+
+    public function getPhoneNumber()
+    {
+        return $this->phoneNumber;
+    }
+
     public function setFirstName($fName): self
     {
         $this->firstName = $fName;
@@ -84,6 +98,18 @@ class Register
     public function getFirstName()
     {
         return $this->firstName;
+    }
+
+    public function setPassword($password): self
+    {
+        $this->password = $password;
+
+        return $this;
+    }
+
+    public function getPassword()
+    {
+        return $this->password;
     }
 
     public function setMiddleInitial($mName): self
@@ -163,9 +189,9 @@ class Register
     }
 
     /**
-    * Get birth date in string format
-    * @return string
-    */
+     * Get birth date in string format
+     * @return string
+     */
     public function getBirthDateString()
     {
         if ($this->birthDate) {

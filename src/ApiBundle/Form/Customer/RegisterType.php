@@ -21,6 +21,7 @@ class RegisterType extends AbstractType
             'format' => 'yyyy-MM-dd',
         ]);
         $builder->add('contact', Type\TextType::class);
+        $builder->add('phoneNumber', Type\TextType::class);
         $builder->add('country', Type\TextType::class);
         $builder->add('socials', Type\CollectionType::class, [
             'allow_add' => true,

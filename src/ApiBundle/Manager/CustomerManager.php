@@ -28,6 +28,7 @@ use ApiBundle\Event\CustomerCreatedEvent;
 use Firebase\JWT\JWT;
 use MemberBundle\Manager\MemberManager;
 
+
 /**
  * Description of CustomerManager
  *
@@ -46,34 +47,41 @@ class CustomerManager extends AbstractManager
 
     public function handleRegister(RegisterModel $registerModel, $originUrl, $locale, $ipAddress, $referrerUrl)
     {
-        $bank = $registerModel->getBanks();
-        $birthDate = $registerModel->getBirthDateString();
-        $socials = $registerModel->getSocials();
-        $bookies = $registerModel->getBookies();
+        $fakePinRes = json_decode('{"loginId" : "PS71100000","userCode" : "PS71100000"}');
+//        $bank = $registerModel->getBanks();
+//        $birthDate = $registerModel->getBirthDateString();
+//        $socials = $registerModel->getSocials();
+//        $bookies = $registerModel->getBookies();
         $email = trim($registerModel->getEmail());
-        $country = $registerModel->getCountry();
-        $currency = $registerModel->getCurrency();
-        $fName = $registerModel->getFirstName();
-        $mName = trim($registerModel->getMiddleInitial());
-        $lName = $registerModel->getLastName();
-        $contact = trim($registerModel->getContact());
-        $depositMethod = $registerModel->getDepositMethod();
-        $affiliate = trim($registerModel->getAffiliate());
-        $promo = trim($registerModel->getPromo());
+
+
+        $password = trim($registerModel->getPassword());
+//        $country = $registerModel->getCountry();
+//        $currency = $registerModel->getCurrency();
+//        $fName = $registerModel->getFirstName();
+//        $mName = trim($registerModel->getMiddleInitial());
+//        $lName = $registerModel->getLastName();
+//        $contact = trim($registerModel->getContact());
+//        $depositMethod = $registerModel->getDepositMethod();
+//        $affiliate = trim($registerModel->getAffiliate());
+//        $promo = trim($registerModel->getPromo());
+        $fName = $mName = $lName = 'default';
 
         $this->beginTransaction();
 
         $user = new User();
+//        $user->setUsername(uniqid(str_replace(' ', '', $fName . $lName) . '_'));
         $user->setUsername(uniqid(str_replace(' ', '', $fName . $lName) . '_'));
         $user->setEmail($email);
         $user->setType(User::USER_TYPE_MEMBER);
-        $user->setRoles(['ROLE_MEMBER' => 2, ]);
+        $user->setRoles(['ROLE_MEMBER' => 2,]);
+//        $user->setPhoneNumber($phoneNumber);
         $user->setPreferences([
             'locale' => $locale,
             'ipAddress' => $ipAddress,
             'referrer' => $referrerUrl,
             'originUrl' => $originUrl,
-            'affiliateCode' => $affiliate
+//            'affiliateCode' => $affiliate
         ]);
 
         $user->setActivationCode(
@@ -83,82 +91,83 @@ class CustomerManager extends AbstractManager
         $user->setZendeskId(null);
         $user->setIsActive(true);
         $user->setPassword(
-            $this->getUserManager()->encodePassword(
-                $user,
-                $this->getContainer()->getParameter('customer_temp_password')
-            )
+            $this->getUserManager()->encodePassword($user, $password)
         );
 
-        $countryEntity = $this->getCountryRepository()->findByCode($country);
-        $currencyEntity = $this->getCurrencyRepository()->findByCode($currency);
+//        $countryEntity = $this->getCountryRepository()->findByCode($country);
+//        $currencyEntity = $this->getCurrencyRepository()->findByCode($currency);
 
         $customer = new Customer();
         $customer->setUser($user);
-        $customer->setBirthDate(\DateTime::createFromFormat('Y-m-d', $birthDate));
-        $customer->setCountry($countryEntity);
-        $customer->setCurrency($currencyEntity);
+//        $customer->setBirthDate(\DateTime::createFromFormat('Y-m-d', $birthDate));
+//        $customer->setCountry($countryEntity);
+//        $customer->setCurrency($currencyEntity);
         $customer->setFName($fName);
         $customer->setMName($mName);
         $customer->setLName($lName);
-        $customer->setContacts([
-            [
-                'type' => 'mobile',
-                'value' =>  $contact,
-            ],
-        ]);
+        $customer->setFullName($fName . ' ' . $mName . ' ' . $lName);
+        $customer->setPinLoginId($fakePinRes->loginId);
+        $customer->setPinUserCode($fakePinRes->userCode);
+//        $customer->setContacts([
+//            [
+//                'type' => 'mobile',
+//                'value' => $contact,
+//            ],
+//        ]);
         $customer->setIsCustomer(true);
         $customer->setTransactionPassword();
         $customer->setLevel();
-        $customer->setSocials([
-            [
-                'type' => 'skype',
-                'value' => $socials['skype'],
-            ],
-        ]);
-        $customer->setDetails([
-            'affiliate'=> [
-                'name' => $affiliate,
-                'code' => $promo,
-            ],
-            'websocket' => [
-                'channel_id' => uniqid($customer->getId() . generate_code(10, false, 'ld')),
-            ],
-            'enabled' => false,
-        ]);
+//        $customer->setSocials([
+//            [
+//                'type' => 'skype',
+//                'value' => $socials['skype'],
+//            ],
+//        ]);
+//        $customer->setDetails([
+//            'affiliate' => [
+//                'name' => $affiliate,
+//                'code' => $promo,
+//            ],
+//            'websocket' => [
+//                'channel_id' => uniqid($customer->getId() . generate_code(10, false, 'ld')),
+//            ],
+//            'enabled' => false,
+//        ]);
         $customer->setBalance(0);
         $customer->setJoinedAt(new \DateTime('now'));
+        $customer->setPhoneNumber();
 
-        foreach ($bookies as $key => $id) {
-            $userName = $id->getUsername();
-            $productEntity = $this->getProductRepository()->findByCode($id->getCode());
-            $customerProduct = new CustomerProduct();
-            $customerProduct->setProduct($productEntity);
-            $customerProduct->setUsername(!is_null($userName) ? $userName : uniqid('tmp_' . str_replace(' ', '', $productEntity->getName()) . '_'));
-            $customerProduct->setBalance('0.00');
-            $customerProduct->setIsActive(true);
-            $customer->addProduct($customerProduct);
-        }
-
-        $paymentOption = $this->getPaymentOptionRepository()->find($depositMethod);
-        $customerPaymentOption = new CustomerPaymentOption();
-        $customerPaymentOption->setCustomer($customer);
-        $customerPaymentOption->setPaymentOption($paymentOption);
-        $customerPaymentOption->setFields([
-            [
-                'name' => $bank['name'],
-                'account' => $bank['account'],
-                'holder' => $bank['holder'],
-            ],
-        ]);
-        $customer->addPaymentOption($customerPaymentOption);
-        $defaultGroup = $this->getCustomerGroupRepository()->getDefaultGroup();
-        $customer->getGroups()->add($defaultGroup);
+//        foreach ($bookies as $key => $id) {
+//            $userName = $id->getUsername();
+//            $productEntity = $this->getProductRepository()->findByCode($id->getCode());
+//            $customerProduct = new CustomerProduct();
+//            $customerProduct->setProduct($productEntity);
+//            $customerProduct->setUsername(!is_null($userName) ? $userName : uniqid('tmp_' . str_replace(' ', '', $productEntity->getName()) . '_'));
+//            $customerProduct->setBalance('0.00');
+//            $customerProduct->setIsActive(true);
+//            $customer->addProduct($customerProduct);
+//        }
+//
+//        $paymentOption = $this->getPaymentOptionRepository()->find($depositMethod);
+//        $customerPaymentOption = new CustomerPaymentOption();
+//        $customerPaymentOption->setCustomer($customer);
+//        $customerPaymentOption->setPaymentOption($paymentOption);
+//        $customerPaymentOption->setFields([
+//            [
+//                'name' => $bank['name'],
+//                'account' => $bank['account'],
+//                'holder' => $bank['holder'],
+//            ],
+//        ]);
+//        $customer->addPaymentOption($customerPaymentOption);
+//        $defaultGroup = $this->getCustomerGroupRepository()->getDefaultGroup();
+//        $customer->getGroups()->add($defaultGroup);
 
         try {
             $this->save($customer);
             $this->commit();
-            $event = new CustomerCreatedEvent($customer, $originUrl);
-            $this->get('event_dispatcher')->dispatch('customer.created', $event);
+//            $event = new CustomerCreatedEvent($customer, $originUrl);
+//            $this->get('event_dispatcher')->dispatch('customer.created', $event);
         } catch (\PDOException $e) {
             $this->rollback();
             throw $e;
@@ -210,7 +219,7 @@ class CustomerManager extends AbstractManager
         $customer->setIsCustomer(true);
         $customer->setSocials($registerModel->getSocialDetails());
         $customer->setDetails([
-            'affiliate'=> $registerModel->getAffiliateDetails(),
+            'affiliate' => $registerModel->getAffiliateDetails(),
             'enabled' => false,
             'websocket' => [
                 'channel_id' => uniqid($customer->getId() . generate_code(10, false, 'ld')),
@@ -530,7 +539,7 @@ class CustomerManager extends AbstractManager
             return ['message' => $e->getMessage(), $e->getCode()];
         }
 
-        return ['user' => $user , 'code' => Response::HTTP_OK];
+        return ['user' => $user, 'code' => Response::HTTP_OK];
     }
 
     protected function getRepository()
