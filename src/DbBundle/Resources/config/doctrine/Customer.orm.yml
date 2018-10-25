@@ -108,9 +108,6 @@ DbBundle\Entity\Customer:
             nullable: false
             options:
                 default: ''
-        phoneNumber:
-            type: string
-            column: customer_phone_number
         pinUserCode:
             type: string
             column: customer_pin_user_code

@@ -5,6 +5,8 @@ DbBundle\Entity\User:
             expose: true
         email:
             expose: true
+        phoneNumber:
+            expose: true
         activationTimestamp:
             expose: true
     virtual_properties:

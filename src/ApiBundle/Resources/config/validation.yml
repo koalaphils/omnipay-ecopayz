@@ -165,9 +165,9 @@ ApiBundle\Model\Register:
         #            - NotBlank: ~
         - AppBundle\Validator\Constraints\Unique:
             entityClass: DbBundle\Entity\User
-            select: " e.phone_number "
-            expression: " e.phone_number = :value0 "
-            requiredKey: [phone_number]
+            select: " e.phoneNumber "
+            expression: " e.phoneNumber = :value0 "
+            requiredKey: [phoneNumber]
 #        firstName:
 #            - NotBlank: ~
 #            - Regex:

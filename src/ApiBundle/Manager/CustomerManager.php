@@ -47,15 +47,12 @@ class CustomerManager extends AbstractManager
 
     public function handleRegister(RegisterModel $registerModel, $originUrl, $locale, $ipAddress, $referrerUrl)
     {
-        $fakePinRes = json_decode('{"loginId" : "PS71100000","userCode" : "PS71100000"}');
 //        $bank = $registerModel->getBanks();
 //        $birthDate = $registerModel->getBirthDateString();
 //        $socials = $registerModel->getSocials();
 //        $bookies = $registerModel->getBookies();
-        $email = trim($registerModel->getEmail());
 
 
-        $password = trim($registerModel->getPassword());
 //        $country = $registerModel->getCountry();
 //        $currency = $registerModel->getCurrency();
 //        $fName = $registerModel->getFirstName();
@@ -65,17 +62,25 @@ class CustomerManager extends AbstractManager
 //        $depositMethod = $registerModel->getDepositMethod();
 //        $affiliate = trim($registerModel->getAffiliate());
 //        $promo = trim($registerModel->getPromo());
-        $fName = $mName = $lName = 'default';
+        $pinUserCode = $registerModel->getPinUserCode();
+        $pinLoginId = $registerModel->getPinLoginId();
+        $email = $registerModel->getEmail() ? trim($registerModel->getEmail()) : null;
+        $phoneNumber = $registerModel->getPhoneNumber() ? trim($registerModel->getPhoneNumber()) : null;
+        $password = trim($registerModel->getPassword());
+        $countryPhoneCode = $registerModel->getCountryPhoneCode();
+
+        $fName = 'firstName';
+        $mName = 'middleName';
+        $lName = 'lastName';
 
         $this->beginTransaction();
 
         $user = new User();
-//        $user->setUsername(uniqid(str_replace(' ', '', $fName . $lName) . '_'));
         $user->setUsername(uniqid(str_replace(' ', '', $fName . $lName) . '_'));
         $user->setEmail($email);
+        $user->setPhoneNumber($phoneNumber);
         $user->setType(User::USER_TYPE_MEMBER);
         $user->setRoles(['ROLE_MEMBER' => 2,]);
-//        $user->setPhoneNumber($phoneNumber);
         $user->setPreferences([
             'locale' => $locale,
             'ipAddress' => $ipAddress,
@@ -94,20 +99,20 @@ class CustomerManager extends AbstractManager
             $this->getUserManager()->encodePassword($user, $password)
         );
 
-//        $countryEntity = $this->getCountryRepository()->findByCode($country);
-//        $currencyEntity = $this->getCurrencyRepository()->findByCode($currency);
+        $countryEntity = $this->getCountryRepository()->findByPhoneCode($countryPhoneCode);
 
+//        $currencyEntity = $this->getCurrencyRepository()->findByCode($currency);
         $customer = new Customer();
         $customer->setUser($user);
 //        $customer->setBirthDate(\DateTime::createFromFormat('Y-m-d', $birthDate));
-//        $customer->setCountry($countryEntity);
+        $customer->setCountry($countryEntity);
 //        $customer->setCurrency($currencyEntity);
         $customer->setFName($fName);
         $customer->setMName($mName);
         $customer->setLName($lName);
         $customer->setFullName($fName . ' ' . $mName . ' ' . $lName);
-        $customer->setPinLoginId($fakePinRes->loginId);
-        $customer->setPinUserCode($fakePinRes->userCode);
+        $customer->setPinLoginId($pinLoginId);
+        $customer->setPinUserCode($pinUserCode);
 //        $customer->setContacts([
 //            [
 //                'type' => 'mobile',
@@ -135,7 +140,6 @@ class CustomerManager extends AbstractManager
 //        ]);
         $customer->setBalance(0);
         $customer->setJoinedAt(new \DateTime('now'));
-        $customer->setPhoneNumber();
 
 //        foreach ($bookies as $key => $id) {
 //            $userName = $id->getUsername();

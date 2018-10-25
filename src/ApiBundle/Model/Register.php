@@ -31,6 +31,9 @@ class Register
     private $promo;
     private $phoneNumber;
     private $password;
+    private $pinUserCode;
+    private $pinLoginId;
+    private $countryPhoneCode;
 
     public function __construct()
     {
@@ -86,6 +89,42 @@ class Register
     public function getPhoneNumber()
     {
         return $this->phoneNumber;
+    }
+
+    public function setCountryPhoneCode($countryPhoneCode): self
+    {
+        $this->countryPhoneCode = $countryPhoneCode;
+
+        return $this;
+    }
+
+    public function getCountryPhoneCode()
+    {
+        return $this->countryPhoneCode;
+    }
+
+    public function setPinUserCode($userCode): self
+    {
+        $this->pinUserCode = $userCode;
+
+        return $this;
+    }
+
+    public function getPinUserCode()
+    {
+        return $this->pinUserCode;
+    }
+
+    public function setPinLoginId($loginId): self
+    {
+        $this->pinLoginId = $loginId;
+
+        return $this;
+    }
+
+    public function getPinLoginId()
+    {
+        return $this->pinLoginId;
     }
 
     public function setFirstName($fName): self
