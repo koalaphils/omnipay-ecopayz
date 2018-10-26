@@ -142,9 +142,10 @@ class OAuthProvider implements AuthenticationProviderInterface
         $realm = $this->serverService->getVariable(OAuth2::CONFIG_WWW_REALM);
 
         $ips = array_merge($this->requestStack->getCurrentRequest()->getClientIps(), [$this->requestStack->getCurrentRequest()->server->get('REMOTE_ADDR')]);
-        if (!in_array($accessToken->getIpAddress(), $ips)) {
-            throw new OAuth2AuthenticateException(OAuth2::HTTP_UNAUTHORIZED, $tokenType, $realm, OAuth2::ERROR_USER_DENIED, 'The access token came from other ip.', $scope);
-        }
+        //TODO : Temporary remove
+//        if (!in_array($accessToken->getIpAddress(), $ips)) {
+//            throw new OAuth2AuthenticateException(OAuth2::HTTP_UNAUTHORIZED, $tokenType, $realm, OAuth2::ERROR_USER_DENIED, 'The access token came from other ip.', $scope);
+//        }
 
         return $accessToken;
     }

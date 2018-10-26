@@ -26,7 +26,8 @@ class CreateMemberRequestHandler
         RequestStack $requestStack,
         UserPasswordEncoder $passwordEncoder,
         MemberManager $memberManager
-    ) {
+    )
+    {
         $this->entityManager = $entityManager;
         $this->requestStack = $requestStack;
         $this->passwordEncoder = $passwordEncoder;
@@ -35,6 +36,15 @@ class CreateMemberRequestHandler
 
     public function handle(CreateMemberRequest $request)
     {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'http://47.254.197.223:9000/api/pinnacle/users');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: application/json')); // Assuming you're requesting JSON
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+        $response = curl_exec($ch);
+
+        $data = json_decode($response);
+
         $user = new User();
         $user->setUsername($request->getUsername());
         $user->setEmail($request->getEmail());
@@ -73,15 +83,20 @@ class CreateMemberRequestHandler
 
         $member->setUser($user);
         $user->setCustomer($member);
-        $member->setPinUserCode('UserCode');
-        $member->setPinLoginId('PinLoginId');
+
+        if (isset($data->userCode) && $data->userCode != '') {
+            $member->setPinUserCode($data->userCode);
+        }
+
+        if (isset($data->loginId) && $data->loginId != '') {
+            $member->setPinLoginId($data->loginId);
+        }
         $this->memberManager->createAcWalletForMember($member);
         $member->setTags([Customer::ACRONYM_MEMBER]);
 
-//        $this->entityManager->persist($member);
-//        $this->entityManager->flush($member);
+        $this->entityManager->persist($member);
+        $this->entityManager->flush($member);
 
-        dump($member);die;
         return $member;
     }
 

@@ -41,6 +41,21 @@ widgets:
                     label: Country
                     type: text
                     from: 'customer.country.name'
+                date_joined:
+                    label: Date Joined
+                    type: date
+                    from: customer.joinedAt
+                    format: F j, Y
+                tag:
+                    label: Tag
+                    type: function
+                    function: listKyc
+                    from: 'customer.country.name'
+                paymentOption:
+                    label: Payment Option
+                    type: function
+                    function: listKyc
+                    from: 'customer.country.name'
 #                currency:
 #                    label: Currency
 #                    type: text
@@ -50,21 +65,16 @@ widgets:
 #                    type: function
 #                    function: listKyc
 #                    from: customer.verifiedAt
-                date_joined:
-                    label: Date Joined
-                    type: date
-                    from: customer.joinedAt
-                    format: F j, Y
 #                created_by:
 #                    label: Created By
 #                    type: function
 #                    function: listCreator
 #                    from: customer.user.creator
-                status:
-                    label: Status
-                    type: function
-                    function: listStatus
-                    from: customer
+#                status:
+#                    label: Status
+#                    type: function
+#                    function: listStatus
+#                    from: customer
                 action:
                     label: Action
                     type: function

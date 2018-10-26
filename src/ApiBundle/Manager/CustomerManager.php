@@ -378,6 +378,18 @@ class CustomerManager extends AbstractManager
         return $result;
     }
 
+    public function checkPinUserCodeIfExists($pinUserCode): array
+    {
+        //TODO : need to load customer repository by function like other
+        $user = $this->getDoctrine()->getRepository('DbBundle:Customer')->findByPinUserCode($pinUserCode);
+
+        if ($user !== null) {
+            return ['message' => 'Pin user code exists.', 'exist' => true, 'code' => Response::HTTP_UNPROCESSABLE_ENTITY];
+        }
+
+        return ['message' => 'Pin user code does not exist.', 'exist' => false, 'code' => Response::HTTP_OK];
+    }
+
     public function checkEmailIfExists($email): array
     {
         $user = $this->getUserRepository()->findByEmail($email, User::USER_TYPE_MEMBER, false);

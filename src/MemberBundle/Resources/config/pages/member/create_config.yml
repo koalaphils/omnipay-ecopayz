@@ -29,18 +29,35 @@ widgets:
                     message: You have successfully added new member
                     title: Success
             fields:
+                country:
+                    options:
+                        label: Country
+                    type: choices
+                    group: Left
+                    size: 12
+                    choicesFrom:
+                        function: '@country.manager::getCountryList'
+                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
+                        value: result['id']
+                        preselect: false
+                email:
+                    options:
+                        label: Phone/Email
+                    type: text
+                    size: 12
+                    group: Left
                 username:
                     type: text
                     options:
                         label: Username
                     size: 12
                     group: Left
-                email:
+                fullName:
                     options:
-                        label: Email
-                    type: email
-                    size: 12
+                        label: Full Name
+                    type: text
                     group: Left
+                    size: 12
                 password:
                     options:
                         label: Password
@@ -51,18 +68,6 @@ widgets:
                         label: Confirm Password
                     type: password
                     group: Left
-                status:
-                    options:
-                        label: Status
-                        required: false
-                    type: switch
-                    group: Left
-                fullName:
-                    options:
-                        label: Full Name
-                    type: text
-                    group: Left
-                    size: 12
                 referal:
                     options:
                         label: Affiliates
@@ -83,17 +88,6 @@ widgets:
 #                        format: 'M/dd/yyyy'
 #                    group: Right
 #                    size: 12
-                country:
-                    options:
-                        label: Country
-                    type: choices
-                    group: Right
-                    size: 12
-                    choicesFrom:
-                        function: '@country.manager::getCountryList'
-                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
-                        value: result['id']
-                        preselect: false
 #                currency:
 #                    options:
 #                        label: Currency
@@ -127,3 +121,9 @@ widgets:
                     defaultFrom:
                         label: result.getName()
                         value: result.getId()
+                status:
+                    options:
+                        label: Status
+                        required: false
+                    type: switch
+                    group: Right

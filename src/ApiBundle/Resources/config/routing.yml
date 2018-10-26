@@ -125,6 +125,12 @@ api_customers.check_product_username_if_exists:
         _controller: ApiBundle:CustomerProduct:checkIfProductUsernameExists
     methods: [POST]
 
+api_customers.check_pin_user_code_if_exists:
+    path: customer/pin-user-code/check-if-exists
+    defaults:
+        _controller: ApiBundle:Customer:checkPinUserCodeIfExists
+    methods: [POST]
+
 api_customers.register_customer:
     path: customers/register
     defaults:
