@@ -27,6 +27,11 @@ services:
         calls:
             - [ 'setContainer', ['@service_container'] ]
 
+    app.piwi_middleware_helper:
+        class: AppBundle\Helper\PiwiMiddlewareHelper
+        calls:
+            - [ 'setContainer', ['@service_container'] ]
+
     # component
     app.component.data_transfer:
         class: AppBundle\Component\DataTransfer

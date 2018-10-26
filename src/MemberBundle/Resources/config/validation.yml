@@ -68,22 +68,22 @@ MemberBundle\Request\CreateMemberRequest:
                 pattern: '/^[A-Za-z0-9\s\P{Han}]*$/u'
                 match: true
                 message: customer.fullName.regex
-        birthDate:
-            - NotBlank: ~
-            - Date: ~
-            - GreaterThanOrEqual:
-                value: -100 years
-                message: customer.birthDate.valid
-            - LessThanOrEqual:
-                value: -18 years
-                message: customer.birthDate.valid
+#        birthDate:
+#            - NotBlank: ~
+#            - Date: ~
+#            - GreaterThanOrEqual:
+#                value: -100 years
+#                message: customer.birthDate.valid
+#            - LessThanOrEqual:
+#                value: -18 years
+#                message: customer.birthDate.valid
         joinedAt:
             - NotBlank: ~
             - LessThanOrEqual:
                 value: tomorrow
                 message: customer.joinedAt.invalid
-        currency:
-            - NotBlank: ~
+#        currency:
+#            - NotBlank: ~
         country:
             - NotBlank: ~
         groups:

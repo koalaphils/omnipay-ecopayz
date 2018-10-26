@@ -57,8 +57,8 @@ class CreateMemberRequestHandler
             $member->setAffiliate($this->entityManager->getPartialReference(Customer::class, $request->getReferal()));
         }
         $member->setCountry($this->entityManager->getPartialReference(Country::class, $request->getCountry()));
-        $member->setCurrency($this->entityManager->getPartialReference(Currency::class, $request->getCurrency()));
-        $member->setBirthDate($request->getBirthDate());
+//        $member->setCurrency($this->entityManager->getPartialReference(Currency::class, $request->getCurrency()));
+//        $member->setBirthDate($request->getBirthDate());
         $member->setJoinedAt($request->getJoinedAt());
         $member->setTransactionPassword($this->encodePassword($user, ''));
         $member->setIsAffiliate(true);
@@ -73,12 +73,15 @@ class CreateMemberRequestHandler
 
         $member->setUser($user);
         $user->setCustomer($member);
+        $member->setPinUserCode('UserCode');
+        $member->setPinLoginId('PinLoginId');
         $this->memberManager->createAcWalletForMember($member);
         $member->setTags([Customer::ACRONYM_MEMBER]);
 
-        $this->entityManager->persist($member);
-        $this->entityManager->flush($member);
+//        $this->entityManager->persist($member);
+//        $this->entityManager->flush($member);
 
+        dump($member);die;
         return $member;
     }
 

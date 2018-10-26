@@ -39,6 +39,7 @@ DbBundle\Entity\User:
         phoneNumber:
             type: string
             length: 255
+            nullable: true
             column: user_phone_number
         type:
             type: integer

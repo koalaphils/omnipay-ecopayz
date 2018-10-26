@@ -75,14 +75,14 @@ widgets:
                         request: onFindMembers
                     transformer:
                         model: '@member.transformer.referrerTransformer'
-                birthDate:
-                    type: date
-                    options:
-                        label: Birth Date
-                        widget: 'single_text'
-                        format: 'M/dd/yyyy'
-                    group: Right
-                    size: 12
+#                birthDate:
+#                    type: date
+#                    options:
+#                        label: Birth Date
+#                        widget: 'single_text'
+#                        format: 'M/dd/yyyy'
+#                    group: Right
+#                    size: 12
                 country:
                     options:
                         label: Country
@@ -94,17 +94,17 @@ widgets:
                         label: result['name'] ~ ' (' ~ result['code'] ~ ')'
                         value: result['id']
                         preselect: false
-                currency:
-                    options:
-                        label: Currency
-                    type: choices
-                    group: Right
-                    size: 12
-                    choicesFrom:
-                        function: '@currency.manager::getCurrencyList'
-                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
-                        value: result['id']
-                        preselect: false
+#                currency:
+#                    options:
+#                        label: Currency
+#                    type: choices
+#                    group: Right
+#                    size: 12
+#                    choicesFrom:
+#                        function: '@currency.manager::getCurrencyList'
+#                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
+#                        value: result['id']
+#                        preselect: false
                 joinedAt:
                     options:
                         label: Date Joined
