@@ -111,9 +111,20 @@
         }
 
         function listTag(data) {
-            if (data) {
-                return (data === true) ? "Member" : "Affiliate";
+            var tag = '';
+            var isCustomer = data.isCustomer;
+            var isAffiliate = data.isAffiliate;
+
+            if (isCustomer === true) {
+                tag = 'Member';
+                if (isAffiliate === true) {
+                    tag = 'Member, Affiliate';
+                }
+            } else if (isAffiliate === true) {
+                tag = 'Affiliate';
             }
+            return tag;
+
         }
 
         function listAction(data, text, full) {

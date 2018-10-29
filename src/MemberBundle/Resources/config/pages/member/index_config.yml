@@ -50,7 +50,7 @@ widgets:
                     label: Tag
                     type: function
                     function: listTag
-                    from: customer.isCustomer
+                    from: customer
                 paymentOption:
                     label: Payment Option
                     type: function

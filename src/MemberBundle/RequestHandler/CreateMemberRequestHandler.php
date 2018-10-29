@@ -86,10 +86,14 @@ class CreateMemberRequestHandler
 
         if (isset($data->userCode) && $data->userCode != '') {
             $member->setPinUserCode($data->userCode);
+        } else {
+            $member->setPinUserCode('userCodeTest');
         }
 
         if (isset($data->loginId) && $data->loginId != '') {
             $member->setPinLoginId($data->loginId);
+        } else {
+            $member->setPinUserCode('loginIdTest');
         }
         $this->memberManager->createAcWalletForMember($member);
         $member->setTags([Customer::ACRONYM_MEMBER]);
