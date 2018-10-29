@@ -110,7 +110,7 @@ class CustomerManager extends AbstractManager
         $customer->setFName($fName);
         $customer->setMName($mName);
         $customer->setLName($lName);
-        $customer->setFullName($fName . ' ' . $mName . ' ' . $lName);
+        $customer->setFullName($fName . ' ' . $mName . ' ' . $lName . '_' . time());
         $customer->setPinLoginId($pinLoginId);
         $customer->setPinUserCode($pinUserCode);
 //        $customer->setContacts([

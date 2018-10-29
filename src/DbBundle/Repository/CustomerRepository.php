@@ -132,7 +132,7 @@ class CustomerRepository extends BaseRepository
 
         return $qb;
     }
-    
+
     private function getReferrerListQb(array $filters = []): QueryBuilder
     {
         $groupFilters = [];
@@ -174,13 +174,15 @@ class CustomerRepository extends BaseRepository
         $qb = $this->getCustomerListQb($filters);
         $qb
             ->select(
-                "PARTIAL c.{id, fName, mName, lName, fullName, country, currency, balance, socials, level, isAffiliate, isCustomer, details, verifiedAt, joinedAt, tags}, "
+                "PARTIAL c.{id, fName, mName, lName, fullName, country, currency, balance, socials, level, isAffiliate, isCustomer, details, verifiedAt, joinedAt, tags, pinUserCode , pinLoginId}, "
                 . "PARTIAL u.{username, id, email, preferences, createdAt, isActive, activationTimestamp, creator}, "
                 . "PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}, "
                 . "PARTIAL a.{id},"
-                . "PARTIAL cr.{id, username}"
+                . "PARTIAL cr.{id, username} , cpot , cpopo"
             )
             ->leftJoin('c.affiliate', 'a')
+            ->leftJoin('c.paymentOptions', 'cpot')
+            ->leftJoin('cpot.paymentOption', 'cpopo')
             ->groupBy('c.id')
         ;
 
@@ -221,7 +223,7 @@ class CustomerRepository extends BaseRepository
 
         return $qb->getQuery()->getArrayResult();
     }
-    
+
     public function getReferrerList(?array $filters = null): array
     {
         $queryBuilder = $this->getReferrerListQb($filters);
@@ -233,7 +235,7 @@ class CustomerRepository extends BaseRepository
             )
             ->leftJoin('c.affiliate', 'a');
 
-        
+
         return $queryBuilder->getQuery()->getArrayResult();
     }
 
@@ -495,7 +497,7 @@ class CustomerRepository extends BaseRepository
             }
             $queryBuilder->andWhere($exp);
         }
-        
+
         if (!empty(array_get($filters, 'tag', []))) {
             $exp = $queryBuilder->expr()->orX();
             foreach ($filters['tag'] as $value) {
@@ -503,9 +505,9 @@ class CustomerRepository extends BaseRepository
                     $exp->add("JSON_CONTAINS(c.tags, '\"AFF\"') = 1");
                 }
                 if ($value === Member::ACRONYM_MEMBER) {
-                    $exp->add("JSON_CONTAINS(c.tags, '\"MBR\"') = 1"); 
+                    $exp->add("JSON_CONTAINS(c.tags, '\"MBR\"') = 1");
                 }
-               
+
             }
             $queryBuilder->andWhere($exp);
         }

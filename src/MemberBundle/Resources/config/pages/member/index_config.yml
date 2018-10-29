@@ -49,13 +49,13 @@ widgets:
                 tag:
                     label: Tag
                     type: function
-                    function: listKyc
-                    from: 'customer.country.name'
+                    function: listTag
+                    from: customer.isCustomer
                 paymentOption:
                     label: Payment Option
                     type: function
-                    function: listKyc
-                    from: 'customer.country.name'
+                    function: listPaymentOption
+                    from: customer.paymentOptions
 #                currency:
 #                    label: Currency
 #                    type: text
