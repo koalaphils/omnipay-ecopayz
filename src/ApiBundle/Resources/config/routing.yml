@@ -131,6 +131,12 @@ api_customers.check_pin_user_code_if_exists:
         _controller: ApiBundle:Customer:checkPinUserCodeIfExists
     methods: [POST]
 
+api_customers.check_credentials_if_exists:
+    path: customer/credentials/check-if-exists
+    defaults:
+        _controller: ApiBundle:Customer:checkEmailIfExists
+    methods: [POST]
+
 api_customers.register_customer:
     path: customers/register
     defaults:

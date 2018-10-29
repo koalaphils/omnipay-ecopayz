@@ -312,7 +312,7 @@ class CustomerController extends AbstractController
      *  description="Check if pin user code input on registration exists or not",
      *  requirements={
      *      {
-     *          "name"="email",
+     *          "name"="pin_user_code",
      *          "dataType"="string",
      *          "description"="user code input on registration form"
      *      }
@@ -345,6 +345,20 @@ class CustomerController extends AbstractController
         $username = $request->request->get('username');
 
         $result = $this->getCustomerManager()->checkUsernameIfExists($username);
+
+        return $this->view($result, $result['code']);
+    }
+
+    /**
+     * @ApiDoc(
+     *  description="Check if the credentials input on registration exists or not"
+     * )
+     */
+    public function checkCredentialsIfExistsAction(Request $request)
+    {
+        $input = $request->request->all();
+        $result = $this->getCustomerManager()->checkCredentialsIfExist($input);
+
 
         return $this->view($result, $result['code']);
     }

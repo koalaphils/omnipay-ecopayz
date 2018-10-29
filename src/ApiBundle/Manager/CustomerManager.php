@@ -67,9 +67,9 @@ class CustomerManager extends AbstractManager
         $email = $registerModel->getEmail() ? trim($registerModel->getEmail()) : null;
         $phoneNumber = $registerModel->getPhoneNumber() ? trim($registerModel->getPhoneNumber()) : null;
         if (isset($email) && $email != '') {
-            $type = 'email';
+            $type = $email;
         } elseif (isset($phoneNumber) && $phoneNumber != '') {
-            $type = 'phone';
+            $type = $phoneNumber;
         } else {
             $type = '';
         }
@@ -400,14 +400,28 @@ class CustomerManager extends AbstractManager
 
     public function checkEmailIfExists($email): array
     {
-        $user = $this->getUserRepository()->findByEmail($email, User::USER_TYPE_MEMBER, false);
+        $user = $this->getUserRepository()->findByEmail($email);
 
         if ($user !== null) {
-            return ['message' => 'Email exists.', 'code' => Response::HTTP_UNPROCESSABLE_ENTITY];
+            return ['message' => 'Email exists.', 'pin_user_code' => $user->getCustomer()->getPinUserCode(),
+                'pin_login_id' => $user->getCustomer()->getPinLoginId(), 'code' => Response::HTTP_UNPROCESSABLE_ENTITY];
         }
 
         return ['message' => 'Email does not exist.', 'code' => Response::HTTP_OK];
     }
+
+    public function checkCredentialsIfExist($credentials): array
+    {
+        $password = $credentials['password'];
+        dump($password);
+        die;
+        if ($user !== null) {
+            return ['message' => 'User exists.', 'code' => Response::HTTP_UNPROCESSABLE_ENTITY];
+        }
+
+        return ['message' => 'User does not exist.', 'code' => Response::HTTP_OK];
+    }
+
 
     public function checkUsernameIfExists($username): array
     {
