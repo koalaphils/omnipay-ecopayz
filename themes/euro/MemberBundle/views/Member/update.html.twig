@@ -310,60 +310,60 @@
             return location;
         }
 
-        function turnoverCommissionDwlAmount(data, type, full) {
-            return full.currencyCode + ' ' + formatAmount(data);
-        }
+        {#function turnoverCommissionDwlAmount(data, type, full) {#}
+            {#return full.currencyCode + ' ' + formatAmount(data);#}
+        {#}#}
 
-        function turnoverCommissionAffiliateAmount(data, type, full) {
-            return '{{ customer.currencyCode }} ' + formatAmount(data);
-        }
+        {#function turnoverCommissionAffiliateAmount(data, type, full) {#}
+            {#return '{{ customer.currencyCode }} ' + formatAmount(data);#}
+        {#}#}
 
-        function turnoverCommissionTotalTurnover(totals) {
-            var value = '{{ customer.currencyCode }} ' + formatAmount(0);
+        {#function turnoverCommissionTotalTurnover(totals) {#}
+            {#var value = '{{ customer.currencyCode }} ' + formatAmount(0);#}
 
-            if (!$.isEmptyObject(totals)) {
-                value = '';
+            {#if (!$.isEmptyObject(totals)) {#}
+                {#value = '';#}
 
-                $.each(totals, function(key, total) {
-                    value += total.currencyCode + ' ' + formatAmount(total.totalTurnover) + "<br/>";
-                });
-            }
+                {#$.each(totals, function(key, total) {#}
+                    {#value += total.currencyCode + ' ' + formatAmount(total.totalTurnover) + "<br/>";#}
+                {#});#}
+            {#}#}
 
-            return value;
-        }
+            {#return value;#}
+        {#}#}
 
-        function turnoverCommissionTotalWinLoss(totals) {
-            var value = '{{ customer.currencyCode }} ' + formatAmount(0);
+        {#function turnoverCommissionTotalWinLoss(totals) {#}
+            {#var value = '{{ customer.currencyCode }} ' + formatAmount(0);#}
 
-            if (!$.isEmptyObject(totals)) {
-                value = '';
+            {#if (!$.isEmptyObject(totals)) {#}
+                {#value = '';#}
 
-                $.each(totals, function(key, total) {
-                    value += total.currencyCode + ' ' + formatAmount(total.totalWinLoss) + "<br/>";
-                });
-            }
+                {#$.each(totals, function(key, total) {#}
+                    {#value += total.currencyCode + ' ' + formatAmount(total.totalWinLoss) + "<br/>";#}
+                {#});#}
+            {#}#}
 
-            return value;
-        }
+            {#return value;#}
+        {#}#}
 
-        function turnoverCommissionTotalCommission(totals) {
-            var memberCurrencyCode = '{{ customer.currencyCode }}';
-            var value = memberCurrencyCode + ' ' + formatAmount(0);
+        {#function turnoverCommissionTotalCommission(totals) {#}
+            {#var memberCurrencyCode = '{{ customer.currencyCode }}';#}
+            {#var value = memberCurrencyCode + ' ' + formatAmount(0);#}
 
-            if (!$.isEmptyObject(totals)) {
-                var total = totals.filter(obj => {
-                    return obj.currencyCode == memberCurrencyCode;
-                })[0];
+            {#if (!$.isEmptyObject(totals)) {#}
+                {#var total = totals.filter(obj => {#}
+                    {#return obj.currencyCode == memberCurrencyCode;#}
+                {#})[0];#}
 
-                if (typeof total == 'undefined') {
-                    total = { 'totalAffiliateCommission' : 0 };
-                }
+                {#if (typeof total == 'undefined') {#}
+                    {#total = { 'totalAffiliateCommission' : 0 };#}
+                {#}#}
 
-                value = memberCurrencyCode + ' ' + formatAmount(total.totalAffiliateCommission);
-            }
+                {#value = memberCurrencyCode + ' ' + formatAmount(total.totalAffiliateCommission);#}
+            {#}#}
 
-            return value;
-        }
+            {#return value;#}
+        {#}#}
 
         function formatAmount(amount) {
             return (new Decimal(amount)).toFixed(2);

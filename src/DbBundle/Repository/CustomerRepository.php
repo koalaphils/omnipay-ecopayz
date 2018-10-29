@@ -30,13 +30,18 @@ class CustomerRepository extends BaseRepository
     {
         $qb = $this->createQueryBuilder('c');
         $qb->join('c.user', 'u');
-        $qb->join('c.currency', 'ccu');
+//        $qb->join('c.currency', 'ccu');
         $qb->leftJoin('c.country', 'cco');
-        $qb->leftjoin('c.groups', 'g');
+//        $qb->leftjoin('c.groups', 'g');
+//        $qb->select(
+//            'PARTIAL c.{id, fName, mName, lName, fullName, country, currency, balance, socials, joinedAt, birthDate, socials, details, contacts, verifiedAt, isAffiliate, isCustomer, transactionPassword, files, riskSetting, tags, notifications}'
+//            . ', PARTIAL u.{username, id, email, isActive, activationSentTimestamp, activationTimestamp, preferences, password, resetPasswordCode, resetPasswordSentTimestamp}'
+//            . ', PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}, g'
+//        );
         $qb->select(
-            'PARTIAL c.{id, fName, mName, lName, fullName, country, currency, balance, socials, joinedAt, birthDate, socials, details, contacts, verifiedAt, isAffiliate, isCustomer, transactionPassword, files, riskSetting, tags, notifications}'
+            'PARTIAL c.{id, fName, mName, lName, fullName, country, balance, socials, joinedAt, socials, details, contacts, verifiedAt, isAffiliate, isCustomer, transactionPassword, files, riskSetting, tags, notifications}'
             . ', PARTIAL u.{username, id, email, isActive, activationSentTimestamp, activationTimestamp, preferences, password, resetPasswordCode, resetPasswordSentTimestamp}'
-            . ', PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}, g'
+            . ', PARTIAL cco.{id, name, code}'
         );
         $qb->where('c.id = :id')->setParameter('id', $id);
 

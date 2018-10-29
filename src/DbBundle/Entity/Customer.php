@@ -1091,10 +1091,10 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         $this->setDetail('has_confirm_terms_and_conditions', false);
     }
 
-    public function getCurrencyCode(): string
-    {
-        return $this->getCurrency()->getCode();
-    }
+//    public function getCurrencyCode(): string
+//    {
+//        return $this->getCurrency()->getCode();
+//    }
 
     public function getUsername(): string
     {

@@ -100,26 +100,26 @@ widgets:
                         function: '@country.manager::getCountryList'
                         label: result['name'] ~ ' (' ~ result['code'] ~ ')'
                         value: result['id']
-                currency:
-                    options:
-                        label: Currency
-                        required: true
-                    type: dropdown
-                    size: 12
-                    group: Right
-                    choicesFrom:
-                        function: '@currency.manager::getCurrencyList'
-                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
-                        value: result['id']
-                birthDate:
-                    type: date
-                    options:
-                        label: Birth Date
-                        widget: 'single_text'
-                        format: 'M/dd/yyyy'
-                        required: true
-                    size: 12
-                    group: Left
+#                currency:
+#                    options:
+#                        label: Currency
+#                        required: true
+#                    type: dropdown
+#                    size: 12
+#                    group: Right
+#                    choicesFrom:
+#                        function: '@currency.manager::getCurrencyList'
+#                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
+#                        value: result['id']
+#                birthDate:
+#                    type: date
+#                    options:
+#                        label: Birth Date
+#                        widget: 'single_text'
+#                        format: 'M/dd/yyyy'
+#                        required: true
+#                    size: 12
+#                    group: Left
                 joinedAt:
                     options:
                         label: Date Joined
