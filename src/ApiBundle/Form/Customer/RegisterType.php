@@ -41,6 +41,7 @@ class RegisterType extends AbstractType
         ]);
         $builder->add('affiliate', Type\TextType::class);
         $builder->add('promo', Type\TextType::class);
+        $builder->add('password', Type\TextType::class);
     }
 
     public function configureOptions(OptionsResolver $resolver)
