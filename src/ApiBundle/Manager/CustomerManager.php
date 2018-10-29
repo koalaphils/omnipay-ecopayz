@@ -400,11 +400,10 @@ class CustomerManager extends AbstractManager
 
     public function checkEmailIfExists($email): array
     {
-        $user = $this->getUserRepository()->findByEmail($email);
+        $user = $this->getUserRepository()->findByEmail($email, User::USER_TYPE_MEMBER, false);
 
         if ($user !== null) {
-            return ['message' => 'Email exists.', 'pin_user_code' => $user->getCustomer()->getPinUserCode(),
-                'pin_login_id' => $user->getCustomer()->getPinLoginId(), 'code' => Response::HTTP_UNPROCESSABLE_ENTITY];
+            return ['message' => 'Email exists.', 'code' => Response::HTTP_UNPROCESSABLE_ENTITY];
         }
 
         return ['message' => 'Email does not exist.', 'code' => Response::HTTP_OK];
@@ -412,14 +411,35 @@ class CustomerManager extends AbstractManager
 
     public function checkCredentialsIfExist($credentials): array
     {
-        $password = $credentials['password'];
-        dump($password);
-        die;
-        if ($user !== null) {
-            return ['message' => 'User exists.', 'code' => Response::HTTP_UNPROCESSABLE_ENTITY];
+        if (isset($credentials['phoneNumber']) && $credentials['phoneNumber']) {
+            $user = $this->getUserRepository()->findUserByPhoneNumber($credentials['phoneNumber']);
+        } else if (isset($credentials['email']) && $credentials['email']) {
+            $user = $this->getUserRepository()->findUserByEmail($credentials['email']);
+        } else {
+            $user = new User();
         }
 
-        return ['message' => 'User does not exist.', 'code' => Response::HTTP_OK];
+        if ($user !== null) {
+            $customer = $user->getCustomer();
+            if (isset($credentials['password'])) {
+                $checkPassword = $this->passwordIsValid($customer, $credentials['password']);
+                if ($checkPassword) {
+                    return [
+                        'error' => 'false',
+                        'data' => [
+                            'pin_user_code' => $customer->getPinUserCode(),
+                            'pin_login_id' => $customer->getPinLoginId()
+                        ],
+                        'message' => ''
+                    ];
+                }
+            }
+        }
+
+        return [
+            'error' => 'true',
+            'message' => 'Credentials not exists'
+        ];
     }
 
 

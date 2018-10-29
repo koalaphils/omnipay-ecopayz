@@ -360,7 +360,7 @@ class CustomerController extends AbstractController
         $result = $this->getCustomerManager()->checkCredentialsIfExist($input);
 
 
-        return $this->view($result, $result['code']);
+        return $this->view($result);
     }
 
     /**

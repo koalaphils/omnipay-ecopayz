@@ -40,7 +40,7 @@ class Register
         $this->setSocials([]);
         $this->setBookies([]);
         $this->setBanks([]);
-        $this->phoneNumber = $this->email = $this->firstName = $this->middleInitial = $this->lastName = $this->birthDate = $this->contact = $this->country = $this->currency = $this->affiliate = $this->promo = '';
+        $this->password = $this->phoneNumber = $this->email = $this->firstName = $this->middleInitial = $this->lastName = $this->birthDate = $this->contact = $this->country = $this->currency = $this->affiliate = $this->promo = '';
     }
 
     public function setPromo($promo): self

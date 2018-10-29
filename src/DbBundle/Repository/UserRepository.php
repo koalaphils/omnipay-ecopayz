@@ -233,38 +233,66 @@ class UserRepository extends BaseRepository implements \Symfony\Bridge\Doctrine\
         return $this->findByUsername($username, User::USER_TYPE_ADMIN);
     }
 
-    public function findByEmail($email)
+    public function findByEmail($email, $type, $isActivated = true)
     {
         $qb = $this->createQueryBuilder('u');
+
         $qb->select('u')
             ->where($qb->expr()->eq('u.email', ':email'))
-//            ->andWhere($qb->expr()->eq('u.type', ':type'))
-            ->setParameter('email', $email);
-//            ->setParameter('type', $type);
+            ->andWhere($qb->expr()->eq('u.type', ':type'))
+            ->setParameter('email', $email)
+            ->setParameter('type', $type);
 
-//        if ($isActivated) {
-//            $qb->andWhere($qb->expr()->isNotNull('u.activationTimestamp'));
-//        }
+        if ($isActivated) {
+            $qb->andWhere($qb->expr()->isNotNull('u.activationTimestamp'));
+        }
 
         return $qb->getQuery()->getOneOrNullResult();
     }
 
-    public function findByCredentials($credentials, $isActivated = true)
+    public function findUserByEmail($email)
     {
-        $email = $credentials['email'];
-        $phoneNumber = $credentials['phoneNumber'];
-        $password = $credentials['password'];
-
-
         $qb = $this->createQueryBuilder('u');
 
         $qb->select('u')
             ->where($qb->expr()->eq('u.email', ':email'))
             ->setParameter('email', $email);
 
-//        if ($isActivated) {
-//            $qb->andWhere($qb->expr()->isNotNull('u.activationTimestamp'));
-//        }
+        return $qb->getQuery()->getOneOrNullResult();
+    }
+
+    public function findUserByPhoneNumber($phoneNumber)
+    {
+        $qb = $this->createQueryBuilder('u');
+
+        $qb->select('u')
+            ->where($qb->expr()->eq('u.phoneNumber', ':phoneNumber'))
+            ->setParameter('phoneNumber', $phoneNumber);
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
+
+    public function findByCredentials($credentials)
+    {
+        $password = isset($credentials['password']) ? $credentials['password'] : '';
+        $email = isset($credentials['email']) ? $credentials['email'] : '';
+        $phoneNumber = isset($credentials['phoneNumber']) ? $credentials['phoneNumber'] : '';
+        $qb = $this->createQueryBuilder('u');
+
+        if ($email != ''){
+            $qb->select('u')
+                ->where($qb->expr()->eq('u.email', ':email'))
+                ->andWhere($qb->expr()->eq('u.password', ':password'))
+                ->setParameter('email', $email)
+                ->setParameter('password', $password);
+        }
+        else if ($phoneNumber != ''){
+            $qb->select('u')
+                ->where($qb->expr()->eq('u.phoneNumber', ':phoneNumber'))
+                ->andWhere($qb->expr()->eq('u.password', ':password'))
+                ->setParameter('phoneNumber', $email)
+                ->setParameter('password', $password);
+        }
 
         return $qb->getQuery()->getOneOrNullResult();
     }
