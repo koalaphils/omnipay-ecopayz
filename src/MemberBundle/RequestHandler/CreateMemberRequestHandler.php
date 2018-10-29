@@ -39,6 +39,7 @@ class CreateMemberRequestHandler
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, 'http://47.254.197.223:9000/api/pinnacle/users');
         curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, array());
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
         $response = curl_exec($ch);
