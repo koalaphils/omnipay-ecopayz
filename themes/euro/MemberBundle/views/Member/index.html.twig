@@ -68,6 +68,10 @@
             return (data !== null) ? data.username : "";
         }
 
+        function listCountry(data, text, full) {
+            return (data !== null) ? data.name : "";
+        }
+
         function listStatus(data, text, full) {
             var status = 'Registered';
             if (!data.details.enabled && data.user.isActive) {

@@ -66,6 +66,13 @@ class CustomerManager extends AbstractManager
         $pinLoginId = $registerModel->getPinLoginId();
         $email = $registerModel->getEmail() ? trim($registerModel->getEmail()) : null;
         $phoneNumber = $registerModel->getPhoneNumber() ? trim($registerModel->getPhoneNumber()) : null;
+        if (isset($email) && $email != '') {
+            $type = 'email';
+        } elseif (isset($phoneNumber) && $phoneNumber != '') {
+            $type = 'phone';
+        } else {
+            $type = '';
+        }
         $password = trim($registerModel->getPassword());
         $countryPhoneCode = $registerModel->getCountryPhoneCode();
 
@@ -110,7 +117,8 @@ class CustomerManager extends AbstractManager
         $customer->setFName($fName);
         $customer->setMName($mName);
         $customer->setLName($lName);
-        $customer->setFullName($fName . ' ' . $mName . ' ' . $lName . '_' . time());
+
+        $customer->setFullName($fName . ' ' . $mName . ' ' . $lName . '_' . time() . '_' . $type);
         $customer->setPinLoginId($pinLoginId);
         $customer->setPinUserCode($pinUserCode);
 //        $customer->setContacts([

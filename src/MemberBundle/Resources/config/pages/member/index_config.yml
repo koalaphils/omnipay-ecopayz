@@ -39,8 +39,9 @@ widgets:
                         data-priority: 1
                 country:
                     label: Country
-                    type: text
-                    from: 'customer.country.name'
+                    type: function
+                    function: listCountry
+                    from: 'customer.country'
                 date_joined:
                     label: Date Joined
                     type: date
