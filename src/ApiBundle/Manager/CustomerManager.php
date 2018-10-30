@@ -409,6 +409,22 @@ class CustomerManager extends AbstractManager
         return ['message' => 'Email does not exist.', 'code' => Response::HTTP_OK];
     }
 
+    public function checkEmailOrPhoneNumberIfExists($input): array
+    {
+        $user = null;
+        if (isset($input['email']) && $input['email'] != '') {
+            $user = $this->getUserRepository()->findUserByEmail($input['email']);
+        } elseif (isset($input['phoneNumber']) && $input['phoneNumber'] != '') {
+            $user = $this->getUserRepository()->findUserByPhoneNumber($input['phoneNumber']);
+        }
+        if ($user !== null) {
+            return ['message' => 'User already exists.', 'exist' => 'true', 'code' => Response::HTTP_UNPROCESSABLE_ENTITY];
+        }
+
+        return ['message' => 'User does not exists.', 'exist' => 'false', 'code' => Response::HTTP_OK];
+    }
+
+
     public function checkCredentialsIfExist($credentials): array
     {
         if (isset($credentials['phoneNumber']) && $credentials['phoneNumber']) {
@@ -442,6 +458,7 @@ class CustomerManager extends AbstractManager
         ];
     }
 
+//    public function chec
 
     public function checkUsernameIfExists($username): array
     {

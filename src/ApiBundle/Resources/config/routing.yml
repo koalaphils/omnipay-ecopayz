@@ -119,6 +119,12 @@ api_customers.check_email_if_exists:
         _controller: ApiBundle:Customer:checkEmailIfExists
     methods: [POST]
 
+api_customers.check_email_or_phone_number_if_exists:
+    path: customer/email-phone/check-if-exists
+    defaults:
+        _controller: ApiBundle:Customer:checkPhoneOrEmailIfExists
+    methods: [POST]
+
 api_customers.check_product_username_if_exists:
     path: customer/product-username/check-if-exists
     defaults:

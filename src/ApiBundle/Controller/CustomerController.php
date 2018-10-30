@@ -330,6 +330,27 @@ class CustomerController extends AbstractController
 
     /**
      * @ApiDoc(
+     *  description="Check if email or phone Number on registration exists or not",
+     *     requirements={
+     *      {
+     *          "name"="email,phone",
+     *          "dataType"="string",
+     *          "description"="user code input on registration form"
+     *      }
+     *  }
+     * )
+     */
+    public function checkPhoneOrEmailIfExistsAction(Request $request)
+    {
+        $input = $request->request->all();
+
+        $result = $this->getCustomerManager()->checkEmailOrPhoneNumberIfExists($input);
+
+        return $this->view($result, $result['code']);
+    }
+
+    /**
+     * @ApiDoc(
      *  description="Check if the username input on registration exists or not",
      *  requirements={
      *      {

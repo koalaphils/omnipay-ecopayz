@@ -8,6 +8,7 @@ class UpdateProfileRequest
     private $user;
     private $username;
     private $email;
+    private $phoneNumber;
     private $status;
     private $fullName;
     private $birthDate;
@@ -37,6 +38,7 @@ class UpdateProfileRequest
         $request->user = $customer->getUser();
         $request->username = $customer->getUser()->getUsername();
         $request->email = $customer->getUser()->getEmail();
+        $request->phoneNumber = $customer->getUser()->getPhoneNumber();
         $request->status = $customer->getUser()->isActive();
         $request->fullName = $customer->getFullName();
         $request->birthDate = $customer->getBirthDate();
@@ -91,6 +93,16 @@ class UpdateProfileRequest
     public function setEmail(string $email): void
     {
         $this->email = $email;
+    }
+
+    public function getPhoneNumber(): string
+    {
+        return $this->phoneNumber;
+    }
+
+    public function setPhoneNumber(string $phoneNumber): void
+    {
+        $this->email = $phoneNumber;
     }
 
     public function getStatus(): ?string
