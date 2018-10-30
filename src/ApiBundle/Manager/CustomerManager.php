@@ -415,7 +415,8 @@ class CustomerManager extends AbstractManager
         if (isset($input['email']) && $input['email'] != '') {
             $user = $this->getUserRepository()->findUserByEmail($input['email']);
         } elseif (isset($input['phoneNumber']) && $input['phoneNumber'] != '') {
-            $user = $this->getUserRepository()->findUserByPhoneNumber($input['phoneNumber']);
+            $countryPhoneCode = isset($input['countryPhoneCode']) ? $input['countryPhoneCode'] : "";
+            $user = $this->getUserRepository()->findUserByPhoneNumber($input['phoneNumber'], $countryPhoneCode);
         }
         if ($user !== null) {
             return ['message' => 'User already exists.', 'exist' => 'true', 'code' => Response::HTTP_UNPROCESSABLE_ENTITY];
@@ -428,7 +429,8 @@ class CustomerManager extends AbstractManager
     public function checkCredentialsIfExist($credentials): array
     {
         if (isset($credentials['phoneNumber']) && $credentials['phoneNumber']) {
-            $user = $this->getUserRepository()->findUserByPhoneNumber($credentials['phoneNumber']);
+            $countryPhoneCode = isset($credentials['countryPhoneCode']) ? $credentials['countryPhoneCode'] : "";
+            $user = $this->getUserRepository()->findUserByPhoneNumber($credentials['phoneNumber'], $countryPhoneCode);
         } else if (isset($credentials['email']) && $credentials['email']) {
             $user = $this->getUserRepository()->findUserByEmail($credentials['email']);
         } else {

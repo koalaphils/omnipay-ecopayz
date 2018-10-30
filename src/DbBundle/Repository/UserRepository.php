@@ -261,14 +261,16 @@ class UserRepository extends BaseRepository implements \Symfony\Bridge\Doctrine\
         return $qb->getQuery()->getOneOrNullResult();
     }
 
-    public function findUserByPhoneNumber($phoneNumber)
+    public function findUserByPhoneNumber($phoneNumber, $countryCode)
     {
         $qb = $this->createQueryBuilder('u');
-
         $qb->select('u')
+            ->leftJoin('u.customer', 'uc')
+            ->leftJoin('uc.country', 'ucc')
             ->where($qb->expr()->eq('u.phoneNumber', ':phoneNumber'))
-            ->setParameter('phoneNumber', $phoneNumber);
-
+            ->andWhere($qb->expr()->eq('ucc.phoneCode', ':countryCode'))
+            ->setParameter('phoneNumber', $phoneNumber)
+            ->setParameter('countryCode', $countryCode);
         return $qb->getQuery()->getOneOrNullResult();
     }
 
@@ -279,14 +281,13 @@ class UserRepository extends BaseRepository implements \Symfony\Bridge\Doctrine\
         $phoneNumber = isset($credentials['phoneNumber']) ? $credentials['phoneNumber'] : '';
         $qb = $this->createQueryBuilder('u');
 
-        if ($email != ''){
+        if ($email != '') {
             $qb->select('u')
                 ->where($qb->expr()->eq('u.email', ':email'))
                 ->andWhere($qb->expr()->eq('u.password', ':password'))
                 ->setParameter('email', $email)
                 ->setParameter('password', $password);
-        }
-        else if ($phoneNumber != ''){
+        } else if ($phoneNumber != '') {
             $qb->select('u')
                 ->where($qb->expr()->eq('u.phoneNumber', ':phoneNumber'))
                 ->andWhere($qb->expr()->eq('u.password', ':password'))

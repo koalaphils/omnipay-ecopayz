@@ -57,10 +57,11 @@ widgets:
                     type: function
                     function: listPaymentOption
                     from: customer.paymentOptions
-#                currency:
-#                    label: Currency
-#                    type: text
-#                    from: customer.currency.code
+                currency:
+                    label: Currency
+                    type: function
+                    function: listCurrency
+                    from: customer.currency
 #                kyc:
 #                    label: KYC
 #                    type: function
@@ -144,24 +145,24 @@ widgets:
                         label: result.getName()
                         value: result.getCode()
                         from: data
-#                currencies:
-#                    dom: <'form-group form-group-sm m-r-10 xs-filter'i>
-#                    label: Currency
-#                    type: select
-#                    symbol: c
-#                    class: selectpicker
-#                    applyOnChanged: false
-#                    attrs:
-#                        data-style: btn-white btn-sm
-#                        title: Currency
-#                        multiple: multiple
-#                        data-width: auto
-#                        data-size: 5
-#                    value: :currency
-#                    choicesFrom:
-#                        function: '@currency.manager::getCurrencyList'
-#                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
-#                        value: result['id']
+                currencies:
+                    dom: <'form-group form-group-sm m-r-10 xs-filter'i>
+                    label: Currency
+                    type: select
+                    symbol: c
+                    class: selectpicker
+                    applyOnChanged: false
+                    attrs:
+                        data-style: btn-white btn-sm
+                        title: Currency
+                        multiple: multiple
+                        data-width: auto
+                        data-size: 5
+                    value: :currency
+                    choicesFrom:
+                        function: '@currency.manager::getCurrencyList'
+                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
+                        value: result['id']
                 country:
                     dom: <'form-group form-group-sm m-r-10 xs-filter'i>
                     label: Country

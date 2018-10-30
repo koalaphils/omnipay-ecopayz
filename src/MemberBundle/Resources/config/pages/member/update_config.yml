@@ -47,8 +47,13 @@ widgets:
                 email:
                     options:
                         label: Email
-                        required: true
                     type: email
+                    size: 12
+                    group: Left
+                phoneNumber:
+                    options:
+                        label: Phone Number
+                    type: text
                     size: 12
                     group: Left
                 status:
@@ -62,7 +67,6 @@ widgets:
                     options:
                         label: Full Name
                     type: text
-                    size: 12
                     size: 12
                     group: Left
                 groups:
