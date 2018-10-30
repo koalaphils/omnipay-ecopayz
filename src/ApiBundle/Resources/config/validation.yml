@@ -24,7 +24,7 @@ ApiBundle\Model\Transaction:
                 message: "Email is already used."
                 groups: ['withUniqueEmail']
         transactionPassword:
-            - NotNull: 
+            - NotNull:
                 message: "Transaction password should not be empty"
                 groups: [withdraw, p2p]
             - ApiBundle\Validator\TransactionPasswordConstraint:
@@ -33,7 +33,7 @@ ApiBundle\Model\Transaction:
 ApiBundle\Model\SubTransaction:
     properties:
         product:
-            - NotNull: 
+            - NotNull:
                 message: "Product cannot be empty."
             - Type:
                 type: DbBundle\Entity\CustomerProduct
@@ -51,7 +51,7 @@ ApiBundle\Model\SubTransaction:
                 expression: "value !== null && value.getCustomer().getId() == this.getTransaction().getCustomer().getId()"
                 message: "You can only tranfer to your own product"
                 groups: [transfer]
-            - ApiBundle\Validator\SameProductConstraint: 
+            - ApiBundle\Validator\SameProductConstraint:
                 groups: [p2p]
         username:
             - Expression:
@@ -59,7 +59,7 @@ ApiBundle\Model\SubTransaction:
                 message: "You can't transfer to your own product"
                 groups: [p2p]
         amount:
-            - NotNull: 
+            - NotNull:
                 message: "Amount cannot be empty."
             - NotEqualTo:
                 value: 0
@@ -93,11 +93,11 @@ ApiBundle\Model\Transfer:
                 expressionParams:
                     customer: object.getCustomer().getId()
                 ignoreNull: true
-            - NotNull: 
+            - NotNull:
                 message: "Product should not be empty"
             #- Expression:
             #    expression: "value !== null && this.getTotalAmount() <= value.getBalance()"
-            #    message: "Not enough balance"  
+            #    message: "Not enough balance"
             - Expression:
                 expression: "not this.isMultipleToCustomer()"
                 message: "Unable to transfer to mulitple customer"
@@ -110,9 +110,9 @@ ApiBundle\Model\Transfer:
                 groups: [p2p]
             - ApiBundle\Validator\SameCurrencyConstraint:
                 groups: [p2p]
-        
+
         transactionPassword:
-            - NotNull: 
+            - NotNull:
                 message: "Transaction password should not be empty"
                 groups: [withdraw, p2p]
             - ApiBundle\Validator\TransactionPasswordConstraint:
@@ -149,8 +149,24 @@ ApiBundle\Model\AccountActivation:
             - Length:
                 minMessage: "Transaction password should be at least 6 characters."
                 min: 6
-                
+
 ApiBundle\Model\Register:
+    constraints:
+        - AppBundle\Validator\Constraints\Unique:
+            entityClass: DbBundle\Entity\User
+            joins:
+              uc: e.customer
+              ucc: uc.country
+            expression: "e.phoneNumber = :phoneNumber AND ucc.phoneCode = :phoneCode"
+            expressionParams:
+              phoneNumber: object.getPhoneNumber()
+              phoneCode: object.getCountryPhoneCode()
+            validator: composite_unique
+            errorPath: username
+            violationValues:
+              --phoneNumber: object.getPhoneNumber()
+              --phoneCode: object.getCountryPhoneCode()
+            message: "User with --phoneNumber and country phone code --phoneCode is already exists."
     properties:
         email:
 #            - NotBlank: ~
@@ -161,13 +177,21 @@ ApiBundle\Model\Register:
                 expression: " e.email = :value0 "
                 requiredKey: [email]
 
-        phoneNumber:
-        #            - NotBlank: ~
-        - AppBundle\Validator\Constraints\Unique:
-            entityClass: DbBundle\Entity\User
-            select: " e.phoneNumber "
-            expression: " e.phoneNumber = :value0 "
-            requiredKey: [phoneNumber]
+#        phoneNumber:
+#            - AppBundle\Validator\Constraints\Unique:
+#                entityClass: DbBundle\Entity\User
+#                select: " e.phoneNumber "
+#                expression: " e.phoneNumber = :value0 "
+#                requiredKey: [phoneNumber]
+#            -  ApiBundle\Validator\PhoneNumberWithCountryCodeExists:
+#                 entityClass: DbBundle\Entity\User
+#                 entityClass2: DbBundle\Entity\Customer
+#                 entityClass3: DbBundle\Entity\Country
+#                 isJoinTable: true
+#                 select: " e.phoneNumber, e3.phoneCode "
+#                 expression: " e.phoneNumber = :phoneNumber AND e3.phoneCode = :phoneCode "
+#                 expressionParams:
+#                   phoneNumber: object.getPhoneNumber()
 #        firstName:
 #            - NotBlank: ~
 #            - Regex:
