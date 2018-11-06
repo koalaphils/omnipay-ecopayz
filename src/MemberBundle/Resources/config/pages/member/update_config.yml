@@ -47,13 +47,16 @@ widgets:
                 email:
                     options:
                         label: Email
+                        required: true
                     type: email
                     size: 12
                     group: Left
+                # zimi#802ddfbe
                 phoneNumber:
-                    options:
-                        label: Phone Number
                     type: text
+                    options:
+                        label: Phone number
+                        required: false
                     size: 12
                     group: Left
                 status:
@@ -67,6 +70,7 @@ widgets:
                     options:
                         label: Full Name
                     type: text
+                    size: 12
                     size: 12
                     group: Left
                 groups:
@@ -104,26 +108,26 @@ widgets:
                         function: '@country.manager::getCountryList'
                         label: result['name'] ~ ' (' ~ result['code'] ~ ')'
                         value: result['id']
-#                currency:
-#                    options:
-#                        label: Currency
-#                        required: true
-#                    type: dropdown
-#                    size: 12
-#                    group: Right
-#                    choicesFrom:
-#                        function: '@currency.manager::getCurrencyList'
-#                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
-#                        value: result['id']
-#                birthDate:
-#                    type: date
-#                    options:
-#                        label: Birth Date
-#                        widget: 'single_text'
-#                        format: 'M/dd/yyyy'
-#                        required: true
-#                    size: 12
-#                    group: Left
+                currency:
+                    options:
+                        label: Currency
+                        required: true
+                    type: dropdown
+                    size: 12
+                    group: Right
+                    choicesFrom:
+                        function: '@currency.manager::getCurrencyList'
+                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
+                        value: result['id']
+                birthDate:
+                    type: date
+                    options:
+                        label: Birth Date
+                        widget: 'single_text'
+                        format: 'M/dd/yyyy'
+                        required: true
+                    size: 12
+                    group: Left
                 joinedAt:
                     options:
                         label: Date Joined
@@ -243,7 +247,6 @@ widgets:
                         label: Confirm Password
                         required: false
                     type: password
-
     sendResetPasswordForm:
         type: AppBundle\Widget\Page\FormWidget
         properties:
@@ -266,7 +269,6 @@ widgets:
                         function: '@member.manager::getOriginSetting'
                         label: result['name'] ~ ' (' ~ result['code'] ~ ')'
                         value: result['url']
-
     contactsForm:
         type: AppBundle\Widget\Page\FormWidget
         properties:

@@ -55,8 +55,8 @@ class UpdateProfileRequestHandler
         $customer->setFullName($request->getFullName());
         $customer->setFName($request->getFullName());
         $customer->setCountry($this->entityManager->getPartialReference(Country::class, $request->getCountry()));
-//        $customer->setCurrency($this->entityManager->getPartialReference(Currency::class, $request->getCurrency()));
-//        $customer->setBirthDate($request->getBirthDate());
+        $customer->setCurrency($this->entityManager->getPartialReference(Currency::class, $request->getCurrency()));
+        $customer->setBirthDate($request->getBirthDate());
         $customer->setJoinedAt($request->getJoinedAt());
         $customer->setRiskSetting($request->getRiskSetting());
         $customer->setTags($request->getTags());

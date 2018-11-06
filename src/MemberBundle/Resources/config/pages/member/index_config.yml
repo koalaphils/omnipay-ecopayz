@@ -62,21 +62,21 @@ widgets:
                     type: function
                     function: listCurrency
                     from: customer.currency
-#                kyc:
-#                    label: KYC
-#                    type: function
-#                    function: listKyc
-#                    from: customer.verifiedAt
-#                created_by:
-#                    label: Created By
-#                    type: function
-#                    function: listCreator
-#                    from: customer.user.creator
-#                status:
-#                    label: Status
-#                    type: function
-#                    function: listStatus
-#                    from: customer
+                kyc:
+                    label: KYC
+                    type: function
+                    function: listKyc
+                    from: customer.verifiedAt
+                created_by:
+                    label: Created By
+                    type: function
+                    function: listCreator
+                    from: customer.user.creator
+                status:
+                    label: Status
+                    type: function
+                    function: listStatus
+                    from: customer
                 action:
                     label: Action
                     type: function

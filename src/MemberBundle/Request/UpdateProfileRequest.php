@@ -15,7 +15,7 @@ class UpdateProfileRequest
     private $country;
     private $groups;
     private $referrer;
-//    private $currency;
+    private $currency;
     private $joinedAt;
 
     private $affiliateLink;
@@ -47,7 +47,7 @@ class UpdateProfileRequest
         $request->fullName = $customer->getFullName();
         $request->birthDate = $customer->getBirthDate();
         $request->country = $customer->getCountry()->getId();
-//        $request->currency = $customer->getCurrency()->getId();
+        $request->currency = $customer->getCurrency()->getId();
         $request->referrer = $customer->getReferral();
         $request->joinedAt = $customer->getJoinedAt();
         $request->affiliateLink = $customer->getUser()->getPreference('affiliateCode');
@@ -149,15 +149,15 @@ class UpdateProfileRequest
         $this->country = $country;
     }
 
-//    public function getCurrency(): int
-//    {
-//        return $this->currency;
-//    }
-//
-//    public function setCurrency(int $currency): void
-//    {
-//        $this->currency = $currency;
-//    }
+    public function getCurrency(): int
+    {
+        return $this->currency;
+    }
+
+    public function setCurrency(int $currency): void
+    {
+        $this->currency = $currency;
+    }
 
     public function getGroups(): array
     {

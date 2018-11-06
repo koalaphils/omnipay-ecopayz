@@ -59,8 +59,7 @@
             return fullName;
         }
 
-        function listKyc(data, text, full) {
-            console.log(data);
+        function listKyc(data, text, full) {            
             return (data) ? "Verified" : "Not Verified";
         }
 
@@ -131,8 +130,7 @@
 
         }
 
-        function listAction(data, text, full) {
-            console.log(data);
+        function listAction(data, text, full) {            
             var action = "<a class='btn btn-primary waves-effect waves-light btn-xs ' title='Profile' href='" + full.routes.update + "/profile'><i class='ti-user'></i> </a>";
             var finance = "<a action='transaction' href='" + full.routes.update + "/transactions' title='Transaction History' class='btn btn-icon waves-effect waves-light btn-xs btn-purple btn-icn active-state-action'><i class='ti-money'></i></a>";
             var product = "<a action='product' href='" + full.routes.update + "/product' title='Product'  class='btn btn-icon waves-effect waves-light btn-warning btn-xs btn-icn active-state-action'> <i class='ti-bag'></i> </button>";
