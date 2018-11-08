@@ -259,6 +259,10 @@ ul.nav.navtab-bg.tabs-vertical a {
 }
 button[name='applyFilter'] {
   margin-right: 5px;
+  margin-top: -5px;
+}
+.btn-inverse, .btn-inverse:hover, .btn-inverse:focus, .btn-inverse:active, .btn-inverse.active, .btn-inverse.focus, .btn-inverse:active, .btn-inverse:focus, .btn-inverse:hover, .open > .dropdown-toggle.btn-inverse{
+  margin-top: -5px;
 }
 .ztable_colvis_btn .bs-caret {
   display: none;

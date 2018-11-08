@@ -108,24 +108,24 @@ widgets:
                         class: form-control cls-date
                     applyOnChanged: 0
                     value: :to
-#                product:
-#                    label: Product
-#                    type: select
-#                    dom: <'form-group form-group-sm m-r-10 xs-filter'i>
-#                    symbol: p
-#                    class: selectpicker
-#                    applyOnChanged: false
-#                    attrs:
-#                        data-style: btn-white btn-sm
-#                        multiple: multiple
-#                        data-none-selected-text: Product
-#                        data-width: auto
-#                        data-size: 5
-#                    value: :product
-#                    choicesFrom:
-#                        function: '@product.manager::getProductList'
-#                        label: result['name']
-#                        value: result['id']
+                # product:
+                #     label: Product
+                #     type: select
+                #     dom: <'form-group form-group-sm m-r-10 xs-filter'i>
+                #     symbol: p
+                #     class: selectpicker
+                #     applyOnChanged: false
+                #     attrs:
+                #         data-style: btn-white btn-sm
+                #         multiple: multiple
+                #         data-none-selected-text: Product
+                #         data-width: auto
+                #         data-size: 5
+                #     value: :product
+                #     choicesFrom:
+                #         function: '@product.manager::getProductList'
+                #         label: result['name']
+                #         value: result['id']                    
                 paymentOption:
                     label: Payment Option
                     type: select

@@ -130,6 +130,10 @@
 
         }
 
+        function listCurrency(data, text, full){
+            return [];
+        }
+
         function listAction(data, text, full) {            
             var action = "<a class='btn btn-primary waves-effect waves-light btn-xs ' title='Profile' href='" + full.routes.update + "/profile'><i class='ti-user'></i> </a>";
             var finance = "<a action='transaction' href='" + full.routes.update + "/transactions' title='Transaction History' class='btn btn-icon waves-effect waves-light btn-xs btn-purple btn-icn active-state-action'><i class='ti-money'></i></a>";

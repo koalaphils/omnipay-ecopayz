@@ -159,9 +159,10 @@
                 asset("assets/js/jquery.core.js"),
                 asset("assets/js/jquery.app.js"),
                 asset('bundles/app/js/cms_core.js'),
-                asset('bundles/websocket/js/websocket_v2.js')
+                
             ]) }}
 
+        {# asset('bundles/websocket/js/websocket_v2.js') #}
         {{ asset_render('js', 'default') }}
         {% include 'AppBundle:Layout:partials/scripts.html.twig' %}
         {% block javascripts -%}{%- endblock %}

@@ -48,6 +48,8 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
         if ($event->getTransaction()->getType() !== Transaction::TRANSACTION_TYPE_DWL) {
             $transactionNumber = $event->getTransaction()->getNumber();
             $type = $event->getTransaction()->getTypeText();
+
+            
             $status = empty($event->getAction()) ? $this->getPastTense('Decline') : $this->getPastTense($event->getAction()['label']);
             $payload['message'] = 'Transaction ' . $transactionNumber . ' ' . $type . ' has been ' . $status;
             $payload['status'] = $status;
