@@ -1,0 +1,30 @@
+csa_guzzle:
+    profiler: '%kernel.debug%'
+    logger: true
+    clients:
+        default: ~
+        api_piwi_bo:
+            lazy: true
+            config:
+                base_uri: 'http://jsonplaceholder.typicode.com'
+                timeout: 2.0                                            #zimi-comment: 2.0 ~ 2000 miliseconds
+                headers:
+                    Accept: application/json
+            middleware: ['debug']
+        api_pinnacle:
+            lazy: true
+            config:
+                base_uri: 'http://jsonplaceholder.typicode.com/todos/1'
+                timeout: 2.0                                            #zimi-comment: 2.0 ~ 2000 miliseconds
+                headers:
+                    Accept: application/json
+            middleware: ['debug']
+        api_piwi_mwa:
+            lazy: true
+            config:
+                base_uri: 'http://jsonplaceholder.typicode.com/todos/1'
+                timeout: 2.0                                            #zimi-comment: 2.0 ~ 2000 miliseconds
+                headers:
+                    Accept: application/json
+            middleware: ['debug']
+    default_client: api_piwi_bo

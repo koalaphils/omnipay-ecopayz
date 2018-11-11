@@ -1,0 +1,63 @@
+# root
+root:
+  path: /
+  controller: App\Controller\DefaultController::index
+ 
+# api piwi back office
+api_piwi_back_office_test:
+  path: /api/piwi-back-office/test
+  controller: App\Controller\ApiPiwiBackOffice\ApiPiwiBackOfficeController::test
+  requirements:
+    _format: json
+  defaults:
+    _format: json
+
+api_piwi_back_office_login:
+  path: /api/piwi-back-office/login
+  controller: App\Controller\ApiPiwiBackOffice\ApiPiwiBackOfficeController::login
+  requirements:
+    _format: json
+  defaults:
+    _format: json
+
+# api pinnacle
+api_pinnacle_test:
+  path: /api/pinnacle/test
+  controller: App\Controller\ApiPinnacle\ApiPinnacleController::test
+  requirements:
+    _format: json
+  defaults:
+    _format: json
+
+api_pinnacle_login:
+  path: /api/pinnacle/login
+  controller: App\Controller\ApiPinnacle\ApiPinnacleController::login
+  requirements:
+    _format: json
+  defaults:
+    _format: json
+
+api_pinnacle_users:
+  path: /api/pinnacle/users
+  controller: App\Controller\ApiPinnacle\ApiPinnacleController::users
+  requirements:
+    _format: json
+  defaults:
+    _format: json
+
+# api piwi mwa
+api_piwi_mwa_test:
+  path: /api/piwi-back-office/test
+  controller: App\Controller\ApiPiwiMWA\ApiPiwiMWAController::test
+  requirements:
+    _format: json
+  defaults:
+    _format: json
+
+api_piwi_mwa_login:
+  path: /api/piwi-back-office/login
+  controller: App\Controller\ApiPiwiMWA\ApiPiwiMWAController::login
+  requirements:
+    _format: json
+  defaults:
+    _format: json
