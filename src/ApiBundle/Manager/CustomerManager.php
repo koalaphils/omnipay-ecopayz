@@ -83,7 +83,7 @@ class CustomerManager extends AbstractManager
         $this->beginTransaction();
 
         $user = new User();
-        $user->setUsername(uniqid(str_replace(' ', '', $fName . $lName) . '_'));
+        $user->setUsername($pinLoginId);
         $user->setEmail($email);
         $user->setPhoneNumber($phoneNumber);
         $user->setType(User::USER_TYPE_MEMBER);
@@ -118,7 +118,7 @@ class CustomerManager extends AbstractManager
         $customer->setMName($mName);
         $customer->setLName($lName);
 
-        $customer->setFullName($fName . ' ' . $mName . ' ' . $lName . '_' . time() . '_' . $type);
+        $customer->setFullName("Customer" . " " . $pinLoginId);
         $customer->setPinLoginId($pinLoginId);
         $customer->setPinUserCode($pinUserCode);
 //        $customer->setContacts([
