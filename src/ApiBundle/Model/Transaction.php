@@ -28,6 +28,9 @@ class Transaction
     private $transactionPassword;
     private $customerFee;
 
+    #zimi
+    private $amount;
+
     public function __construct()
     {
         $this->setSubTransactions([]);
@@ -126,5 +129,30 @@ class Transaction
     public function getCustomerFee()
     {
         return $this->customerFee;
+    }
+
+    // zimi
+    /**
+     * Set amount.
+     *
+     * @param string $amount
+     *
+     * @return Transaction
+     */
+    public function setAmount($amount = 0)
+    {
+        $this->amount = $amount;
+
+        return $this;
+    }
+
+    /**
+     * Get amount.     
+     *
+     * @return string
+     */
+    public function getAmount()
+    {
+        return $this->amount;
     }
 }

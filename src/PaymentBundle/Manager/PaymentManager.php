@@ -41,6 +41,11 @@ class PaymentManager
             $paymentOption = $transaction->getPaymentOptionType();
             $currency = $transaction->getCustomer()->getCurrency();
 
+            // zimi-check null
+            if ($currency === null) {
+                $currency = new \DbBundle\Entity\currency();
+            }
+
             /* @var  $gateway \DbBundle\Entity\Gateway */
             $gateway = $this->getGatewayRepository()->findOneBy([
                 'currency' => $currency,
@@ -56,41 +61,45 @@ class PaymentManager
             $payment['email'] = $transaction->getCustomer()->getUser()->getEmail();
             $payment['clientId'] = $transaction->getCustomer()->getId();
 
-            $details = $gateway->getConfig();
-            $details = array_merge($details, [
-                'customerIdAtMerchant' => $transaction->getCustomer()->getId(),
-                'transactionId' => $transaction->getNumber(),
-            ]);
+            // zimi-comment
+            // $details = $gateway->getConfig();
+            // $details = array_merge($details, [
+            //     'customerIdAtMerchant' => $transaction->getCustomer()->getId(),
+            //     'transactionId' => $transaction->getNumber(),
+            // ]);
 
-            if ($this->getCurrentRequest()->request->has('returnUrl')) {
-                $details['returnUrl'] = $this->getCurrentRequest()->get('returnUrl');
-            }
+            // if ($this->getCurrentRequest()->request->has('returnUrl')) {
+            //     $details['returnUrl'] = $this->getCurrentRequest()->get('returnUrl');
+            // }
 
-            if ($this->getCurrentRequest()->request->has('cancelUrl')) {
-                $details['cancelUrl'] = $this->getCurrentRequest()->get('cancelUrl');
-            }
+            // if ($this->getCurrentRequest()->request->has('cancelUrl')) {
+            //     $details['cancelUrl'] = $this->getCurrentRequest()->get('cancelUrl');
+            // }
+
             $payment['transaction'] = $transaction;
             $payment['gateway'] = $gateway;
 
-            foreach ($details as $key => $detail) {
-                $payment[$key] = $detail;
-            }
+            // zimi-comment
+            // foreach ($details as $key => $detail) {
+            //     $payment[$key] = $detail;
+            // }
 
             $storage->update($payment);
 
-            $captureToken = $this->payum->getTokenFactory()->createCaptureToken(
-                $gateway->getGatewayName(),
-                $payment,
-                'payment_done'
-            );
+            // zimi-comment
+            // $captureToken = $this->payum->getTokenFactory()->createCaptureToken(
+            //     $gateway->getGatewayName(),
+            //     $payment,
+            //     'payment_done'
+            // );
 
-            $gatewayPayum = $this->payum->getGateway($captureToken->getGatewayName());
+            // $gatewayPayum = $this->payum->getGateway($captureToken->getGatewayName());
 
-            $gatewayPayum->execute(new \Payum\Core\Request\Capture($captureToken));
+            // $gatewayPayum->execute(new \Payum\Core\Request\Capture($captureToken));
 
-            if ($gateway->getFactoryName('offline') === 'offline') {
-                $storage->delete($payment);
-            }
+            // if ($gateway->getFactoryName('offline') === 'offline') {
+            //     $storage->delete($payment);
+            // }
         }
     }
 

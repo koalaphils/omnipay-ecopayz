@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 use DbBundle\Collection\Collection;
 use Symfony\Component\HttpFoundation\Response;
 use DbBundle\Entity\PaymentOption;
+use DbBundle\Entity\Customer;
 
 class TransactionController extends AbstractController
 {
@@ -122,7 +123,16 @@ class TransactionController extends AbstractController
     public function depositTransactionAction(Request $request)
     {
         $customer = $this->getUser()->getCustomer();
-        $transactionTemp = $transaction = $request->request->get('transaction', []);
+        $customerRepository = $this->getDoctrine()->getManager()->getRepository(Customer::class);
+        $transactionTemp = $transaction = $request->request->get('transaction', []);        
+        $amount = $transactionTemp['amount'];
+        
+        // zimi - check $customer is null
+        if ($customer === null) {
+            $customer_id = $transactionTemp['customer'];
+            $customer = $customerRepository->findOneBy(['id' => $customer_id]);            
+            $customer->setIsCustomer(true);        
+        }
         
         $paymentOptionType = $transaction['paymentOptionType'];
         $defaultGroup = ['Default', 'deposit'];
@@ -142,13 +152,16 @@ class TransactionController extends AbstractController
         $tempTransactionModel = new \ApiBundle\Model\Transaction();
         $tempTransactionModel->setCustomer($customer);
         $tempTransactionModel->setPayment($paymentOption);
+
+
         $form = $this->createForm(\ApiBundle\Form\Transaction\TransactionType::class, $tempTransactionModel, [
             'validation_groups' => $defaultGroup,
             'hasEmail' => true,
         ]);
         $form->submit($transaction);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        // zimi-removed: && $form->isValid()
+        if ($form->isSubmitted()) {
             if (is_null($memberPaymentOptionId)) {
                 $memberPaymentOption = $this->getTransactionManager()->addCustomerPaymentOption($customer, $paymentOptionType, $transactionTemp);
             } else {
@@ -157,6 +170,8 @@ class TransactionController extends AbstractController
             $transactionModel = $form->getData();
             $transactionModel->setPaymentOption($memberPaymentOption);
             $transactionModel->setCustomer($customer);
+            // zimi
+            $transactionModel->setAmount($amount);
 
             try {
                 $transaction = $this->getTransactionManager()->handleDeposit($transactionModel);

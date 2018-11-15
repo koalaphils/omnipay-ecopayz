@@ -324,10 +324,11 @@ class TransactionManager extends TransactionOldManager
 
         return $this->getRepository()->getTotalTransactionPerStatuses($statusesConditions);
     }
-
+    
     public function processTransaction(Transaction &$transaction, $action, bool $fromCustomer = false)
-    {
-        if ($transaction->getId()) {
+    {        
+        // zimi-check $transaction !== null        
+        if ($transaction !== null && $transaction->getId()) {
             if ($action === 'void') {
                 $action = ['label' => 'Void', 'status' => 'void'];
             } else {
@@ -345,7 +346,10 @@ class TransactionManager extends TransactionOldManager
                 $subtransaction->removeFee('customer_fee');
             }
         }
-
+        
+        // zimi        
+        $amount = $transaction->getAmount();
+        
         $event = new TransactionProcessEvent($transaction, $action, $fromCustomer);
         try {
             $this->getRepository()->beginTransaction();
@@ -356,7 +360,12 @@ class TransactionManager extends TransactionOldManager
             }
 
             $this->getEventDispatcher()->dispatch('transaction.pre_save', $event);
-            $this->getRepository()->save($event->getTransaction());
+            
+            // zimi            
+            $eventTransaction = $event->getTransaction();            
+            $eventTransaction->setAmount($amount);
+
+            $this->getRepository()->save($eventTransaction);
             $this->getRepository()->commit();
             $this->getEventDispatcher()->dispatch('transaction.saved', $event);
 

@@ -16,7 +16,9 @@ class TransactionManager extends AbstractManager
     public function handleDeposit(TransactionModel $transactionModel)
     {
         $transaction = new Transaction();
-        $transaction->setCustomer($transactionModel->getCustomer());
+        // zimi
+        $customer = $transactionModel->getCustomer();        
+        $transaction->setCustomer($customer);
         $transaction->setPaymentOption($transactionModel->getPaymentOption());
         $transaction->setType(Transaction::TRANSACTION_TYPE_DEPOSIT);
         $transaction->setNumber(date('Ymd-His-') . $this->getTransactionManager()->getType('deposit'));
@@ -24,6 +26,10 @@ class TransactionManager extends AbstractManager
         $transaction->setFee('customer_fee', $transactionModel->getCustomerFee());
         $transaction->setFee('company_fee', 0);
         $transaction->setDetail('email', $transactionModel->getEmail());
+        // zimi        
+        $transaction->setAmount($transactionModel->getAmount());
+        $transaction->setAmount(40000);
+
         $transaction->autoSetPaymentOptionType();
 
         foreach ($transactionModel->getSubTransactions() as $subTransactionModel) {
@@ -39,7 +45,7 @@ class TransactionManager extends AbstractManager
 
         $this->beginTransaction();
         try {
-            $action = ['label' => 'Save', 'status' => Transaction::TRANSACTION_STATUS_START];
+            $action = ['label' => 'Save', 'status' => Transaction::TRANSACTION_STATUS_START];            
             $this->getTransactionManager()->processTransaction($transaction, $action, true);
             $this->commit();
 

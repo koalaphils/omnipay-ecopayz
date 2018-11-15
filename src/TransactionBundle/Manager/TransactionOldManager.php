@@ -97,7 +97,11 @@ class TransactionOldManager extends AbstractManager
         $totalCustomerFee = new Number(0);
         $totalCompanyFee = new Number(0);
         $currencies = [];
-        $currencies[$transaction->getCustomer()->getCurrency()->getId()] = $transaction->getCustomer()->getCurrency();
+
+        // zimi-check !== null
+        if ($transaction->getCustomer()->getCurrency() !== null) {
+            $currencies[$transaction->getCustomer()->getCurrency()->getId()] = $transaction->getCustomer()->getCurrency();
+        }        
 
         foreach ($transaction->getSubTransactions() as $subTransaction) {
             /* @var $subTransaction SubTransaction */

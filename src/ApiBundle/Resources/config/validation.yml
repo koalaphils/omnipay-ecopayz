@@ -1,16 +1,17 @@
 ApiBundle\Model\Transaction:
     properties:
         subTransactions:
-            - Count:
-                min: 1
-                minMessage: "You must add one product"
+            # zimi
+            # - Count:
+            #    min: 1
+            #    minMessage: "You must add one product"
         email:
-            - NotNull:
-                message: "Email cannot be empty"
-                groups: [withEmail]
-            - Email:
-                message: "Invalid Email"
-                groups: [withEmail]
+            # - NotNull:
+            #     message: "Email cannot be empty"
+            #     groups: [withEmail]
+            # - Email:
+            #     message: "Invalid Email"
+            #     groups: [withEmail]
             - AppBundle\Validator\Constraints\Unique:
                 entityClass: DbBundle\Entity\CustomerPaymentOption
                 valuePath: value
