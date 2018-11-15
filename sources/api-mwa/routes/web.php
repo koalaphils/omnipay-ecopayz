@@ -20,3 +20,4 @@ $router->post('/api/sms-code/get-code', 'SmsCodeController@getSmsCode');
 $router->get('/api/sms-code/get-code-get', 'SmsCodeController@getSmsCodeTest');
 $router->get('/api/sms-code/get-code', 'SmsCodeController@sendCode');
 $router->get('/api/countries', 'CountryController@selectCountry');
+$router->post('/api/transaction/deposit', 'TransactionController@deposit');
