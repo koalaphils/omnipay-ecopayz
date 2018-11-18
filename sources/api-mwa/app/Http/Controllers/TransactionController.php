@@ -25,34 +25,37 @@ class TransactionController extends Controller
      * @return Array
      */
     public function deposit(Request $request)
-    {        
-       
+    {                
         $post = $request->all();
-        $data = array();
-        $dev = array();
-        $dev['post_data'] = $post;
-
+        $data = array();        
+    
         $headers = [
             'Content-type: application/json',
             'Authorization: Bearer OTAyY2VmOTdkNGZmOTcxOTM3ZDY5ZjE5ZmMyMzliYzQwOWYzZDBhYjFkMTBlYTNiNjU5YTdlNmU2ODhiMzI1Mw'
-        ];
-        
-        $data['pdata'] = $post;        
-        // get customer via email or phone
-        // later..        
-       
-        $phone_code = app('db')->select($sql);
-        $phone_code = (array) $phone_code[0];
-        $phone_code = $phone_code['country_phone_code'];
+        ];    
 
-        $url = 'http://47.254.197.223:9002/en/api/me/transactions/deposit';        
+        $data['pdata'] = $post;                
+        $sql = 'select customer_id from customer c join user u on u.user_id = c.customer_user_id join country ct on ct.country_id = c.customer_country_id where u.user_phone_number = \''.$post['phoneNumber'].'\' and ct.country_phone_code = ' . '\''.$post['phoneCode'].'\'';
+
+        // if (array_key_exists('phoneNumber', $post)) {
+        //     $sql = 'select customer_id from customer c join user u on u.user_id = c.customer_user_id join country ct on ct.country_id = c.customer_country_id where u.user_phone_number = \''.$post['phoneNumber'].'\' and ct.country_phone_code = ' . $post['phoneCode'];
+        // }else{            
+        //     $sql = 'select customer_id from customer c join user u on u.user_id = c.customer_user_id where u.user_email = \''.$post['email'].'\'   ';
+        // }
+        
+
+        $customer = app('db')->select($sql);
+        $customer = (array) $customer[0];
+        $customer_id = $customer['customer_id'];
+                
+        $url = env('API_PIWI_BO_DEPOSIT');
         $data_bo = array(
             'transaction' => array(
                 'amount' => $post['amount'],
                 'paymentOptionType' => $post['paymentOptionType'],
                 'email' => $post['email'],
                 'paymentOption' => 30046,
-                'customer' => 20137,
+                'customer' => $customer_id,
                 'children' => array(
                     'subTransactions' => array (
                         array(
@@ -71,7 +74,7 @@ class TransactionController extends Controller
                 
         $data['type_of_res_bo'] = gettype($res_bo);
         $data['data_bo'] = $res_bo;                
-        
-        return response()->json(['status' => 200, 'data' => $data, 'dev' => $dev], 201); 
+                
+        return response()->json(['status' => 200, 'data' => $data], 201); 
     }   
 }
