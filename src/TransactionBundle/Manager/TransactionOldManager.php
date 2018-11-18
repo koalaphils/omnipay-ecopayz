@@ -227,11 +227,11 @@ class TransactionOldManager extends AbstractManager
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, 'http://47.254.197.223:9000/api/pinnacle/deposit');
             curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, array('userCode'=>'', 'amount'=> $amount));
+            curl_setopt($ch, CURLOPT_POSTFIELDS, array('userCode' => $userCode, 'amount'=> $amount));
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
             $response = curl_exec($ch);
-            $data = json_decode($response);
+            // $data = json_decode($response);
         }
         
         /* @var $subTransaction SubTransaction */
