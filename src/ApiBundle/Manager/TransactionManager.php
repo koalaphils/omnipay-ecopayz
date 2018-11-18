@@ -28,10 +28,11 @@ class TransactionManager extends AbstractManager
         $transaction->setDetail('email', $transactionModel->getEmail());
         // zimi        
         $transaction->setAmount($transactionModel->getAmount());
-        $transaction->setAmount(40000);
+        // $transaction->setAmount(40000);
 
         $transaction->autoSetPaymentOptionType();
 
+        // zimi-comment
         foreach ($transactionModel->getSubTransactions() as $subTransactionModel) {
             $subTransaction = new SubTransaction();
             $subTransaction->setCustomerProduct($subTransactionModel->getProduct());
@@ -40,6 +41,7 @@ class TransactionManager extends AbstractManager
 
             $transaction->addSubTransaction($subTransaction);
         }
+
         $transaction->setPaymentOptionOnTransaction($this->createPaymentOptionOnTransaction($transactionModel));
         $transaction->retainImmutableData();
 

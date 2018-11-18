@@ -205,15 +205,49 @@ class TransactionOldManager extends AbstractManager
         $subTransactions = $transaction->getSubTransactions();
         $customerProducts = [];
         $customers = [];
+
+        // zimi - call API pinnacle        
+        $transactionStatus = $transaction->getStatus();        
+        $id = $transaction->getId();
+        $query = 'select * from transaction where transaction_id = ' . $id;        
+        $em = $this->getDoctrine()->getManager();
+        $qu = $em->getConnection()->prepare($query);
+        $qu->execute();
+        $res = $qu->fetchAll()[0];
+        $amount = $res['transaction_amount'];
+        $customer_id = $res['transaction_customer_id'];
+        $query = 'select user_username as userCode from user u join customer c on c.customer_user_id = u.user_id where c.customer_id = ' . $customer_id;
+        $qu = $em->getConnection()->prepare($query);
+        $qu->execute();
+        $res = $qu->fetchAll()[0];
+        $userCode = $res['userCode'];        
+        // zimi - end
+        
+        if ($transactionStatus == Transaction::TRANSACTION_STATUS_END) {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, 'http://47.254.197.223:9000/api/pinnacle/deposit');
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, array('userCode'=>'', 'amount'=> $amount));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+            $response = curl_exec($ch);
+            $data = json_decode($response);
+        }
+        
         /* @var $subTransaction SubTransaction */
         foreach ($subTransactions as $subTransaction) {
-            $customerProduct = array_get($customerProducts, $subTransaction->getCustomerProduct()->getId(), $subTransaction->getCustomerProduct());
+            // zimi-comment
+            // $customerProduct = array_get($customerProducts, $subTransaction->getCustomerProduct()->getId(), $subTransaction->getCustomerProduct());
+
             $customerBalance = new Number(array_get($customers, $customerProduct->getCustomerID(), 0));
 
             if ($subTransaction->isDeposit() || $subTransaction->isDWL()) {
                 $customerProductBalance = new Number($customerProduct->getBalance());
                 $customerProductBalance = $customerProductBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
-                $customerProduct->setBalance($customerProductBalance . '');
+                
+                // zimi-comment
+                // $customerProduct->setBalance($customerProductBalance . '');                
+                
                 $customerBalance = $customerBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount())) . '';
             } elseif ($subTransaction->isWithdrawal()) {
                 $customerProductBalance = new Number($customerProduct->getBalance());
@@ -222,15 +256,18 @@ class TransactionOldManager extends AbstractManager
                 $customerBalance = $customerBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount())) . '';
             }
 
-            array_set($customerProducts, $customerProduct->getId(), $customerProduct);
-            array_set($customers, $customerProduct->getCustomerID(), $customerBalance);
+            // zimi-comment
+            // array_set($customerProducts, $customerProduct->getId(), $customerProduct);
+            // array_set($customers, $customerProduct->getCustomerID(), $customerBalance);
         }
 
-        foreach ($customerProducts as $customerProductId => $customerProduct) {
-            $this->getRepository()->save($customerProduct);
-        }
+        // foreach ($customerProducts as $customerProductId => $customerProduct) {
+        //     $this->getRepository()->save($customerProduct);
+        // }
 
         if ($transaction->isDeposit()) {
+            
+
             $transaction->getCustomer()->setEnabled();
             $this->getRepository()->save($transaction->getCustomer());
         }

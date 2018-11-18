@@ -37,6 +37,14 @@ api_pinnacle_login:
   defaults:
     _format: json
 
+api_pinnacle_login:
+  path: /api/pinnacle/deposit
+  controller: App\Controller\ApiPinnacle\ApiPinnacleController::deposit
+  requirements:
+    _format: json
+  defaults:
+    _format: json
+
 api_pinnacle_users:
   path: /api/pinnacle/users
   controller: App\Controller\ApiPinnacle\ApiPinnacleController::users

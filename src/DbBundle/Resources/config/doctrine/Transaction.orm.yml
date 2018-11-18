@@ -94,7 +94,8 @@ DbBundle\Entity\Transaction:
             type: datetime
             column: transaction_updated_at
             nullable: true
-            version: true
+            # zimi-comment
+            # version: true
         deletedAt:
             type: datetime
             nullable: true

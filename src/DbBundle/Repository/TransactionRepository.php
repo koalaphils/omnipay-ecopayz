@@ -17,7 +17,7 @@ use DbBundle\Entity\Product;
  * repository methods below.
  */
 class TransactionRepository extends BaseRepository
-{
+{   
     public function save($entity)
     {
         try {
@@ -59,22 +59,27 @@ class TransactionRepository extends BaseRepository
     public function findByIdAndType($id, $type, $hydrationMode = \Doctrine\ORM\Query::HYDRATE_OBJECT, $lockMode = null)
     {
         $qb = $this->createQueryBuilder('t');
+        
         $qb->join('t.customer', 'c');
-        $qb->join('t.subTransactions', 's');
-        $qb->join('s.customerProduct', 'cp');
-        $qb->join('cp.customer', 'cpc');
+        $qb->leftJoin('c.user', 'u');
+
+        // zimi-comment
+        // $qb->join('t.subTransactions', 's');
+        // $qb->join('s.customerProduct', 'cp');
+        // $qb->join('cp.customer', 'cpc');p
+        
         $qb->leftJoin('t.gateway', 'g');
-        $qb->leftJoin('g.currency', 'gc');
-
-        $qb->select('t,c,s,cp,g,gc,cpc');
-        $qb->where('t.id = :id AND t.type = :type')->setParameter('id', $id)->setParameter('type', $type);
-
+        $qb->leftJoin('g.currency', 'gc');        
+        $qb->select('t,c,g,gc,u');
+        $qb->where('t.id = :id AND t.type = :type')->setParameter('id', $id)->setParameter('type', $type);        
         $qu = $qb->getQuery();
+            
         if (!is_null($lockMode)) {
             $qu->setLockMode($lockMode);
         }
 
-        return $qu->getSingleResult($hydrationMode);
+        // zimi          
+        return $qu->getSingleResult($hydrationMode);               
     }
 
     /**

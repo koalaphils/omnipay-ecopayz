@@ -113,9 +113,10 @@ class TransactionController extends AbstractController
         $transaction = $this->getRepository('DbBundle:Transaction')->findByIdAndType($id, $this->getManager()->getType($type));
         $dwl = null;
 
-        if ($transaction->isDwl()) {
-            $dwl = $this->getDWLRepository()->find($transaction->getDwlId());
-        }
+        // zimi-comment
+        // if ($transaction->isDwl()) {
+        //     $dwl = $this->getDWLRepository()->find($transaction->getDwlId());
+        // }
 
         $form = $this->getManager()->createForm($transaction, false);
 
@@ -137,8 +138,9 @@ class TransactionController extends AbstractController
 
     public function saveAction(Request $request, $type, $id = 'new')
     {
+        
         if ($id === 'new') {
-        $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_CREATE']);
+            $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_CREATE']);
             return $this->createAction($request, $type);
         }
 
@@ -274,7 +276,9 @@ class TransactionController extends AbstractController
 
         $response = ['success' => true];
         try {
+            // zimi
             $transaction = $this->getManager()->handleFormTransaction($form, $request);
+
             $response['data'] = $transaction;
         } catch (\AppBundle\Exceptions\FormValidationException $e) {
             $response['success'] = false;

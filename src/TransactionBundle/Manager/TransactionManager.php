@@ -283,7 +283,8 @@ class TransactionManager extends TransactionOldManager
     {
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        // zimi-comment:  && $form->isValid()
+        if ($form->isSubmitted()) {
             $transaction = $form->getData();
             $transaction->retainImmutableData();
             $transaction->autoSetPaymentOptionType();
@@ -349,7 +350,7 @@ class TransactionManager extends TransactionOldManager
         
         // zimi        
         $amount = $transaction->getAmount();
-        
+
         $event = new TransactionProcessEvent($transaction, $action, $fromCustomer);
         try {
             $this->getRepository()->beginTransaction();
@@ -361,11 +362,11 @@ class TransactionManager extends TransactionOldManager
 
             $this->getEventDispatcher()->dispatch('transaction.pre_save', $event);
             
-            // zimi            
+            // zimi- DbBundle\Entity\Transaction            
             $eventTransaction = $event->getTransaction();            
             $eventTransaction->setAmount($amount);
-
-            $this->getRepository()->save($eventTransaction);
+                        
+            $this->getRepository()->save($eventTransaction);            
             $this->getRepository()->commit();
             $this->getEventDispatcher()->dispatch('transaction.saved', $event);
 

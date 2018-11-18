@@ -28,10 +28,7 @@
             {% endif %}
             <ul class="dropdown-menu pull-right" role="menu">
                 <li><a href="{{ path("transaction.create_page", {'type': 'deposit'}) }}">{{ "menus.Deposit"|trans({},"TransactionBundle") }}</a></li>
-                <li><a href="{{ path("transaction.create_page", {'type': 'withdraw'}) }}">{{ "menus.Withdraw"|trans({},"TransactionBundle") }}</a></li>
-                <li><a href="{{ path("transaction.create_page", {'type': 'transfer'}) }}">{{ "menus.Transfer"|trans({},"TransactionBundle") }}</a></li>
-                <li><a href="{{ path("transaction.create_page", {'type': 'p2p_transfer'}) }}">{{ "menus.P2PTransfer"|trans({},"TransactionBundle") }}</a></li>
-                <li><a href="{{ path("transaction.create_page", {'type': 'bonus'}) }}">{{ "menus.Bonus"|trans({},"TransactionBundle") }}</a></li>
+                <li><a href="{{ path("transaction.create_page", {'type': 'withdraw'}) }}">{{ "menus.Withdraw"|trans({},"TransactionBundle") }}</a></li>                
             </ul>
         </div>
         <ul class="list-inline quicklinks font-13 font-normal text-right m-t-10">
@@ -68,8 +65,7 @@
                         <tr>
                             <th data-priority="1">{{ "fields.number"|trans({}, "TransactionBundle") }}</th>
                             <th>{{ "fields.date"|trans({}, "TransactionBundle") }}</th>
-                            <th>{{ "fields.member"|trans({}, "TransactionBundle") }}</th>
-                            <th>{{ "fields.productUsername"|trans({}, "TransactionBundle") }}</th>
+                            <th>{{ "fields.member"|trans({}, "TransactionBundle") }}</th>                            
                             <th>{{ "fields.paymentOption"|trans({}, "TransactionBundle") }}</th>
                             <th>{{ "fields.currency"|trans({}, "TransactionBundle") }}</th>
                             <th>{{ "fields.memberFee"|trans({}, "TransactionBundle") }}</th>
@@ -122,7 +118,7 @@
 {% endblock %}
 
 {% block javascripts %}
-    <script type="text/javascript" >
+    <script type="text/javascript" >        
         var statuses = {{ statuses|json_encode()|raw }};
         var userPreferences = {{ app.user.getPreference('ui.transaction.list.column.visibility')|json_encode()|raw }};
         var filter = {{ filter|json_encode()|raw }};
@@ -267,6 +263,7 @@
                             });
                         }
                     },
+                    /*
                     'product': {
                         'dom': "<'form-group form-group-sm m-r-10 xs-filter'i>",
                         'type': 'select',
@@ -307,6 +304,7 @@
                         },
                         'value': '{{ app.request.get("product", [])|json_encode|raw }}',
                     },
+                    */
                     'paymentOption': {
                         'dom': "<'form-group form-group-sm m-r-10 xs-filter'i>",
                         'type': 'select',
@@ -457,6 +455,7 @@
                         'data': 'customer.full_name',
                         'defaultContent': ''
                     },
+                    /* zimi - comment
                     {
                         'data': 'sub_transactions',
                         'defaultContent': '',
@@ -491,6 +490,7 @@
                             return productUsername;
                         }
                     },
+                    */
                     {
                         'data': 'immutable_payment_option_data',
                         'defaultContent': '',
@@ -516,12 +516,12 @@
                         'render': function (data, type, full) {
                             return (new Decimal(data)).toFixed(2);
                         }
-                    },
+                    },                    
                     {
                         'name': 'amount',
                         'data': 'customer_amount',
                         'defaultContent': '',
-                        'render': function (data, type, full) {
+                        'render': function (data, type, full) {                            
                             if (full.type_text === 'withdraw') {
                                 var amount = new Number(data);
                                 var fee = new Number(full.customer_fee);
@@ -601,7 +601,7 @@
                 voidTransaction(voidLink + '/void');
             });
 
-            $('#transactionList').on('click', 'tr td a#voidBtn', function (e) {
+            $('#transactionList').on('click', 'tr td avoidBtn', function (e) {
                 e.preventDefault();
                 var currentRow = $(e.target).closest('tr');
                 if (currentRow.hasClass('child')) {

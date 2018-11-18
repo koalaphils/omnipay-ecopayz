@@ -720,8 +720,10 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     }
 
     public function getCustomerAmount()
-    {
-        return $this->getDetail('summary.customer_amount', $this->getDetail('summary.total_amount', 0));
+    {        
+        // zimi
+        // return $this->getDetail('summary.customer_amount', $this->getDetail('summary.total_amount', 0));
+        return $this->getAmount();
     }
 
     public function canAutoSetPaymentOptionType()

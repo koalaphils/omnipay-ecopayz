@@ -181,41 +181,41 @@ widgets:
                         function: '@country.manager::getCountryList'
                         label: result['name'] ~ ' (' ~ result['code'] ~ ')'
                         value: result['id']
-#                KYC:
-#                    dom: <'form-group form-group-sm m-r-10 xs-filter'i>
-#                    label: KYC
-#                    type: select
-#                    symbol: k
-#                    class: selectpicker
-#                    applyOnChanged: false
-#                    attrs:
-#                        data-style: btn-white btn-sm
-#                        title: KYC
-#                        multiple: multiple
-#                        data-width: auto
-#                        data-size: 5
-#                    value: :KYC
-#                    choices:
-#                        '1': Verified
-#                        '0': Not Verified
-#                status:
-#                    dom: <'form-group form-group-sm m-r-10 xs-filter'i>
-#                    label: Status
-#                    type: select
-#                    symbol: s
-#                    class: selectpicker
-#                    applyOnChanged: false
-#                    attrs:
-#                        data-style: btn-white btn-sm
-#                        title: Status
-#                        multiple: multiple
-#                        data-width: auto
-#                        data-size: 5
-#                    choices:
-#                        registered: Registered
-#                        enabled: Enabled
-#                        suspended: Suspended
-#                    value: :status
+                KYC:
+                    dom: <'form-group form-group-sm m-r-10 xs-filter'i>
+                    label: KYC
+                    type: select
+                    symbol: k
+                    class: selectpicker
+                    applyOnChanged: false
+                    attrs:
+                        data-style: btn-white btn-sm
+                        title: KYC
+                        multiple: multiple
+                        data-width: auto
+                        data-size: 5
+                    value: :KYC
+                    choices:
+                        '1': Verified
+                        '0': Not Verified
+                status:
+                    dom: <'form-group form-group-sm m-r-10 xs-filter'i>
+                    label: Status
+                    type: select
+                    symbol: s
+                    class: selectpicker
+                    applyOnChanged: false
+                    attrs:
+                        data-style: btn-white btn-sm
+                        title: Status
+                        multiple: multiple
+                        data-width: auto
+                        data-size: 5
+                    choices:
+                        registered: Registered
+                        enabled: Enabled
+                        suspended: Suspended
+                    value: :status
                 tag:
                     dom: <'form-group form-group-sm m-r-10 xs-filter'i>
                     label: All Tags
