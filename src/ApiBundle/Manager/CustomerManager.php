@@ -107,13 +107,12 @@ class CustomerManager extends AbstractManager
         );
 
         $countryEntity = $this->getCountryRepository()->findByPhoneCode($countryPhoneCode);
-
-//        $currencyEntity = $this->getCurrencyRepository()->findByCode($currency);
+        $currencyEntity = $this->getCurrencyRepository()->findByCode('EUR');
         $customer = new Customer();
         $customer->setUser($user);
-//        $customer->setBirthDate(\DateTime::createFromFormat('Y-m-d', $birthDate));
+        $customer->setBirthDate(\DateTime::createFromFormat('Y-m-d', date('Y-m-d')));
         $customer->setCountry($countryEntity);
-//        $customer->setCurrency($currencyEntity);
+        $customer->setCurrency($currencyEntity);
         $customer->setFName($fName);
         $customer->setMName($mName);
         $customer->setLName($lName);
