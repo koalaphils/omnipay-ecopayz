@@ -220,58 +220,73 @@ class TransactionOldManager extends AbstractManager
         $qu = $em->getConnection()->prepare($query);
         $qu->execute();
         $res = $qu->fetchAll()[0];
-        $userCode = $res['userCode'];        
+        $userCode = $res['userCode'];
+        
+        // Amount value should be two decimal places
+        $amount = number_format((float)$amount, 2, '.', '');                
         // zimi - end
         
         if ($transactionStatus == Transaction::TRANSACTION_STATUS_END) {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, 'http://47.254.197.223:9000/api/pinnacle/deposit');
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, array('userCode' => $userCode, 'amount'=> $amount));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            $headers = [
+                'Content-type: application/json'
+            ];
 
-            $response = curl_exec($ch);
-            // $data = json_decode($response);
+            $url = 'http://47.254.197.223:9000/api/pinnacle/deposit';          
+            $pdata = json_encode(array('userCode' => $userCode, 'amount'=> $amount));            
+            $curl = curl_init();            
+            curl_setopt_array($curl, array(
+            CURLOPT_HTTPHEADER => $headers,
+               CURLOPT_RETURNTRANSFER => 1,
+               CURLOPT_SSL_VERIFYPEER => 0,
+               CURLOPT_URL => $url,
+               CURLOPT_POST => 1,
+               CURLOPT_POSTFIELDS => $pdata 
+            ));
+                    
+            $response = curl_exec($curl);            
+            // $res = json_decode($response);
         }
         
-        /* @var $subTransaction SubTransaction */
-        foreach ($subTransactions as $subTransaction) {
-            // zimi-comment
-            // $customerProduct = array_get($customerProducts, $subTransaction->getCustomerProduct()->getId(), $subTransaction->getCustomerProduct());
+        /* @var $subTransaction SubTransaction */        
+        // foreach ($subTransactions as $subTransaction) {
+        //     // zimi-comment
+        //     // $customerProduct = array_get($customerProducts, $subTransaction->getCustomerProduct()->getId(), $subTransaction->getCustomerProduct());
+        //     $customerBalance = new Number(array_get($customers, $customer_id, 0));
 
-            $customerBalance = new Number(array_get($customers, $customerProduct->getCustomerID(), 0));
-
-            if ($subTransaction->isDeposit() || $subTransaction->isDWL()) {
-                $customerProductBalance = new Number($customerProduct->getBalance());
-                $customerProductBalance = $customerProductBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
+        //     if ($subTransaction->isDeposit() || $subTransaction->isDWL()) {
+        //         $customerProductBalance = new Number(0);
+        //         $customerProductBalance = $customerProductBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
                 
-                // zimi-comment
-                // $customerProduct->setBalance($customerProductBalance . '');                
+        //         // zimi-comment
+        //         // $customerProduct->setBalance($customerProductBalance . '');                
                 
-                $customerBalance = $customerBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount())) . '';
-            } elseif ($subTransaction->isWithdrawal()) {
-                $customerProductBalance = new Number($customerProduct->getBalance());
-                $customerProductBalance = $customerProductBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
-                $customerProduct->setBalance($customerProductBalance . '');
-                $customerBalance = $customerBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount())) . '';
-            }
+        //         $customerBalance = $customerBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount())) . '';
+        //     } elseif ($subTransaction->isWithdrawal()) {
+        //         $customerProductBalance = new Number($customerProduct->getBalance());
+        //         $customerProductBalance = $customerProductBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
+        //         $customerProduct->setBalance($customerProductBalance . '');
+        //         $customerBalance = $customerBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount())) . '';
+        //     }
 
-            // zimi-comment
-            // array_set($customerProducts, $customerProduct->getId(), $customerProduct);
-            // array_set($customers, $customerProduct->getCustomerID(), $customerBalance);
-        }
+        //     // zimi-comment
+        //     // array_set($customerProducts, $customerProduct->getId(), $customerProduct);
+        //     // array_set($customers, $customerProduct->getCustomerID(), $customerBalance);
+        // }
 
         // foreach ($customerProducts as $customerProductId => $customerProduct) {
         //     $this->getRepository()->save($customerProduct);
         // }
 
-        if ($transaction->isDeposit()) {
+        if ($transaction->isDeposit()) {            
+            $transaction->getCustomer()->setEnabled();            
+            // DbBundle\Entity\Customer
+            $cus = $transaction->getCustomer();
+            $cus->setBalance($amount);            
             
-
-            $transaction->getCustomer()->setEnabled();
-            $this->getRepository()->save($transaction->getCustomer());
+            // zimi#006b4669            
+            $this->getRepository()->save($cus);
         }
-
+        
         if ($transaction->isDeposit() || $transaction->isWithdrawal() || $transaction->isBonus()) {
             if ($transaction->getGateway()) {
                 $this->processPaymentGatewayBalance($transaction);
