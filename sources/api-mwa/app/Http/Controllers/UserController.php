@@ -17,6 +17,32 @@ class UserController extends Controller
         //
     }
 
+    
+    /**
+     * Auto login
+     *
+     * @param Request $request
+     * @return response
+     */
+    public function refresh(Request $request)
+    {
+        $error = true;
+        $message = '';
+        
+        $post = $request->all();
+        $res_data = array();        
+        $res_data['post_data'] = $post;
+      
+        $data_login = array('userCode' => $post['userCode']);    
+        $url = $this->base_url_pinnacle . '/login';
+        $res_pin_login = $this->callApi($url, json_encode($data_login), 'POST');        
+        $res_pin_login = json_decode($res_pin_login, true);
+        $res_data['res_pin_login'] = $res_pin_login;
+                
+        $error = false;        
+        return response()->json(['error' => $error, 'message'=> $message, 'status' => 200, 'data' => $res_data], 201);
+    }
+    
     /**
      * Request login pinnacle
      *
@@ -37,14 +63,19 @@ class UserController extends Controller
         ];
         $url = 'http://47.254.197.223:9002/en/api/customer/credentials/check-if-exists';
         $res_data['post_data'] = $post;
-      
+        
+        // zimi
+        unset($res_data['post_data']['password']);
+
         if (array_key_exists('nationCode', $post)) {
             $post['countryPhoneCode'] = $post['nationCode'];
         }
         
         $res_bo = $this->callApiBo($url, json_encode($post), 'POST', $headers); 
         $res_bo = json_decode($res_bo);
+        
         $res_data['res_bo'] = $res_bo;
+        
                 
         if ($res_bo->error == 'false') {
             $data_login = array('userCode' => $res_bo->data->pin_user_code);
@@ -55,6 +86,13 @@ class UserController extends Controller
             $res_pin_login = $this->callApi($url, json_encode($data_login), 'POST');        
             $res_pin_login = json_decode($res_pin_login, true);
             $res_data['res_pin_login'] = $res_pin_login;
+            
+            // zimi
+            // string
+            $resPin = json_decode($res_pin_login);
+            // $res_data['user'] = gettype($resPin);
+            $res_data['user'] = $resPin;
+
         }else{
             $error = true;
             $message = $res_bo->message;
@@ -165,16 +203,13 @@ class UserController extends Controller
         
         $url = 'http://47.254.197.223:9002/en/api/customers/register';
         
-        if (array_key_exists('email', $post) == false) {
+        // via phone
+        if ($post['signupType'] == 0) {
             $post['email'] = 'fake_email_' . $post['nationCode'] . $post['phoneNumber'] . '@gmail.com';
-        }
-        
-        if (array_key_exists('phoneNumber', $post) == false) {
+        } else {
+            // via email
             $post['phoneNumber'] = '00' . rand(10000000,99999999);
-        }
-
-        if (array_key_exists('nationCode', $post) == false) {
-            $post['nationCode'] = '+00';
+            $post['nationCode'] = '+00';            
         }
 
         $data_backoffice = array(
@@ -184,13 +219,21 @@ class UserController extends Controller
                 'phoneNumber' => $post['phoneNumber'],
                 'password' => $post['password'],
                 'pinLoginId' => $res_pin['loginId'],
-                'pinUserCode' => $res_pin['userCode']
+                'pinUserCode' => $res_pin['userCode'],
+                'smsCode' => $post['smsCode'],
+                'signupType' => $post['signupType']
             )
         );
         
+        
         $res_bo = $this->callApiBo($url,  json_encode($data_backoffice), 'POST', $headers); 
         $res_bo = json_decode($res_bo);
-        
+
+        // validate sms code
+        if ($res_bo->status == 400) {
+          return response()->json(['error' => true, 'message'=> $res_bo->message, 'status' => 400], 201); 
+        }   
+                
         $data['pdata'] = $post;
         $data['type_of_res_bo'] = gettype($res_bo);
         $data['data_bo'] = $res_bo;

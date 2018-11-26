@@ -391,8 +391,34 @@ class CustomerController extends AbstractController
      * )
      */
     public function customerRegisterAction(Request $request)
-    {
-        $registeredCustomer = $request->request->get('register');
+    {        
+        $registeredCustomer = $request->request->get('register');    
+
+        // zimi                
+        $full_phone = $registeredCustomer['countryPhoneCode'] . substr($registeredCustomer['phoneNumber'], 1);
+        
+        if ($registeredCustomer['signupType'] == 0) {
+            $query = 'SELECT sms_code_value FROM piwi_system_log_sms_code WHERE sms_code_customer_phone_number = \''.$full_phone.'\' order by sms_code_created_at desc limit 1';
+        } else {
+            $query = 'SELECT sms_code_value FROM piwi_system_log_sms_code WHERE sms_code_customer_email = \'' . $registeredCustomer['email'] . '\' order by sms_code_created_at desc limit 1';
+        }
+        
+        $em = $this->getDoctrine()->getManager();
+        $qu = $em->getConnection()->prepare($query);
+        $qu->execute();
+        $res = $qu->fetchAll();
+        if (count($res) > 0) {
+            $res = $res[0];           
+        } else {
+            echo json_encode(['error' => true, 'status'=> 400, 'message' => 'SMS Code is invalid']);exit();
+        }
+
+        $sms_code_registerd = $registeredCustomer['smsCode'];
+        $sms_code = $res['sms_code_value'];
+        if ($sms_code_registerd != $sms_code ) {
+            echo json_encode(['error' => true, 'status'=> 400, 'message' => 'SMS Code is invalid']);exit();
+        }
+        
         $originUrl = $request->headers->get('Origin');
         $referrerUrl = $request->headers->get('Referrer');
         $locale = $request->attributes->get('_locale');
