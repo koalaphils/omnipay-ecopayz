@@ -419,6 +419,9 @@ class CustomerController extends AbstractController
             echo json_encode(['error' => true, 'status'=> 400, 'message' => 'SMS Code is invalid']);exit();
         }
         
+        // unset
+        unset($registeredCustomer['signupType']);
+        
         $originUrl = $request->headers->get('Origin');
         $referrerUrl = $request->headers->get('Referrer');
         $locale = $request->attributes->get('_locale');

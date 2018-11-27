@@ -61,7 +61,7 @@ class SmsCodeController extends Controller
 
         $rdata = $request->all();                
         $sms = new SmsCode();        
-        $sms->sms_code_id = md5(strtotime(date('Ymdhms')));
+        $sms->sms_code_id = md5(strtotime(date('Ymdhis')));
         $sms->sms_code_value = rand(100000, 999999);
         
         if (array_key_exists('email', $rdata) == false) {
@@ -73,6 +73,7 @@ class SmsCodeController extends Controller
             $sms->sms_code_provider_id = '1';
             $sms->sms_code_source_phone_number = '+18124616835';
         } else {
+            $sms->sms_code_customer_email = $rdata['email'];
             $customerEmail = $rdata['email'];
             $emailMessage = '<p>Dear user, <br /><br />You are activating your email address. <br />Code:<span style="color: #3366ff;"><strong>'.$sms->sms_code_value.'</strong></span><br />This code will expire in 30 minutes. <br />Please do not share this with anyone. <br />The email address cannot be reset once activated.<br /><br />Thank you for choosing abc.com<br />XYZ Official<br /><br />Contact Us Email:support@abc.com Phone:+xx xxxxxxxxxx</span></p>';
             
@@ -92,7 +93,7 @@ class SmsCodeController extends Controller
         }
                 
         $sms->sms_code_status = '2';        
-        $sms->sms_code_created_at = strtotime(date('Ymdhms'));
+        $sms->sms_code_created_at = strtotime(date('Ymdhis'));
         
         try {
             $sms->save();                
