@@ -119,6 +119,26 @@ class ApiPinnacleController extends DefaultController
         return $response;
     }
 
+    public function withdraw(Request $request)
+    {   
+        $response = new Response();
+        
+        $isPost = $request->isMethod('POST');
+        if ($isPost) { 
+            $data =  $request->getContent();
+            $data = json_decode($data);
+
+            $pdata = array('userCode' => $data->userCode, 'amount' => $data->amount);
+            $url = 'https://paapistg.oreo88.com/b2b/player/withdraw';
+            $token = $this->generateToken();        
+            $res = $this->callApi($url, $token, $pdata, 'GET');
+
+            $response->setContent(json_encode($res));
+        }
+
+        return $response;
+    }
+
     public function users(Request $request)
     {   
         $isPost = $request->isMethod('POST');

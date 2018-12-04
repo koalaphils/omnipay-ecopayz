@@ -61,6 +61,7 @@ class TransactionManager extends AbstractManager
         return $transaction;
     }
 
+    // namdo
     public function handleWithdraw(TransactionModel $transactionModel)
     {
         $transaction = new Transaction();
@@ -72,6 +73,8 @@ class TransactionManager extends AbstractManager
         $transaction->setFee('company_fee', 0);
         $transaction->setFee('customer_fee', $transactionModel->getCustomerFee());
         $transaction->autoSetPaymentOptionType();
+        // zimi        
+        $transaction->setAmount($transactionModel->getAmount());
 
         foreach ($transactionModel->getSubTransactions() as $subTransactionModel) {
             $subTransaction = new SubTransaction();

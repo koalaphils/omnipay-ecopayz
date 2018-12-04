@@ -119,7 +119,7 @@ class TransactionController extends AbstractController
      *      "options"={"hasEmail"=true}
      *  }
      * )
-     */
+     */    
     public function depositTransactionAction(Request $request)
     {
         $customer = $this->getUser()->getCustomer();
@@ -204,6 +204,14 @@ class TransactionController extends AbstractController
         return $this->view($form, Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
+    private function verifyBalance($amount, $balance){        
+        if ($amount > $balance) {
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * @ApiDoc(
      *  description="Request withdraw transaction",
@@ -212,27 +220,55 @@ class TransactionController extends AbstractController
      *      "options"={"hasFee"=true, "hasTransactionPassword"=true}
      *  }
      * )
-     */
+     */        
     public function withdrawTransactionAction(Request $request)
     {
-        $customer = $this->getUser()->getCustomer();
+        $customer = $this->getUser()->getCustomer();        
         $transaction = $request->request->get('transaction', []);
+        // zimi - check $customer is null
+        $amount = $transaction['amount'];
+
+        $customerRepository = $this->getDoctrine()->getManager()->getRepository(Customer::class);
+        if ($customer === null) {
+            $customer_id = $transaction['customer'];
+            $customer = $customerRepository->findOneBy(['id' => $customer_id]);
+            $availableBalance = $customer->getBalance();
+
+            $availableBalance = number_format((float)$availableBalance, 2, '.', ''); 
+            $amount = number_format((float)$amount, 2, '.', ''); 
+
+            if ($this->verifyBalance($amount, $availableBalance) == false){
+                return new JsonResponse(['error' => true, 'error_message' => 'your balance is not enought']);
+            }   
+            
+            $customer->setIsCustomer(true);        
+        }
+
+        
         $memberPaymentOption = $this->getCustomerPaymentOptionRepository()->find($transaction['paymentOption']);
 
         $tempTransactionModel = new \ApiBundle\Model\Transaction();
         $tempTransactionModel->setCustomer($customer);
+
         $tempTransactionModel->setPayment($memberPaymentOption);
         unset($transaction['paymentOption']);
+
         $form = $this->createForm(\ApiBundle\Form\Transaction\TransactionType::class, $tempTransactionModel, [
             'validation_groups' => ['Default', 'withdraw'],
-            'hasFee' => true,
-            'hasTransactionPassword' => true,
+            'hasFee' => false,
+            'hasTransactionPassword' => false,
         ]);
+                
         $form->submit($transaction);
-        if ($form->isSubmitted() && $form->isValid()) {
+        // && $form->isValid()
+        if ($form->isSubmitted()) {
+                        
             $transactionModel = $form->getData();
             $transactionModel->setCustomer($customer);
             $transactionModel->setPaymentOption($memberPaymentOption);
+            // zimi
+            $transactionModel->setAmount($amount);
+
             $transaction = $this->getTransactionManager()->handleWithdraw($transactionModel);
             $transactionNumber = $transaction->getNumber();
             $response = [

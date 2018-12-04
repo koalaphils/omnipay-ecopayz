@@ -37,13 +37,23 @@ api_pinnacle_login:
   defaults:
     _format: json
 
-api_pinnacle_login:
+api_pinnacle_deposit:
   path: /api/pinnacle/deposit
   controller: App\Controller\ApiPinnacle\ApiPinnacleController::deposit
   requirements:
     _format: json
   defaults:
     _format: json
+  methods: [POST]
+
+api_pinnacle_widthdraw:
+  path: /api/pinnacle/widthdraw
+  controller: App\Controller\ApiPinnacle\ApiPinnacleController::widthdraw
+  requirements:
+    _format: json
+  defaults:
+    _format: json
+  methods: [POST]
 
 api_pinnacle_users:
   path: /api/pinnacle/users

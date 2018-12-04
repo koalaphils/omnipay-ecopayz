@@ -214,7 +214,7 @@ class TransactionOldManager extends AbstractManager
         $qu = $em->getConnection()->prepare($query);
         $qu->execute();
         $res = $qu->fetchAll()[0];
-        $amount = $res['transaction_amount'];
+        $amount = $res['transaction_amount'];        
         $customer_id = $res['transaction_customer_id'];
         $query = 'select user_username as userCode from user u join customer c on c.customer_user_id = u.user_id where c.customer_id = ' . $customer_id;
         $qu = $em->getConnection()->prepare($query);
@@ -224,21 +224,29 @@ class TransactionOldManager extends AbstractManager
         
         // Amount value should be two decimal places
         $amount = number_format((float)$amount, 2, '.', '');                
-        // zimi - end
-        
+                
+        // zimi - withdraw transaction
+        $pin_url = '';        
+        if ($transaction->isDeposit()){
+            $pin_url = 'http://47.254.197.223:9000/api/pinnacle/deposit';              
+        }
+
+        if ($transaction->isWithdrawal()){
+            $pin_url = 'http://47.254.197.223:9000/api/pinnacle/withdraw';            
+        }
+
         if ($transactionStatus == Transaction::TRANSACTION_STATUS_END) {
             $headers = [
                 'Content-type: application/json'
             ];
-
-            $url = 'http://47.254.197.223:9000/api/pinnacle/deposit';          
+            
             $pdata = json_encode(array('userCode' => $userCode, 'amount'=> $amount));            
             $curl = curl_init();            
             curl_setopt_array($curl, array(
             CURLOPT_HTTPHEADER => $headers,
                CURLOPT_RETURNTRANSFER => 1,
                CURLOPT_SSL_VERIFYPEER => 0,
-               CURLOPT_URL => $url,
+               CURLOPT_URL => $pin_url,
                CURLOPT_POST => 1,
                CURLOPT_POSTFIELDS => $pdata 
             ));

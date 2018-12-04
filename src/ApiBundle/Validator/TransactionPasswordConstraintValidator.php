@@ -20,6 +20,12 @@ class TransactionPasswordConstraintValidator extends ConstraintValidator
     {   
         $encoder = $this->encoderFactory->getEncoder($this->user);
 
+        // zimi
+        $customer = $this->user->getCustomer();
+        if ($customer == null) {
+            return;            
+        }
+
         if (!$encoder->isPasswordValid($this->user->getCustomer()->getTransactionPassword(), $value, '')) {
             $this->context->buildViolation($constraint->message)
             ->addViolation();

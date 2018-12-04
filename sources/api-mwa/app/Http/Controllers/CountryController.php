@@ -58,8 +58,14 @@ class CountryController extends Controller
         $phone_code = app('db')->select($sql);
         $phone_code = (array) $phone_code[0];
         $phone_code = $phone_code['country_phone_code'];
-             
-        return response()->json(array('error' => 0, 'status'=>200, 'sources' => $sources, 'country_phone_code' => $phone_code));
+
+        // convert
+        $phone_codes = array();
+        foreach($sources as $val){            
+            $phone_codes[] = $val->country_phone_code;            
+        }
+        
+        return response()->json(array('error' => false, 'status'=>200, 'sources' => $phone_codes, 'selected' => $phone_code));
         
     }
 }
