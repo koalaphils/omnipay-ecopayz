@@ -9,7 +9,21 @@ namespace DbBundle\Repository;
  * repository methods below.
  */
 class CustomerPaymentOptionRepository extends \Doctrine\ORM\EntityRepository
-{
+{        
+    /*zimi**/
+    // public function getListByCustomerId($customer_id): array
+    // {        
+    //     $qb = $this->createQueryBuilder('c');
+    //     $qb->select('c.customer_payment_option_id' as 'id', 'c.customer_payment_options_customer_id' as 'cid', 'c.customer_payment_option_type' as 'type');        
+    //     $qb->andWhere('c.customer_payment_options_customer_id = :cid');
+    //     $qb->andWhere('c.customer_payment_option_is_active = :is_active');        
+    //     $qb->setParameter('cid', $customer_id);
+    //     $qb->setParameter('is_active', 1);
+    //     $qb->orderBy('c.customer_payment_option_created_at', 'desc');
+
+    //     return $qb->getQuery()->getResult();
+    // }
+
     public function findByidAndCustomer($id, $customerId, $hydrationMode = \Doctrine\ORM\Query::HYDRATE_OBJECT)
     {
         $qb = $this->createQueryBuilder('cp');

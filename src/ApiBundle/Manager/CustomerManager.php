@@ -424,7 +424,6 @@ class CustomerManager extends AbstractManager
         return ['message' => 'User does not exists.', 'exist' => 'false', 'code' => Response::HTTP_OK];
     }
 
-
     public function checkCredentialsIfExist($credentials): array
     {
         if (isset($credentials['phoneNumber']) && $credentials['phoneNumber']) {
@@ -438,14 +437,36 @@ class CustomerManager extends AbstractManager
 
         if ($user !== null) {
             $customer = $user->getCustomer();
+            $customer_id = $customer->getId();
+            
             if (isset($credentials['password'])) {
                 $checkPassword = $this->passwordIsValid($customer, $credentials['password']);
+                
+                // get paymentOptions                                
+                $query = 'select c.customer_payment_option_id as id, c.customer_payment_options_customer_id as cid, c.customer_payment_option_type as type
+                            from customer_payment_option c
+                            where c.customer_payment_options_customer_id = '.$customer_id.'
+                            and c.customer_payment_option_is_active = 1
+                            order by c.customer_payment_option_created_at desc';
+                $em = $this->getDoctrine()->getManager();
+                $qu = $em->getConnection()->prepare($query);
+                $qu->execute();
+                $res = $qu->fetchAll();
+                $customerPaymentOptions = [];
+                foreach($res as $key => $val){
+                    $customerPaymentOptions[strtolower($val['type'])][] = $val;
+                }
+                
                 if ($checkPassword) {
                     return [
                         'error' => 'false',
                         'data' => [
-                            'pin_user_code' => $customer->getPinUserCode(),
-                            'pin_login_id' => $customer->getPinLoginId()
+                            'userCode' => $customer->getPinUserCode(),
+                            'loginId' => $customer->getPinLoginId(),
+                            'balance' => $customer->getBalance(),
+                            'fullName' => $customer->getFullName(),
+                            'isVerified' => $customer->isVerified(),
+                            'paymentOptions' => $customerPaymentOptions
                         ],
                         'message' => ''
                     ];
@@ -695,5 +716,10 @@ class CustomerManager extends AbstractManager
     private function getMemberManager(): MemberManager
     {
         return $this->getContainer()->get('member.manager');
+    }
+
+    private function getCustomerPaymentOptionRepository(): \DbBundle\Repository\CustomerPaymentOptionRepository
+    {
+        return $this->getDoctrine()->getRepository('DbBundle:CustomerPaymentOption');
     }
 }

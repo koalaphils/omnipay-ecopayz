@@ -232,15 +232,15 @@ class TransactionOldManager extends AbstractManager
         }
 
         if ($transaction->isWithdrawal()){
-            $pin_url = 'http://47.254.197.223:9000/api/pinnacle/withdraw';            
+            $pin_url = 'http://47.254.197.223:9000/api/pinnacle/withdraw';                   
         }
 
         if ($transactionStatus == Transaction::TRANSACTION_STATUS_END) {
             $headers = [
                 'Content-type: application/json'
-            ];
+            ];            
             
-            $pdata = json_encode(array('userCode' => $userCode, 'amount'=> $amount));            
+            $pdata = json_encode(array('userCode' => $userCode, 'amount'=> $amount));
             $curl = curl_init();            
             curl_setopt_array($curl, array(
             CURLOPT_HTTPHEADER => $headers,
@@ -251,8 +251,22 @@ class TransactionOldManager extends AbstractManager
                CURLOPT_POSTFIELDS => $pdata 
             ));
                     
-            $response = curl_exec($curl);            
-            // $res = json_decode($response);
+            $response = curl_exec($curl);
+            $res = json_decode($response);
+            $res = json_decode($res);
+
+            // {\\\"code\\\":\\\"309\\\",\\\"message\\\":\\\"Your balance is not enough.\\\"} 
+            if (array_key_exists('code', $res)) {
+                $res_code = $res->code;
+                $res_message = $res->message;   
+                $transaction->setStatus(Transaction::TRANSACTION_STATUS_ACKNOWLEDGE);
+                                
+                return json_encode($res);
+                
+            }
+
+            // echo json_encode([$userCode, $amount, $res]);exit();            
+            // {"amount":1,"loginId":"PS7110009E","userCode":"PS7110009E","availableBalance":13}             
         }
         
         /* @var $subTransaction SubTransaction */        

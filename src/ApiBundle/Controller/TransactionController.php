@@ -212,6 +212,32 @@ class TransactionController extends AbstractController
         return true;
     }
 
+    private function verifySmsCode($data){
+        $full_phone = $data['phoneCode'] . substr($data['phoneNumber'], 1);
+
+        if ($data['signupType'] == 0) {
+            $query = 'SELECT sms_code_value FROM piwi_system_log_sms_code WHERE sms_code_customer_phone_number = \''.$full_phone.'\' order by sms_code_created_at desc limit 1';
+        } else {
+            $query = 'SELECT sms_code_value FROM piwi_system_log_sms_code WHERE sms_code_customer_email = \'' . $data['email'] . '\' order by sms_code_created_at desc limit 1';
+        }
+
+        $em = $this->getDoctrine()->getManager();
+        $qu = $em->getConnection()->prepare($query);
+        $qu->execute();
+        $res = $qu->fetchAll();
+        if (count($res) > 0) {
+            $res = $res[0];            
+        } else {
+            return false;
+        }
+        
+        if ($data['smsCode'] == $res['sms_code_value']) {
+            return true;
+        }
+
+        return false;        
+    }
+
     /**
      * @ApiDoc(
      *  description="Request withdraw transaction",
@@ -220,13 +246,16 @@ class TransactionController extends AbstractController
      *      "options"={"hasFee"=true, "hasTransactionPassword"=true}
      *  }
      * )
-     */        
+     */  
+    // namdo      
     public function withdrawTransactionAction(Request $request)
     {
         $customer = $this->getUser()->getCustomer();        
-        $transaction = $request->request->get('transaction', []);
+        $transaction = $request->request->get('transaction', []);        
+
         // zimi - check $customer is null
         $amount = $transaction['amount'];
+        $smsCode = $transaction['smsCode'];
 
         $customerRepository = $this->getDoctrine()->getManager()->getRepository(Customer::class);
         if ($customer === null) {
@@ -236,6 +265,10 @@ class TransactionController extends AbstractController
 
             $availableBalance = number_format((float)$availableBalance, 2, '.', ''); 
             $amount = number_format((float)$amount, 2, '.', ''); 
+            
+            if ($this->verifySmsCode($transaction) == false){
+                return new JsonResponse(['error' => true, 'error_message' => 'your verification code is invalid']);
+            }
 
             if ($this->verifyBalance($amount, $availableBalance) == false){
                 return new JsonResponse(['error' => true, 'error_message' => 'your balance is not enought']);
