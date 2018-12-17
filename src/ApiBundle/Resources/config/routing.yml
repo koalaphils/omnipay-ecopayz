@@ -63,7 +63,7 @@ api_customers.me_transactions:
     path: me/transactions
     defaults:
         _controller: ApiBundle:Transaction:customerTransactions
-    methods: [GET]
+    methods: [POST]
 
 api_customers.me_deposit_transaction:
     path: me/transactions/deposit
@@ -141,8 +141,12 @@ api_customers.check_credentials_if_exists:
     path: customer/credentials/check-if-exists
     defaults:
         _controller: ApiBundle:Customer:checkCredentialsIfExists
+    methods: [POST]    
+api_customers.forgot_password:
+    path: customer/forgot-password
+    defaults:
+        _controller: ApiBundle:Customer:forgotPassword
     methods: [POST]
-
 api_customers.register_customer:
     path: customers/register
     defaults:

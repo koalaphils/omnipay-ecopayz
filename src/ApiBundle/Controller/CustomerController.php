@@ -9,6 +9,7 @@ use FOS\RestBundle\Request\ParamFetcher;
 use Symfony\Component\HttpFoundation\Request;
 use AppBundle\Exceptions\FormValidationException;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class CustomerController extends AbstractController
 {
@@ -437,6 +438,51 @@ class CustomerController extends AbstractController
         }
 
         return $this->view($form, Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
+    /**
+     * @ApiDoc(
+     *  description="customer forgot password"     
+     * )
+     */    
+    public function forgotPasswordAction(Request $request)
+    {                
+        $post = $request->request->all();                    
+        $full_phone = $post['phoneCode'] . substr($post['phoneNumber'], 1); 
+
+        // via phone
+        if ($post['viaType'] == 0) {
+            $query = 'SELECT sms_code_value FROM piwi_system_log_sms_code WHERE sms_code_customer_phone_number = \''.$full_phone.'\' order by sms_code_created_at desc limit 1';
+        } else {
+            $query = 'SELECT sms_code_value FROM piwi_system_log_sms_code WHERE sms_code_customer_email = \'' . $post['email'] . '\' order by sms_code_created_at desc limit 1';
+        }
+
+        $em = $this->getDoctrine()->getManager();
+        $qu = $em->getConnection()->prepare($query);
+        $qu->execute();
+        $res = $qu->fetchAll();
+        if (count($res) > 0) {
+            $res = $res[0];           
+        } else {
+            echo json_encode(['error' => true, 'status'=> 200, 'message' => 'SMS Code is invalid']);exit();
+        }
+
+        $sms_code_registerd = $post['smsCode'];
+        $sms_code = $res['sms_code_value'];
+        if ($sms_code_registerd != $sms_code ) {
+            echo json_encode(['error' => true, 'status'=> 200, 'message' => 'SMS Code is invalid']);exit();
+        }
+        
+        // update passowrd
+        $data = $post;        
+        $result = $this->getCustomerManager()->handleForgotPassword($data);
+
+        // update success
+        if ($result == null) {                        
+            echo json_encode(['error' => false, 'status'=> 200, 'message' => '']);exit();   
+        }
+                
+        echo json_encode(['error' => true, 'status'=> 200, 'message' => 'Failure']);exit();           
     }
 
     /**

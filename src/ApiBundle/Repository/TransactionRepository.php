@@ -8,6 +8,7 @@ use DbBundle\Collection\Collection;
 use DbBundle\Entity\SubTransaction;
 use DbBundle\Entity\Transaction;
 use DbBundle\Entity\CustomerProduct;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class TransactionRepository
 {
@@ -29,10 +30,11 @@ class TransactionRepository
         return $qb->getQuery()->getOneOrNullResult($hydrationMode);
     }
 
+    // 2ec7e87b
     public function filters($filters, $orders = [], $hydrationMode = \Doctrine\ORM\Query::HYDRATE_OBJECT): array
     {
-        $qb = $this->createFilterQb($filters);
-
+        $qb = $this->createFilterQb($filters);        
+        
         $offset = array_get($filters, 'offset', 0);
         $limit = array_get($filters, 'limit', 20);
 

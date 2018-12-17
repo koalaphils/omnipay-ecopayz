@@ -6,6 +6,7 @@ use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use DbBundle\Collection\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\HttpFoundation\Response;
 use DbBundle\Entity\PaymentOption;
 use DbBundle\Entity\Customer;
@@ -30,62 +31,88 @@ class TransactionController extends AbstractController
      *  }
      * )
      */
+    // 2ec7e87b
+    // $transactions  DbBundle\Entity\Transaction
+    private function filterTrans($transactions){
+        $trans = [];
+        foreach($transactions as $t){
+            $tran = [];
+            $tran['number'] = $t->getNumber();
+            $tran['type'] = $t->getTypeText();
+            $tran['status'] = $t->getStatusText();
+
+            // DbBundle\Entity\PaymentOption     
+            $tran['paymentOptionType'] = $t->getPaymentOptionType()->getCode();            
+            $tran['isVoided'] = $t->isVoided();
+            $tran['amount'] = number_format((float)$t->getAmount(), 2, '.', '');
+
+            // DateTime
+            $tran['date'] = $t->getDate()->format('m/d/Y');
+            $tran['currency'] = $t->getCurrency()->getCode();
+
+            $trans[] = $tran;
+            // array_push($trans, $tran);
+        }
+
+        return $trans;
+    }
+
     public function customerTransactionsAction(Request $request)
     {
-        $customer = $this->getUser()->getCustomer();
+        $customer = $this->getUser()->getCustomer();                
+        $post = $request->request->all();
+        
+        $page = 1;         
+        $customerRepository = $this->getDoctrine()->getManager()->getRepository(Customer::class);                
+        
+        // zimi - check $customer is null
+        if ($customer === null) {
+            $customer_id = $post['cid'];
+            $customer = $customerRepository->findOneBy(['id' => $customer_id]);            
+            $customer->setIsCustomer(true);        
+        }
 
-        $filters = ['customer' => $customer->getId()];
-
-        $filters['limit'] = $request->get('limit', 10);
-        $filters['offset'] = (((int) $request->get('page', 1))-1) * $filters['limit'];
+        /**filter**/
+        $filters = ['customer' => $customer_id];
+        $filters['limit'] = $request->get('limit', 1000);       
+        $filters['offset'] = (((int) $page)-1) * $filters['limit'];        
         $orders = [];
-
-        if ($request->query->has('orders')) {
-            $orders = $request->query->get('orders');
+        
+        if ($post['search'] != null) {
+            $filters['search'] = $post['search'];
+        }            
+        if ($post['filter']['fromDate'] != null) {
+            $filters['from'] = $post['filter']['fromDate'];
         }
 
-        if ($request->query->has('sort')) {
-            $filters['sort'] = $request->query->get('sort');
+        if ($post['filter']['toDate'] != null) {
+            $filters['to'] = $post['filter']['toDate'];
         }
 
-        if ($request->query->has('from')) {
-            $filters['from'] = $request->query->get('from');
+        if ($post['filter']['type'] != null && $post['filter']['type'] != -1) {
+            $filters['types'] = $post['filter']['type'];
         }
 
-        if ($request->query->has('to')) {
-            $filters['to'] = $request->query->get('to');
+        if ($post['filter']['status'] != null && $post['filter']['status'] != -1) {
+            $filters['status'] = $post['filter']['status'];
         }
-
-        if ($request->query->has('interval')) {
-            $filters['interval'] = $request->query->get('interval');
-        }
-
-        if ($request->query->has('search')) {
-            $filters['search'] = $request->query->get('search');
-        }
-
-        if ($request->query->has('types')) {
-            $filters['types'] = explode(',', $request->query->get('types'));
-        }
-
-        if ($request->query->has('status')) {
-            $filters['status'] = $request->query->get('status');
-            if (!is_array($filters['status'])) {
-                $filters['status'] = [$filters['status']];
-            }
-        }
-
-        if ($request->query->has('paymentOption')) {
-            $filters['paymentOption'] = $request->query->get('paymentOption');
+           
+        if ($post['filter']['paymentOption'] != null && $post['filter']['paymentOption'] != -1) {
+            $filters['paymentOption'] = $post['filter']['paymentOption'];
         }
 
         $transactions = $this->getTransactionRepository()->filters($filters, $orders);
-        $total = $this->getTransactionRepository()->getTotal(['customer' => $customer->getId()]);
-        $totalFiltered = $this->getTransactionRepository()->getTotal($filters);
-        $collection = new Collection($transactions, $total, $totalFiltered, $filters['limit'], $request->get('page', 1));
 
-        $view = $this->view($collection);
-        $view->getContext()->setGroups(['Default', 'API', 'subtransactions_group', 'items' => ['Default', 'API', 'subtransactions_group']]);
+        // zimi - data filter
+        $transactions = $this->filterTrans($transactions);
+
+        $total = $this->getTransactionRepository()->getTotal(['customer' => $customer_id]);
+        $totalFiltered = $this->getTransactionRepository()->getTotal($filters);
+        $collection = new Collection($transactions, $total, $totalFiltered, $filters['limit'], $page);
+
+        // FOS\RestBundle\View\View
+        $view = $this->view($collection);                
+        // $view->getContext()->setGroups(['Default', 'API', 'subtransactions_group', 'items' => ['Default', 'API', 'subtransactions_group']]);
 
         return $view;
     }
@@ -212,7 +239,7 @@ class TransactionController extends AbstractController
         return true;
     }
 
-    private function verifySmsCode($data){
+    private function verifySmsCode($data){        
         $full_phone = $data['phoneCode'] . substr($data['phoneNumber'], 1);
 
         if ($data['signupType'] == 0) {
@@ -246,13 +273,13 @@ class TransactionController extends AbstractController
      *      "options"={"hasFee"=true, "hasTransactionPassword"=true}
      *  }
      * )
-     */  
-    // namdo      
+     */      
     public function withdrawTransactionAction(Request $request)
     {
         $customer = $this->getUser()->getCustomer();        
-        $transaction = $request->request->get('transaction', []);        
+        $transaction = $request->request->get('transaction', []);     
 
+        
         // zimi - check $customer is null
         $amount = $transaction['amount'];
         $smsCode = $transaction['smsCode'];

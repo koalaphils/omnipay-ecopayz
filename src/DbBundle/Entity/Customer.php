@@ -289,7 +289,8 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
      */
     public function setBalance($balance = 0)
     {
-        $this->balance = $balance;
+        // zimi - 1544522191
+        $this->balance = $this->balance + $balance;
 
         return $this;
     }

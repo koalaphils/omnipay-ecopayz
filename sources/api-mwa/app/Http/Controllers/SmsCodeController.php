@@ -34,13 +34,26 @@ class SmsCodeController extends Controller
      */
     public function sendCode($toPhoneNumber, $message='')
     {  
-        $url = 'https://api.twilio.com/2010-04-01/Accounts/AC7aa44b04cb254bad79d1036e65617ec4/Messages.json';  
+        // test
+        $sid = 'AC7aa44b04cb254bad79d1036e65617ec4';
+        $api_key_sid = 'SKc41c5e1a05eec5dc29974e58a47f36b9';
+        $api_key_secret = 'mW6qXm90xm7ZoCVNty6zjMdvsQmHkolr';
+        $from = '+18124616835';
+        
+        // live
+        // $sid = 'ACa8414b7fd5f78fa371c0aeb341931c8d';
+        // $api_key_sid = 'SK3f5e48d1f2663e53b60964e745bac2bf';
+        // $api_key_secret = 'z9xiYh8u7AH0bepYq2XAAxcz0I9CqJHS';
+        // $from = '+639179421398';
+
+        $url = 'https://api.twilio.com/2010-04-01/Accounts/'.$sid.'/Messages.json';
+        $api_key = $api_key_sid . ':' . $api_key_secret;
         $data = array(                
-            'From' => '+18124616835',
+            'From' => $from,
             'To' => $toPhoneNumber, 
             'Body'=> $message    
         );     
-        $auth = base64_encode("SKc41c5e1a05eec5dc29974e58a47f36b9:mW6qXm90xm7ZoCVNty6zjMdvsQmHkolr");            
+        $auth = base64_encode($api_key);            
         $result = $this->callApiSms($url, $data, 'POST', $auth);
       
         return $result;

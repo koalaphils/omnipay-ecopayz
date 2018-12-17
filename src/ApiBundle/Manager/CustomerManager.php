@@ -534,6 +534,31 @@ class CustomerManager extends AbstractManager
     {
         return $this->getPasswordEncoder()->encodePassword($user, $transactionPassword, User::getTransactionPasswordSalt());
     }
+    
+    // zimi
+    public function handleForgotPassword($data)
+    {            
+        # via phone        
+        $user_repo = $this->getUserRepository();
+        if ($data['viaType'] == 0) {            
+            $user = $user_repo->findUserByPhoneNumber($data['phoneNumber'], $data['phoneCode']);
+        } else {            
+            $user = $user_repo->findUserByEmail($data['email']);
+        }
+
+        $encoder = $this->getEncoderFactory()->getEncoder($user);
+        $user->setPassword($encoder->encodePassword($data['password'], $user->getSalt()));
+        $user->setResetPasswordCode(null);
+        $user->setResetPasswordSentTimestamp(null);
+
+        try {
+            return $this->getUserManager()->save($user);
+        } catch (\Exception $e) {
+            return $e;
+        }
+
+        return false;
+    }
 
     public function handleRequestResetPassword(RequestResetPasswordModel $requestResetPasswordModel, string $origin = '')
     {

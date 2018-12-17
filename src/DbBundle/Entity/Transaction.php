@@ -1047,4 +1047,28 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     {
         $this->setDetail(self::DETAIL_COMMISSION_PRODUCT_PERCENTAGE, $percentage);
     }
+
+    // zimi
+    public function getStatusText()
+    {
+        return $this->getStatusList()[$this->getStatus()];
+    }
+
+    /**
+    const TRANSACTION_STATUS_START = 1;
+    const TRANSACTION_STATUS_END = 2;
+    const TRANSACTION_STATUS_DECLINE = 3;
+    const TRANSACTION_STATUS_ACKNOWLEDGE = 4;
+    const TRANSACTION_STATUS_VOIDED = 'voided';
+    **/
+    public function getStatusList(): array
+    {
+        return [
+            static::TRANSACTION_STATUS_START => 'requested',
+            static::TRANSACTION_STATUS_END => 'processed',
+            static::TRANSACTION_STATUS_DECLINE => 'declined',
+            static::TRANSACTION_STATUS_ACKNOWLEDGE => 'acknowledged',
+            static::TRANSACTION_STATUS_VOIDED => 'voided',            
+        ];
+    }
 }
