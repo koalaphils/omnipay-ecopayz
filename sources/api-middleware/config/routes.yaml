@@ -79,3 +79,40 @@ api_piwi_mwa_login:
     _format: json
   defaults:
     _format: json
+
+# blockchain apis
+api_blockchain_exchange_rates:
+  path: /api/blockchain/exchange-rates
+  controller: App\Controller\ApiBlockChain\ApiBlockChainController::exchangeRates
+  requirements:
+    _format: json
+  defaults:
+    _format: json
+  methods: [GET]
+
+api_blockchain_generate_bitcoin_address:
+  path: /api/blockchain/bitcoin-address
+  controller: App\Controller\ApiBlockChain\ApiBlockChainController::generateBitcoinAddress
+  requirements:
+    _format: json
+  defaults:
+    _format: json
+  methods: [POST]
+
+api_blockchain_balance_update:
+  path: /api/blockchain/balance-update
+  controller: App\Controller\ApiBlockChain\ApiBlockChainController::balanceUpdate
+  requirements:
+    _format: json
+  defaults:
+    _format: json
+  methods: [POST]
+
+api_blockchain_to_bitcoin:
+  path: /api/blockchain/currency-to-bitcoin
+  controller: App\Controller\ApiBlockChain\ApiBlockChainController::convertToBitcoin
+  requirements:
+    _format: json
+  defaults:
+    _format: json
+  methods: [POST]

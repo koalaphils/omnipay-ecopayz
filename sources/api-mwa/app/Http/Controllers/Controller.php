@@ -7,6 +7,7 @@ use Laravel\Lumen\Routing\Controller as BaseController;
 class Controller extends BaseController
 {
     public $base_url_pinnacle = 'http://47.254.197.223:9000/api/pinnacle';
+    public $base_url_blockchain = 'http://47.254.197.223:9000/api/blockchain';
     public $base_url_piwi_bo = 'http://47.254.197.223:9002/en/api';
 
     public function callApi($url, $pdata=null, $method='GET')
