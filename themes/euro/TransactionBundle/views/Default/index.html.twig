@@ -27,8 +27,12 @@
             <button type="button" class="btn btn-primary dropdown-toggle waves-effect waves-light pull-right" data-toggle="dropdown" aria-expanded="false">Transact <span class="ti-angle-down m-l-10"></span></button>
             {% endif %}
             <ul class="dropdown-menu pull-right" role="menu">
+                <li><a href="{{ path("transaction.create_page", {'type': 'adjustment'}) }}">{{ "menus.Adjustment"|trans({},"TransactionBundle") }}</a></li>
                 <li><a href="{{ path("transaction.create_page", {'type': 'deposit'}) }}">{{ "menus.Deposit"|trans({},"TransactionBundle") }}</a></li>
-                <li><a href="{{ path("transaction.create_page", {'type': 'withdraw'}) }}">{{ "menus.Withdraw"|trans({},"TransactionBundle") }}</a></li>                
+                <li><a href="{{ path("transaction.create_page", {'type': 'withdraw'}) }}">{{ "menus.Withdraw"|trans({},"TransactionBundle") }}</a></li>
+                <li><a href="{{ path("transaction.create_page", {'type': 'transfer'}) }}">{{ "menus.Transfer"|trans({},"TransactionBundle") }}</a></li>
+                <li><a href="{{ path("transaction.create_page", {'type': 'p2p_transfer'}) }}">{{ "menus.P2PTransfer"|trans({},"TransactionBundle") }}</a></li>
+                <li><a href="{{ path("transaction.create_page", {'type': 'bonus'}) }}">{{ "menus.Bonus"|trans({},"TransactionBundle") }}</a></li>
             </ul>
         </div>
         <ul class="list-inline quicklinks font-13 font-normal text-right m-t-10">
@@ -123,6 +127,7 @@
         var statuses = {{ statuses|json_encode()|raw }};
         var userPreferences = {{ app.user.getPreference('ui.transaction.list.column.visibility')|json_encode()|raw }};
         var filter = {{ filter|json_encode()|raw }};
+        var nonPendingStatuses = {{ nonPendingStatuses|json_encode()|raw }};
         var statusChoices = {};
         var report = {
             'exportUrl': '{{ path('transaction.download') }}',
@@ -130,16 +135,21 @@
         };
         var voidLink = '';
 
-        for (var i in statuses) {
-            if (filter != '') {
-                if ($.inArray(i, filter.filters.excludeStatus) == -1 && statuses[i].label.toLowerCase() != 'voided' ) {
-                    statusChoices[i] = statuses[i].label;
+        if (nonPendingStatuses.length === 0 ) {
+            for (var i in statuses) {
+                if (filter != '') {
+                    if ($.inArray(i, filter.filters.excludeStatus) == -1 && statuses[i].label.toLowerCase() != 'voided' ) {
+                        statusChoices[i] = statuses[i].label;
+                    }
+                }  else {
+                        statusChoices[i] = statuses[i].label;
                 }
-            }  else {
-                    statusChoices[i] = statuses[i].label;
+            }
+        } else {
+            for (var i in nonPendingStatuses) {
+                statusChoices[i] = nonPendingStatuses[i].label;
             }
         }
-
         $(function(){
             var listTable = new ZTable('#transactionList',  {
                 'colvis': {
@@ -158,12 +168,13 @@
                 'search': '{{ app.request.get("search", '') }}',
                 'featuresDom': "<'form-inline'"
                     + "<'form-group m-r-10 ft-date'<'xs-date'ft>>"
-                    + "poyrsdb"
+                    + "poyrsxd"
                     + "<'form-group form-group-sm m-r-10 xs-filter' b>>"
                     + "<'form-group form-group-sm m-r-10' c>>",
                 'ajax': {
                     'url': '{{ path("transaction.list_search") }}',
                     'data': function (data, dataTable) {
+                        data.isDataTableTransaction = true;
                         report.filters = window.lodash.merge(data.filters, filter.filters);
 
                         return data;
@@ -227,6 +238,33 @@
                         'applyOnChanged': false,
                         'value': '{{ app.request.get("to", '') }}'
                     },
+                    // AC66-1062 hide this for now, once the entire "inactive member hiding" is accepted, this will be enabled
+//                    'hideEmptyRecords': {
+//                        'dom': "<'form-group form-group-sm m-r-10 xs-filter'i>",
+//                        'type': 'select',
+//                        'label': 'Type',
+//                        'symbol': 'x',
+//                        'class': 'selectpicker',
+//                        'applyOnChanged': false,
+//                        'attrs': {
+//                            'data-style': 'btn-white btn-sm',
+//                            'title': 'Select Source',
+//                            'data-selected-text-format': 'count > 3',
+//                            'data-width': 'auto',
+//                            'data-size': 5
+//                        },
+//                        'resetValue': function (feature) {
+//                            $(feature.input).selectpicker('val', feature.feature.value);
+//                        },
+//                        'rendered': function (feature) {
+//                            $(feature.input).val(feature.feature.value);
+//                        },
+//                        'choices': {
+//                            'true': "Hide empty records",
+//                            'false': "Show all records"
+//                        },
+//                        'value': 'true'
+//                    },
                      'applyFilter': {
                         'type': 'button',
                         'label': 'Apply Filter',
@@ -371,7 +409,10 @@
                             'p2ptransfer': "P2P Transfer",
                             'dwl': "Win/Loss",
                             'bet': "Bet",
-                            'bonus': 'Bonus'
+                            'bonus': "Bonus",
+                            'commission': "Commission",
+                            'debit_adjustment': "Debit",
+                            'credit_adjustment': "Credit",
                         },
                         'value': {{ app.request.get("type", [])|json_encode|raw }}
                     },
@@ -466,7 +507,8 @@
 
                             var productUsername = '';
                             $.each(data , function(key,val) {
-                                productUsername  += '&nbsp;' + val.customer_product.product.name + '(' + val.immutable_customer_product_data + '),';
+                                var customerProductUserName = val.immutable_customer_product_data === '' ? val.customer_product.username : val.immutable_customer_product_data;
+                                productUsername  += '&nbsp;' + val.customer_product.product.name + '(' + customerProductUserName + '),';
                             });
 
                             productUsername = productUsername.replace(/,*$/, "");
@@ -496,7 +538,8 @@
                             if (immutable_payment_option_data == null) {
                                 return '';
                             }
-                            return immutable_payment_option_data;
+
+                            return immutable_payment_option_data.ellipsis(30);
                         }
                     },
                     { 'data': 'currency.code', 'defaultContent': '' },
@@ -514,7 +557,6 @@
                             return (new Decimal(data)).toFixed(2);
                         }
                     },
-                    /*
                     {
                         'name': 'amount',
                         'data': 'customer_amount',
@@ -530,30 +572,42 @@
                                 var betAmount = new Number(full.amount);
 
                                 return betAmount.toFixed(2);
+                            } else if (full.is_transaction_payment_bitcoin === true) {
+                                var btcTotalAmount = new Number(full.bitcoin_total_amount);
+                                if (full.type_text === 'deposit' && btcTotalAmount != '0') {
+                                    var btcAmount = new Number(full.bitcoin_total_amount);
+                                    return data + ' (' + btcAmount.toFixed(5) + ' BTC)';
+                                }
+                                
+                                return data;
+                            } else if (full.type_text === 'dwl') {
+                                var subtransaction = full.sub_transactions[0];
+                                if (subtransaction.brokerage_win_loss != null) {
+                                    return (new Decimal(subtransaction.brokerage_win_loss)).toFixed(2);
+                                }
                             }
 
                             return (new Decimal(data)).toFixed(2);
                         }
                     },
-                    */
-                    {
-                        'name': 'amount',
-                        'data': 'customer_amount',
-                        'defaultContent': '',
-                        'render': function (data, type, full) {
-                            return 3000;                        
-                        }
-                    },
-
                     {
                         'data': 'status',
                         'defaultContent': '',
                         'name': 'status',
                         'render': function(data, type, full) {
-                            if (full.is_voided) {
-                                return "{{ "voided"|trans({}, "TransactionBundle") }}";
+                            var label = data.label;
+
+                            if (full.is_bitcoin_status_pending_confirmation == true) {
+                                label = "{{ "pending_confirmation"|trans({}, "TransactionBundle") }}";
+                            } else if (full.is_bitcoin_status_confirmed == true) {
+                                label = "{{ "confirmed"|trans({}, "TransactionBundle") }}";
                             }
-                            return data.label;
+
+                            if (full.is_voided) {
+                                label = "{{ "voided"|trans({}, "TransactionBundle") }}";
+                            }
+
+                            return label;
                         }
                     },
                     {
@@ -569,7 +623,10 @@
                                 'bonus': "{{ "types.bonus"|trans({}, "TransactionBundle") }}",
                                 'p2p_transfer': "{{ "types.p2p_transfer"|trans({}, "TransactionBundle") }}",
                                 'dwl': "{{ "types.dwl"|trans({}, "TransactionBundle") }}",
-                                'bet': "{{ "types.bet"|trans({}, "TransactionBundle") }}"
+                                'bet': "{{ "types.bet"|trans({}, "TransactionBundle") }}",
+                                'commission': "{{ "types.commission"|trans({}, "TransactionBundle") }}",
+                                'debit_adjustment': "{{ "types.debit_adjustment"|trans({}, "TransactionBundle") }}",
+                                'credit_adjustment': "{{ "types.credit_adjustment"|trans({}, "TransactionBundle") }}"
                             };
                             if (data === 'dwl') {
                                 if (typeof full.dwl != 'undefined') {
@@ -637,7 +694,9 @@
                     4 : "{{ "types.bonus"|trans({}, "TransactionBundle") }}",
                     5 : "{{ "types.p2p_transfer"|trans({}, "TransactionBundle") }}",
                     6 : "{{ "types.dwl"|trans({}, "TransactionBundle") }}",
-                    8 : "{{ "types.bet"|trans({}, "TransactionBundle") }}"
+                    8 : "{{ "types.bet"|trans({}, "TransactionBundle") }}",
+                    10 : "{{ "types.debit_adjustment"|trans({}, "TransactionBundle") }}",
+                    11 : "{{ "types.credit_adjustment"|trans({}, "TransactionBundle") }}"
                 };
 
                 var tr = "&nbsp;";
@@ -736,6 +795,9 @@
                     if (data.forTableReload) {
                         listTable.reloadTable();
                     }
+                });
+                session.subscribe('btc.request_status', function(args) {
+                    listTable.reloadTable();
                 });
             });
         });

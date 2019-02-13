@@ -250,7 +250,7 @@ class DWLSubmitService extends AbstractDWLService
     {
         return $this->getEntityManager()->getRepository(MemberProduct::class);
     }
-    
+
     private function getCommissionManager(): CommissionManager
     {
         return $this->container->get('commission.manager');

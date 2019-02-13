@@ -28,17 +28,17 @@ use TransactionBundle\Manager\TransactionManager;
 class CommissionPayoutService implements LoggerAwareInterface
 {
     use ContainerAwareTrait;
-    
+
     const RESUBMIT_DEFAULT_ACTION = 0;
-    
+
     private $logger;
-    
+
     public function setLogger(LoggerInterface $logger): void
     {
         $this->logger = $logger;
     }
-    
-    public function computeCommissionForMember(CommissionPeriod $period, Member $member): void
+
+    public function computeCommissionForMember(CommissionPeriod $period, Member $member, bool $forceRecompute = false): void
     {
         try {
             $now = new DateTime('now');
@@ -62,10 +62,10 @@ class CommissionPayoutService implements LoggerAwareInterface
                         $dwls[$entity->getId()] = $entity;
                     }
                 }
-                
+
                 foreach ($transactions as $transaction) {
                     $loop = true;
-                    $this->processMemberRunningCommission($transaction, $dwls[$transaction->getDwlId()], $member, $period, $memberRunningCommission);
+                    $this->processMemberRunningCommission($transaction, $dwls[$transaction->getDwlId()], $member, $period, $memberRunningCommission, $forceRecompute);
                 }
                 $transactions = [];
                 $dwls = [];
@@ -81,19 +81,19 @@ class CommissionPayoutService implements LoggerAwareInterface
             } elseif ($memberRunningCommission->isPaying()) {
                 $memberRunningCommission->setProcessStatusToPayError();
             }
-            
+
             $memberRunningCommission->setError($e->getMessage());
-            
+
             throw $e;
         }
     }
-    
+
     public function payoutCommissionForMember(CommissionPeriod $period, Member $member): void
     {
         $memberRunningCommission = $this->generateMemberRunningCommission($period, $member);
         $this->makePayout($memberRunningCommission);
     }
-    
+
     public function makePayout(MemberRunningCommission $memberRunningCommission): void
     {
         try {
@@ -158,13 +158,13 @@ class CommissionPayoutService implements LoggerAwareInterface
             } elseif ($memberRunningCommission->isPaying()) {
                 $memberRunningCommission->setProcessStatusToPayError();
             }
-            
+
             $memberRunningCommission->setError($e->getMessage());
-            
+
             throw $e;
         }
     }
-    
+
     private function updateSucceedingMemberRunningCommisison(MemberRunningCommission $memberRunningCommission): void
     {
         $this->reconnectToDatabase();
@@ -175,7 +175,7 @@ class CommissionPayoutService implements LoggerAwareInterface
             $this->updateSucceedingMemberRunningCommisison($succeedingMemberRunningCommission);
         }
     }
-    
+
     public function isConditionMet(
         MemberRunningCommission $memberRunningCommission,
         CommissionPeriod $commissionPeriod
@@ -210,11 +210,11 @@ class CommissionPayoutService implements LoggerAwareInterface
 
         return $conditionMet;
     }
-    
+
     private function generateMemberRunningCommission(CommissionPeriod $period, Member $member): MemberRunningCommission
     {
         $acWallet = $this->getMemberProductRepository()->getProductWalletByMember($member->getId());
-        
+
         $memberRunningCommission = $this
             ->getMemberRunningCommissionRepository()
             ->getMemberRunningCommissionFromCommissionPeriod($period->getId(), $member->getId());
@@ -227,23 +227,24 @@ class CommissionPayoutService implements LoggerAwareInterface
                 $memberRunningCommission->setPreceedingRunningCommission($preceedingMemberRunningCommission);
             }
         }
-        
+
         $this->getMemberRunningCommissionRepository()->save($memberRunningCommission);
-        
+
         return $memberRunningCommission;
-        
+
     }
-    
+
     private function processMemberRunningCommission(
         Transaction $transaction,
         DWL $dwl,
         Member $referrer,
         CommissionPeriod $period,
-        MemberRunningCommission $memberRunningCommission
+        MemberRunningCommission $memberRunningCommission,
+        bool $forceRecompute = false
     ): void {
         try {
             $this->getEntityManager()->beginTransaction();
-            if (empty($transaction->getComputedAmount())) {
+            if (empty($transaction->getComputedAmount()) || $forceRecompute) {
                 $this->getCommissionManager()->setCommissionInformationForTransaction($transaction, $dwl);
             }
             $commission = $transaction->getCommissionForCurrency($transaction->getCurrency()->getCode());
@@ -262,42 +263,42 @@ class CommissionPayoutService implements LoggerAwareInterface
             throw $ex;
         }
     }
-    
+
     public function reconnectToDatabase(): void
     {
         $this->getEntityManager()->getConnection()->reconnect();
     }
-    
+
     private function getCommissionManager(): CommissionManager
     {
         return $this->container->get('commission.manager');
     }
-    
+
     private function getTransactionManager(): TransactionManager
     {
         return $this->container->get('transaction.manager');
     }
-    
+
     private function getMemberRunningCommissionRepository(): MemberRunningCommissionRepository
     {
         return $this->getDoctrine()->getRepository(MemberRunningCommission::class);
     }
-    
+
     private function getMemberRepository(): MemberRepository
     {
         return $this->getDoctrine()->getRepository(Member::class);
     }
-    
+
     private function getMemberProductRepository(): MemberProductRepository
     {
         return $this->getDoctrine()->getRepository(MemberProduct::class);
     }
-    
+
     private function getCommissionPeriodRepository(): CommissionPeriodRepository
     {
         return $this->getDoctrine()->getRepository(CommissionPeriod::class);
     }
-    
+
     private function getEntityManager(): EntityManager
     {
         return $this->getDoctrine()->getManager();
@@ -307,7 +308,7 @@ class CommissionPayoutService implements LoggerAwareInterface
     {
         return $this->container->get('doctrine');
     }
-    
+
     private function getSettingManager(): SettingManager
     {
         return $this->container->get('app.setting_manager');

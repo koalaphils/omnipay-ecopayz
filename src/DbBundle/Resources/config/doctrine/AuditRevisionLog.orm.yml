@@ -10,6 +10,17 @@ DbBundle\Entity\AuditRevisionLog:
             column: audit_revision_log_id
             options:
                 unsigned: true
+    indexes:
+        operation_index:
+            columns: [audit_revision_log_operation]
+        category_index:
+            columns: [audit_revision_log_category]
+        identifier_index:
+            columns: [audit_revision_log_identifier]
+        className_index:
+            columns: [audit_revision_log_class_name]
+        label_index:
+            columns: [audit_revision_log_label]
     fields:
         details:
             type: json
@@ -20,6 +31,27 @@ DbBundle\Entity\AuditRevisionLog:
         category:
             type: smallint
             column: audit_revision_log_category
+        className:
+            type: string
+            options:
+                generate: JSON_UNQUOTE(JSON_EXTRACT(audit_revision_log_details,'$.class_name'))
+                readOnly: true
+            column: audit_revision_log_class_name
+            nullable: true
+        identifier:
+            type: string
+            options:
+                generate: JSON_UNQUOTE(JSON_EXTRACT(audit_revision_log_details,'$.identifier'))
+                readOnly: true
+            column: audit_revision_log_identifier
+            nullable: true
+        label:
+            type: string
+            options:
+                generate: JSON_UNQUOTE(JSON_EXTRACT(audit_revision_log_details,'$.label'))
+                readOnly: true
+            column: audit_revision_log_label
+            nullable: true
     manyToOne:
         auditRevision:
             targetEntity: DbBundle\Entity\AuditRevision

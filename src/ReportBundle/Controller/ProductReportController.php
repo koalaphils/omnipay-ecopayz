@@ -104,8 +104,7 @@ class ProductReportController extends AbstractController
         });
 
         $filename = 'Products_'. $currency .'_'. $reportStartAt->format('Ymd') . '_'. $reportEndAt->format('Ymd') .'.csv';
-        $response->headers->set('Content-Type', 'text/csv');
-        $response->headers->set('Content-Disposition', 'attachment; filename="'. $filename .'"');
+        $this->setResponseTypeAsCSVFile($response, $filename);
 
         return $response;
     }

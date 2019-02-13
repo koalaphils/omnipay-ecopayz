@@ -1,2 +1,6 @@
 Setting: Commission Setting
 Periods: Commission Periods
+
+tabs:
+  settings: General Settings
+  rate: Bitcoin Rate

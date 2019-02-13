@@ -4,7 +4,17 @@
 {% endblock update_affiliateLink_version_widget %}
 
 {% block _update_profileForm_data_affiliateLink_widget %}
-    {{ form_widget(form) }} {{ block('update_affiliateLink_version_widget') }}
+	<div class="input-group">
+
+        {%- set attr = attr|merge({class: (attr.class|default('') ~ ' form-control')|trim}) -%}
+		<input type="{{ type|default('text') }}" {{ block('widget_attributes') }} {% if value is not empty %}value="{{ value }}" {% endif %}/>
+
+		<span class="input-group-btn">
+			<button href="#autoLink" id="autoLink" class="btn btn-warning" title="Link to referrer"><i class="ti-link"></i></button>
+		</span>
+	</div>
+
+	{{ block('update_affiliateLink_version_widget') }}
 {% endblock _update_profileForm_data_affiliateLink_widget %}
 
 {% block form_row -%}

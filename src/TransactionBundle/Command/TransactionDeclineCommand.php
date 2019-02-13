@@ -6,11 +6,9 @@ use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
-use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Console\Logger\ConsoleLogger;
-use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
+use DbBundle\Entity\User;
+use TransactionBundle\Service\TransactionDeclineService;
 
 class TransactionDeclineCommand extends ContainerAwareCommand
 {
@@ -23,8 +21,36 @@ class TransactionDeclineCommand extends ContainerAwareCommand
             ->addArgument('username', InputArgument::REQUIRED, 'user username')
         ;
     }
-
+    
     protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $logger = new ConsoleLogger($output);
+        try {
+            $transactionAutoDeclineService = $this->getTransactionAutoDeclineService();
+            $transactionAutoDeclineService->createHttpRequest();
+            $user = $transactionAutoDeclineService->loginUserByUsername($input->getArgument('username'));
+            
+            if ($user instanceof User) {
+                $transactionAutoDeclineService->setLoggerForUser($user, $logger);
+            }
+
+            if ($transactionAutoDeclineService->getAutoDeclineStatus()) {
+                $transactionAutoDeclineService->setAutoDeclineLogger($logger);
+                $transactionAutoDeclineService->declineTransactions();
+            } else {
+                throw new \Exception('Auto decline service was not active.');
+            }
+        } catch (\Exception $e) {
+            $logger->error(sprintf("%s\n%s:%s\n%s", $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTraceAsString()), [
+                'class' => get_class($e),
+            ]);
+        }
+
+        $runTime = round((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT']) * 1000, 4);
+        $logger->info(sprintf('Runtime: %s ms', $runTime));
+    }
+
+    protected function executes(InputInterface $input, OutputInterface $output)
     {
         $logger = new ConsoleLogger($output);
 
@@ -62,62 +88,8 @@ class TransactionDeclineCommand extends ContainerAwareCommand
         $logger->info(sprintf('Runtime: %s ms', $runTime));
     }
 
-    private function createRequest(): \Symfony\Component\HttpFoundation\Request
-    {
-        $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
-        $request->server->set('REMOTE_ADDR', '127.0.0.1');
-        $this->getRequestStack()->push($request);
-
-        return $request;
-    }
-
-    private function getRequestStack(): \Symfony\Component\HttpFoundation\RequestStack
-    {
-        return $this->getContainer()->get('request_stack');
-    }
-
-    private function getErrorMessage(\Exception $e)
-    {
-        return sprintf("%s\n%s:%s\n%s", $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTraceAsString());
-    }
-
-    private function loginUser(string $username): \DbBundle\Entity\User
-    {
-        $user = $this->getUserRepository()->loadUserByUsername($username);
-        if ($user === null) {
-            throw new UsernameNotFoundException('User not found');
-        }
-        $token = new UsernamePasswordToken($user, null, 'main', $user->getRoles());
-        $this->getContainer()->get('security.token_storage')->setToken($token);
-
-        $event = new InteractiveLoginEvent(new \Symfony\Component\HttpFoundation\Request(), $token);
-        $this->getContainer()->get('event_dispatcher')->dispatch('security.interactive_login', $event);
-
-        return $user;
-    }
-
-    private function getTransactionDeclineService(): \TransactionBundle\Service\TransactionDeclineService
+    private function getTransactionAutoDeclineService(): TransactionDeclineService
     {
         return $this->getContainer()->get('transaction.decline.service');
-    }
-
-    private function getTransactionRepository(): \TransactionBundle\Repository\TransactionRepository
-    {
-        return $this->getEntityManager()->getRepository(\DbBundle\Entity\Transaction::class);
-    }
-
-    private function getUserRepository(): \DbBundle\Repository\UserRepository
-    {
-        return $this->getEntityManager()->getRepository(\DbBundle\Entity\User::class);
-    }
-
-    private function getEntityManager(string $name = 'default'): \Doctrine\ORM\EntityManager
-    {
-        return $this->getDoctrine()->getManager($name);
-    }
-
-    private function getDoctrine(): \Symfony\Bridge\Doctrine\RegistryInterface
-    {
-        return $this->getContainer()->get('doctrine');
     }
 }

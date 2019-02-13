@@ -1,0 +1,27 @@
+DbBundle\Entity\InactiveMember:
+    type: entity
+    table: inactive_member
+    repositoryClass: DbBundle\Repository\InactiveMemberRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: inactive_id
+            options:
+                unsigned: true
+    indexes:
+        member_index:
+            columns: [inactive_member_id]
+    fields:
+        dateAdded:
+            type: datetime
+            nullable: false
+            column: inactive_member_added_at
+    oneToOne:
+        member:
+            targetEntity: DbBundle\Entity\Customer
+            joinColumn:
+                name: inactive_member_id
+                referencedColumnName: customer_id

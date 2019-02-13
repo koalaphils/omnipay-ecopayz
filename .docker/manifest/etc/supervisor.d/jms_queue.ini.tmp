@@ -1,0 +1,25 @@
+[program:jms_job_queue_runner]
+command=/usr/bin/php /backoffice/app/console jms-job-queue:run --env=${SYMFONY_ENV} --verbose
+process_name=%(program_name)s
+numprocs=1
+autostart=true
+autorestart=true
+startsecs=5
+startretries=10
+stdout_logfile=/backoffice/var/logs/prod.jms_job_queue_runner.out.log
+stderr_logfile=/backoffice/var/logs/prod.jms_job_queue_runner.error.log
+environment=HOME="/home/www",USER="www"
+user=www
+
+[program:jms_job_queue_schedule]
+command=/usr/bin/php /backoffice/app/console jms-job-queue:schedule --env=${SYMFONY_ENV} --verbose
+process_name=%(program_name)s
+numprocs=1
+autostart=true
+autorestart=true
+startsecs=5
+startretries=10
+stdout_logfile=/backoffice/var/logs/prod.jms_job_queue_schedule.out.log
+stderr_logfile=/backoffice/var/logs/prod.jms_job_queue_schedule.error.log
+environment=HOME="/home/www",USER="www"
+user=www

@@ -1,0 +1,97 @@
+{% extends 'TransactionBundle:Transaction:view/base.html.twig' %}
+
+{% block title %}{{ "tag.create_title"|trans({}, 'TransactionBundle') }} - {{ ('types.dwl')|trans({}, 'TransactionBundle')  }}{% endblock title %}
+
+{% block pageTitle %}{{ "page.view_title"|trans({'{type}': ('types.dwl')|trans({}, 'TransactionBundle')}, 'TransactionBundle') }}{% endblock pageTitle %}
+
+{% block breadcrumb -%}
+    <li>
+        <a href="{{ path("app.dashboard_page") }}">{{ "menus.Dashboard"|trans({},"AppBundle") }}</a>
+    </li>
+    <li>
+        <a href="{{ path("transaction.list_page") }}">{{ "breadcrumb.list"|trans({},"TransactionBundle") }}</a>
+    </li>
+    <li class="active">{{ "menus.DWL"|trans({},"TransactionBundle") }}</li>
+{%- endblock breadcrumb %}
+
+{% block leftPaneContent %}
+    {{ parent() }}
+    <div class="card-box">
+        <h4 class="m-t-0 m-b-30">Daily Win Loss</h4>
+        <div class="text-muted">
+            <div class="row m-t-10">
+                <div class="col-md-3 col-sm-3 col-xs-3 text-right"><b>Product:</b></div>
+                <div class="col-md-8 col-sm-8 col-xs-8 m-l-15" >{{ dwl.product.name }}</div>
+            </div>
+            <div class="row m-t-10">
+                <div class="col-md-3 col-sm-3 col-xs-3 text-right"><b>Currency:</b></div>
+                <div class="col-md-8 col-sm-8 col-xs-8 m-l-15" >{{ dwl.currency.code }}</div>
+            </div>
+            <div class="row m-t-10">
+                <div class="col-md-3 col-sm-3 col-xs-3 text-right"><b>Date:</b></div>
+                <div class="col-md-8 col-sm-8 col-xs-8 m-l-15" >{{ dwl.date|date('M d, Y') }}</div>
+            </div>
+            <div class="row m-t-10">
+                <div class="col-md-3 col-sm-3 col-xs-3 text-right"><b>Link:</b></div>
+                <div class="col-md-8 col-sm-8 col-xs-8 m-l-15" >
+                    <a href="{{ path('dwl.update_page', {'id': dwl.id}) }}" target="_blank">Go to DWL Records</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock leftPaneContent %}
+
+{% block rightPaneContent %}
+    {{ parent() }}
+    <div class='card-box'>
+        {% for subtransaction in transaction.subTransactions %}
+        <div class='row'>
+            <div class='col-md-6 col-sm-6 col-xs-6'>
+                <b>{{ "Win/Loss"|trans({},"TransactionBundle") }}</b>
+            </div>
+
+            <div class='col-md-6 col-sm-6 col-xs-6'>
+                {% if subtransaction.details.dwl.brokerage is defined %}
+                    <span>{{ subtransaction.details.dwl.brokerage.winLoss|number_format(2, '.', '') }}</span>
+                {% else %}
+                    <span>{{ subtransaction.amount|number_format(2, '.', '') }}</span>
+                {% endif %}
+            </div>
+        </div>
+        {% if subtransaction.details.dwl.brokerage is defined and subtransaction.details.dwl.brokerage is not null %}
+        <div class='row'>
+            <div class='col-md-6 col-sm-6 col-xs-6'>
+                <b>{{ "Returned"|trans({},"TransactionBundle") }}</b>
+            </div>
+            <div class='col-md-6 col-sm-6 col-xs-6'>
+                <span>{{ subtransaction.getDwlReturn()|number_format(2, '.', '') }}</span>
+            </div>
+        </div>
+        {% endif %}
+        <div class='row'>
+            <div class='col-md-6 col-sm-6 col-xs-6'>
+                <b>{{ "Turnover"|trans({},"TransactionBundle") }}</b>
+            </div>
+            <div class='col-md-6 col-sm-6 col-xs-6'>
+                <span>{{ subtransaction.details.dwl.turnover|number_format(2, '.', '') }}</span>
+            </div>
+        </div>
+        <div class='row'>
+            <div class='col-md-6 col-sm-6 col-xs-6'>
+                <b>{{ "Gross Commission"|trans({},"TransactionBundle") }}</b>
+            </div>
+            <div class='col-md-6 col-sm-6 col-xs-6'>
+                <span>{{ subtransaction.details.dwl.gross|number_format(2, '.', '') }}</span>
+            </div>
+        </div>
+        <div class='row'>
+            <div class='col-md-6 col-sm-6 col-xs-6'>
+                <b>{{ "Member Commission"|trans({},"TransactionBundle") }}</b>
+            </div>
+            <div class='col-md-6 col-sm-6 col-xs-6'>
+                <span>{{ subtransaction.details.dwl.commission|number_format(2, '.', '') }}</span>
+            </div>
+        </div>
+        {% endfor  %}
+    </div>
+{% endblock %}

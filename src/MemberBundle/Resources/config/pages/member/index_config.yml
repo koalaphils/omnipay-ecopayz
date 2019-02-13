@@ -39,34 +39,22 @@ widgets:
                         data-priority: 1
                 country:
                     label: Country
-                    type: function
-                    function: listCountry
-                    from: 'customer.country'
-                date_joined:
-                    label: Date Joined
-                    type: date
-                    from: customer.joinedAt
-                    format: F j, Y
-                tag:
-                    label: Tag
-                    type: function
-                    function: listTag
-                    from: customer
-                paymentOption:
-                    label: Payment Option
-                    type: function
-                    function: listPaymentOption
-                    from: customer.paymentOptions
+                    type: text
+                    from: 'customer.country.name'
                 currency:
                     label: Currency
-                    type: function
-                    function: listCurrency
-                    from: customer.currency
+                    type: text
+                    from: customer.currency.code
                 kyc:
                     label: KYC
                     type: function
                     function: listKyc
                     from: customer.verifiedAt
+                date_joined:
+                    label: Date Joined
+                    type: date
+                    from: customer.joinedAt
+                    format: F j, Y
                 created_by:
                     label: Created By
                     type: function
@@ -108,24 +96,24 @@ widgets:
                         class: form-control cls-date
                     applyOnChanged: 0
                     value: :to
-                # product:
-                #     label: Product
-                #     type: select
-                #     dom: <'form-group form-group-sm m-r-10 xs-filter'i>
-                #     symbol: p
-                #     class: selectpicker
-                #     applyOnChanged: false
-                #     attrs:
-                #         data-style: btn-white btn-sm
-                #         multiple: multiple
-                #         data-none-selected-text: Product
-                #         data-width: auto
-                #         data-size: 5
-                #     value: :product
-                #     choicesFrom:
-                #         function: '@product.manager::getProductList'
-                #         label: result['name']
-                #         value: result['id']                    
+                product:
+                    label: Product
+                    type: select
+                    dom: <'form-group form-group-sm m-r-10 xs-filter'i>
+                    symbol: p
+                    class: selectpicker
+                    applyOnChanged: false
+                    attrs:
+                        data-style: btn-white btn-sm
+                        multiple: multiple
+                        data-none-selected-text: Product
+                        data-width: auto
+                        data-size: 5
+                    value: :product
+                    choicesFrom:
+                        function: '@product.manager::getProductList'
+                        label: result['name']
+                        value: result['id']
                 paymentOption:
                     label: Payment Option
                     type: select

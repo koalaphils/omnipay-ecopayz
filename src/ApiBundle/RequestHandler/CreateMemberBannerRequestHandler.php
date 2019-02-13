@@ -30,9 +30,11 @@ class CreateMemberBannerRequestHandler
                 $createMemberBannerRequest->getSize()
             )
         );
-        $memberBanner->setMemberWebsite(
-            $this->createMemberWebsite($createMemberBannerRequest->getWebsite(), $member)
-        );
+
+        if (!empty($website = $createMemberBannerRequest->getWebsite())) {
+            $memberBanner->setMemberWebsite($this->createMemberWebsite($website, $member));
+        }
+
         $memberBanner->setMemberReferralName(
             $this->createMemberReferralName($createMemberBannerRequest->getTrackingCode(), $member)
         );

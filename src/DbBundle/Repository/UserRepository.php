@@ -28,10 +28,10 @@ class UserRepository extends BaseRepository implements \Symfony\Bridge\Doctrine\
     public function getUserByZendeskId($id)
     {
         return $this->createQueryBuilder('u')
-            ->select('u')
-            ->where('u.zendeskId = :id  AND u.deletedAt IS NULL AND u.zendeskId IS NOT NULL')
-            ->setParameter('id', $id)
-            ->getQuery()->getOneOrNullResult();
+                ->select('u')
+                ->where('u.zendeskId = :id  AND u.deletedAt IS NULL AND u.zendeskId IS NOT NULL')
+                ->setParameter('id', $id)
+                ->getQuery()->getOneOrNullResult();
     }
 
     /**
@@ -143,7 +143,7 @@ class UserRepository extends BaseRepository implements \Symfony\Bridge\Doctrine\
         return $qb->getQuery()->getSingleScalarResult();
     }
 
-    public function getAdminCount(): int
+    public function getAdminCount() : int
     {
         $qb = $this->createQueryBuilder('u');
         $qb->select('COUNT(u.id)');
@@ -173,7 +173,7 @@ class UserRepository extends BaseRepository implements \Symfony\Bridge\Doctrine\
 
         if (isset($params['id'])) {
             $qb->where($qb->expr()->eq('u.id', ':id'))
-                ->setParameter('id', $params['id']);
+             ->setParameter('id', $params['id']);
         }
 
         $qb->getQuery()->execute();
@@ -184,9 +184,9 @@ class UserRepository extends BaseRepository implements \Symfony\Bridge\Doctrine\
     }
 
     /**
-     * @param User $user
+     * @param User   $user
      * @param string $channel
-     * @param int $num
+     * @param int    $num
      *
      * @return mixed
      */
@@ -250,54 +250,6 @@ class UserRepository extends BaseRepository implements \Symfony\Bridge\Doctrine\
         return $qb->getQuery()->getOneOrNullResult();
     }
 
-    public function findUserByEmail($email)
-    {
-        $qb = $this->createQueryBuilder('u');
-
-        $qb->select('u')
-            ->where($qb->expr()->eq('u.email', ':email'))
-            ->setParameter('email', $email);
-
-        return $qb->getQuery()->getOneOrNullResult();
-    }
-
-    public function findUserByPhoneNumber($phoneNumber, $countryCode)
-    {
-        $qb = $this->createQueryBuilder('u');
-        $qb->select('u')
-            ->leftJoin('u.customer', 'uc')
-            ->leftJoin('uc.country', 'ucc')
-            ->where($qb->expr()->eq('u.phoneNumber', ':phoneNumber'))
-            ->andWhere($qb->expr()->eq('ucc.phoneCode', ':countryCode'))
-            ->setParameter('phoneNumber', $phoneNumber)
-            ->setParameter('countryCode', $countryCode);
-        return $qb->getQuery()->getOneOrNullResult();
-    }
-
-    public function findByCredentials($credentials)
-    {
-        $password = isset($credentials['password']) ? $credentials['password'] : '';
-        $email = isset($credentials['email']) ? $credentials['email'] : '';
-        $phoneNumber = isset($credentials['phoneNumber']) ? $credentials['phoneNumber'] : '';
-        $qb = $this->createQueryBuilder('u');
-
-        if ($email != '') {
-            $qb->select('u')
-                ->where($qb->expr()->eq('u.email', ':email'))
-                ->andWhere($qb->expr()->eq('u.password', ':password'))
-                ->setParameter('email', $email)
-                ->setParameter('password', $password);
-        } else if ($phoneNumber != '') {
-            $qb->select('u')
-                ->where($qb->expr()->eq('u.phoneNumber', ':phoneNumber'))
-                ->andWhere($qb->expr()->eq('u.password', ':password'))
-                ->setParameter('phoneNumber', $email)
-                ->setParameter('password', $password);
-        }
-
-        return $qb->getQuery()->getOneOrNullResult();
-    }
-
 
     public function findByEmailAndResetPasswordCode($resetPasswordCode, $email)
     {
@@ -311,5 +263,17 @@ class UserRepository extends BaseRepository implements \Symfony\Bridge\Doctrine\
             ->setParameter('email', $email);
 
         return $qb->getQuery()->getOneOrNullResult();
+    }
+
+
+    public function findByType(int $type) : array
+    {
+        $qb = $this->createQueryBuilder('u');
+
+        $qb->select('u.id')
+            ->where($qb->expr()->eq('u.type', ':type'))
+            ->setParameter('type', $type);
+
+        return $qb->getQuery()->execute();
     }
 }

@@ -37,6 +37,13 @@ notification:
         error:
             title: Error
             message: Member %name% is no longer linked to this affiliate.
+    linkMember:
+        success:
+            title: Successful
+            message: Member %name% has been successfully linked to %referrer%.
+        error:
+            title: Error
+            message: Referrer code %code% does not match any member.
 
 
 ## General

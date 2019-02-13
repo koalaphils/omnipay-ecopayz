@@ -2,10 +2,14 @@
 
 namespace DbBundle\Entity;
 
+use AppBundle\ValueObject\Number;
+use DbBundle\Entity\Customer as Member;
 use DbBundle\Entity\Interfaces\ActionInterface;
 use DbBundle\Entity\Interfaces\AuditAssociationInterface;
 use DbBundle\Entity\Interfaces\AuditInterface;
 use DbBundle\Entity\Interfaces\TimestampInterface;
+use DateTimeInterface;
+use DateTime;
 
 class CustomerProduct extends Entity implements ActionInterface, TimestampInterface, AuditInterface, AuditAssociationInterface
 {
@@ -60,6 +64,16 @@ class CustomerProduct extends Entity implements ActionInterface, TimestampInterf
     private $details;
 
     private $betSyncId;
+    private $requestedAt;
+
+    public static function create(Member $member): self
+    {
+        $memberProduct = new self();
+
+        $memberProduct->setCustomer($member);
+
+        return $memberProduct;
+    }
 
     /**
      * Set customerID.
@@ -171,6 +185,13 @@ class CustomerProduct extends Entity implements ActionInterface, TimestampInterf
         return $this;
     }
 
+    public function addAmountToBalance(string $amount): self
+    {
+        $this->balance = Number::add((string) $this->balance, $amount)->toString();
+
+        return $this;
+    }
+
     /**
      * Get balance.
      *
@@ -253,6 +274,18 @@ class CustomerProduct extends Entity implements ActionInterface, TimestampInterf
         $this->details = $details;
 
         return $this;
+    }
+
+    public function setRequestedAt(DateTimeInterface $requestedAt): self
+    {
+        $this->requestedAt = $requestedAt;
+
+        return $this;
+    }
+
+    public function getRequestedAt(): ?DateTimeInterface
+    {
+        return $this->requestedAt;
     }
 
     public function getDetail($key, $default = null)
@@ -427,7 +460,7 @@ class CustomerProduct extends Entity implements ActionInterface, TimestampInterf
 
     public function revertBalanceFromSubtransaction(SubTransaction $subTransaction): void
     {
-        $currentBalance = new \AppBundle\ValueObject\Number($this->getBalance());
+        $currentBalance = new Number($this->getBalance());
         $amount = $subTransaction->getConvertedAmount();
 
         if ($subTransaction->isDeposit() || $subTransaction->isDWL()) {
@@ -442,5 +475,14 @@ class CustomerProduct extends Entity implements ActionInterface, TimestampInterf
     public function getMember(): Customer
     {
         return $this->getCustomer();
+    }
+
+    public function isRequestedToday(): bool
+    {
+        if (!is_null($this->getRequestedAt())) {
+            return (new DateTime('now'))->format('Y-m-d') == $this->getRequestedAt()->format('Y-m-d');
+        }
+
+        return false;
     }
 }

@@ -28,6 +28,7 @@ class TransactionCreatePage extends PageObject
     public static $noteField = '#Transaction_notes';
 
     //applicable for deposit
+    public static $depositURL = '/transaction/deposit';
     public static $formTitleDeposit = 'Request Deposit Transaction';
     public static $createTransactionDepositButton = 'Deposit';
     public static $productField = '//*[@id="Transaction_subTransactions_0"]//span[contains(text(),"Nothing selected")]';

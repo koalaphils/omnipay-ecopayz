@@ -19,7 +19,7 @@ class GatewayLogManager extends AbstractManager
             if (false !== array_get($filters, 'search.value', false)) {
                 $filters['search'] = $filters['search']['value'];
             }
-            $orders = (!array_has($filters, 'order')) ? [['column' => 'gl.timestamp', 'dir' => 'desc']] : $filters['order'];
+            $orders = (!array_has($filters, 'order')) ? [['column' => 'gl.timestamp', 'dir' => 'desc'], ['column' => 'gl.id', 'dir' => 'desc']] : $filters['order'];
 
             $results['data'] = $this->getRepository()->getList($filters, $orders, \Doctrine\ORM\Query::HYDRATE_OBJECT);
             $results['draw'] = $filters['draw'];

@@ -17,20 +17,34 @@ use DbBundle\Entity\ProductCommission;
 use DbBundle\Entity\SubTransaction;
 use DbBundle\Entity\AuditRevision;
 use DbBundle\Entity\AuditRevisionLog;
+use DbBundle\Repository\CustomerPaymentOptionRepository as MemberPaymentOptionRepository;
 use DbBundle\Repository\CustomerProductRepository as MemberProductRepository;
 use DbBundle\Repository\CustomerRepository as MemberRepository;
 use DbBundle\Repository\MemberCommissionRepository;
+use DbBundle\Repository\MemberReferralNameRepository;
 use DbBundle\Repository\MemberRunningCommissionRepository;
 use DbBundle\Repository\ProductCommissionRepository;
 use DbBundle\Repository\ProductRepository;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use DbBundle\Repository\SubTransactionRepository;
 use DbBundle\Repository\AuditRevisionRepository;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
+use MemberBundle\Event\ReferralEvent;
+use MemberBundle\Events;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Translation\TranslatorInterface;
 use AppBundle\ValueObject\Number;
+use TransactionBundle\Manager\TransactionManager;
 
 class MemberManager extends AbstractManager
 {
+    private $eventDispatcher;
+    private $translator;
+    private $entityManager;
     private $settingManager;
+    private $transactionManager;
+    private $precision;
 
     public function __construct(SettingManager $settingManager)
     {
@@ -39,6 +53,7 @@ class MemberManager extends AbstractManager
 
     private $commissionManager;
     private $memberProductRepository;
+    private $memberReferralNameRepository;
 
     public function verifyMember(Member $member): void
     {
@@ -164,9 +179,109 @@ class MemberManager extends AbstractManager
         return array_slice($returnedData, $startingPointOfArray, $numberOfItemsToDisplay);
     }
 
+    public function linkMember(Member $member, ?string $referrerCode): array
+    {
+        $code = Response::HTTP_UNPROCESSABLE_ENTITY;
+        $referrerDetails = ['id' => '', 'name' => '', 'username' => ''];
+        $notifications = [
+            [
+                'type' => 'error',
+                'title' => $this->getTranslator()->trans(
+                    'notification.linkMember.error.title',
+                    [],
+                    'MemberBundle'
+                ),
+                'message' => $this->getTranslator()->trans(
+                    'notification.linkMember.error.message',
+                    ['%code%' => $referrerCode],
+                    'MemberBundle'
+                ),
+            ],
+        ];
+
+        if ($referrerCode !== '' && !is_null($referrerCode)) {
+            $referrer = $this->getReferrerByReferrerCode($referrerCode);
+
+            if (!is_null($referrer)) {
+                $this->getEventDispatcher()->dispatch(Events::EVENT_REFERRAL_LINKED, new ReferralEvent($referrer, $member));
+                $member->linkReferrer($referrer);
+                $this->getEntityManager()->persist($member);
+                $this->getEntityManager()->flush($member);
+
+                $code = Response::HTTP_OK;
+                $notifications = [
+                    [
+                        'type' => 'success',
+                        'title' => $this->getTranslator()->trans(
+                            'notification.linkMember.success.title',
+                            [],
+                            'MemberBundle'
+                        ),
+                        'message' => $this->getTranslator()->trans(
+                            'notification.linkMember.success.message',
+                            ['%name%' => $member->getFullName(), '%referrer%' => $referrer->getFullName()],
+                            'MemberBundle'
+                        ),
+                    ],
+                ];
+                $referrerDetails = [
+                    'id' => $referrer->getId(),
+                    'name' => $referrer->getFullName(),
+                    'username' => $referrer->getUsername(),
+                ];
+            }
+        }
+
+        return [
+            '__notifications' => $notifications,
+            'code' => $code,
+            'referrer' => $referrerDetails,
+        ];
+    }
+
+    public function getReferrerByReferrerCode(?string $referrerCode): ?Member
+    {
+        $referrer = null;
+
+        if (!is_null($referrerCode) && $referrerCode !== '') {
+            $memberReferralName = $this->getMemberReferralNameRepository()->findOneByName($referrerCode);
+
+            if (!is_null($memberReferralName)) {
+                $referrer = $memberReferralName->getMember();
+            }
+        }
+
+        return $referrer;
+    }
+
+    public function setMemberReferralNameRepository(MemberReferralNameRepository $memberReferralNameRepository): void
+    {
+        $this->memberReferralNameRepository = $memberReferralNameRepository;
+    }
+
+    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher): void
+    {
+        $this->eventDispatcher = $eventDispatcher;
+    }
+
+    public function setTranslator(TranslatorInterface $translator): void
+    {
+        $this->translator = $translator;
+    }
+
+    public function setEntityManager(EntityManagerInterface $entityManager): void
+    {
+        $this->entityManager = $entityManager;
+    }
+
+    public function getEntityManager($name = 'default'): EntityManager
+    {
+        return $this->entityManager;
+    }
+
     public function getOriginSetting(): array
     {
-        return $this->settingManager->getSetting('origin.origins');
+        return $this->settingManager->getSetting('origin.origins') ?? [];
     }
 
     public function getCurrentPeriodReferralTurnoversAndCommissions(int $referrerId, DateTimeInterface $currentDate, array $filters): array
@@ -189,45 +304,69 @@ class MemberManager extends AbstractManager
 
     public function getTurnoversAndCommissionsByMember(int $referrerId, array $filters): array
     {
+        $memberRepository = $this->getRepository();
+        $subTransactionRepository = $this->getSubTransactionRepository();
+
+        $filters['hideZeroTurnover'] = array_get($filters, 'hideZeroTurnover', false);
+        $orders = [
+            ['column' => $filters['orderBy'], 'dir' => 'ASC'],
+            ['column' => $filters['orderBy'] == 'productName' ? 'memberId' : 'productName', 'dir' => 'ASC'],
+        ];
         $result = [
-            'records' => $this->getRepository()
-                ->getReferralProductListByReferrer(
-                    $filters,
-                    [['column' => $filters['orderBy'], 'dir' => 'ASC']],
-                    $referrerId, $filters['offset'], $filters['limit']
-                ),
-            'recordsTotal' => $this->getRepository()->getReferralProductListTotalCountByReferrer($filters, $referrerId),
-            'recordsFiltered' => $this->getRepository()->getReferralProductListFilterCountByReferrer($filters, $referrerId),
+            'recordsTotal' => $memberRepository->getReferralProductListTotalCountByReferrer($filters, $referrerId),
             'limit' => $filters['limit'],
             'page' => $filters['page'],
             'filters' => $filters,
         ];
 
-        $filters['memberProductIds'] = array_column($result['records'], 'memberProductId');
+        if (!array_get($filters, 'hideZeroTurnover')) {
+            $result['records'] = $memberRepository->getReferralProductListByReferrer(
+                $filters, $orders, $referrerId, $filters['offset'], $filters['limit']
+            );
+            $result['recordsFiltered'] = $memberRepository->getReferralProductListFilterCountByReferrer($filters, $referrerId);
+            $filters['memberProductIds'] = array_column($result['records'], 'memberProductId');
+        }
+
         $filters['startDate'] = $this->getSettingManager()->getSetting('commission.startDate');
+        $this->precision = isset($filters['precision']) ? $filters['precision'] : 2;
 
-        $memberReferralsTurnoversAndCommissions = array_column(
-            $this->getSubTransactionRepository()->getReferralTurnoverWinLossCommissionByReferrer($filters, $referrerId),
-            null,
-            'memberProductId'
-        );
+        $memberReferralsTurnoversAndCommissions = $subTransactionRepository
+            ->getReferralTurnoverWinLossCommissionByReferrer(
+                $filters, $orders, $referrerId, $filters['offset'], $filters['limit']
+            );
 
-        foreach ($result['records'] as &$row) {
-            $row = array_merge($row, [
-                'totalTurnover' => 0,
-                'totalWinLoss' => 0,
-                'totalAffiliateCommission' => 0,
-            ]);
+        if (!array_get($filters, 'hideZeroTurnover')) {
+            $memberReferralsTurnoversAndCommissions = array_column($memberReferralsTurnoversAndCommissions,null,'memberProductId');
 
-            if (array_has($memberReferralsTurnoversAndCommissions, $row['memberProductId'])) {
-                $row = array_get($memberReferralsTurnoversAndCommissions, $row['memberProductId']);
+            foreach ($result['records'] as &$row) {
+                $row = array_merge($row, [
+                    'totalTurnover' => $this->formatCommissionAmount(0),
+                    'totalWinLoss' => $this->formatCommissionAmount(0),
+                    'totalAffiliateCommission' => $this->formatCommissionAmount(0),
+                ]);
+
+                if (array_has($memberReferralsTurnoversAndCommissions, $row['memberProductId'])) {
+                    $row = array_get($memberReferralsTurnoversAndCommissions, $row['memberProductId']);
+
+                    $row['totalTurnover'] = $this->formatCommissionAmount($row['totalTurnover']);
+                    $row['totalWinLoss'] = $this->formatCommissionAmount($row['totalWinLoss']);
+                    $row['totalAffiliateCommission'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
+                }
+            }
+        } else {
+            $result['records'] = $memberReferralsTurnoversAndCommissions;
+            $result['recordsFiltered'] = $subTransactionRepository->getReferralTurnoverWinLossCommissionFilterCountByReferrer($filters, $referrerId);
+
+            foreach ($result['records'] as &$row) {
+                    $row['totalTurnover'] = $this->formatCommissionAmount($row['totalTurnover']);
+                    $row['totalWinLoss'] = $this->formatCommissionAmount($row['totalWinLoss']);
+                    $row['totalAffiliateCommission'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
             }
         }
 
-        $currencies = $this->getMemberProductRepository()->getReferralCurrencies($referrerId);
+        $currencies = $this->getMemberProductRepository()->getReferralCurrenciesByReferrer($referrerId);
         $totals = array_column(
-            $this
-            ->getSubTransactionRepository()
+            $subTransactionRepository
             ->getTotalReferralTurnoverWinLossCommissionByReferrer($filters, $referrerId),
             null,
             'currencyCode'
@@ -239,14 +378,17 @@ class MemberManager extends AbstractManager
         }
 
         foreach ($currencies as &$currency) {
-            $currency['totalTurnover'] = 0;
-            $currency['totalWinLoss'] = 0;
+            $currency['totalTurnover'] = $this->formatCommissionAmount(0);
+            $currency['totalWinLoss'] = $this->formatCommissionAmount(0);
 
             if (array_has($totals, $currency['currencyCode'])) {
                 $currency = array_get($totals, $currency['currencyCode']);
+
+                $currency['totalTurnover'] = $this->formatCommissionAmount($currency['totalTurnover']);
+                $currency['totalWinLoss'] = $this->formatCommissionAmount($currency['totalWinLoss']);
             }
 
-            $currency['totalAffiliateCommission'] = $totalAffiliateCommission->toString();
+            $currency['totalAffiliateCommission'] = $this->formatCommissionAmount($totalAffiliateCommission->toString());
         }
 
         $result['totals'] = $currencies;
@@ -260,7 +402,6 @@ class MemberManager extends AbstractManager
 
     public function generateTurnoverCommissionReport(int $referrerId, array $filters): void
     {
-        $numberConfig = ['precision' => 2, 'round' => false];
         $separator = ',';
         $member = $this->getRepository()->find($referrerId);
         $memberCurrencyCode = $member->getCurrencyCode();
@@ -286,12 +427,20 @@ class MemberManager extends AbstractManager
                 $csvReport .= $record['memberId'] . $separator;
             } else {
                 $csvReport .= $record['memberId'] . $separator;
-                $csvReport .= $record['productName'] . $separator;
+
+                if (!is_null($record['memberProductId'])) {
+                    $csvReport .= $record['productName'] . $separator;
+                }
             }
 
-            $csvReport .= '"' . $record['currencyCode'] . ' ' . number_format(Number::format($record['totalTurnover'], $numberConfig), 2) . '"' . $separator;
-            $csvReport .= '"' . $record['currencyCode'] . ' ' . number_format(Number::format($record['totalWinLoss'], $numberConfig), 2)  . '"' . $separator;
-            $csvReport .= '"' . $memberCurrencyCode . ' ' . number_format(Number::format($record['totalAffiliateCommission'], $numberConfig), 2)  . '"' . $separator;
+            if (!is_null($record['memberProductId'])) {
+                $csvReport .= '"' . $record['currencyCode'] . ' ' . $record['totalTurnover']['rounded'] . '"' . $separator;
+                $csvReport .= '"' . $record['currencyCode'] . ' ' . $record['totalWinLoss']['rounded']  . '"' . $separator;
+                $csvReport .= '"' . $memberCurrencyCode . ' ' . $record['totalAffiliateCommission']['rounded']  . '"' . $separator;
+            } else {
+                $csvReport .= 'No products' . $separator . $separator . $separator . $separator;
+            }
+
             $csvReport .= "\n";
 
             echo $csvReport;
@@ -312,22 +461,63 @@ class MemberManager extends AbstractManager
         $csvReport .= '"' . sprintf('Date Covered: %s - %s', $result['period']['dwlDateFrom'], $result['period']['dwlDateTo']) . "\n" . '",,';
         $csvReport .= '"';
         foreach ($totalTurnover as $currencyCode => $total) {
-            $csvReport .= $currencyCode . ' ' . number_format(Number::format($total, $numberConfig), 2) . "\n";
+            $csvReport .= $currencyCode . ' ' . $total['rounded'] . "\n";
 
         }
         $csvReport .= '",';
 
         $csvReport .= '"';
         foreach ($totalWinLoss as $currencyCode => $total) {
-            $csvReport .= $currencyCode . ' ' . number_format(Number::format($total, $numberConfig), 2) . "\n";
+            $csvReport .= $currencyCode . ' ' . $total['rounded'] . "\n";
         }
         $csvReport .= '",';
 
         $csvReport .= '"';
-        $csvReport .= $memberCurrencyCode . ' ' . number_format(Number::format($totalAffiliateCommission[$memberCurrencyCode], $numberConfig), 2) . "\n";
+        $csvReport .= $memberCurrencyCode . ' ' . $totalAffiliateCommission[$memberCurrencyCode]['rounded'] . "\n";
         $csvReport .= '"';
 
         echo $csvReport;
+    }
+
+    public function isPaymentOptionIdBitcoin(int $paymentOptionId): bool
+    {
+        $memberPaymentOption = $this->getMemberPaymentOptionRepository()->find($paymentOptionId);
+        $isPaymentBitcoin = $memberPaymentOption->getPaymentOption()->isPaymentBitcoin();
+        
+        return $isPaymentBitcoin;
+    }
+
+    public function getTransactionStatusFilterList(): array
+    {
+        $statusList = $this->getTransactionManager()->getTransactionStatus();
+        $status = [];
+
+        foreach ($statusList as $key => $value) {
+            $status[] = [
+                'label' => $value['label'],
+                'value' => $key,
+            ];
+        }
+
+        return $status;
+    }
+
+    public function updateMemberPaymentOptionBitcoinAddress(array $transaction): void
+    {
+        $memberPaymentOptionId = $transaction['paymentOption'];
+        $bitcoinAddress = $transaction['details']['bitcoin']['receiver_unique_address'];
+        $memberPaymentOption = $this->getMemberPaymentOptionRepository()->find($memberPaymentOptionId);
+        if ($memberPaymentOption->getBitcoinField() != $bitcoinAddress) {
+            $memberPaymentOption->setBitcoinAddress($bitcoinAddress);
+
+            $this->getEntityManager()->persist($memberPaymentOption);
+            $this->getEntityManager()->flush($memberPaymentOption);
+        }
+    }
+
+    public function setTransactionManager(TransactionManager $transactionManager): void
+    {
+        $this->transactionManager = $transactionManager;
     }
 
     public function setSettingManager(SettingManager $settingManager): void
@@ -345,6 +535,11 @@ class MemberManager extends AbstractManager
         $this->memberProductRepository = $memberProductRepository;
     }
 
+    public function setMemberPaymentOptionRepository(MemberPaymentOptionRepository $memberPaymentOptionRepository): void
+    {
+        $this->memberPaymentOptionRepository = $memberPaymentOptionRepository;
+    }
+
     protected function getRepository(): MemberRepository
     {
         return $this->getDoctrine()->getRepository(Member::class);
@@ -353,6 +548,19 @@ class MemberManager extends AbstractManager
     protected function getAuditRevisionRepository(): AuditRevisionRepository
     {
         return $this->getDoctrine()->getRepository(AuditRevision::class);
+    }
+
+    private function formatCommissionAmount(string $amount): array
+    {
+        return [
+            'original' => $amount,
+            'rounded' => Number::format($amount, ['precision' => $this->precision]),
+        ];
+    }
+
+    protected function getTranslator(): TranslatorInterface
+    {
+        return $this->translator;
     }
 
     private function getProductRepository(): ProductRepository
@@ -375,6 +583,16 @@ class MemberManager extends AbstractManager
         return $this->getDoctrine()->getRepository(MemberRunningCommission::class);
     }
 
+    private function getMemberReferralNameRepository(): MemberReferralNameRepository
+    {
+        return $this->memberReferralNameRepository;
+    }
+
+    private function getEventDispatcher(): EventDispatcherInterface
+    {
+        return $this->eventDispatcher;
+    }
+
     private function getSubTransactionRepository(): SubTransactionRepository
     {
         return $this->getDoctrine()->getRepository(SubTransaction::class);
@@ -390,8 +608,18 @@ class MemberManager extends AbstractManager
         return $this->commissionManager;
     }
 
+    private function getTransactionManager(): TransactionManager
+    {
+        return $this->transactionManager;
+    }
+
     private function getMemberProductRepository(): MemberProductRepository
     {
         return $this->memberProductRepository;
+    }
+
+    private function getMemberPaymentOptionRepository(): MemberPaymentOptionRepository
+    {
+        return $this->memberPaymentOptionRepository;
     }
 }

@@ -14,15 +14,6 @@ DbBundle\Entity\GatewayTransaction:
         date:
             - DateTime: ~
         amount:
-            - NotBlank: ~
-            - Range:
-                min: 1
-            - Type:
-                type: numeric
-            - Expression:
-                expression: "this.getAmount() >= this.getFees()['fee']"
-                message: gatewayTransaction.amount.expression
-        amount:
             - NotBlank:
                 groups: ['transfer']
             - Range:

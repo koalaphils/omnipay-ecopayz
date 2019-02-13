@@ -781,56 +781,50 @@ class CustomerController extends AbstractController
         }
 
         $customer = $user->getCustomer();
+        $tempPassword = uniqid(str_replace(' ', '', 'temp') . '_');
 
-        if (!$user->isActivated()) {
-            $temporaryPassword = $this->getContainer()->getParameter('customer_temp_password');
+        $user->setActivationCode(
+            $this->getUserManager()->encodeActivationCode($user)
+        );
+        $user->setActivationSentTimestamp(new \DateTime());
+        $user->setActivationTimestamp(new \DateTime());
+        $user->setPassword(
+            $this->getUserManager()->encodePassword($user, $tempPassword)
+        );
+        $user->setPlainPassword($tempPassword);
+        $this->getUserRepository()->save($user);
 
-            $user->setActivationCode(
-                $this->getUserManager()->encodeActivationCode($user)
-            );
-            $user->setActivationSentTimestamp(new \DateTime());
-            $user->setPassword(
-                $this->getUserManager()->encodePassword($user, $temporaryPassword)
-            );
-            $this->getUserRepository()->save($user);
+        $activationCode = [
+            'username' => $user->getUsername(),
+            'password' => $tempPassword,
+            'activation_code' => $user->getActivationCode(),
+        ];
 
-            $activationCode = [
+        $this->getUserManager()->sendActivationMail(
+            [
                 'username' => $user->getUsername(),
-                'password' => $temporaryPassword,
-                'activation_code' => $user->getActivationCode(),
-            ];
+                'password' => $user->getPlainPassword(),
+                'email' => $user->getEmail(),
+                'fullName' => $customer->getFullName(),
+                'originFrom' => $this->getParameter('asianconnect_url'),
+                'activationCode' => JWT::encode($activationCode, 'AMSV2'),
+                'isAffiliate' => $customer->isTagAsAffiliate(),
+            ]
+        );
 
-            $this->getUserManager()->sendActivationMail(
+        return new JsonResponse([
+            '__notifications' => [
                 [
-                    'email' => $user->getEmail(),
-                    'fullName' => $customer->getFullName(),
-                    'originFrom' => $this->getParameter('asianconnect_url'),
-                    'activationCode' => JWT::encode($activationCode, 'AMSV2'),
-                    'isAffiliate' => $customer->isTagAsAffiliate(),
-                ]
-            );
-
-            return new JsonResponse([
-                '__notifications' => [
-                    [
-                        'type' => 'success',
-                        'title' => $this->getTranslator()->trans('notification.activation.success.title', [], 'CustomerBundle'),
-                        'message' => $this->getTranslator()->trans(
-                            'notification.activation.success.message',
-                            ['%name%' => $customer->getFullName() . ' (' . $user->getUsername() . ')'],
-                            'CustomerBundle'
-                        ),
-                    ],
+                    'type' => 'success',
+                    'title' => $this->getTranslator()->trans('notification.activation.success.title', [], 'CustomerBundle'),
+                    'message' => $this->getTranslator()->trans(
+                        'notification.activation.success.message',
+                        ['%name%' => $customer->getFullName() . ' (' . $user->getUsername() . ')'],
+                        'CustomerBundle'
+                    ),
                 ],
-            ], Response::HTTP_OK);
-        } else {
-            throw new \Exception(
-                $this->getTranslator()->trans(
-                'notification.activation.error.message',
-                [],
-                'CustomerBundle'
-            ), Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
+            ],
+        ], Response::HTTP_OK);
     }
 
     public function activateCustomerAction(Request $request)
@@ -891,6 +885,7 @@ class CustomerController extends AbstractController
         $user->setIsActive(true);
         $user->setActivationTimestamp(new \DateTime());
         $user->setPassword($this->getUserManager()->encodePassword($user, $passwords['password']));
+        $user->setActivationCode('');
         $this->getUserRepository()->save($user);
         $customer->setTransactionPassword($this->encodeTransactionPassword($user, $passwords['transactionPassword']));
         $this->getCustomerRepository()->save($customer);

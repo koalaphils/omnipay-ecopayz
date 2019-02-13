@@ -259,10 +259,6 @@ ul.nav.navtab-bg.tabs-vertical a {
 }
 button[name='applyFilter'] {
   margin-right: 5px;
-  margin-top: -5px;
-}
-.btn-inverse, .btn-inverse:hover, .btn-inverse:focus, .btn-inverse:active, .btn-inverse.active, .btn-inverse.focus, .btn-inverse:active, .btn-inverse:focus, .btn-inverse:hover, .open > .dropdown-toggle.btn-inverse{
-  margin-top: -5px;
 }
 .ztable_colvis_btn .bs-caret {
   display: none;
@@ -299,6 +295,17 @@ display: flex;
 
 #Transaction_subTransactions .product-list .input-group {
   display: flex;
+  position: relative !important;
+}
+#Transaction_subTransactions .subtransaction-product {
+  position: relative !important;
+  display: contents;
+}
+#Transaction_subTransactions .subtransaction-product button {
+  overflow: hidden !important;
+}
+#Transaction_subTransactions .subtransaction-product button span {
+  text-overflow: ellipsis;
 }
 #Transaction_subTransactions .input-group-addon:first-child {
   width: auto;
@@ -307,6 +314,9 @@ display: flex;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+#Transaction_subTransactions .input-group-addon label, #Transaction_subTransactions .input-group-addon i {
+    margin-top: 5px;
 }
 #customerTransactionList .form-inline>.form-group {
   margin-bottom: 0;
@@ -610,6 +620,9 @@ display: flex;
   }
   #datatable-responsive_paginate, .dataTables_paginate {
       text-align: center !important;
+  }
+  #commissions .nav.nav-tabs > li> a {
+      padding: 8px !important;
   }
 }
 @media only screen and (max-width: 768px) {
@@ -1020,7 +1033,16 @@ th.datepicker-switch {
     top: 30px;
     left: 69px;
 }
+#commissions .nav.nav-tabs > li> a {
+    line-height: 1.5;
+    font-size: 13px;
+    padding: 20px;
+}
 
+input#update_profileForm_data_affiliateLink ~ .input-group-btn #autoLink[disabled] {
+    background-color: #858585 !important;
+    border-color: #858585 !important;
+}
 /*==============================================
 ================================================
       Affiliate Member Tooltip
@@ -1111,6 +1133,62 @@ li#menu-affiliate {
     padding: 5px 0;
 }
 
+/*BTC Rate Settings*/
+#btc-rate-tbl {
+    font-size: 20px;
+}
+td.btc-wrap {
+    text-align: center;
+}
+.btc-wrap {
+    color: #F6931B;
+    font-weight: bold;
+    background-color: #F5F5F5;
+}
+.b-1 {
+  border: 1px solid #eee;
+}
+.btc-deposit-withdraw > li span {
+    font-size: 20px;
+    color: #5b5959;
+}
+.btc-deposit-withdraw ~ .tab-content {
+    margin-bottom: 0 !important;
+}
+
+/*BTC Deposit*/
+.btc-deposit-address span.input-group-addon {
+  width: 103px;
+  font-size:  13px;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+  padding: 7px;
+}
+.btc-deposit-address .input-group {
+  width: 100%;
+}
+#deposit-request-range-wrap > div:first-child, 
+#deposit-request-range-wrap > div:last-child {
+  position: relative;
+  font-size: 11px;
+}
+#deposit-request-range-wrap div:last-child > .currency, 
+#deposit-request-range-wrap div:first-child > .currency {
+  position: absolute;
+  z-index: 10;
+  top: 12px;
+  right: 5px;
+  background: #fff;
+}
+#deposit-request-range-wrap input[disabled] ~ .currency {
+  background: #eee;
+}
+#Transaction_deposit_request_rate input {
+    border-radius: 0;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
 @media (min-width: 992px) {
     .custom-tooltiptext-table .history-log div:nth-child(2){
         text-align: center;
@@ -1150,4 +1228,9 @@ li#menu-affiliate {
     width: calc(100% - 230px) !important;
     margin-left: -4px;
   }
+}
+
+#Transaction_notes {
+    min-height: 170px !important;
+    white-space: pre-wrap;
 }

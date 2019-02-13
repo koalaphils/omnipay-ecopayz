@@ -3,6 +3,7 @@
 namespace ApiBundle\Model\RegisterV2;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use DbBundle\Entity\Customer;
 
 class Register
 {
@@ -20,12 +21,14 @@ class Register
     private $websiteUrl;
     private $preferredReferralName;
     private $preferredPaymentGateway;
+    private $gender;
 
     public function __construct()
     {
         $this->setContacts([]);
         $this->setSocials([]);
         $this->setAffiliate([]);
+        $this->setGender(Customer::MEMBER_GENDER_NOT_SET);
         $this->bookies = new ArrayCollection();
     }
 
@@ -39,6 +42,18 @@ class Register
     public function getEmail():? string
     {
         return $this->email;
+    }
+
+    public function setGender(int $gender = 0): self
+    {
+        $this->gender = $gender;
+
+        return $this;
+    }
+
+    public function getGender(): int
+    {
+        return $this->gender;
     }
 
     public function setFullName($fullName): self
@@ -193,6 +208,11 @@ class Register
     public function getUsername(): string
     {
         return uniqid(str_replace(' ', '', $this->getFullName()) . '_');
+    }
+
+    public function getTempPassword(): string
+    {
+        return uniqid(str_replace(' ', '', 'temp') . '_');
     }
 
     public function getContactDetails(): array

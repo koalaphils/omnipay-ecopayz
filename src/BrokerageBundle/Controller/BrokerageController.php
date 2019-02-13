@@ -199,6 +199,55 @@ class BrokerageController extends AbstractController
         return new JsonResponse($response, JsonResponse::HTTP_OK);
     }
 
+    /**
+     *
+     * @ApiDoc(
+     *  description="resync winloss transactions",
+     *  resource=true, 
+     *  authentication=true,
+     *  parameters={
+     *      {
+     *          "name"="date",
+     *          "dataType"="string",
+     *          "required"=true,
+     *          "description"="date of daily winloss"
+     *      },
+     *      {
+     *          "name"="members[0][sync_id]",
+     *          "dataType"="string",
+     *          "required"=true,
+     *          "description"="brokerage sync id of member product"
+     *      },
+     *      {
+     *          "name"="members[0][stake]",
+     *          "dataType"="string",
+     *          "required"=true,
+     *          "description"="cummulative stake per day"
+     *      },
+     *      {
+     *          "name"="members[0][turnover]",
+     *          "dataType"="string",
+     *          "required"=true,
+     *          "description"="cummulative turnover per day"
+     *      },
+     *      {
+     *          "name"="members[0][winLoss]",
+     *          "dataType"="string",
+     *          "required"=true,
+     *          "description"="cummulative winLoss per day"
+     *      }
+     *  }
+     * )
+     */
+    public function resyncWinlossItemsAction(Request $request)
+    {
+        $params = $request->request->all();
+
+        $response = $this->getWinLossManager()->resyncWinloss($params);
+
+        return $this->view($response);
+    }
+
     private function getBrokerageManager(): \BrokerageBundle\Manager\BrokerageManager
     {
         return $this->container->get('brokerage.brokerage_manager');

@@ -2,8 +2,20 @@
 
 namespace AppBundle\Manager;
 
+use DbBundle\Repository\CustomerProductRepository as MemberProductRepository;
+use DbBundle\Repository\CustomerRepository as MemberRepository;
+use DbBundle\Repository\TransactionRepository;
+use Doctrine\ORM\Query;
+
 class NotificationManager extends AbstractManager
 {
+    private $memberProductRepository;
+
+    public function __construct(MemberProductRepository $memberProductRepository)
+    {
+        $this->memberProductRepository = $memberProductRepository;
+    }
+
     public function getList(): array
     {
         $limit = 10;
@@ -14,6 +26,7 @@ class NotificationManager extends AbstractManager
 
             return $data;
         }, $latestTransactions);
+
         $latestCustomers = $this->getCustomerRepository()->getLatestCreatedCustomers($limit);
         $latestCustomers = array_map(function ($customer) {
             $data = $customer;
@@ -21,8 +34,18 @@ class NotificationManager extends AbstractManager
 
             return $data;
         }, $latestCustomers);
+
+        $latestRequestedProducts = $this->getMemberProductRepository()->getRequestList($limit, 0, Query::HYDRATE_ARRAY);
+        $latestRequestedProducts = array_map(function ($product) {
+            $data = $product;
+            $data['createdAt'] = $product['requestedAt'];
+            $data['notificationType'] = 'requestProduct';
+
+            return $data;
+        }, $latestRequestedProducts);
+
         $lastRead = $this->getLastReadNotification();
-        $mergedNotifications = array_merge($latestCustomers, $latestTransactions);
+        $mergedNotifications = array_merge($latestCustomers, $latestTransactions, $latestRequestedProducts);
         $dateCreated = [];
 
         foreach ($mergedNotifications as $record) {
@@ -45,7 +68,6 @@ class NotificationManager extends AbstractManager
     public function saveLastRead()
     {
         try {
-            /* @var $user \DbBundle\Entity\User */
             $user = $this->getUser();
             $user->setPreference('lastReadNotification', new \DateTimeImmutable);
             $this->save($user);
@@ -59,33 +81,28 @@ class NotificationManager extends AbstractManager
         return $response;
     }
 
-    /**
-     * @return array
-     */
     public function getLastReadNotification(): array
     {
-        /* @var $user \DbBundle\Entity\User */
         $user = $this->getUser();
         return $user->getPreference('lastReadNotification') ? $user->getPreference('lastReadNotification') : [];
     }
 
-    /**
-     * @return \DbBundle\Repository\TransactionRepository
-     */
-    public function getTransactionRepository(): \DbBundle\Repository\TransactionRepository
+    public function getTransactionRepository(): TransactionRepository
     {
         return $this->getDoctrine()->getRepository('DbBundle:Transaction');
     }
 
-    /**
-     * @return \DbBundle\Repository\CustomerRepository
-     */
-    public function getCustomerRepository(): \DbBundle\Repository\CustomerRepository
+    public function getCustomerRepository(): MemberRepository
     {
         return $this->getDoctrine()->getRepository('DbBundle:Customer');
     }
 
     public function getRepository()
     {
+    }
+
+    private function getMemberProductRepository(): MemberProductRepository
+    {
+        return $this->memberProductRepository;
     }
 }

@@ -371,4 +371,19 @@ class Product extends Entity implements ActionInterface, TimestampInterface, Aud
     {
         return $this->getDetail('ac_wallet', false);
     }
+
+    public function hasUsername(): bool
+    {
+        return $this->getDetail('has_username', false);
+    }
+
+    public function canBeRequested(): bool
+    {
+        return $this->getDetail('can_be_requested', false);
+    }
+
+    public function hasTerms(): bool
+    {
+        return $this->getDetail('has_terms', false);
+    }
 }

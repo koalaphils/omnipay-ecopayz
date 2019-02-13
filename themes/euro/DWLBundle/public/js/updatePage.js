@@ -124,6 +124,13 @@ $(function () {
                 'name': 'amount',
                 'defaultContent': '',
                 'render': function (data, type, full) {
+                    if (typeof full.brokerage !== 'undefined'
+                        && typeof full.brokerage.winLoss !== 'undefined'
+                        && full.brokerage.winLoss !== null
+                    ) {
+                        return renderColumn('amount', (new Decimal(full.brokerage.winLoss)).toFixed(2), full.errors);
+                    }
+
                     return renderColumn('amount', (new Decimal(data)).toFixed(2), full.errors);
                 }
             },

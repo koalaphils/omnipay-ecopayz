@@ -1,15 +1,20 @@
 {% extends 'AppBundle:Layout:base.html.twig' %}
 
-{% form_theme form "PaymentOptionBundle:Form:paymentOption.html.twig" %}
+{% form_theme formProfile "PaymentOptionBundle:Form:paymentOption.html.twig" %}
+
+{% if withBitcoinConfigurations %}
+    {#% form_theme formBitcoinConfirmation "PaymentBundle:Bitcoin/_partials:_bitcoin_confirmations_settings.html.twig" %#}
+    {% use "PaymentBundle:Bitcoin/_partials:_bitcoin_confirmations_settings.html.twig" with form as confirmation_form, script as confirmation_script %}
+{% endif %}
 
 {% block title %}{{ "page.title.update"|trans({},"PaymentOptionBundle") }}{% endblock %}
 
 {% block stylesheet_plugins %}
-    {{ form_assetcss(form) }}
+    {{ form_assetcss(formProfile) }}
 {% endblock %}
 
 {% block javascript_plugins %}
-    {{ form_assetjs(form) }}
+    {{ form_assetjs(formProfile) }}
 {% endblock %}
 
 {% block pageTitle %}{{ "page.Update Payment Option"|trans({}, 'PaymentOptionBundle') }}{% endblock pageTitle %}
@@ -48,56 +53,118 @@
 
 {% block page %}
     <div class="col-sm-12">
-        {{ form_start(form) }}
-            <div class="card-box">
-                <div class="row">
-                    {% if (form.vars.data and form.vars.data.code) %}
-                        {% block _paymentOption_code_widget %}
-                            <div class="col-sm-12">
-                                <div class="form-group">
-                                    <div class="form-control">{{ form.vars.data.code }}</div>
-                                </div>
-                            </div>
-                        {% endblock _paymentOption_code_widget %}
-                    {% endif %}
-                    {{ form_row(form.name) }}
-                    {{ form_row(form.paymentMode) }}
-                    {{ form_row(form.sort) }}
-                    {{ form_row(form.isActive) }}
-                    {{ form_row(form.autoDecline) }}
-                    {{ form_row(form.fields) }}
-                    {{ form_row(form.image) }}
+        <ul class="nav nav-tabs">
+            <li class="li-tab active">
+                <a href="#profile" data-toggle="tab" class="paymentOption-tab">
+                    <span class="hidden-xs">Profile</span>
+                </a>
+            </li>
+            {% if withBitcoinConfigurations %}
+            <li class="li-tab">
+                <a href="#setting" data-toggle="tab" class="paymentOption-tab">
+                    <span class="hidden-xs">Configurable Fields</span>
+                </a>
+            </li>
+            <li class="li-tab">
+                <a href="#rates" data-toggle="tab" class="paymentOption-tab">
+                    <span class="hidden-xs">Rate Settings</span>
+                </a>
+            </li>
+            <li class="li-tab">
+                <a href="#confirmationsTab" data-toggle="tab" class="paymentOption-tab">
+                    <span class="hidden-xs">Confirmation Settings</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+        <div class="tab-content bg-muted">
+            <div class="tab-pane active" id="profile">
+                <div class="card-box">
+                    {% include 'PaymentOptionBundle:PaymentOption/_partials:_paymentOption_settings.html.twig' with {'form': formProfile } %}
                 </div>
             </div>
-        {{ form_end(form) }}
-        <div class="card-box">
-            <div class="row">
-                <div class="col-md-12">
-                    <button id="btnSave" class="btn btn-success">Save</button>
+            {% if withBitcoinConfigurations %}
+            <div class="tab-pane" id="setting">
+                <div class="card-box">
+                    {% include 'PaymentBundle:Bitcoin/_partials:_bitcoin_settings.html.twig' with {'form': formBitcoinConfiguration } %}
                 </div>
             </div>
+            <div class="tab-pane" id="rates">
+                <div class="card-box">
+                    {% include 'PaymentBundle:Bitcoin/_partials:_bitcoin_rate_settings.html.twig' with {'form': formRateSetting } %}
+                </div>
+            </div>
+            <div class="tab-pane" id="confirmationsTab">
+                <div class="card-box">
+                    {% with {form: formBitcoinConfirmation} only %}
+                        {{ block('confirmation_form') }}
+                    {% endwith %}
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 {% endblock page %}
 
 {% block javascripts %}
-    {{ form_javascript(form) }}
+    {{ form_javascript(formProfile) }}
     <script type="text/javascript">
-        var fieldPrototype = "{{- form_row(form.fields.vars.prototype)|e('js') -}}";
-        var newId = 0;
+        var locationHref = getLocation(window.location.href);
+        var fieldPrototype = "{{- form_row(formProfile.fields.vars.prototype)|e('js') -}}";
+        var newId = {{ formProfile.fields | length}};
+
+        function goToDefaultUrlWhenInCorrectURL(href) {
+            if (!href.pathname.match(/\/([A-Z]+)\/(.*)/)) {
+                location.href = href.href + '/profile';
+            }
+        }
+
+        function getLocation(href) {
+            var location = document.createElement("a");
+            location.href = href;
+
+            if (location.host == "") {
+              location.href = location.href;
+            }
+
+            return location;
+        }
+
+        function displayActiveTab() {
+            var activeTab = '{{app.request.attributes.get('activeTab')}}';
+
+            $('.nav-tabs a[href="#' +  activeTab + '"]').tab('show');
+        }
+        goToDefaultUrlWhenInCorrectURL(locationHref);
+
         $(function() {
-            $('#{{ form.vars.id }}').on('click', '.btn-add-field', function(e) {
+            displayActiveTab();
+            $('.paymentOption-tab').click(function(e){
+                e.preventDefault();
+                var activeTabTab = $('.li-tab.active .paymentOption-tab').attr('href');
+                var currentTab = $(activeTabTab + '.tab-pane');
+                var newTab = $(this).attr('href');
+
+                currentTab.removeClass('active');
+                $('.li-tab.active').removeClass('active');
+
+                $(this).closest('li').addClass('active');
+                $($(this).attr('href') + '.tab-pane').addClass('active');
+                history.pushState({}, null, newTab.replace("#",''));
+            });
+
+            $('#{{ formProfile.vars.id }}').on('click', '.btn-add-field', function(e) {
                 var newField = fieldPrototype;
-                newField = newField.replace(/{{ form.fields.vars.prototype.vars.name }}/g, newId);
+                newField = newField.replace(/{{ formProfile.fields.vars.prototype.vars.name }}/g, newId);
                 $('.fields').append(newField);
                 newId++;
             });
 
-            $('#{{ form.vars.id }}').on('click','.btn-remove-field', function() {
+            $('#{{ formProfile.vars.id }}').on('click','.btn-remove-field', function() {
                 $(this).closest('.field').remove();
             });
 
-            $('#{{ form.vars.id }}').submit(function (e) {
+            $('#{{ formProfile.vars.id }}').submit(function (e) {
                 e.preventDefault();
                 var form = this;
                 var data = $(form).serialize();
@@ -108,10 +175,7 @@
                     'dataType': 'json',
                     'success': function (data) {
                         if (data.success) {
-                            notification('Saved', 'You have successfully saved customer group', 'success');
-                            setTimeout(function () {
-                                window.location = data.data['@link'];
-                            }, 2000);
+                            notification('Saved', 'You have successfully saved payment option', 'success');
                         } else if (typeof data.errors !== 'undefined') {
                             for (var i in data.errors) {
                                 var error = data.errors[i];
@@ -130,16 +194,350 @@
                     },
                     'data': data,
                     'beforeSend': function (xhr) {
-                        $('#{{ form.vars.id }}').find('.form-group').removeClass('has-error');
-                        $('#{{ form.vars.id }}').find('.help-block ul li').remove();
+                        $('#{{ formProfile.vars.id }}').find('.form-group').removeClass('has-error');
+                        $('#{{ formProfile.vars.id }}').find('.help-block ul li').remove();
                         $('#btnSave').attr('disabled', 'disabled');
                     }
                 });
             });
 
             $('#btnSave').click(function () {
-                $('#{{ form.vars.id }}').submit();
+                $('#{{ formProfile.vars.id }}').submit();
             });
+
+            {% if withBitcoinConfigurations %}
+
+            $('#{{ formBitcoinConfiguration.vars.id }}').submit(function (e) {
+                e.preventDefault();
+                var form = this;
+                var data = $(form).serialize();
+                $.ajax({
+                    'url': $(form).attr('action'),
+                    'context': form,
+                    'type': $(form).attr('method'),
+                    'dataType': 'json',
+                    'success': function (data) {
+                        if (data.success) {
+                            notification('Saved', 'You have successfully saved Bitcoin Configuration', 'success');
+                            setTimeout(function () {
+                                $('.nav-tabs a[href="#rates"]').click();
+                            }, 2000);
+                        } else if (typeof data.errors !== 'undefined') {
+                            for (var i in data.errors) {
+                                var error = data.errors[i];
+                                $('#' + error.formId)
+                                    .closest('.form-group').addClass('has-error')
+                                    .find('.help-block ul')
+                                    .append('<li>' + error.message + '</li>');
+                            }
+                        }
+                    },
+                    'complete': function (xhr, textStatus) {
+                        $('#{{ formBitcoinConfiguration.saveConfigurationButton.vars.id }}').removeAttr('disabled');
+                    },
+                    'statusCode': {
+
+                    },
+                    'data': data,
+                    'beforeSend': function (xhr) {
+                        $('#{{ formBitcoinConfiguration.vars.id }}').find('.form-group').removeClass('has-error');
+                        $('#{{ formBitcoinConfiguration.vars.id }}').find('.help-block ul li').remove();
+                        $('#{{ formBitcoinConfiguration.saveConfigurationButton.vars.id }}').attr('disabled', 'disabled');
+                    }
+                });
+            });
+
+            $('#{{ formBitcoinConfiguration.saveConfigurationButton.vars.id }}').click(function (e) {
+                $('#{{ formBitcoinConfiguration.vars.id }}').submit();
+            });
+            {% endif %}
         });
     </script>
+
+    {% if withBitcoinConfigurations %}
+    {{ form_javascript(formRateSetting) }}
+    <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
+    <script type="text/javascript">
+        let BitcoinRateSettingForm = function() {
+            this.rateSettings = [];
+            this.rateSettingsTable = document.getElementById('rateSettingsTable').getElementsByTagName('tbody')[0];
+
+            this.currentIndex = this.getCurrentIndex();
+            this.fields = this.getFormPrototypes();
+
+            this.setupEventListeners();
+
+            this.minimumAllowedDeposit = "{{ bitcoinConfiguration.minimumAllowedDeposit }}";
+            this.maximumAllowedDeposit = numeral("{{ bitcoinConfiguration.maximumAllowedDeposit }}").format('0.00000000000');
+
+            this.smallestValue = '0.0000000001';
+        }
+
+        BitcoinRateSettingForm.prototype.setupEventListeners = function() {
+            let rows = this.rateSettingsTable.getElementsByTagName('tr');
+
+            for (let row of rows) {
+                let dataIndex = row.getAttribute('data-index');
+                if (!dataIndex) {
+                    continue;
+                }
+
+                let rangeFromInput = document.getElementById(`bitcoin_rate_settings_dto_bitcoinRateSettings_${dataIndex}_rangeFrom`);
+                rangeFromInput.onkeyup = this.debounce(() => { this.compute() }, 500);
+
+                let deleteButton = row.getElementsByTagName('button')[0];
+                deleteButton.onclick = this.deleteItem.bind(this, deleteButton);
+            }
+        }
+
+        BitcoinRateSettingForm.prototype.getCurrentIndex = function() {
+            let indices = [];
+
+            Array.from(this.rateSettingsTable.children).forEach((tr, index) => {
+                if (tr.getAttribute('data-index')) {
+                    indices.push(+tr.getAttribute('data-index'));
+                }
+            });
+
+            return indices.length > 0 ? Math.max(...indices) + 1 : 0;
+        }
+
+        BitcoinRateSettingForm.prototype.getFormPrototypes = function() {
+            let elementsWithPrototypes = document.querySelectorAll('div[data-prototype]');
+            let fields = [];
+
+            for (let element of elementsWithPrototypes) {
+                let fieldName = element.getAttribute('data-field-name');
+                let prototype = element.getAttribute('data-prototype');
+                fields[fieldName] = prototype;
+            }
+
+            return fields;
+        }
+
+        BitcoinRateSettingForm.prototype.getField = function(fieldName) {
+            let fieldPrototype = this.fields[fieldName].replace(/__name__/g, this.getCurrentIndex());
+
+            // convert prototype to actual dom element
+            let parser = new DOMParser();
+            let element = parser.parseFromString(fieldPrototype, 'text/html');
+            element = element.body.childNodes[0];
+
+            return element;
+        }
+
+        // Recomputes / adjust rangeFrom fields.
+        BitcoinRateSettingForm.prototype.compute = function() {
+            let createArrayFromInputs = () => {
+                let rows = this.rateSettingsTable.getElementsByTagName('tr');
+                let ranges = [];
+
+                for (let row of rows) {
+                    let dataIndex = row.getAttribute('data-index');
+                    if (!dataIndex) {
+                        continue;
+                    }
+
+                    let rangeFromInput = document.getElementById(`bitcoin_rate_settings_dto_bitcoinRateSettings_${dataIndex}_rangeFrom`);
+                    let rangeToInput = document.getElementById(`bitcoin_rate_settings_dto_bitcoinRateSettings_${dataIndex}_rangeTo`);
+
+                    let rangeToText = this.getSiblingWithClassnameOf(rangeToInput, 'rangeToText');
+
+                    ranges.push({
+                        rangeFrom: rangeFromInput.value,
+                        rangeTo: rangeToInput.value,
+                        rangeToInput: rangeToInput,
+                        rangeToText: rangeToText,
+                    });
+                }
+
+                return ranges;
+            }
+
+            let computeRangeTo = (nextRangeFrom) => {
+                let diff = nextRangeFrom - this.smallestValue;
+                diff = numeral(diff);
+
+                return diff.format('0.0000000000');
+            }
+
+            let ranges = createArrayFromInputs();
+
+            // Compute for range and update view.
+            for (let i = 0; i < ranges.length; i++) {
+                let currentRange = ranges[i];
+                if (i != (ranges.length - 1)) {
+                    let nextRange = ranges[i + 1];
+                    currentRange.rangeTo = computeRangeTo(nextRange.rangeFrom);
+                } else {
+                    currentRange.rangeTo = this.maximumAllowedDeposit;
+                }
+
+                currentRange.rangeToInput.value = currentRange.rangeTo;
+                if (currentRange.rangeToText) {
+                    currentRange.rangeToText.textContent = currentRange.rangeTo;
+                }
+            }
+        }
+
+        //---- Add new BTC row
+        BitcoinRateSettingForm.prototype.addItem = function() {
+            let deleteButton = document.createElement('button');
+            deleteButton.innerHTML = '<span class="fa fa-times"></span>';
+            deleteButton.classList.add('btn', 'btn-xs', 'btn-danger');
+            deleteButton.setAttribute('type', 'button');
+            deleteButton.onclick = this.deleteItem.bind(this, deleteButton);
+
+            let deleteTD = document.createElement('td');
+            deleteTD.setAttribute('class', 'text-center');
+            deleteTD.appendChild(deleteButton);
+
+            let helpBlock = document.createElement('span');
+            helpBlock.setAttribute('class','help-block');
+            helpBlock.innerHTML = '<ul></ul>';
+
+            let helpBlock2 = document.createElement('span');
+            helpBlock2.setAttribute('class','help-block');
+            helpBlock2.innerHTML = '<ul></ul>';
+
+            let rangeFromField = this.getField('rangeFrom');
+            rangeFromField.onkeyup = this.debounce(() => { this.compute() }, 500);
+            let rangeToField = this.getField('rangeTo');
+            let rangeFromTD = document.createElement('td');
+            let rangeToTD = document.createElement('td');
+            rangeFromTD.appendChild(rangeFromField);
+            rangeToTD.appendChild(rangeToField);
+            rangeFromTD.appendChild(helpBlock);
+            rangeToTD.appendChild(helpBlock2);
+
+            let helpBlock3 = document.createElement('span');
+            helpBlock3.setAttribute('class','help-block');
+            helpBlock3.innerHTML = '<ul></ul>';
+
+            let tdDivider = document.createElement('td');
+            tdDivider.innerHTML = '<strong>&ndash;</strong>';
+            tdDivider.classList.add('btc-wrap');
+
+            let amountInEurosField = this.getField('fixedAdjustment');
+            let amountInEurosTD = document.createElement('td');
+            amountInEurosTD.appendChild(amountInEurosField);
+            amountInEurosTD.appendChild(helpBlock3);
+
+            let helpBlock4 = document.createElement('span');
+            helpBlock4.setAttribute('class','help-block');
+            helpBlock4.innerHTML = '<ul></ul>';
+
+            let percentageAmountInEurosField = this.getField('percentageAdjustment');
+            let percentageAmountInEurosTD = document.createElement('td');
+            percentageAmountInEurosTD.appendChild(percentageAmountInEurosField);
+            percentageAmountInEurosTD.appendChild(helpBlock4);
+
+            let newRow = document.createElement('tr');
+            newRow.appendChild(deleteTD);
+            newRow.appendChild(rangeFromTD);
+            newRow.appendChild(rangeToTD);
+            newRow.appendChild(tdDivider);
+            newRow.appendChild(amountInEurosTD);
+            newRow.appendChild(tdDivider.cloneNode(true));
+            newRow.appendChild(percentageAmountInEurosTD);
+
+            newRow.setAttribute('data-index', this.getCurrentIndex());
+
+            this.rateSettingsTable.appendChild(newRow);
+        }
+
+        BitcoinRateSettingForm.prototype.debounce = function(func, wait, immediate) {
+            var timeout;
+
+            return function() {
+                var context = this, args = arguments;
+                var later = function() {
+                        timeout = null;
+                        if (!immediate) func.apply(context, args);
+                };
+                var callNow = immediate && !timeout;
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+                if (callNow) func.apply(context, args);
+            };
+        }
+
+        BitcoinRateSettingForm.prototype.getSiblingWithClassnameOf = (element, className) => {
+            let siblings = element.parentNode.childNodes;
+
+            return Array.prototype.slice.call(siblings).filter((node) => {
+                if (node.classList) {
+                    return node.classList.contains(className);
+                }
+
+                return false;
+            })[0];
+        }
+
+        //---- Delete row
+        BitcoinRateSettingForm.prototype.deleteItem = function(button) {
+            let tr = button.closest('tr');
+            tr.remove();
+            this.compute();
+        }
+
+        let form = new BitcoinRateSettingForm();
+
+        let addRowButton = document.getElementById('add-row-button');
+        addRowButton.onclick = () => {
+            $('form[name="bitcoin_rate_settings_dto"]').find('td').removeClass('has-error');
+            $('form[name="bitcoin_rate_settings_dto"]').find('.help-block ul li').remove();
+            form.addItem();
+        };
+
+        let btnRateSave = document.getElementById('btnRateSave');
+        btnRateSave.onclick = () => {
+            var form = $('form[name="bitcoin_rate_settings_dto"]');
+            var data = $(form).serialize();
+            $.ajax({
+                'url': $(form).attr('action'),
+                'type': $(form).attr('method'),
+                'dataType': 'json',
+                'success': function (data) {
+                    if (data.success) {
+                        notification('Saved', 'You have successfully saved Rate Setting', 'success');
+                    } else if (typeof data.errors !== 'undefined') {
+                        for (var i in data.errors) {
+                            var error = data.errors[i];
+                            $('#' + error.formId)
+                                .closest('td').addClass('has-error')
+                                .find('.help-block ul')
+                                .append('<li>' + error.message + '</li>');
+                        }
+                    }
+                },
+                'complete': function (xhr, textStatus) {
+                    $('#btnRateSave').removeAttr('disabled');
+                },
+                'statusCode': {
+
+                },
+                'data': data,
+                'beforeSend': function (xhr) {
+                    form.find('td').removeClass('has-error');
+                    form.find('.help-block ul li').remove();
+                    $('#btnRateSave').attr('disabled', 'disabled');
+                }
+            });
+        };
+
+        // Called whenever btc.exchange_rate topic has been dispatched.
+        let btcExchangeRateSubscription = function(session) {
+            let btcExchangeTopic = "{{ constant('WebSocketBundle\\Topics::TOPIC_BTC_EXCHANGE_RATE') }}"
+            session.subscribe('btc.exchange_rate', function(args) {
+                let payload = JSON.parse(args[0]);
+                $('#btcActualRate').text(payload.latest_base_rate);
+                $('#adjustedRate').text(payload.adjusted_base_rate);
+            });
+        };
+    </script>
+    {% with {form: formBitcoinConfirmation} only %}
+        {{ block('confirmation_script') }}
+    {% endwith %}
+    {% endif %}
 {% endblock %}

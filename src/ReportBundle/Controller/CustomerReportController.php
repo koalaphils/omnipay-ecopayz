@@ -12,7 +12,9 @@ use DbBundle\Repository\ProductRepository;
 use ReportBundle\Manager\ReportCustomerManager;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * Description of CustomerReportController
@@ -30,47 +32,141 @@ class CustomerReportController extends AbstractController
         return $this->render('ReportBundle:Report:customers/customers.html.twig', ['currencies' => $currencies]);
     }
 
-    public function currencyReportAction(Request $request, $currency)
+    // Member Reports Page Ajax for List
+    public function currencyReportAction(Request $request, string $currencyCode): Response
     {
-        if ($request->get('export', false) && $this->has('profiler')) {
-            $this->get('profiler')->disable();
-        }
-        set_time_limit(0);
-        $this->getSession()->save();
         $filters = $request->get('filters');
-        $currency = $this->getCurrencyRepository()->findOneBy(['code' => $currency]);
-        $currencyEntity = $currency;
-        $filters['currency'] = $currency->getId();
+        if (empty($filters['from'] ?? null) || empty($filters['to'] ?? null)) {
+            throw new HttpException(Response::HTTP_BAD_REQUEST);
+        }
 
-        if (array_has($filters, 'from')) {
-            $filters['from'] = \DateTime::createFromFormat('m/d/Y', $filters['from'])->format('Y-m-d');
+        $currency = $this->getCurrencyRepository()->findOneBy(['code' => $currencyCode]);
+        $reportStartDate = \DateTimeImmutable::createFromFormat('m/d/Y', $filters['from']);
+        $reportEndDate = \DateTimeImmutable::createFromFormat('m/d/Y', $filters['to']);
+
+
+        $customerNameQueryString = array_get($filters, 'customer_search', null);
+        $hideZeroValueRecords = $filters['hideZeroValueRecords'] ?? false;
+
+        $dwlReportsPerMember = $this->getManager()->getMemberDwlReports(
+            $currency,
+            $reportStartDate,
+            $reportEndDate,
+            $customerNameQueryString,
+            null,
+            $hideZeroValueRecords,
+            null,
+            null
+        );
+
+        if (empty($dwlReportsPerMember)) {
+            return $this->zTableResponse();
         }
-        if (array_has($filters, 'to')) {
-            $filters['to'] = \DateTime::createFromFormat('m/d/Y', $filters['to'])->format('Y-m-d');
+        $allDwlReportsPerMember = $this->getManager()->getMemberDwlReports(
+            $currency,
+            $reportStartDate,
+            $reportEndDate,
+            null,
+            null,
+            $hideZeroValueRecords
+        );
+        $report['records'] = $this->addLinksToMemberReportPage($dwlReportsPerMember, $request);
+        $report['recordsTotal'] = count($allDwlReportsPerMember);
+        $report['recordsFiltered'] = $report['recordsTotal'];
+        if (!empty($customerNameQueryString)) {
+            $allFilteredDwlReportsPerMember = $this->getManager()->getMemberDwlReports(
+                $currency,
+                $reportStartDate,
+                $reportEndDate,
+                $customerNameQueryString,
+                null,
+                $hideZeroValueRecords
+            );
+            $report['recordsFiltered'] = count($allFilteredDwlReportsPerMember);
         }
-        $report = $this->getManager()->getReportCustomerList($filters, $request->get('limit', 20), $request->get('page', 1));
-        $report['records'] = array_map(
-            function ($customer) use ($filters, $request) {
+
+
+        return $this->zTableResponse($report);
+    }
+
+    // Member DWL Reports
+    public function exportCustomersAction(Request $request, $currency): Response
+    {
+        $filters = $request->get('filters', []);
+        $currencyEntity = $this->getEntityManager()->getRepository(Currency::class)->findOneByCode($currency);
+        $reportStartDate =  new \DateTimeImmutable($filters['from']);
+        $reportEndDate = new \DateTimeImmutable($filters['to']);
+        $customerNameQueryString = array_get($filters, 'customer_search', null);
+        $hideInactiveMembers = ($filters['hideInactiveMembers'] == true);
+        $hideZeroValueRecords = $filters['hideZeroValueRecords'] ?? false;
+
+        $response = new StreamedResponse(function () use ($currencyEntity, $reportStartDate, $reportEndDate, $customerNameQueryString, $hideInactiveMembers, $hideZeroValueRecords) {
+            $this->getManager()->printMemberDwlReports(
+                $currencyEntity,
+                $reportStartDate,
+                $reportEndDate,
+                $customerNameQueryString,
+                null,
+                $hideInactiveMembers,
+                $hideZeroValueRecords
+            );
+
+        });
+
+        $filename =  'CustomersReport_'. $currencyEntity->getCode() .'_'. $reportStartDate->format('Ymd') .'_'. $reportEndDate->format('Ymd') .'.csv';
+        $this->setResponseTypeAsCSVFile($response, $filename);
+
+        return $response;
+    }
+
+
+    /**
+     * @return array [
+            "dwl" => [
+                "turnover" => float
+                "winLoss" => float
+                "gross" => float
+                "commission" => float
+                "amount" => float
+            ],
+            "customer" => [
+                "totalCustomerProduct" => float
+                "totalCustomer" => float
+                "totalBalances" => float
+                "totalBalanceUpToEndOfReportDateRange" => float
+            ]
+        ]
+     **/
+    private function addCurrencyReportTotals(Currency $currency, array $filters): array
+    {
+        $totals = [];
+        // TODO; AC6-1062: temporarily disabled until speed issue is fixed
+        // $totals  = $this->getManager()->getReportCustomerTotal($currency, new \DateTimeImmutable($filters['from']), new \DateTimeImmutable($filters['to']), array_get($filters, 'customer_search', null));
+        return $totals;
+    }
+
+    private function addLinksToMemberReportPage(array $reportData, Request $request): array
+    {
+        $reportData = array_map(
+            function ($customer) use ($request) {
                 $customer['link'] = $this->getRouter()->generate(
                     'report.customer',
                     [
-                        'currency' => $customer['dwl']['currency_code'],
-                        'customerId' => $customer['dwl']['customer_id'],
+                        'currency' => $customer['currency_code'],
+                        'customerId' => $customer['customer_id'],
                         'filters' => $request->get('filters', []),
                     ]
                 );
 
                 return $customer;
             },
-            $report['records']
+            $reportData
         );
 
-        $report['totalSummary'] = []; //$this->getManager()->getReportCustomerTotal($currencyEntity, new \DateTimeImmutable($filters['from']), new \DateTimeImmutable($filters['to']), array_get($filters, 'customer_search', null));
-
-        return $this->jsonResponse($report);
+        return $reportData;
     }
 
-    public function memberReportSummaryAction(Request $request, $currency)
+    public function memberReportSummaryAction(Request $request, $currency): Response
     {
         //todo: apply the totals for filters, but not on pagination
         // todo: cancel pending ajax if filters or dates have been changed
@@ -95,7 +191,7 @@ class CustomerReportController extends AbstractController
         return $this->jsonResponse($report);
     }
 
-    public function customerPageAction(Request $request, $currency, $customerId)
+    public function customerPageAction(Request $request, $currency, $customerId): Response
     {
         $this->getSession()->save();
         $currency = $this->getCurrencyRepository()->findOneBy(['code' => $currency]);
@@ -103,28 +199,40 @@ class CustomerReportController extends AbstractController
 
         $filters = $request->get('filters', []);
         $reportFilters = $filters;
-        if (array_has($reportFilters, 'from')) {
-            $reportFilters['from'] = \DateTime::createFromFormat('m/d/Y', $reportFilters['from'])->format('Y-m-d');
+        if (empty($reportFilters['from'] ?? null) || empty($reportFilters['to'] ?? null)) {
+            throw new HttpException(Response::HTTP_BAD_REQUEST);
         }
-        if (array_has($filters, 'to')) {
-            $reportFilters['to'] = \DateTime::createFromFormat('m/d/Y', $reportFilters['to'])->format('Y-m-d');
-        }
+
+        $reportStartDate = \DateTimeImmutable::createFromFormat('m/d/Y', $reportFilters['from']);
+        $reportEndDate = \DateTimeImmutable::createFromFormat('m/d/Y', $reportFilters['to']);
+
         $reportFilters['customer'] = $customer->getId();
 
         $limit = 1;
         $page = 1;
-        $customerReport = $this->getManager()->getReportCustomerList($reportFilters, $limit, $page)['records'][0];
+        $customerReport = $this->getManager()->getMemberDwlReports(
+            $currency,
+            $reportStartDate,
+            $reportEndDate,
+            null,
+            $customerId,
+            false,
+            $limit,
+            $page
+        );
+
+        $memberDwlReportsPerMemberProduct = $customerReport[0];
 
         return $this->render('ReportBundle:Report:customers/customer.html.twig', [
             'currency' => $currency,
             'customer' => $customer,
             'filters' => $filters,
-            'report' => $customerReport,
+            'report' => $memberDwlReportsPerMemberProduct,
         ]);
     }
 
 
-    public function customerProductsReportAction(Request $request)
+    public function customerProductsReportAction(Request $request): Response
     {
         $this->getSession()->save();
         if ($request->get('export', false) && $this->has('profiler')) {
@@ -151,6 +259,7 @@ class CustomerReportController extends AbstractController
             $totalFilters['currency'] = $filters['currency'];
             $totalFilters['currencies'] = [$filters['currency']];
         }
+
         if (array_has($filters, 'products')) {
             $totalFilters['products'] = $filters['products'];
         }
@@ -160,8 +269,8 @@ class CustomerReportController extends AbstractController
         }
 
         $report = $this->getManager()->getCustomerProductList($filters, $request->get('limit', 20), $request->get('page', 1));
-
-        $reportSummary = $this->getManager()->getMemberProductsReportSummary($filters['products'][0], $filters['currency'],$reportStartDate , $reportEndDate, $filters['search']);
+        $product = $filters['products'][0] ?? null;
+        $reportSummary = $this->getManager()->getMemberProductsReportSummary($product, $filters['currency'],$reportStartDate , $reportEndDate, $filters['search']);
 
         $report['totalSummary']['turnover'] = $reportSummary['turnOverTotal'];
         $report['totalSummary']['gross_commission'] = $reportSummary['grossCommissionTotal'];
@@ -170,37 +279,11 @@ class CustomerReportController extends AbstractController
         $report['totalSummary']['availableBalaneAsOfReportEndDateTotal'] = $reportSummary['availableBalaneAsOfReportEndDateTotal'];
         $report['totalSummary']['currentBalanceTotal'] = $reportSummary['currentBalanceTotal'];
 
-
-
         return $this->jsonResponse($report);
     }
 
-    public function exportCustomersAction(Request $request, $currency)
-    {
-        $filters = $request->get('filters', []);
-        $currencyEntity = $this->getEntityManager()->getRepository(Currency::class)->findOneByCode($currency);
-        $reportStartDate =  new \DateTimeImmutable($filters['from']);
-        $reportEndDate = new \DateTimeImmutable($filters['to']);
-        $customerNameQueryString = array_get($filters, 'customer_search', null);
-
-        $response = new StreamedResponse(function () use (
-            $currencyEntity,
-            $reportStartDate,
-            $reportEndDate,
-            $customerNameQueryString
-        ) {
-            $this->getManager()->printCsvReport($currencyEntity, $reportStartDate, $reportEndDate, $customerNameQueryString);
-        });
-
-        $filename =  'CustomersReport_'. $currencyEntity->getCode() .'_'. $reportStartDate->format('Ymd') .'_'. $reportEndDate->format('Ymd') .'.csv';
-        $response->headers->set('Content-Type', 'text/csv');
-        $response->headers->set('Content-Disposition', 'attachment; filename="'. $filename .'"');
-
-        return $response;
-    }
-
-    // csv export for Product Reports page
-    public function exportCustomerProductsAction(Request $request)
+    // csv export for ALL member products
+    public function exportCustomerProductsAction(Request $request): Response
     {
         $filters = $request->get('filters', []);
         $currencyEntity = $this->getEntityManager()->getRepository(Currency::class)->findOneByid($filters['currency']);
@@ -213,18 +296,39 @@ class CustomerReportController extends AbstractController
         $response = new StreamedResponse(function () use ($product, $currencyEntity, $reportStartDate, $reportEndDate, $memberProductUsernameQueryString) {
             $this->getManager()->printMemberProductsCsvReport($product, $currencyEntity, $reportStartDate, $reportEndDate, $memberProductUsernameQueryString);
         });
-
-        $filename =  $this->getMemberProductReportFilename($product, $currencyEntity, $reportStartDate, $reportEndDate);
-        $response->headers->set('Content-Type', 'text/csv');
-        $response->headers->set('Content-Disposition', 'attachment; filename="'. $filename .'"');
+        $filename =  $this->getMemberProductsReportFilename($product, $currencyEntity, $reportStartDate, $reportEndDate);
+        $this->setResponseTypeAsCSVFile($response, $filename);
 
         return $response;
-
     }
 
-    private function getMemberProductReportFilename(Product $product, Currency $currency, \DateTimeInterface $startDate, \DateTimeInterface $endDate): String
+    private function getMemberProductsReportFilename(Product $product, Currency $currency, \DateTimeInterface $startDate, \DateTimeInterface $endDate): String
     {
         return $product->getName() . '_' . $currency->getCode() . '_' . $startDate->format('Ymd') . '_' . $endDate->format('Ymd') . '.csv';
+    }
+
+    // csv export for ALL member products of a specific member
+    public function exportCustomerProductsByMemberAction(Request $request, int $memberId): Response
+    {
+        $filters = $request->get('filters', []);
+        $reportStartDate =  new \DateTimeImmutable($filters['from']);
+        $reportEndDate = new \DateTimeImmutable($filters['to']);
+        $memberProductUsernameQueryString = array_get($filters, 'search', null);
+        $member = $this->getRepository(Customer::class)->find($memberId);
+
+        $response = new StreamedResponse(function() use  ($member, $reportStartDate, $reportEndDate, $memberProductUsernameQueryString) {
+            $this->getManager()->printMemberProductsByMemberCsvReport($member, $reportStartDate, $reportEndDate, $memberProductUsernameQueryString);
+        });
+
+        $filename =  $this->getMemberProductsReportByMemberFilename($member, $reportStartDate, $reportEndDate);
+        $this->setResponseTypeAsCSVFile($response, $filename);
+
+        return $response;
+    }
+
+    private function getMemberProductsReportByMemberFilename( $member, \DateTimeInterface $startDate, \DateTimeInterface $endDate): String
+    {
+        return $member->getFullName() . '_' . $startDate->format('Ymd') . '_' . $endDate->format('Ymd') . '.csv';
     }
 
     protected function getManager(): ReportCustomerManager

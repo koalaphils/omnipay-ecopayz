@@ -1,3 +1,11 @@
 payment_done:
     path: /done
     defaults: { _controller: PaymentBundle:Default:done }
+
+payment.member_notify_bitcoin:
+    path: /blockchain/member/callback/{hash}
+    defaults: { _controller: PaymentBundle:Bitcoin:notify }
+
+payment.cycle_fund_notify_bitcoin:
+    path: /blockchain/cyclefund/callback
+    defaults: { _controller: PaymentBundle:Bitcoin:cycleFundNotify }

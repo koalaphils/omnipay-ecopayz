@@ -18,3 +18,81 @@ services:
     payment.manager:
         class: PaymentBundle\Manager\PaymentManager
         arguments: ['@payum', '@doctrine', '@request_stack']
+
+    payment.bitcoin_manager:
+        class: PaymentBundle\Manager\BitcoinManager
+        arguments: ['@app.setting_manager', '@doctrine.orm.entity_manager', '@event_dispatcher', '@api.transaction_repository']
+        calls:
+            - ['setPublisher', ['@app.publisher']]
+            - [ setBitcoinAdjustmentComponent, ['@payment.bitcoin_adjustment'] ]
+            - [ setBlockchain, ['@payment.blockchain'] ]
+        parent: app.base_manager
+
+
+    payment.bitcoin_adjustment:
+        class: PaymentBundle\Component\Bitcoin\BitcoinAdjustmentComponent
+        arguments: ['@doctrine.orm.entity_manager']
+
+    payment.xpub_scanner_ssh_client:
+        class: PaymentBundle\Component\Blockchain\XPubScanner\Client\SshXPubScannerClient
+        arguments:
+            - '%blockchain.xpub_scanner.host%'
+            - '%blockchain.xpub_scanner.port%'
+            - '%blockchain.xpub_scanner.username%'
+            - '%blockchain.xpub_scanner.password%'
+            - '%blockchain.xpub_scanner.private_key_path%'
+
+    payment.xpub_scanner:
+        class: PaymentBundle\Component\Blockchain\XPubScanner\XPubScanner
+        arguments:
+            - '@payment.xpub_scanner_ssh_client'
+
+    payment.blockchain:
+        class: PaymentBundle\Service\Blockchain
+        arguments:
+            - '%blockchain.api_key%'
+            - '%blockchain.wallet_url%'
+        calls:
+            - ['setXPubScanner', ['@payment.xpub_scanner']]
+            - ['setLogger', ['@monolog.logger.blockchain_request']]
+
+    bitcoin.auto_decline.service:
+        class: PaymentBundle\Service\BitcoinAutoDeclineService
+        calls:
+            - [ "setContainer", ["@service_container"] ]
+        shared: false
+
+    payment.member_token_factory:
+        class: PaymentBundle\TokenFactory\MemberTokenFactory
+        arguments:
+            - '@=service("router").getGenerator()'
+
+    payment.bitcoin.capture:
+        class: PaymentBundle\Controller\Bitcoin\CaptureAction
+        calls:
+            - ['setBlockchain', ['@payment.blockchain']]
+            - ['setRouteName', ['payment.member_notify_bitcoin']]
+            - ['setTokenFactory', ['@payment.member_token_factory']]
+            - ['setCycleFundRouteName', ['payment.cycle_fund_notify_bitcoin']]
+            - ['setUrlGenerator', ['@=service("router").getGenerator()']]
+
+    payment.bitcoin.notify:
+        class: PaymentBundle\Controller\Bitcoin\NotifyAction
+        lazy: true
+        arguments:
+            - '@payum'
+            - '@=service("doctrine").getRepository("DbBundle\\Entity\\Transaction")'
+            - '@=service("doctrine").getRepository("DbBundle\\Entity\\Customer")'
+        calls:
+            - ['setTokenStorage', ['@security.token_storage']]
+            - ['setPublisher', ['@app.publisher']]
+            - ['setConfirmations', ['@=service("payment.bitcoin_manager").getListOfConfirmations()']]
+            - ['setBlockchain', ['@payment.blockchain']]
+            - ['setLogger', ['@monolog.logger.blockchain_callback']]
+
+    payment.payum.blockchain.gateway_factory_builder:
+        class: Payum\Core\Bridge\Symfony\Builder\GatewayFactoryBuilder
+        arguments:
+            - PaymentBundle\Component\Blockchain\BlockchainGatewayFactory
+        tags:
+            - { name: payum.gateway_factory_builder, factory: blockchain }

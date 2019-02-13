@@ -2,6 +2,8 @@ services:
     report_customer.manager:
         class: ReportBundle\Manager\ReportCustomerManager
         parent: app.base_manager
+        arguments:
+            - '@member.inactive.manager'
 
     report_customer.repository:
         class: ReportBundle\Repository\ReportCustomerRepository

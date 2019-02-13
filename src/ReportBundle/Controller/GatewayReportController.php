@@ -75,8 +75,8 @@ class GatewayReportController extends AbstractController
         });
 
         $filename = $this->getManager()->getGatewayReportFileName($currency, $filters);
-        $response->headers->set('Content-Type', 'text/csv');
-        $response->headers->set('Content-Disposition', 'attachment; filename="'. $filename .'"');
+
+        $this->setResponseTypeAsCSVFile($response, $filename);
 
         return $response;
 
@@ -109,8 +109,7 @@ class GatewayReportController extends AbstractController
 
         $filters = $request->get('filters', []);
         $filename = $this->getManager()->getGatewayTransactionReportFileName($id, $filters);
-        $response->headers->set('Content-Type', 'text/csv');
-        $response->headers->set('Content-Disposition', 'attachment; filename="'. $filename .'"');
+        $this->setResponseTypeAsCSVFile($response, $filename);
 
         return $response;
     }

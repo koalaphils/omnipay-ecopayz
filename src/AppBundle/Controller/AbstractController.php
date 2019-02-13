@@ -2,14 +2,16 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Exceptions\FormValidationException;
+use JMS\Serializer\SerializationContext;
+use AppBundle\Component\ZTableResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Form\Form;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Form\FormFactory;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use JMS\Serializer\SerializationContext;
-
-use AppBundle\Exceptions\FormValidationException;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 abstract class AbstractController extends Controller
 {
@@ -20,11 +22,11 @@ abstract class AbstractController extends Controller
         return $this->container;
     }
 
-/** 
+    /**
      * @throws FormValidationException if the form is invalid.
      */
     protected function validateForm(Form $form): void
-    {   
+    {
         if (!$form->isValid()) {
             throw new FormValidationException($form);
         }
@@ -165,6 +167,25 @@ abstract class AbstractController extends Controller
         return new JsonResponse($data, $status, $headers);
     }
 
+    /**
+     *
+     * this is to quickly prototype a working return json response for ZTable
+     * usage is exactly the same as self:jsonResponse
+     *
+     * @param $data
+     * @param int $status
+     * @param array $headers
+     * @param SerializationContext|null $context
+     */
+    protected function zTableResponse(array $data = [], int $status = 200, array $headers = [], ?SerializationContext $context = null)
+    {
+        $ztableResponse = new ZTableResponse();
+        $defaultData = $ztableResponse->getResponseAsArray();
+
+        $mergedData = array_merge($defaultData, $data);
+
+        return $this->jsonResponse($mergedData,  $status ,  $headers , $context);
+    }
 
     protected function createSerializationContext($groups = [])
     {
@@ -215,5 +236,29 @@ abstract class AbstractController extends Controller
     {
         $dispatcher = $this->getContainer()->get('event_dispatcher');
         $dispatcher->dispatch($eventName, $event);
+    }
+
+    protected function isUnderTestEnvironment(): bool
+    {
+        return $this->getContainer()->get('kernel')->getEnvironment() === 'test';
+    }
+
+    protected function setResponseTypeAsCSVFile(Response $response, string $filename): void
+    {
+        if (!$this->isUnderTestEnvironment()) {
+            $response->headers->set('Content-Type', 'text/csv');
+            $response->headers->set('Content-Disposition', 'attachment; filename="'. $filename .'"');
+
+        }
+    }
+
+    protected function createNamedFormTypeBuilder($name, string $type, $data = null, array $options = array()): FormBuilderInterface
+    {
+        return $this->getFormFactory()->createNamedBuilder($name, $type, $data, $options);
+    }
+
+    protected function getFormFactory(): FormFactory
+    {
+        return $this->container->get('form.factory');
     }
 }

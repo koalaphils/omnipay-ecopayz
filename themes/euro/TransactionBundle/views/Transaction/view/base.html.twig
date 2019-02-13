@@ -1,0 +1,113 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block leftPane %}
+    <div class="col-md-3">
+        {% block leftPaneContent %}
+            <div class="card-box">
+                <h4 class="m-t-0 m-b-30 header-title">Member</h4>
+                <div class="form-group">
+                    <span class="form-control">
+                        <i class="fa fa-user"></i> | {{ transaction.customer.fullname }} ({{ transaction.customer.user.username }})
+                    </span>
+                </div>
+                <div class="text-muted">
+                    <div class="row m-t-10">
+                        <div class="col-md-3 col-sm-3 col-xs-3 text-right"><b>Username:</b></div>
+                        <div class="col-md-8 col-sm-8 col-xs-8 m-l-15">{{ transaction.customer.user.username }}</div>
+                    </div>
+                </div>
+            </div>
+        {% endblock leftPaneContent %}
+    </div>
+{% endblock leftPane %}
+
+{% block middlePane %}
+    <div class="col-md-5">
+        {% block middlePaneContent %}
+            <div class="card-box">
+                <div class="card-box">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label">Number</label>
+                                <span class="form-control" readonly="readonly">{{ transaction.number }}</span>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Date</label>
+                                <span class="form-control">{{ transaction.date|date('n/j/Y g:i:s A') }}</span>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Currency</label>
+                                <span class="form-control">{{ transaction.currency.name }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-box">
+                    <h4 class="header-title m-b-30 m-t-0">Products</h4>
+                    {% for subTransaction in transaction.subTransactions %}
+                        <div class="row">
+                            <div class="col-md-7 col-sm-7 col-xs-12">
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><label class="control-label">Product</label></span>
+                                        <span class="form-control">{{ subTransaction.customerProduct.product.name }} ({{ subTransaction.customerProduct.username }})</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-5 col-sm-5 col-xs-12">
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="fa fa-money"></i></span>
+                                        <span class="form-control">{{ subTransaction.amount }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endblock middlePaneContent %}
+    </div>
+{% endblock middlePane %}
+
+{% block rightPane %}
+    <div class="col-md-4">
+        <div class="card-box">
+            {% block rightPaneContent %}
+                <div class="card-box">
+                    <div class="row">
+                        <div class="col-md-6 col-sm-6 col-xs-6"><b>{{ "Status"|trans({},"TransactionBundle") }}</b></div>
+                        <div class="col-md-6 col-sm-6 col-xs-6">
+                            <span class="label label-success">{{ setting('transaction.status.' ~ transaction.status ~ '.label', {}) }}</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 col-sm-6 col-xs-6"><b>{{ "Transaction Number"|trans({},"TransactionBundle") }}</b></div>
+                        <div class="col-md-6 col-sm-6 col-xs-6"><span>{{ transaction.number }}</span></div>
+                    </div>
+                </div>
+                <div class="card-box">
+                    <h4 class="header-title m-t-0">{{ "Products"|trans({}, "TransactionBundle") }}</h4>
+                    <hr />
+                    <div class="row">
+                        <div class='col-sm-4 col-xs-4'><b>{{ "Product"|trans({}, "TransactionBundle") }}</b></div>
+                        <div class='col-sm-8 col-xs-8'><b>{{ "Balance"|trans({}, "TransactionBundle") }}</b></div>
+                    </div>
+                    {% for subTransaction in transaction.subTransactions %}
+                    <div class="row subtransaction" data-index="0">
+                        <div class="col-sm-4 col-xs-4"><span>{{ subTransaction.customerProduct.product.name }}</span> (<span>{{ subTransaction.customerProduct.username }}</span>)</div>
+                        <div class="col-sm-8 col-xs-8"><span>{{ subTransaction.customerProduct.balance }}</span></div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endblock rightPaneContent %}
+        </div>
+    </div>
+{% endblock rightPane %}
+
+{% block page %}
+    {{ block('leftPane') }}
+    {{ block('middlePane') }}
+    {{ block('rightPane') }}
+{% endblock page %}

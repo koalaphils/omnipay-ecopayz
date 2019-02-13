@@ -4,6 +4,10 @@ namespace DbBundle\Entity;
 
 class AuditRevisionLog extends Entity
 {
+    private const DETAILS_IDENTIFIER = 'identifier';
+    private const DETAILS_CLASSNAME = 'class_name';
+    private const DETAILS_LABEL = 'label';
+    
     const OPERATION_CREATE = 1;
     const OPERATION_UPDATE = 2;
     const OPERATION_DELETE = 3;
@@ -42,6 +46,9 @@ class AuditRevisionLog extends Entity
     const CATEGORY_BANNER_IMAGE = 30;
     const CATEGORY_RUNNING_COMMISSION = 31;
     const CATEGORY_CUSTOMER_TRANSACTION_COMMISSION = 32;
+    const CATEGORY_BITCOIN_RATE_SETTING = 33;
+    const CATEGORY_MEMBER_TRANSACTION_DEBIT_ADJUSTMENT = 34;
+    const CATEGORY_MEMBER_TRANSACTION_CREDIT_ADJUSTMENT = 35;
 
     private $details;
 
@@ -50,6 +57,12 @@ class AuditRevisionLog extends Entity
     private $category;
 
     private $auditRevision;
+    
+    private $className;
+    
+    private $label;
+    
+    private $identifier;
 
     public function __construct()
     {
@@ -115,15 +128,20 @@ class AuditRevisionLog extends Entity
     {
         return array_get($this->details, $key, $default);
     }
+    
+    public function hasDetail(string $key): bool
+    {
+        return array_has($this->details, $key);
+    }
 
     public function getLabel(): string
     {
-        return $this->getDetail('label');
+        return $this->label;
     }
 
     public function getIdentifier()
     {
-        return $this->getDetail('identifier');
+        return $this->identifier;
     }
 
     public function getFields():? array
@@ -234,6 +252,15 @@ class AuditRevisionLog extends Entity
             case self::CATEGORY_CUSTOMER_TRANSACTION_COMMISSION:
                 $key = 'commission';
                 break;
+            case self::CATEGORY_BITCOIN_RATE_SETTING;
+                $key = 'bitcoinRateSetting';
+                break;
+            case self::CATEGORY_MEMBER_TRANSACTION_DEBIT_ADJUSTMENT:
+                $key = 'debitAdjustment';
+                break;
+            case self::CATEGORY_MEMBER_TRANSACTION_CREDIT_ADJUSTMENT:
+                $key = 'creditAdjustment';
+                break;
         }
 
         return $key;
@@ -262,5 +289,32 @@ class AuditRevisionLog extends Entity
         }
 
         return $key;
+    }
+    
+    public function getClassName(): ?string
+    {
+        return $this->className;
+    }
+    
+    public function setClassName(?string $className): self
+    {
+        $this->setDetail(self::DETAILS_CLASSNAME, $className);
+        $this->className = $className;
+        
+        return $this;
+    }
+    
+    public function setIdentifier(?string $identifier): self
+    {
+        $this->setDetail(self::DETAILS_IDENTIFIER, $identifier);
+        
+        return $this;
+    }
+    
+    public function setLabel(?string $label): self
+    {
+        $this->setDetail(self::DETAILS_LABEL, $label);
+        
+        return $this;
     }
 }

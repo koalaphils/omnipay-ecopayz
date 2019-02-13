@@ -84,13 +84,13 @@ class MemberController extends PageController
             $record['customer'] = [
                 'id' => $record['customer_id'],
             ];
-            
+
             $memberProductDetails = !is_null($record['details']) ? json_decode($record['details']) : null;
             if (isset($memberProductDetails->brokerage->sync_id)) {
                 $syncId = $memberProductDetails->brokerage->sync_id;
                 $balance = $brokerageManager->getCustomerBalance($syncId);
                 $record['baBalance'] = $balance;
-                $record['balanceWithBA'] .= ' (BA: ' . $balance . ')';
+                $record['balanceWithBA'] = $balance;
             }
 
             return $record;
@@ -157,14 +157,19 @@ class MemberController extends PageController
         return ['success' => true];
     }
 
+    public function updateOnLinkMember(PageManager $pageManager, array $data): JsonResponse
+    {
+        $member = $pageManager->getData('customer');
+        $response = $this->getMemberManager()->linkMember($member, $member->getReferrerCode());
+
+        return new JsonResponse($response, $response['code']);
+    }
+
     public function updateOnUnlinkMember(PageManager $pageManager, array $data): JsonResponse
     {
         $referral = $pageManager->getData('customer');
         $customer = $this->getCustomerRepository()->find($data['id']);
         if ($customer->hasReferral() && $referral->getId() === $customer->getAffiliate()->getId()) {
-            $referral = $customer->getReferral();
-            $this->getEventDispatcher()->dispatch(Events::EVENT_REFERRAL_UNLINKED, new ReferralEvent($referral, $customer));
-
             $customer->unlinkReferral();
             $this->getEntityManager()->persist($customer);
             $this->getEntityManager()->flush($customer);
@@ -354,7 +359,7 @@ class MemberController extends PageController
 
         return new JsonResponse($response);
     }
-    
+
     public function getClientLoginHistoryAction(Request $request): JsonResponse
     {
         $filters = $request->request->all();
@@ -373,6 +378,7 @@ class MemberController extends PageController
         $filters['page'] = (int) array_get($data, 'page', 1);
         $filters['offset'] = ($filters['page'] - 1) * $filters['limit'];
         $filters['orderBy'] = $orderBy;
+        $filters['precision'] = $request->get('precision');
 
         if (array_get($filters, 'dwlDateFrom')) {
             array_set($filters, 'dwlDateFrom', date('Y-m-d', strtotime($filters['dwlDateFrom'])));
@@ -402,6 +408,13 @@ class MemberController extends PageController
         $response->headers->set('Content-Disposition', 'attachment; filename="TurnoverCommissionListBy' . ucfirst($filters['orderBy']) . '_' . date('Ymd') . '.csv"');
 
         return $response;
+    }
+
+    public function checkMemberPaymentOptionIfBitcoinAction(Request $request, int $id): Response
+    {
+        $isPaymentOptionBitcoin = $this->getMemberManager()->isPaymentOptionIdBitcoin($id);
+
+        return $this->response($request, ['isPaymentOptionBitcoin' => $isPaymentOptionBitcoin], ['groups' => ['Default']]);
     }
 
     private function getCustomerRepository(): CustomerRepository

@@ -6,10 +6,10 @@ use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use DbBundle\Collection\Collection;
-use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\HttpFoundation\Response;
 use DbBundle\Entity\PaymentOption;
-use DbBundle\Entity\Customer;
+use DbBundle\Entity\Transaction;
+use Payum\Core\Reply\HttpRedirect;
 
 class TransactionController extends AbstractController
 {
@@ -31,88 +31,62 @@ class TransactionController extends AbstractController
      *  }
      * )
      */
-    // 2ec7e87b
-    // $transactions  DbBundle\Entity\Transaction
-    private function filterTrans($transactions){
-        $trans = [];
-        foreach($transactions as $t){
-            $tran = [];
-            $tran['number'] = $t->getNumber();
-            $tran['type'] = $t->getTypeText();
-            $tran['status'] = $t->getStatusText();
-
-            // DbBundle\Entity\PaymentOption     
-            $tran['paymentOptionType'] = $t->getPaymentOptionType()->getCode();            
-            $tran['isVoided'] = $t->isVoided();
-            $tran['amount'] = number_format((float)$t->getAmount(), 2, '.', '');
-
-            // DateTime
-            $tran['date'] = $t->getDate()->format('m/d/Y');
-            $tran['currency'] = $t->getCurrency()->getCode();
-
-            $trans[] = $tran;
-            // array_push($trans, $tran);
-        }
-
-        return $trans;
-    }
-
     public function customerTransactionsAction(Request $request)
     {
-        $customer = $this->getUser()->getCustomer();                
-        $post = $request->request->all();
-        
-        $page = 1;         
-        $customerRepository = $this->getDoctrine()->getManager()->getRepository(Customer::class);                
-        
-        // zimi - check $customer is null
-        if ($customer === null) {
-            $customer_id = $post['cid'];
-            $customer = $customerRepository->findOneBy(['id' => $customer_id]);            
-            $customer->setIsCustomer(true);        
-        }
+        $customer = $this->getUser()->getCustomer();
 
-        /**filter**/
-        $filters = ['customer' => $customer_id];
-        $filters['limit'] = $request->get('limit', 1000);       
-        $filters['offset'] = (((int) $page)-1) * $filters['limit'];        
+        $filters = ['customer' => $customer->getId()];
+
+        $filters['limit'] = $request->get('limit', 10);
+        $filters['offset'] = (((int) $request->get('page', 1))-1) * $filters['limit'];
         $orders = [];
-        
-        if ($post['search'] != null) {
-            $filters['search'] = $post['search'];
-        }            
-        if ($post['filter']['fromDate'] != null) {
-            $filters['from'] = $post['filter']['fromDate'];
+
+        if ($request->query->has('orders')) {
+            $orders = $request->query->get('orders');
         }
 
-        if ($post['filter']['toDate'] != null) {
-            $filters['to'] = $post['filter']['toDate'];
+        if ($request->query->has('sort')) {
+            $filters['sort'] = $request->query->get('sort');
         }
 
-        if ($post['filter']['type'] != null && $post['filter']['type'] != -1) {
-            $filters['types'] = $post['filter']['type'];
+        if ($request->query->has('from')) {
+            $filters['from'] = $request->query->get('from');
         }
 
-        if ($post['filter']['status'] != null && $post['filter']['status'] != -1) {
-            $filters['status'] = $post['filter']['status'];
+        if ($request->query->has('to')) {
+            $filters['to'] = $request->query->get('to');
         }
-           
-        if ($post['filter']['paymentOption'] != null && $post['filter']['paymentOption'] != -1) {
-            $filters['paymentOption'] = $post['filter']['paymentOption'];
+
+        if ($request->query->has('interval')) {
+            $filters['interval'] = $request->query->get('interval');
+        }
+
+        if ($request->query->has('search')) {
+            $filters['search'] = $request->query->get('search');
+        }
+
+        if ($request->query->has('types')) {
+            $filters['types'] = explode(',', $request->query->get('types'));
+        }
+
+        if ($request->query->has('status')) {
+            $filters['status'] = $request->query->get('status');
+            if (!is_array($filters['status'])) {
+                $filters['status'] = [$filters['status']];
+            }
+        }
+
+        if ($request->query->has('paymentOption')) {
+            $filters['paymentOption'] = $request->query->get('paymentOption');
         }
 
         $transactions = $this->getTransactionRepository()->filters($filters, $orders);
-
-        // zimi - data filter
-        $transactions = $this->filterTrans($transactions);
-
-        $total = $this->getTransactionRepository()->getTotal(['customer' => $customer_id]);
+        $total = $this->getTransactionRepository()->getTotal(['customer' => $customer->getId()]);
         $totalFiltered = $this->getTransactionRepository()->getTotal($filters);
-        $collection = new Collection($transactions, $total, $totalFiltered, $filters['limit'], $page);
+        $collection = new Collection($transactions, $total, $totalFiltered, $filters['limit'], $request->get('page', 1));
 
-        // FOS\RestBundle\View\View
-        $view = $this->view($collection);                
-        // $view->getContext()->setGroups(['Default', 'API', 'subtransactions_group', 'items' => ['Default', 'API', 'subtransactions_group']]);
+        $view = $this->view($collection);
+        $view->getContext()->setGroups(['Default', 'API', 'subtransactions_group', 'items' => ['Default', 'API', 'subtransactions_group']]);
 
         return $view;
     }
@@ -146,27 +120,18 @@ class TransactionController extends AbstractController
      *      "options"={"hasEmail"=true}
      *  }
      * )
-     */    
+     */
     public function depositTransactionAction(Request $request)
     {
         $customer = $this->getUser()->getCustomer();
-        $customerRepository = $this->getDoctrine()->getManager()->getRepository(Customer::class);
-        $transactionTemp = $transaction = $request->request->get('transaction', []);        
-        $amount = $transactionTemp['amount'];
-        
-        // zimi - check $customer is null
-        if ($customer === null) {
-            $customer_id = $transactionTemp['customer'];
-            $customer = $customerRepository->findOneBy(['id' => $customer_id]);            
-            $customer->setIsCustomer(true);        
-        }
-        
+        $transactionTemp = $transaction = $request->request->get('transaction', []);
+
         $paymentOptionType = $transaction['paymentOptionType'];
-        $defaultGroup = ['Default', 'deposit'];
+        $defaultGroup = ['Default', 'deposit', ''];
         $memberPaymentOptionId = !empty($transaction['paymentOption']) ? $transaction['paymentOption'] : null;
         unset($transaction['paymentOptionType']);
         unset($transaction['paymentOption']);
-        
+
         $paymentOption = $this->getPaymentOptionRepository()->find($paymentOptionType);
         if ($paymentOption->hasRequiredField('email')) {
             $defaultGroup = array_merge($defaultGroup, ['withEmail']);
@@ -175,20 +140,28 @@ class TransactionController extends AbstractController
         if ($paymentOption->hasUniqueField('email')) {
             $defaultGroup = array_merge($defaultGroup, ['withUniqueEmail']);
         }
-        
+
         $tempTransactionModel = new \ApiBundle\Model\Transaction();
         $tempTransactionModel->setCustomer($customer);
         $tempTransactionModel->setPayment($paymentOption);
 
+        $formBuilder = $this->createNamedFormTypeBuilder(
+            'transaction',
+            \ApiBundle\Form\Transaction\TransactionType::class,
+            $tempTransactionModel,
+            [
+                'validation_groups' => $defaultGroup,
+                'hasEmail' => true,
+            ]
+        );
+        if ($paymentOption instanceof PaymentOption) {
+            $this->buildPaymentForm($formBuilder, $paymentOption->getPaymentMode());
+        }
 
-        $form = $this->createForm(\ApiBundle\Form\Transaction\TransactionType::class, $tempTransactionModel, [
-            'validation_groups' => $defaultGroup,
-            'hasEmail' => true,
-        ]);
+        $form = $formBuilder->getForm();
         $form->submit($transaction);
 
-        // zimi-removed: && $form->isValid()
-        if ($form->isSubmitted()) {
+        if ($form->isSubmitted() && $form->isValid()) {
             if (is_null($memberPaymentOptionId)) {
                 $memberPaymentOption = $this->getTransactionManager()->addCustomerPaymentOption($customer, $paymentOptionType, $transactionTemp);
             } else {
@@ -197,8 +170,6 @@ class TransactionController extends AbstractController
             $transactionModel = $form->getData();
             $transactionModel->setPaymentOption($memberPaymentOption);
             $transactionModel->setCustomer($customer);
-            // zimi
-            $transactionModel->setAmount($amount);
 
             try {
                 $transaction = $this->getTransactionManager()->handleDeposit($transactionModel);
@@ -209,7 +180,30 @@ class TransactionController extends AbstractController
                     'otherDetails' => ['type' => $transaction->getTypeText(), 'id' => $transaction->getId()]
                 ];
 
-                if (!$paymentOption->isPaymentEcopayz()) {
+                if ($paymentOption->isPaymentBitcoin()) {
+                    $response['otherDetails']['address'] = $transaction->getBitcoinAddress();
+                    if (is_null($memberPaymentOptionId)) {
+                        $updatedMemberPaymentOption = $this->getTransactionManager()->updateMemberPaymentOptionAccountId($memberPaymentOption, $transaction->getBitcoinAddress());
+                        $transaction = $this->getTransactionManager()->updateImmutablePaymentOptionOnBitcoinTransaction($transaction, $updatedMemberPaymentOption);
+                    } else {
+                        $memberPaymentOptionOnRecord = $this->getCustomerPaymentOptionRepository()->findByMemberPaymentOptionAccountId($memberPaymentOption->getCustomer()->getId(), $transaction->getBitcoinAddress());
+                        if (!is_null($memberPaymentOptionOnRecord)) {
+                            $memberPaymentOption = $memberPaymentOptionOnRecord;
+                        }
+                        
+                        $updatedMemberPaymentOption = $this->getTransactionManager()->updateMemberPaymentOptionAccountId($memberPaymentOption, $transaction->getBitcoinAddress());
+                        $transaction = $this->getTransactionManager()->updateImmutablePaymentOptionOnBitcoinTransaction($transaction, $updatedMemberPaymentOption);
+                        $this->getTransactionManager()
+                            ->enableCustomerPaymentOption($memberPaymentOption->getId())
+                        ;
+
+                        $this->getCustomerPaymentOptionRepository()
+                            ->disableOldPaymentOption($memberPaymentOption->getId(), $transaction->getCustomer()->getId(), $paymentOptionType)
+                        ;
+                    }
+                }
+
+                if (!$paymentOption->isPaymentEcopayz() && !$paymentOption->isPaymentBitcoin()) {
                     $this->getTransactionManager()
                         ->enableCustomerPaymentOption($transaction->getPaymentOptionOnTransaction()->getId())
                     ;
@@ -218,9 +212,9 @@ class TransactionController extends AbstractController
                         ->disableOldPaymentOption($transaction->getPaymentOptionOnTransaction()->getId(), $transaction->getCustomer()->getId(), $paymentOptionType)
                     ;
                 }
-                
-                return new JsonResponse($response);
-            } catch (\Payum\Core\Reply\HttpRedirect $e) {
+
+                return $this->view($response, Response::HTTP_OK);
+            } catch (HttpRedirect $e) {
                 return $this->view(['url' => $e->getUrl()], Response::HTTP_OK, [
                     'X_IS_REDIRECT' => true,
                     'X_REDIRECT_URL' => $e->getUrl(),
@@ -231,40 +225,6 @@ class TransactionController extends AbstractController
         return $this->view($form, Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
-    private function verifyBalance($amount, $balance){        
-        if ($amount > $balance) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private function verifySmsCode($data){        
-        $full_phone = $data['phoneCode'] . substr($data['phoneNumber'], 1);
-
-        if ($data['signupType'] == 0) {
-            $query = 'SELECT sms_code_value FROM piwi_system_log_sms_code WHERE sms_code_customer_phone_number = \''.$full_phone.'\' order by sms_code_created_at desc limit 1';
-        } else {
-            $query = 'SELECT sms_code_value FROM piwi_system_log_sms_code WHERE sms_code_customer_email = \'' . $data['email'] . '\' order by sms_code_created_at desc limit 1';
-        }
-
-        $em = $this->getDoctrine()->getManager();
-        $qu = $em->getConnection()->prepare($query);
-        $qu->execute();
-        $res = $qu->fetchAll();
-        if (count($res) > 0) {
-            $res = $res[0];            
-        } else {
-            return false;
-        }
-        
-        if ($data['smsCode'] == $res['sms_code_value']) {
-            return true;
-        }
-
-        return false;        
-    }
-
     /**
      * @ApiDoc(
      *  description="Request withdraw transaction",
@@ -273,62 +233,32 @@ class TransactionController extends AbstractController
      *      "options"={"hasFee"=true, "hasTransactionPassword"=true}
      *  }
      * )
-     */      
+     */
     public function withdrawTransactionAction(Request $request)
     {
-        $customer = $this->getUser()->getCustomer();        
-        $transaction = $request->request->get('transaction', []);     
-
-        
-        // zimi - check $customer is null
-        $amount = $transaction['amount'];
-        $smsCode = $transaction['smsCode'];
-
-        $customerRepository = $this->getDoctrine()->getManager()->getRepository(Customer::class);
-        if ($customer === null) {
-            $customer_id = $transaction['customer'];
-            $customer = $customerRepository->findOneBy(['id' => $customer_id]);
-            $availableBalance = $customer->getBalance();
-
-            $availableBalance = number_format((float)$availableBalance, 2, '.', ''); 
-            $amount = number_format((float)$amount, 2, '.', ''); 
-            
-            if ($this->verifySmsCode($transaction) == false){
-                return new JsonResponse(['error' => true, 'error_message' => 'your verification code is invalid']);
-            }
-
-            if ($this->verifyBalance($amount, $availableBalance) == false){
-                return new JsonResponse(['error' => true, 'error_message' => 'your balance is not enought']);
-            }   
-            
-            $customer->setIsCustomer(true);        
-        }
-
-        
+        $customer = $this->getUser()->getCustomer();
+        $transaction = $request->request->get('transaction', []);
         $memberPaymentOption = $this->getCustomerPaymentOptionRepository()->find($transaction['paymentOption']);
 
         $tempTransactionModel = new \ApiBundle\Model\Transaction();
         $tempTransactionModel->setCustomer($customer);
-
         $tempTransactionModel->setPayment($memberPaymentOption);
-        unset($transaction['paymentOption']);
 
+        if (array_key_exists('bankDetails', $transaction)) {
+            $tempTransactionModel->setBankDetails($transaction['bankDetails']);
+        }
+
+        unset($transaction['paymentOption']);
         $form = $this->createForm(\ApiBundle\Form\Transaction\TransactionType::class, $tempTransactionModel, [
             'validation_groups' => ['Default', 'withdraw'],
-            'hasFee' => false,
-            'hasTransactionPassword' => false,
+            'hasFee' => true,
+            'hasTransactionPassword' => true,
         ]);
-                
         $form->submit($transaction);
-        // && $form->isValid()
-        if ($form->isSubmitted()) {
-                        
+        if ($form->isSubmitted() && $form->isValid()) {
             $transactionModel = $form->getData();
             $transactionModel->setCustomer($customer);
             $transactionModel->setPaymentOption($memberPaymentOption);
-            // zimi
-            $transactionModel->setAmount($amount);
-
             $transaction = $this->getTransactionManager()->handleWithdraw($transactionModel);
             $transactionNumber = $transaction->getNumber();
             $response = [
@@ -421,6 +351,93 @@ class TransactionController extends AbstractController
         return $this->view($form, Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
+    /**
+     * @ApiDoc(
+     *  description="Check wether a user has active bitcoin transaction",
+     * )
+     */
+    public function checkForActiveBitcoinTransactionAction(Request $request)
+    {
+        $customer = $this->getUser()->getCustomer();
+        $bitcoinManger = $this->get('payment.bitcoin_manager');
+        $transaction = $bitcoinManger->findActiveBitcoinTransaction($customer);
+
+        if ($transaction === null) {
+            return new JsonResponse([]);
+        }
+
+        $view = $this->view($transaction);
+        $groups = array_merge($view->getContext()->getGroups(), ['subtransactions_group', 'details', 'bitcoin_transaction']);
+        $view->getContext()->setGroups($groups);
+
+        return $view;
+    }
+
+    /**
+     * @ApiDoc(
+     *  description="Acknowledge a bitcoin transaction.",
+     * )
+     */
+    public function acknowledgeBitcoinTransactionAction(Request $request)
+    {
+        $customer = $this->getUser()->getCustomer();
+        $transactionRepository = $this->getTransactionRepository();
+        $transaction = $transactionRepository->findActiveBitcoinTransaction($customer);
+
+        if ($transaction === null) {
+            return new Response('No active transaction to acknowledge.', Response::HTTP_BAD_REQUEST);
+        }
+
+        $this->getTransactionManager()->acknowledgeBitcoinTransaction($transaction);
+
+        return new Response();
+    }
+
+    /**
+     * @ApiDoc(
+     *  description="Decline a bitcoin transaction.",
+     * )
+     */
+    public function declineBitcoinTransactionAction(Request $request)
+    {
+        $customer = $this->getUser()->getCustomer();
+        $transactionRepository = $this->getTransactionRepository();
+        $transaction = $transactionRepository->findActiveBitcoinTransaction($customer);
+
+        if ($transaction === null) {
+            return new Response('No active transaction to decline.', Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $bitcoinManger = $this->get('payment.bitcoin_manager');
+            $bitcoinManger->decline($transaction);
+
+            return new Response();
+        } catch(\DomainException $ex) {
+            return new Response($ex->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    public function lockRateBitcoinTransactionAction()
+    {
+        $customer = $this->getUser()->getCustomer();
+        $transactionRepository = $this->getTransactionRepository();
+        $transaction = $transactionRepository->findActiveBitcoinTransaction($customer);
+
+        if ($transaction === null) {
+            return new Response('No active transaction to lock.', Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $service = $this->getTransactionBitcoinLockRateService();
+            $service->lockBitcoinTransaction($transaction);
+
+            return new Response();
+        } catch(\DomainException $ex) {
+            return new Response($ex->getMessage(), Response::HTTP_BAD_REQUEST);
+        }  
+    }
+
     private function getTransactionRepository(): \ApiBundle\Repository\TransactionRepository
     {
         return $this->get('api.transaction_repository');
@@ -439,5 +456,26 @@ class TransactionController extends AbstractController
     private function getPaymentOptionRepository(): \DbBundle\Repository\PaymentOptionRepository
     {
         return $this->getDoctrine()->getRepository('DbBundle:PaymentOption');
+    }
+
+    private function getTransactionBitcoinLockRateService(): \TransactionBundle\Service\TransactionBitcoinLockRateService
+    {   
+        return $this->get('transaction.lock.service');
+    }
+
+    private function buildPaymentForm(\Symfony\Component\Form\FormBuilder $formBuilder, string $payment): void
+    {
+        $class = 'ApiBundle\\Form\\Transaction\\Extension\\' . ucwords($payment) . 'Type';
+        if (class_exists($class)) {
+            $formBuilder->add('paymentDetails', $class, ['required' => true]);
+            $paymentType = $this->getFormRegistry()->getType($class);
+            if ($paymentType instanceof \Symfony\Component\Form\ResolvedFormTypeInterface) {
+                $paymentType = $paymentType->getInnerType();
+            }
+
+            if ($paymentType instanceof \ApiBundle\Form\Transaction\Extension\TransactionFormExtensionInterface) {
+                $paymentType->extendTransactionForm($formBuilder);
+            }
+        }
     }
 }

@@ -6,6 +6,8 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use AppBundle\DependencyInjection\CompilerPass\DataTransferCompilerPass;
 use AppBundle\DependencyInjection\CompilerPass\WidgetCompilerPass;
+use DbBundle\Entity\Setting;
+use PaymentBundle\Model\Bitcoin\SettingModel;
 
 class AppBundle extends Bundle
 {
@@ -59,6 +61,11 @@ class AppBundle extends Bundle
                 'label' => 'roles.scheduler',
                 'translation_domain' => 'AppBundle',
             ],
+            'ROLE_BITCOIN_SETTING' => [
+                'group' => 'roles.groups.system',
+                'label' => 'roles.bitcoinSetting',
+                'translation_domain' => 'AppBundle',
+            ],
         ];
     }
 
@@ -85,8 +92,20 @@ class AppBundle extends Bundle
         return [
             'scheduler.task' => [
                 'auto_decline' => [
-                    'autoDecline' => \DbBundle\Entity\Setting::ENABLE_AUTO_DECLINE,
-                    'minutesInterval' => \DbBundle\Entity\Setting::SCHEDULER_DEFAULT_MIN,
+                    'autoDecline' => Setting::ENABLE_AUTO_DECLINE,
+                    'minutesInterval' => Setting::SCHEDULER_DEFAULT_MIN,
+                ],
+            ],
+            'bitcoin.setting' => [
+                'configuration' => [
+                    'autoDecline' => SettingModel::BITCOIN_ENABLE_AUTO_DECLINE,
+                    'minutesInterval' => SettingModel::BITCOIN_DEFAULT_MIN,
+                    'minimumAllowedDeposit' => SettingModel::BITCOIN_MINIMUM_ALLOWED_DEPOSIT,
+                    'maximumAllowedDeposit' => SettingModel::BITCOIN_MAXIMUM_ALLOWED_DEPOSIT,
+                ],
+                'lockRatePeriodSetting' => [
+                    'autoLock' => Setting::ENABLE_AUTO_LOCK,
+                    'minutesLockDownInterval' => Setting::LOCKDOWN_PERIOD_MIN,
                 ],
             ],
             'maintenance.enabled' => 0,
@@ -134,6 +153,17 @@ class AppBundle extends Bundle
                         "status" => [
                             "registered"
                         ]
+                    ]
+                ],
+                "memberProductRequestList_20181026215542" => [
+                    "type" => "memberProductRequestList",
+                    "definition" => [
+                        "id" => "memberProductRequestList_20181026215542"
+                    ],
+                    "properties" => [
+                        "size" => 6,
+                        "limit"=> 10,
+                        "title" => "Member Product Request List"
                     ]
                 ],
                 "customerSearch_20180129120450" => [

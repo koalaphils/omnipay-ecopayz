@@ -25,14 +25,15 @@
 								<br>
 								<p>
 								{% if isAffiliate %}
-									Verify it’s you by clicking the button below.
+									Verify it’s you by clicking the button below and login to your account.
 								{% else %}
-									You are receiving this email because you recently signed up for an Asianconnect account or you requested for an account activation/reset. Verify it’s you by clicking the button below.
+									You are receiving this email because you recently signed up for an Asianconnect account.
 								{% endif %}
 								</p>
-								<p><a href="{{ originFrom ~ '?acct_activation_code=' ~ activationCode }}" target="_blank" style="background-color:#DA0000; border-radius:5px; padding: 10px 20px; color:#ffffff; font-size:14px; font-weight:600; cursor:pointer; text-decoration:none;"> Activate your account </a></p>
-								<br>
-								<p>Please change your username and password.</p>
+								<p>Here's your temporary username and password.</p>
+								<p>Username: {{ username }}<br>
+								Password: {{ password }}</p>
+							    <p><a href="{{ originFrom ~ '?ams_login=true' }}" target="_blank" style="background-color:#DA0000; border-radius:5px; padding: 10px 20px; color:#ffffff; font-size:14px; font-weight:600; cursor:pointer; text-decoration:none;"> Login to your account </a></p>
 								<br>
 								<p>Thanks,</p>
 								<p><b>Asianconnect</b></p>

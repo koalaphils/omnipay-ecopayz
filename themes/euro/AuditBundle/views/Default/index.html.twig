@@ -142,7 +142,7 @@
                         },
                         'applyOnChanged': false
                     },
-                    'operation': {
+                    /*'operation': {
                         'dom': "<'form-group form-group-sm m-r-10 xs-filter'i>",
                         'type': 'select',
                         'label': 'Operation',
@@ -302,6 +302,12 @@
                             if (value.length > 0 && value.indexOf('bannerImage') !== Global.variables.indexNotFound) {
                                 categories.push(Global.audit.categories.bannerImage.value);
                             }
+                            if (value.length > 0 && value.indexOf('debitAdjustment') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.debitAdjustment.value);
+                            }
+                            if (value.length > 0 && value.indexOf('creditAdjustment') !== Global.variables.indexNotFound) {
+                                categories.push(Global.audit.categories.creditAdjustment.value);
+                            }
 
                             return categories;
                         },
@@ -336,10 +342,13 @@
                             'memberBanner': "{{ "category.memberBanner"|trans({}, "AuditBundle") }}",
                             'memberWebsite': "{{ "category.memberWebsite"|trans({}, "AuditBundle") }}",
                             'memberReferralName': "{{ "category.memberReferralName"|trans({}, "AuditBundle") }}",
-                            'bannerImage': "{{ "category.bannerImage"|trans({}, "AuditBundle") }}"
+                            'bannerImage': "{{ "category.bannerImage"|trans({}, "AuditBundle") }}",
+                            'bitcoinRateSetting': "{{ "category.bitcoinRateSetting"|trans({}, "AuditBundle") }}",
+                            'debitAdjustment': "{{ "category.debitAdjustment"|trans({}, "AuditBundle") }}",
+                            'creditAdjustment': "{{ "category.creditAdjustment"|trans({}, "AuditBundle") }}"
                         },
                         'value': ''
-                    },
+                    },*/
                     'applyFilter': {
                         'type': 'button',
                         'label': 'Apply Filter',
@@ -429,13 +438,16 @@
                                 'memberBanner': "{{ "category.memberBanner"|trans({}, "AuditBundle") }}",
                                 'memberWebsite': "{{ "category.memberWebsite"|trans({}, "AuditBundle") }}",
                                 'memberReferralName': "{{ "category.memberReferralName"|trans({}, "AuditBundle") }}",
-                                'bannerImage': "{{ "category.bannerImage"|trans({}, "AuditBundle") }}"
+                                'bannerImage': "{{ "category.bannerImage"|trans({}, "AuditBundle") }}",
+                                'bitcoinRateSetting': "{{ "category.bitcoinRateSetting"|trans({}, "AuditBundle") }}",
+                                'debitAdjustment': "{{ "category.debitAdjustment"|trans({}, "AuditBundle") }}",
+                                'creditAdjustment': "{{ "category.creditAdjustment"|trans({}, "AuditBundle") }}"
                             };
 
                             $.each(full.logs, function(index, log) {
                                 var categoryKey = log.category_key;
 
-                                if ($.inArray(categoryKey, ['deposit', 'transfer', 'withdrawal', 'p2pTransfer', 'cDwl', 'transactionBonus', 'bet']) != -1) {
+                                if ($.inArray(categoryKey, ['deposit', 'transfer', 'withdrawal', 'p2pTransfer', 'cDwl', 'transactionBonus', 'bet', 'debitAdjustment', 'creditAdjustment']) != -1) {
                                     categoryKey = 'transaction';
                                 }
 
@@ -508,7 +520,7 @@
                         }
                     },
                 ],
-                'ordering': true,
+                'ordering': false,
                 'columnDefs': [
                     { "orderable": false, "targets": [3] }
                 ]
@@ -525,7 +537,7 @@
 
             function formatFieldValue(value, fieldOptions) {
                 if (value == null || value == '' && value !== false) {
-                  value = 'N/A';
+                    value = 'N/A';
                 } else if (value === true) {
                     value = 'Yes';
                 } else if (value === false) {

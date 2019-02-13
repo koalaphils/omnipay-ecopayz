@@ -167,10 +167,10 @@ class SettingManager extends AbstractManager
         return $array;
     }
 
-    public function getAutoDeclineSechedulerConfig(array $scheduler = []): array
+     public function getItemConfig(array $items = [], string $key): array
     {
-        $task = [];
-        foreach ($scheduler[\DbBundle\Entity\Setting::SCHEDULER_TASK] as $task => $config) {
+        $tasks = [];
+        foreach ($items[$key] as $task => $config) {
             $tasks[$task] = $config;
         }
 

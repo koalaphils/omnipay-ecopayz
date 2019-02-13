@@ -68,6 +68,33 @@
                         </div>
                     </div>
                 </div>
+                {# AC66-1062 - hide this for now until confirmation is given whether to enable this or not#}
+                {#<div class="form-group form-group-sm m-r-10">#}
+                    {#<select#}
+                            {#id="hideEmptyRecords"#}
+                            {#class="form-control selectpicker"#}
+                            {#name="hideEmptyRecords"#}
+                            {#data-style="btn-white btn-sm"#}
+                            {#data-width="auto"#}
+                            {#data-container="body">#}
+                            {#<option value="1">Hide Members Inactive for past 6 months</option>#}
+                            {#<option value="0" selected="selected">Show All Records</option>#}
+                    {#</select>#}
+                {#</div>#}
+
+                <div class="form-group form-group-sm m-r-10">
+                    <select
+                            id="hideZeroValueRecords"
+                            class="form-control selectpicker"
+                            name="hideZeroValueRecords"
+                            data-style="btn-white btn-sm"
+                            data-width="auto"
+                            data-container="body">
+                        <option value="1" selected="selected">Hide members with 0 turnover and available balance</option>
+                        <option value="0">Show All Records</option>
+                    </select>
+                </div>
+
                 <button id="btnFilter" class="form-group btn btn-default btn-sm" type="button">
                     Filter
                 </button>
@@ -133,7 +160,7 @@
                 reports['{{ currency.code }}'] = new CustomerReport(
                     '#report{{ currency.code }}',
                     '{{ currency.code }}',
-                    '{{ path('report.customers_currency', {'currency': currency.code}) }}',
+                    '{{ path('report.customers_currency', {'currencyCode': currency.code}) }}',
                     '{{ path('report.customers_export', {'currency': currency.code}) }}'
                 );
             {%- endfor %}
@@ -146,13 +173,8 @@
                 $.each($('#currency option:selected'), function () {
                     $('#container' + $(this).val()).removeClass('hide');
                     reports[$(this).val()].filter(from, to);
-
-
-                    // AC66-1143 hide this for now until loading time issue is fixed
-                    // displayReportSummaryAtFooter(currency, from, to)
-
-
-
+                    {# AC66-1143 hide this for now until loading time issue is fixed #}
+                    {# displayReportSummaryAtFooter(currency, from, to) #}
                 });
                 $('.report-notes-wrap').fadeOut();
 

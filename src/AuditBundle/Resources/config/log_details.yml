@@ -277,6 +277,11 @@ parameters:
                 label: Risk Setting
                 from: 'riskSetting.0'
                 to: 'riskSetting.1'
+            bitcoinRateSetting:
+                label: Bitcoin RAate Setting
+                from: 'bitcoinRateSetting.0'
+                to: 'bitcoinRateSetting.1'
+
 
         affiliate:
             fName:
@@ -611,4 +616,24 @@ parameters:
                 label: Filename
                 from: 'details.0.filename'
                 to: 'details.1.filename'
+
+        bitcoinRateSetting:
+            rangeFrom:
+                label: Range From
+                from: 'rangeFrom.0'
+                to: 'rangeFrom.1'
+            rangeTo:
+                label: Range To
+                from: 'rangeTo.0'
+                to: 'rangeTo.1'
+            fixedAdjustment:
+                label: Amount in euros
+                from: 'fixedAdjustment.0'
+                to: 'fixedAdjustment.1'
+            percentageAdjustment:
+                label: Percentage amount in euros
+                from: 'percentageAdjustment.0'
+                to: 'percentageAdjustment.1'
+                
+
 

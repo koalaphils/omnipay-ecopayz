@@ -606,4 +606,9 @@ class MemberRunningCommission extends Entity implements ActionInterface, Timesta
     {
         return $this->isComputationHasError() || $this->isPayingHasError();
     }
+
+    public function getCommissionPeriodId(): int
+    {
+        return $this->getCommissionPeriod()->getId();
+    }
 }

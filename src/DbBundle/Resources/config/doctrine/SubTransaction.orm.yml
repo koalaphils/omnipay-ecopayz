@@ -14,6 +14,8 @@ DbBundle\Entity\SubTransaction:
     indexes:
         type_index:
             columns: [subtransaction_type]
+        dwl_id_index:
+            columns: [subtransaction_dwl_id]
         dwl_turnover_index:
             columns: [subtransaction_dwl_turnover]
         dwl_winloss_index:

@@ -41,6 +41,12 @@ DbBundle\Entity\Transaction:
                         - NotBlank:
                             groups: ['hasFees']
         details:
+            - Callback:
+                callback: [TransactionBundle\Validator\TransactionValidator, validateBitcoin]
+                groups: ['withBitcoin']
+            - Callback:
+                callback: [TransactionBundle\Validator\TransactionValidator, validateNotes]
+                groups: ['withAdjustment']
             - Collection:
                 groups: ['default']
                 allowMissingFields: true
@@ -49,7 +55,7 @@ DbBundle\Entity\Transaction:
                     notes:
                         - Length:
                             min: 5
-                            max: 255
+                            max: 500
                             groups: ['default']
                         - Regex:
                             groups: ['default']
@@ -77,8 +83,12 @@ DbBundle\Entity\SubTransaction:
                 message: Amount should be greater than 0
             - Regex:
                 pattern: '/^(?:\d+|\d*\.\d{1,2}+)$/'
-                groups: ['default']
+                groups: ['withDecimalPlacesValidation']
                 message: Max of 2 decimal places
+            - Regex:
+                pattern: '/^(?:\d+|\d*\.\d{1,10}+)$/'
+                groups: ['withBitcoin']
+                message: Max of 10 decimal places
             - Type:
                 type: numeric
                 groups: ['default']

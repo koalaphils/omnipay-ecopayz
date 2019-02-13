@@ -22,19 +22,22 @@ services:
     dwl.file_process.service:
         class: DWLBundle\Service\DWLFileProcessService
         calls:
-            - [ "setContainer", ["@service_container"] ]
+            - ["setContainer", ["@service_container"]]
+            - ["setSubTransactionRepository", ['@=service("doctrine").getRepository("DbBundle\\\Entity\\\SubTransaction")']]
         shared: false
 
     dwl.submit.service:
         class: DWLBundle\Service\DWLSubmitService
         calls:
-            - [ "setContainer", ["@service_container"] ]
+            - ["setContainer", ["@service_container"]]
+            - ["setSubTransactionRepository", ['@=service("doctrine").getRepository("DbBundle\\\Entity\\\SubTransaction")']]
         shared: false
 
     dwl.file_generator.service:
         class: DWLBundle\Service\DWLFileGeneratorService
         calls:
-            - [ "setContainer", ["@service_container"] ]
+            - ["setContainer", ["@service_container"]]
+            - ["setSubTransactionRepository", ['@=service("doctrine").getRepository("DbBundle\\\Entity\\\SubTransaction")']]
         shared: false
 
     dwl.transaction_repository:

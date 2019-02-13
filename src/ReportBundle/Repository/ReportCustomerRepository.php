@@ -3,7 +3,10 @@
 namespace ReportBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\ORM\Query\ResultSetMapping;
+use Doctrine\ORM\Query;
 
 /**
  * Description of ReportCustomerRepository
@@ -19,77 +22,7 @@ class ReportCustomerRepository
         $this->doctrine = $doctrine;
     }
 
-    public function getCustomerWithBalance(array $filters = [], int $limit = 20, int $offset = 0): array
-    {
-        $queryBuilder = $this->createQueryBuilder();
-        $queryBuilder
-            ->select(
-                'customer_id',
-                'customer_fname',
-                'customer_lname',
-                'customer_full_name',
-                'currency_id',
-                'currency_code',
-
-                'GROUP_CONCAT(cproduct_id) AS customer_product_ids',
-                'IFNULL(SUM(cproduct_balance),0) AS customer_current_balance'
-            )
-            ->from('customer', 'c')
-            ->innerJoin('c', 'currency', 'cu', 'c.customer_currency_id = cu.currency_id')
-            ->leftJoin('c', 'customer_product', 'cp', 'cp.cproduct_customer_id = c.customer_id')
-            ->groupBy('c.customer_id')
-            ->orderBy('customer_id')
-            ->setMaxResults($limit)
-            ->setFirstResult($offset)
-        ;
-
-        if (($filters['currency'] ?? '') !== '') {
-            $queryBuilder->andWhere('customer_currency_id = :currency');
-            $queryBuilder->setParameter('currency', $filters['currency']);
-        }
-
-        if (($filters['customer'] ?? '') !== '') {
-            $queryBuilder->andWhere('customer_id = :customer');
-            $queryBuilder->setParameter('customer', $filters['customer']);
-        }
-
-        if (($filters['customer_search'] ?? '') !== '') {
-            $queryBuilder->andWhere(
-                "(CONCAT(customer_fname, ' ', customer_lname) LIKE :customer_search"
-                . " OR customer_fname LIKE :customer_search"
-                . " OR customer_lname LIKE :customer_search"
-                . " OR customer_full_name LIKE :customer_search)"
-            );
-            $queryBuilder->setParameter('customer_search', $filters['customer_search'] . '%');
-        }
-
-        return $queryBuilder->execute()->fetchAll(\PDO::FETCH_ASSOC);
-    }
-
-    public function countCustomers(array $filters = []): int
-    {
-        $queryBuilder = $this->createQueryBuilder();
-        $queryBuilder
-            ->select(
-                'COUNT(customer_id) as total'
-            )
-            ->from('customer', 'c')
-        ;
-
-        if (($filters['currency'] ?? '') !== '') {
-            $queryBuilder->andWhere('customer_currency_id = :currency');
-            $queryBuilder->setParameter('currency', $filters['currency']);
-        }
-
-        if (($filters['customer_search'] ?? '') !== '') {
-            $queryBuilder->andWhere('customer_fname LIKE :customer_search OR customer_lname LIKE :customer_search OR customer_full_name LIKE :customer_search');
-            $queryBuilder->setParameter('customer_search', $filters['customer_search'] . '%');
-        }
-
-        return (int) $queryBuilder->execute()->fetchColumn();
-    }
-
-    public function getCustomerProductReport($filters = [], int $limit = 20, int $offset = 0, array $orders = [], array $groups = [], array $selects = [])
+    public function getCustomerProductReport($filters = [], int $limit = 20, int $offset = 0, array $orders = [], array $groups = [], array $selects = [], bool $excludeInactiveMembers = false)
     {
         $queryBuilder = $this->createQueryBuilder();
 
@@ -120,12 +53,20 @@ class ReportCustomerRepository
             $queryBuilder->setParameter('search', $filters['search'] . '%');
         }
 
+        if ($excludeInactiveMembers === true) {
+            $customerJoinCondition->add('cp.cproduct_customer_id NOT IN (SELECT inactive_member_id from inactive_member)');
+        }
+
         $queryBuilder->select(
-            'SUM(IFNULL(CAST(JSON_EXTRACT(st.subtransaction_details, "$.dwl.turnover") AS DECIMAL(65, 10)), 0)) turnover',
-            'SUM(IFNULL(CAST(JSON_EXTRACT(st.subtransaction_details, "$.dwl.winLoss") AS DECIMAL(65, 10)), 0)) win_loss',
-            'SUM(IFNULL(CAST(JSON_EXTRACT(st.subtransaction_details, "$.dwl.gross") AS DECIMAL(65, 10)), 0)) gross',
-            'SUM(IFNULL(CAST(JSON_EXTRACT(st.subtransaction_details, "$.dwl.commission") AS DECIMAL(65, 10)), 0)) commission',
-            'SUM(IFNULL(CAST(st.subtransaction_amount AS DECIMAL(65, 10)), 0)) amount'
+            'c.customer_full_name as customer_full_name',
+            'c.customer_id as customer_id',
+            'cu.currency_code as currency_code',
+            'cp.cproduct_bet_sync_id as customerIdAtBetAdmin',
+            'SUM(IFNULL(CAST(JSON_EXTRACT(st.subtransaction_details, "$.dwl.turnover") AS DECIMAL(65, 10)), 0)) dwl_turnover',
+            'SUM(IFNULL(CAST(JSON_EXTRACT(st.subtransaction_details, "$.dwl.winLoss") AS DECIMAL(65, 10)), 0)) dwl_win_loss',
+            'SUM(IFNULL(CAST(JSON_EXTRACT(st.subtransaction_details, "$.dwl.gross") AS DECIMAL(65, 10)), 0)) dwl_gross',
+            'SUM(IFNULL(CAST(JSON_EXTRACT(st.subtransaction_details, "$.dwl.commission") AS DECIMAL(65, 10)), 0)) dwl_commission',
+            'SUM(IFNULL(CAST(st.subtransaction_amount AS DECIMAL(65, 10)), 0)) dwl_amount'
         );
 
         $queryBuilder->addSelect($selects);
@@ -164,7 +105,10 @@ class ReportCustomerRepository
         $queryBuilder->setParameter('to', $filters['to']);
         $queryBuilder->setParameter('dwlCompleted', \DbBundle\Entity\DWL::DWL_STATUS_COMPLETED);
 
-        return $queryBuilder->execute()->fetchAll(\PDO::FETCH_ASSOC);
+        $results = $queryBuilder->execute()->fetchAll(\PDO::FETCH_ASSOC);
+
+
+        return $results;
     }
 
     public function computeCustomerProductsTotalTransactions(
@@ -175,6 +119,7 @@ class ReportCustomerRepository
         array $orders = [],
         array $select = []
     ) {
+
         $queryBuilder = $this->createQueryBuilder();
         $queryBuilder->select(
             'IFNULL(SUM( CAST( IF ( st.subtransaction_type = :deposit, IFNULL(st.subtransaction_amount, 0), 0 ) AS DECIMAL (65, 10))), 0) deposit',

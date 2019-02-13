@@ -11,6 +11,10 @@ DbBundle\Entity\AuditRevision:
             column: audit_revision_id
             options:
                 unsigned: true
+    indexes:
+        timestamp_index:
+            columns: [audit_revision_timestamp]
+        
     fields:
         timestamp:
             type: datetime

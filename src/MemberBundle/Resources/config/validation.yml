@@ -25,7 +25,7 @@ MemberBundle\Request\CreateMemberRequest:
     properties:
         email:
             - NotBlank: ~
-#            - Email: ~
+            - Email: ~
             - Length:
                 max: 72
             - AppBundle\Validator\Constraints\Unique:
@@ -37,12 +37,12 @@ MemberBundle\Request\CreateMemberRequest:
         username:
             - NotBlank: ~
             - Regex:
-                pattern: '/^[A-Za-z0-9\_\-]*$/u'
+                pattern: '/^[A-Za-z0-9\_\-\@\.]*$/u'
                 match: true
                 message: username.regex
             - Length:
                 min: 4
-                max: 255
+                max: 50
                 minMessage: username.min
                 maxMessage: username.max
             - AppBundle\Validator\Constraints\Unique:
@@ -68,22 +68,24 @@ MemberBundle\Request\CreateMemberRequest:
                 pattern: '/^[A-Za-z0-9\s\P{Han}]*$/u'
                 match: true
                 message: customer.fullName.regex
-#        birthDate:
-#            - NotBlank: ~
-#            - Date: ~
-#            - GreaterThanOrEqual:
-#                value: -100 years
-#                message: customer.birthDate.valid
-#            - LessThanOrEqual:
-#                value: -18 years
-#                message: customer.birthDate.valid
+        birthDate:
+            - NotBlank: ~
+            - Date: ~
+            - GreaterThanOrEqual:
+                value: -100 years
+                message: customer.birthDate.valid
+            - LessThanOrEqual:
+                value: -18 years
+                message: customer.birthDate.valid
+        gender:
+            - NotBlank: ~
         joinedAt:
             - NotBlank: ~
             - LessThanOrEqual:
                 value: tomorrow
                 message: customer.joinedAt.invalid
-#        currency:
-#            - NotBlank: ~
+        currency:
+            - NotBlank: ~
         country:
             - NotBlank: ~
         groups:
@@ -113,6 +115,11 @@ MemberBundle\Request\UpdateProfileRequest:
             message: "Username already exists"
             errorPath: 'username'
     properties:
+        affiliateLink:
+            - Regex:
+                pattern: '/^\S{4,20}$/'
+                match: true
+                message: "Referrer code must be between 4-20 characters and does not contain space."
         email:
             - NotBlank: ~
             - Email: ~
@@ -121,7 +128,7 @@ MemberBundle\Request\UpdateProfileRequest:
         username:
             - NotBlank: ~
             - Regex:
-                pattern: '/^[A-Za-z0-9\_\-]*$/u'
+                pattern: '/^[A-Za-z0-9\_\-\@\.]*$/u'
                 match: true
                 message: username.regex
             - Length:
@@ -157,6 +164,8 @@ MemberBundle\Request\UpdateProfileRequest:
         currency:
             - NotBlank: ~
         country:
+            - NotBlank: ~
+        gender:
             - NotBlank: ~
         groups:
             - Count:
@@ -207,9 +216,9 @@ MemberBundle\Request\CreateMemberReferralNameRequest:
         name:
             - NotBlank: ~
             - Regex:
-                pattern: '/^[A-Za-z0-9\-]*$/u'
+                pattern: '/^\S{4,20}$/'
                 match: true
-                message: Invalid referral name
+                message: "Referrer code must be between 4-20 characters and does not contain space."
             - AppBundle\Validator\Constraints\Unique:
                 entityClass: DbBundle\Entity\MemberReferralName
                 select: " e.name "

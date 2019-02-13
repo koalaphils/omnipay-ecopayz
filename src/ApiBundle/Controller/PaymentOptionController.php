@@ -4,7 +4,9 @@ namespace ApiBundle\Controller;
 
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use DbBundle\Collection\Collection;
+use PaymentBundle\Component\Blockchain\Rate;
 
 class PaymentOptionController extends AbstractController
 {
@@ -44,6 +46,19 @@ class PaymentOptionController extends AbstractController
         $view->getContext()->setGroups(['Default', 'API', 'items' => ['Default', 'API']]);
 
         return $view;
+    }
+
+     /**
+     * @ApiDoc(
+     *  description="Get Bitcoin Adjustment from Cache",
+     * )
+     */
+    public function getCachedBitcoinAdjustmentAction()
+    {
+        $bitcoinManager = $this->get('payment.bitcoin_manager');
+        $bitcoinAdjustment = $bitcoinManager->createBitcoinAdjustment(Rate::RATE_EUR);
+
+        return new JsonResponse($bitcoinAdjustment->toArray());
     }
     
     protected function getPaymentOptionRepository(): \DbBundle\Repository\PaymentOptionRepository

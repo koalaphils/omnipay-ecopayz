@@ -19,6 +19,7 @@ DbBundle\Entity\Transaction:
         isVoided:
             expose: true
         details:
+            expose: true
             groups: ['details']
         paymentOption:
             groups: ['Default']
@@ -34,6 +35,14 @@ DbBundle\Entity\Transaction:
         createdBy:
             expose: true
     virtual_properties:
+        isBitcoinStatusPendingConfirmation:
+            exp: "object.isBitcoinStatusPendingConfirmation()"
+            expose: true
+            serialized_name: is_bitcoin_status_pending_confirmation
+        isBitcoinStatusConfirmed:
+            exp: "object.isBitcoinStatusConfirmed()"
+            expose: true
+            serialized_name: is_bitcoin_status_confirmed
         typeText:
             exp: "object.getTypeText()"
             expose: true
@@ -81,6 +90,16 @@ DbBundle\Entity\Transaction:
         getVoidingReason:
             expose: true
             groups: ['API']
+        getNotesInDetails:
+            expose: true
+            groups: ['API']
         commissionConvertions:
             exp: "object.getCommissionConvertions()"
             groups: ['API']
+        isTransactionPaymentBitcoin:
+            exp: "object.isTransactionPaymentBitcoin()"
+            expose: true
+            serialized_name: is_transaction_payment_bitcoin
+        bitcoinTotalAmount:
+            exp: "object.getBitcoinTotalAmount()"
+            expose: true

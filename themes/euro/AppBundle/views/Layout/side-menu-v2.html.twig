@@ -12,6 +12,32 @@
                     </a>
                 </li>
 
+                {% if is_granted(['ROLE_CURRENCY_VIEW', 'ROLE_PRODUCT_VIEW', 'ROLE_GATEWAY_VIEW', 'ROLE_DWL_VIEW']) %}
+
+                <li class="has_sub" id="menu-finance">
+                    <a class="waves-effect" href="javascript:void(0)">
+                        <i class="ti-money"></i>
+                        <span>Finance</span>
+                        <span class="menu-arrow"></span>
+                        <span class="menu-label label-primary pull-right hide">0</span>
+                    </a>
+                    <ul class="list-unstyled">
+                        {% if is_granted('ROLE_CURRENCY_VIEW') %}
+                        <li><a href="{{ path("currency.list_page") }}">Currency</a></li>
+                        {% endif %}
+                        {% if is_granted('ROLE_PRODUCT_VIEW') %}
+                        <li><a href="{{ path("product.list_page") }}">Product</a></li>
+                        {% endif %}
+                        {% if is_granted('ROLE_GATEWAY_VIEW') %}
+                        <li><a href="{{ path("gateway.list_page") }}">Gateway</a></li>
+                        {% endif %}
+                        {% if is_granted('ROLE_DWL_VIEW') %}
+                        <li><a href="{{ path("dwl.list_page") }}">Daily Win/Loss</a></li>
+                        {% endif %}
+                    </ul>
+                </li>
+                {% endif %}
+
                 {% if is_granted(['ROLE_CUSTOMER_*']) %}
                 <li class="has_sub" id="menu-customer">
                     <!-- <a class="waves-effect" href="{{ path("customer.list_page") }}"><i class="ti-user"></i> <span>Customer</span></a> -->
@@ -25,9 +51,12 @@
                         {% if is_granted('ROLE_CUSTOMER_VIEW') %}
                             <li><a href="{{ path("member.list_page") }}">Member List</a></li>
                         {% endif %}
-                        {#{% if is_granted('ROLE_CUSTOMER_GROUP_VIEW') %}#}
-                            {#<li><a href="{{ path("customer.group_list_page") }}">Member Group</a></li>#}
-                        {#{% endif %}#}
+                        {% if is_granted('ROLE_CUSTOMER_GROUP_VIEW') %}
+                            <li><a href="{{ path("customer.group_list_page") }}">Member Group</a></li>
+                        {% endif %}
+                        {% if is_granted('ROLE_CUSTOMER_VIEW') %}
+                            <li><a href="{{ path("member.inactive.list_page") }}">Inactive Member List</a></li>
+                        {% endif %}
                     </ul>
                 </li>
                 {% endif %}
@@ -52,32 +81,6 @@
                         {% endif %}
                     </ul>
                 </li>
-                {% endif %}
-
-                {% if is_granted(['ROLE_CURRENCY_VIEW', 'ROLE_PRODUCT_VIEW', 'ROLE_GATEWAY_VIEW', 'ROLE_DWL_VIEW']) %}
-
-                    <li class="has_sub" id="menu-finance">
-                        <a class="waves-effect" href="javascript:void(0)">
-                            <i class="ti-money"></i>
-                            <span>Finance</span>
-                            <span class="menu-arrow"></span>
-                            <span class="menu-label label-primary pull-right hide">0</span>
-                        </a>
-                        <ul class="list-unstyled">
-                            {% if is_granted('ROLE_CURRENCY_VIEW') %}
-                                <li><a href="{{ path("currency.list_page") }}">Currency</a></li>
-                            {% endif %}
-                            {% if is_granted('ROLE_PRODUCT_VIEW') %}
-                                <li><a href="{{ path("product.list_page") }}">Product</a></li>
-                            {% endif %}
-                            {% if is_granted('ROLE_GATEWAY_VIEW') %}
-                                <li><a href="{{ path("gateway.list_page") }}">Gateway</a></li>
-                            {% endif %}
-                            {% if is_granted('ROLE_DWL_VIEW') %}
-                                <li><a href="{{ path("dwl.list_page") }}">Daily Win/Loss</a></li>
-                            {% endif %}
-                        </ul>
-                    </li>
                 {% endif %}
 
 

@@ -241,6 +241,12 @@
                     } else {
                         message = data.list[i].fName + ' '+ data.list[i].lName +' was created.';
                     }
+                } else if (data.list[i].notificationType == 'requestProduct') {
+                    var details = data.list[i];
+
+                    url = Global.dummyCustomerProfileUrl.replace('/__id__', '/'+ details.customer.id).replace('/__activeTab__', '/product');
+                    title = 'PRODUCT REQUEST';
+                    message = 'Product ' + details.product.name + ' has been added. (' + details.customer.fullName + ')';
                 }
 
                 var htmlContent = '<a href="'+ url +'" class="date-created list-group-item '+ notifStatus +'" data-date="'+ creationDate +'">'

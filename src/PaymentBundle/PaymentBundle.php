@@ -2,10 +2,15 @@
 
 namespace PaymentBundle;
 
+use DbBundle\Entity\Transaction;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
-use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
-use Symfony\Component\DependencyInjection\Container;
 
 class PaymentBundle extends Bundle
 {
+    public function registerDefaultSetting()
+    {
+        return [
+            'bitcoin.confirmations' => [],
+        ];
+    }
 }

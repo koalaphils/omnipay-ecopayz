@@ -49,7 +49,12 @@ services:
             - { name: jms_serializer.event_subscriber }
     db.transaction_serializer:
         class: DbBundle\Serializer\TransactionSerializerSubscriber
-        arguments: [ '@app.setting_manager', '@doctrine.orm.entity_manager']
+        arguments:
+            - '@app.setting_manager'
+            - '@doctrine.orm.entity_manager'
+            - '@payment.bitcoin_manager'
+        calls:
+            - ['setTransactionManager', ['@transaction.manager']]
         tags:
             - { name: jms_serializer.event_subscriber }
 imports:

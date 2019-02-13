@@ -246,6 +246,7 @@ Verify this customer: Verify this customer
 
 activation:
     title: Activation Details
+    note: Customer not yet activated from AMS
     sentOn: Activation email sent on
     activatedOn: Account activated on
     button: Resend Activation Email

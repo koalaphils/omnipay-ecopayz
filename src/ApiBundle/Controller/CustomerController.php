@@ -2,14 +2,14 @@
 
 namespace ApiBundle\Controller;
 
-use DbBundle\Entity\Country;
+use DbBundle\Entity\Transaction;
+use FOS\RestBundle\View\View;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use FOS\RestBundle\Context\Context;
 use FOS\RestBundle\Request\ParamFetcher;
 use Symfony\Component\HttpFoundation\Request;
 use AppBundle\Exceptions\FormValidationException;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
 
 class CustomerController extends AbstractController
 {
@@ -58,6 +58,12 @@ class CustomerController extends AbstractController
                 }
                 $preferencesExtra['transaction']['statusGroups'][$label][] = $key;
             }
+
+            $otherStatuses = Transaction::getOtherStatus();
+            foreach ($otherStatuses as $otherStatus) {
+                $preferencesExtra['transaction']['statuses'][$otherStatus] = $this->getTranslator()->trans($otherStatus, [], 'TransactionBundle');
+            }
+
             $user->getCustomer()->setExtraPreferences($preferencesExtra);
         }
 
@@ -278,7 +284,6 @@ class CustomerController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $accountActivationModel = $form->getData();
-
             $result = $this->getCustomerManager()->activateAccount($activationCode, $accountActivationModel);
 
             return $this->view($result, $result['code']);
@@ -310,48 +315,6 @@ class CustomerController extends AbstractController
 
     /**
      * @ApiDoc(
-     *  description="Check if pin user code input on registration exists or not",
-     *  requirements={
-     *      {
-     *          "name"="pin_user_code",
-     *          "dataType"="string",
-     *          "description"="user code input on registration form"
-     *      }
-     *  }
-     * )
-     */
-    public function checkPinUserCodeIfExistsAction(Request $request)
-    {
-        $pinUserCode = $request->request->get('pinUserCode');
-
-        $result = $this->getCustomerManager()->checkPinUserCodeIfExists($pinUserCode);
-
-        return $this->view($result, $result['code']);
-    }
-
-    /**
-     * @ApiDoc(
-     *  description="Check if email or phone Number on registration exists or not",
-     *     requirements={
-     *      {
-     *          "name"="email,phone",
-     *          "dataType"="string",
-     *          "description"="user code input on registration form"
-     *      }
-     *  }
-     * )
-     */
-    public function checkPhoneOrEmailIfExistsAction(Request $request)
-    {
-        $input = $request->request->all();
-
-        $result = $this->getCustomerManager()->checkEmailOrPhoneNumberIfExists($input);
-
-        return $this->view($result, $result['code']);
-    }
-
-    /**
-     * @ApiDoc(
      *  description="Check if the username input on registration exists or not",
      *  requirements={
      *      {
@@ -372,117 +335,28 @@ class CustomerController extends AbstractController
     }
 
     /**
-     * @ApiDoc(
-     *  description="Check if the credentials input on registration exists or not"
-     * )
-     */
-    public function checkCredentialsIfExistsAction(Request $request)
-    {
-        $input = $request->request->all();
-        $result = $this->getCustomerManager()->checkCredentialsIfExist($input);
-
-
-        return $this->view($result);
-    }
-
-    /**
-     * @ApiDoc(
-     *  description="Register customer",
-     *  input="ApiBundle\Form\Customer\RegisterType"
-     * )
-     */
+    * @ApiDoc(
+    *  description="Register customer",
+    *  input="ApiBundle\Form\Customer\RegisterType"
+    * )
+    */
     public function customerRegisterAction(Request $request)
-    {        
-        $registeredCustomer = $request->request->get('register');    
-
-        // zimi                
-        $full_phone = $registeredCustomer['countryPhoneCode'] . substr($registeredCustomer['phoneNumber'], 1);
-        
-        if ($registeredCustomer['signupType'] == 0) {
-            $query = 'SELECT sms_code_value FROM piwi_system_log_sms_code WHERE sms_code_customer_phone_number = \''.$full_phone.'\' order by sms_code_created_at desc limit 1';
-        } else {
-            $query = 'SELECT sms_code_value FROM piwi_system_log_sms_code WHERE sms_code_customer_email = \'' . $registeredCustomer['email'] . '\' order by sms_code_created_at desc limit 1';
-        }
-        
-        $em = $this->getDoctrine()->getManager();
-        $qu = $em->getConnection()->prepare($query);
-        $qu->execute();
-        $res = $qu->fetchAll();
-        if (count($res) > 0) {
-            $res = $res[0];           
-        } else {
-            echo json_encode(['error' => true, 'status'=> 400, 'message' => 'SMS Code is invalid']);exit();
-        }
-
-        $sms_code_registerd = $registeredCustomer['smsCode'];
-        $sms_code = $res['sms_code_value'];
-        if ($sms_code_registerd != $sms_code ) {
-            echo json_encode(['error' => true, 'status'=> 400, 'message' => 'SMS Code is invalid']);exit();
-        }
-        
-        // unset
-        unset($registeredCustomer['signupType']);
-        
+    {
+        $registeredCustomer = $request->request->get('register');
         $originUrl = $request->headers->get('Origin');
         $referrerUrl = $request->headers->get('Referrer');
         $locale = $request->attributes->get('_locale');
         $ipAddress = $request->getClientIp();
-        $form = $this->createForm(\ApiBundle\Form\Customer\RegisterType::class, null, ['allow_extra_fields' => true,]);
+        $form = $this->createForm(\ApiBundle\Form\Customer\RegisterType::class, null, ['allow_extra_fields' => true, ]);
         $form->submit($registeredCustomer);
-
         if ($form->isSubmitted() && $form->isValid()) {
             $registerModel = $form->getData();
-            $customer = $this->getCustomerManager()->handleRegister($registerModel, $originUrl, $locale, $ipAddress, $referrerUrl);
-
+            $customer = $this->getCustomerManager()->handleRegister($registerModel, $originUrl, $locale, $ipAddress,$referrerUrl);
+            
             return $this->view($customer, Response::HTTP_OK);
         }
 
         return $this->view($form, Response::HTTP_UNPROCESSABLE_ENTITY);
-    }
-
-    /**
-     * @ApiDoc(
-     *  description="customer forgot password"     
-     * )
-     */    
-    public function forgotPasswordAction(Request $request)
-    {                
-        $post = $request->request->all();                    
-        $full_phone = $post['phoneCode'] . substr($post['phoneNumber'], 1); 
-
-        // via phone
-        if ($post['viaType'] == 0) {
-            $query = 'SELECT sms_code_value FROM piwi_system_log_sms_code WHERE sms_code_customer_phone_number = \''.$full_phone.'\' order by sms_code_created_at desc limit 1';
-        } else {
-            $query = 'SELECT sms_code_value FROM piwi_system_log_sms_code WHERE sms_code_customer_email = \'' . $post['email'] . '\' order by sms_code_created_at desc limit 1';
-        }
-
-        $em = $this->getDoctrine()->getManager();
-        $qu = $em->getConnection()->prepare($query);
-        $qu->execute();
-        $res = $qu->fetchAll();
-        if (count($res) > 0) {
-            $res = $res[0];           
-        } else {
-            echo json_encode(['error' => true, 'status'=> 200, 'message' => 'SMS Code is invalid']);exit();
-        }
-
-        $sms_code_registerd = $post['smsCode'];
-        $sms_code = $res['sms_code_value'];
-        if ($sms_code_registerd != $sms_code ) {
-            echo json_encode(['error' => true, 'status'=> 200, 'message' => 'SMS Code is invalid']);exit();
-        }
-        
-        // update passowrd
-        $data = $post;        
-        $result = $this->getCustomerManager()->handleForgotPassword($data);
-
-        // update success
-        if ($result == null) {                        
-            echo json_encode(['error' => false, 'status'=> 200, 'message' => '']);exit();   
-        }
-                
-        echo json_encode(['error' => true, 'status'=> 200, 'message' => 'Failure']);exit();           
     }
 
     /**
@@ -517,11 +391,34 @@ class CustomerController extends AbstractController
             ]);
 
             $member = $this->getCustomerManager()->handleRegisterV2($memberRegistrationModel, $registrationDetails);
+            $view = $this->view($member);
+            $view->getContext()->setGroups(['credentials']);
 
-            return $this->view($member);
+            return $view;
         }
 
         return $this->view($form, Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
+    /**
+     * @ApiDoc(
+     *  description="Save restore Id generated by FreshChat Widget",
+     *  requirements={
+     *      {
+     *          "name"="restoreId",
+     *          "dataType"="string",
+     *          "description"="RestoreId generated in AMS by FreshChat"
+     *      }
+     *  }
+     * )
+     */
+    public function saveRestoreIdAction(Request $request): View
+    {
+        $restoreId = $request->request->get('restoreId');
+
+        $result = $this->getCustomerManager()->handleRestoreId($restoreId);
+
+        return $this->view($result, $result['code']);
     }
 
     /**
@@ -658,16 +555,6 @@ class CustomerController extends AbstractController
         $result = $this->getCustomerManager()->handleAudit($category);
 
         return $this->view($result, $result['code']);
-    }
-
-    private function getCustomerRepository(): \DbBundle\Repository\CustomerRepository
-    {
-        return $this->getDoctrine()->getRepository('DbBundle:Customer');
-    }
-
-    private function getUserRepository(): \DbBundle\Repository\UserRepository
-    {
-        return $this->getDoctrine()->getRepository('DbBundle:User');
     }
 
     private function getCustomerPaymentOptionRepository(): \DbBundle\Repository\CustomerPaymentOptionRepository

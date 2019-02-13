@@ -1,8 +1,8 @@
 <?php
 
 namespace DbBundle\Entity;
+
 use \DbBundle\Entity\Customer as Member;
-use \DbBundle\Entity\Currency;
 use \DbBundle\Entity\CustomerProduct as MemberProduct;
 
 /**
@@ -41,11 +41,14 @@ class DataFactoryTest extends \Codeception\Test\Unit
 
         $this->tester->seeInDatabase('customer', ['customer_id' => $member->getId()]);
         $this->tester->seeInDatabase('user', ['user_id' => $member->getUser()->getId()]);
-
-
     }
 
+    public function testCreatingAMemberReferralNameForAMember()
+    {
+        $memberReferralName = $this->tester->have(MemberReferralName::class);
 
+        $this->tester->seeInDatabase('member_referral_name', ['member_referral_name_id' => $memberReferralName->getId()]);
+    }
 
     public function testCreatingARandomMemberWithSomeCustomData()
     {
@@ -54,7 +57,6 @@ class DataFactoryTest extends \Codeception\Test\Unit
         $result =  $this->tester->have(Member::class, [
             'fullName' => 'Mark Anthony Rosario',
         ]);
-
 
         $this->tester->seeInDatabase('customer', ['customer_id' => $result->getId()]);
     }
@@ -98,8 +100,9 @@ class DataFactoryTest extends \Codeception\Test\Unit
 
     public function testCreatingMultipleEntities()
     {
+        $em = $this->getModule('Doctrine2')->_getEntityManager();
+        $currency = $em->getRepository(Currency::class)->findByCode('EUR');
 
-        $currency = $this->tester->have(Currency::class);
         $this->tester->have(Member::class, [
             'fullName' => 'Mark Anthony Rosario',
             'currency' => $currency,
@@ -119,6 +122,4 @@ class DataFactoryTest extends \Codeception\Test\Unit
             'customer_affiliate_id' => $referrer->getId(),
         ]);
     }
-
-
 }

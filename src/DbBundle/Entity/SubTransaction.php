@@ -2,6 +2,7 @@
 
 namespace DbBundle\Entity;
 
+use AppBundle\ValueObject\Number;
 use DbBundle\Entity\Interfaces\AuditInterface;
 
 /**
@@ -9,6 +10,19 @@ use DbBundle\Entity\Interfaces\AuditInterface;
  */
 class SubTransaction extends Entity implements AuditInterface
 {
+    public const DETAIL_BITCOIN_REQUESTED_BTC = 'bitcoin.requested_btc';
+    
+    private const DETAILS_DWL_ID = 'dwl.id';
+    private const DETAILS_DWL_GROSSCOMMISSION = 'dwl.gross';
+    private const DETAILS_DWL_WINLOSS = 'dwl.winLoss';
+    private const DETAILS_DWL_CUSTOMER_BALANCE = 'dwl.customer.balance';
+    private const DETAILS_DWL_TURNOVER = 'dwl.turnover';
+    private const DETAILS_DWL_COMMISSION = 'dwl.commission';
+    private const DETAILS_DWL_BROKERAGE_STAKE = 'dwl.brokerage.stake';
+    private const DETAILS_DWL_BROKERAGE_WINLOSS = 'dwl.brokerage.winLoss';
+    private const DETAILS_DWL_EXCLUDE_IN_LIST = 'dwl.exclude';
+    private const DETAILS_BITCOIN_REQUESTED_AMOUNT = 'bitcoin.requested_btc';
+
     /**
      * @var Transaction
      */
@@ -122,6 +136,16 @@ class SubTransaction extends Entity implements AuditInterface
     public function isVoided(): bool
     {
         return $this->getParent()->isVoided();
+    }
+
+    public function isDebitAdjustment(): bool
+    {
+        return $this->getType() === Transaction::TRANSACTION_TYPE_DEBIT_ADJUSTMENT;
+    }
+
+    public function isCreditAdjustment(): bool
+    {
+        return $this->getType() === Transaction::TRANSACTION_TYPE_CREDIT_ADJUSTMENT;
     }
 
     /**
@@ -319,6 +343,11 @@ class SubTransaction extends Entity implements AuditInterface
         return array_get($this->details, $key, $default);
     }
 
+    public function hasDetail(string $key): bool
+    {
+        return array_has($this->details, $key);
+    }
+
     public function isBetSettled(): bool
     {
         return $this->getDetail('betSettled') === true;
@@ -344,6 +373,10 @@ class SubTransaction extends Entity implements AuditInterface
             $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_BONUS;
         } elseif ($parent->isCommission()) {
             $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_COMMISSION;
+        } elseif ($parent->isDebitAdjustment()) {
+            $category = AuditRevisionLog::CATEGORY_MEMBER_TRANSACTION_DEBIT_ADJUSTMENT;
+        } elseif ($parent->isCreditAdjustment()) {
+            $category = AuditRevisionLog::CATEGORY_MEMBER_TRANSACTION_CREDIT_ADJUSTMENT;
         }
 
         return $category;
@@ -351,7 +384,7 @@ class SubTransaction extends Entity implements AuditInterface
 
     public function getIgnoreFields()
     {
-        return ['createdBy', 'createdAt', 'updatedBy', 'updatedAt', 'parent', 'details', 'type'];
+        return ['createdBy', 'createdAt', 'updatedBy', 'updatedAt', 'parent'];
     }
 
     public function getAssociationFields()
@@ -379,14 +412,14 @@ class SubTransaction extends Entity implements AuditInterface
         return $this->dwlId;
     }
 
-    public function getDwlTurnover(): ?float
+    public function getDwlTurnover(): ?string
     {
         return (string) $this->getDetail('dwl.turnover', '0');
     }
 
-    public function getDwlWinLoss(): ?float
+    public function getDwlWinLoss(): ?string
     {
-        return $this->dwlWinLoss;
+        return (string) $this->dwlWinLoss;
     }
 
     public function getAuditDetails(): array
@@ -424,5 +457,116 @@ class SubTransaction extends Entity implements AuditInterface
     public function getMemberRunningCommissionId(): ?int
     {
         return $this->getDetail('running_commission.id');
+    }
+
+    public function setDwlId(string $id): self
+    {
+        $this->setDetail(self::DETAILS_DWL_ID, $id);
+
+        return $this;
+    }
+
+    public function setDwlGrossCommission(string $grossCommission): self
+    {
+        $this->setDetail(self::DETAILS_DWL_GROSSCOMMISSION, $grossCommission);
+
+        return $this;
+    }
+
+    public function getDwlGrossCommission(): string
+    {
+        return $this->getDetail(self::DETAILS_DWL_GROSSCOMMISSION, '0');
+    }
+
+    public function setDwlWinLoss(string $commission): self
+    {
+        $this->setDetail(self::DETAILS_DWL_WINLOSS, $commission);
+
+        return $this;
+    }
+
+    public function setDwlCustomerBalance(string $customerBalance): self
+    {
+        $this->setDetail(self::DETAILS_DWL_CUSTOMER_BALANCE, $customerBalance);
+
+        return $this;
+    }
+
+    public function getDwlCustomerBalance(): string
+    {
+        return $this->getDetail(self::DETAILS_DWL_CUSTOMER_BALANCE);
+    }
+
+    public function setDwlTurnover(string $turnover): self
+    {
+        $this->setDetail(self::DETAILS_DWL_TURNOVER, $turnover);
+
+        return $this;
+    }
+
+    public function setDwlCommission(string $commission): self
+    {
+        $this->setDetail(self::DETAILS_DWL_COMMISSION, $commission);
+
+        return $this;
+    }
+
+    public function getDwlBrokerageStake(): ?string
+    {
+        return $this->getDetail(self::DETAILS_DWL_BROKERAGE_STAKE);
+    }
+
+    public function setDwlBrokerageStake(string $stake): self
+    {
+        $this->setDetail(self::DETAILS_DWL_BROKERAGE_STAKE, $stake);
+
+        return $this;
+    }
+
+    public function hasDwlBrokerageStake(): bool
+    {
+        return $this->hasDetail(self::DETAILS_DWL_BROKERAGE_STAKE);
+    }
+
+    public function getDwlBrokerageWinLoss(): ?string
+    {
+        return $this->getDetail(self::DETAILS_DWL_BROKERAGE_WINLOSS);
+    }
+
+    public function setDwlBrokerageWinLoss(string $winLoss): self
+    {
+        $this->setDetail(self::DETAILS_DWL_BROKERAGE_WINLOSS, $winLoss);
+
+        return $this;
+    }
+
+    public function hasDwlBrokerageWinLoss(): bool
+    {
+        return $this->hasDetail(self::DETAILS_DWL_BROKERAGE_WINLOSS);
+    }
+
+    public function setDWLExcludeInList(bool $exclude): self
+    {
+        if ($exclude) {
+            $this->setDetail(self::DETAILS_DWL_EXCLUDE_IN_LIST, 1);
+        } else {
+            $this->setDetail(self::DETAILS_DWL_EXCLUDE_IN_LIST, 0);
+        }
+
+        return $this;
+    }
+
+    public function isDwlExcludeInList(): bool
+    {
+        return $this->getDetail(self::DETAILS_DWL_EXCLUDE_IN_LIST, 0) === 1;
+    }
+
+    public function getDwlReturn(): string
+    {
+        if ($this->hasDwlBrokerageStake() && $this->hasDwlBrokerageWinLoss()) {
+            return Number::add($this->getDwlBrokerageWinLoss(), $this->getDwlBrokerageStake())->toString();
+        }
+
+        return $this->getDwlWinLoss();
     }
 }

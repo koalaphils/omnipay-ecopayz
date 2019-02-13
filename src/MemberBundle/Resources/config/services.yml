@@ -1,5 +1,6 @@
 imports:
     - { resource: handler.yml }
+    - { resource: widgets.yml }
 
 services:
     member.transformer.referrerTransformer:
@@ -13,10 +14,20 @@ services:
         parent: app.base_manager
         arguments: [ "@app.setting_manager" ]
         calls:
+            - ['setEntityManager', ['@doctrine.orm.entity_manager']]
+            - ['setTranslator', ['@translator']]
+            - ['setEventDispatcher', ['@event_dispatcher']]
             - ['setSettingManager', ['@app.setting_manager']]
             - ['setCommissionManager', ['@commission.manager']]
+            - ['setTransactionManager', ['@transaction.manager']]
             - ['setMemberProductRepository', ['@=service("doctrine").getRepository("DbBundle\\Entity\\CustomerProduct")']]
-    
+            - ['setMemberReferralNameRepository', ['@=service("doctrine").getRepository("DbBundle\\Entity\\MemberReferralName")']]
+            - ['setMemberPaymentOptionRepository', ['@=service("doctrine").getRepository("DbBundle\\Entity\\CustomerPaymentOption")']]
+
+    member.inactive.manager:
+        class: MemberBundle\Manager\InactiveMemberManager
+        arguments: [ "@doctrine.orm.entity_manager", "@transaction.manager"]
+
     member.commission_manager:
         class: MemberBundle\Manager\MemberCommissionManager
         parent: app.base_manager

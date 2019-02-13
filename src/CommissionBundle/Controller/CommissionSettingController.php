@@ -18,7 +18,7 @@ class CommissionSettingController extends PageController
         $commissionManager = $this->get('commission.manager');
         $loggedInUser = $this->container->get('security.token_storage')->getToken()->getUser();
 
-        $result  = $commissionManager->recomputeAndPayoutCommissionForPeriod($commissionPeriodId, $loggedInUser->getUsername());
+        $result  = $commissionManager->recomputeAndPayoutCommissionForPeriod($commissionPeriodId, $loggedInUser->getUsername(), true);
         $responseData = ['success' => false];
         if ($result === true) {
             $responseData = ['success' => true];

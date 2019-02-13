@@ -12,6 +12,8 @@ class Setting extends Entity
     const ENABLE_AUTO_DECLINE = false;
     const SCHEDULER_DEFAULT_MIN = 20;
     const TIME_DURATION_NAME = 'minutes';
+    const ENABLE_AUTO_LOCK = false;
+    const LOCKDOWN_PERIOD_MIN = 20;
     /**
      * @var string
      */

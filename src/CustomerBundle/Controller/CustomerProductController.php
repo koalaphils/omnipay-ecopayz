@@ -1,5 +1,4 @@
 <?php
-
 namespace CustomerBundle\Controller;
 
 use AppBundle\Controller\AbstractController;
@@ -31,7 +30,7 @@ class CustomerProductController extends AbstractController
         if ($id !== 'all') {
             $filters['customerID'] = $id;
         }
-        $results = $this->getManager()->getCustomerProductList($filters);
+        $results = $this->getManager()->getCustomerProductList($filters, true);
 
         return new JsonResponse($results, $status ? JsonResponse::HTTP_OK : JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
     }

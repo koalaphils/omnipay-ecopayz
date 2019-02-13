@@ -4,3 +4,9 @@ services:
         arguments: ["@doctrine", "@app.setting_manager"]
         tags:
             - { name: form.type }
+
+    ApiBundle\Form\MemberProduct\MemberProductType:
+        arguments:
+            - '@=service("doctrine").getRepository("DbBundle\\Entity\\Product")'
+        tags:
+            - { name: form.type }

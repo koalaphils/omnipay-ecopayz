@@ -2,11 +2,11 @@ services:
     member.handler.create_member:
         class: MemberBundle\RequestHandler\CreateMemberRequestHandler
         lazy: true
-        arguments: ["@doctrine.orm.entity_manager", "@request_stack", "@security.password_encoder", "@member.manager"]
+        arguments: ["@doctrine.orm.entity_manager", "@request_stack", "@security.password_encoder", "@member.manager", "@user.manager", "%asianconnect_url%"]
     member.handler.update_profile:
         class: MemberBundle\RequestHandler\UpdateProfileRequestHandler
         lazy: true
-        arguments: ["@doctrine.orm.entity_manager", "@request_stack", "@event_dispatcher", "@audit.manager"]
+        arguments: ["@doctrine.orm.entity_manager", "@request_stack", "@event_dispatcher", "@audit.manager", "@member.manager"]
     member.handler.update_password:
         class: MemberBundle\RequestHandler\UpdatePasswordRequestHandler
         lazy: true

@@ -1,5 +1,5 @@
 (function($){
-    
+
     $.fn.report = function(options, params){
         var settings = options;
         params = params || [];
@@ -24,7 +24,7 @@
             }
         });
     };
-    
+
     function _defaults(){
         return {
             'columns':[],
@@ -34,36 +34,36 @@
             'serverSide': false
         };
     }
-    
+
     function init(elem, settings){
         $(elem).data('settings',settings);
         $(elem).data('init',false);
         $(elem).data('dateFrom',settings.defaultFrom);
         $(elem).data('dateTo',settings.defaultTo);
-        
+
         $(elem).on('report:hide',function(){
             $(this).addClass('hide');
         });
-        
+
         $(elem).on('report:show',function(){
             $(this).removeClass('hide');
         });
-        
+
         $(elem).on('report:reset',settings,function(event){
             $(this).trigger('report:filter',[event.data.defaultFrom, event.data.defaultTo]);
         });
-        
+
         $(elem).on('report:init',settings,initTable);
-        
+
     }
-    
+
     function initTable(event,params){
         var elem = this;
         var settings = event.data;
-        
+
         var listUrl = $(elem).data('list-url');
         var table = $(elem).find('table');
-        
+
         var dataTable = $(table).dataTable({
             "ordering": false,
             "bPaginate": settings.paginate,
@@ -91,9 +91,9 @@
             "columns": settings.columns,
             "columnDefs": settings.columnDefs
         }).api();
-        
+
         $(elem).data('init',true);
-        
+
         $(elem).on('report:filter',{'dataTable':dataTable},function(event, dateFrom, dateTo){
             $(this).data('dateFrom',dateFrom);
             $(this).data('dateTo',dateTo);

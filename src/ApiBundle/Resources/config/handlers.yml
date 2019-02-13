@@ -3,3 +3,11 @@ services:
         class: ApiBundle\RequestHandler\CreateMemberBannerRequestHandler
         lazy: true
         arguments: ["@doctrine"]
+
+    api.member_product.create.request_handler:
+        class: ApiBundle\RequestHandler\CreateMemberProductRequestHandler
+        lazy: true
+        arguments:
+            - '@doctrine.orm.entity_manager'
+            - '@=service("doctrine").getRepository("DbBundle\\Entity\\Product")'
+            - '@event_dispatcher'

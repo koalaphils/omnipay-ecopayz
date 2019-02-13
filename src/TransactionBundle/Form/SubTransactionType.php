@@ -12,6 +12,7 @@ use Symfony\Component\Form\Extension\Core\Type;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
+use Doctrine\DBAL\LockMode;
 
 /**
  * Description of SubTransactionType.
@@ -45,6 +46,7 @@ class SubTransactionType extends AbstractType
         ])->add('amount', Type\NumberType::class, [
             'label' => 'fields.subTransaction.amount',
             'translation_domain' => 'TransactionBundle',
+            'scale' => 2,
             'required' => true,
             'attr' => [
                 'class' => 'subtransaction-amount',
@@ -66,12 +68,18 @@ class SubTransactionType extends AbstractType
             $data = $event->getData();
             $form = $event->getForm();
 
+            if (array_has($data, 'customerProduct')) {
+                $assumed_value = explode(' ', $data['amount'])[0];
+                $data['amount'] = is_numeric($assumed_value) ? (float) $assumed_value : $assumed_value;
+                $event->setData($data);
+            }
+
             if (array_has($data, 'customerProduct') && array_get($options['unmap'], 'customerProduct', true)) {
                 $form->add('customerProduct', \Symfony\Bridge\Doctrine\Form\Type\EntityType::class, [
                     'class' => 'DbBundle\Entity\CustomerProduct',
                     'label' => 'fields.subTransaction.product',
                     'required' => true,
-                    'choices' => [$this->getCustomerProductRepository()->find($data['customerProduct'])],
+                    'choices' => [$this->getCustomerProductRepository()->find($data['customerProduct'], LockMode::PESSIMISTIC_WRITE)],
                     'choice_label' => 'userName',
                     'attr' => [
                         'data-placeholder' => 'Select Product',

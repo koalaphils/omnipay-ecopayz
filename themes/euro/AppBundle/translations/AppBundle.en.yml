@@ -26,14 +26,14 @@ breadcrumb:
 
 page:
     title:
-        main: PIWI CMS
+        main: AC66 CMS
         login: Login
         dashboard: Dashboard
         setting:
                 maintenance: Settings | Maintenance
                 paymentOption: Settings | Payment Options
                 scheduler: Settings | Task Scheduler
-
+                bitcoin: Settings | Bitcoin
 
 layout:
     Notification: Notification
@@ -68,6 +68,7 @@ roles:
     maintenance: Maintenance
     updateSettings: Update Settings
     scheduler: Scheduler
+    bitcoinSetting: Bitcoin Setting
 
 settings:
     maintenance:
@@ -89,7 +90,15 @@ settings:
         fields:
             enabled: Auto Decline
             minutesInterval: Interval in minutes
-
+    bitcoin:
+        label: Bitcoin
+        fields:
+            autoDecline: Auto Decline
+            minutesInterval: Minutes Of Interval
+            minimumDeposit: Minimum Allowed Deposit
+            maximumDeposit: Maximum Allowed Deposit
+            autoLock: Auto Lock
+            minutesLockDownInterval: Minutes of Lock down period
 
 notification:
     setting:
@@ -99,6 +108,10 @@ notification:
         title: Saved
         message: Payment Options was successfully saved.
     scheduler:
+        title: Saved
+        message: Task was successfully Saved
+        message_failed: Invalid field
+    bitcoin:
         title: Saved
         message: Task was successfully Saved
         message_failed: Invalid field

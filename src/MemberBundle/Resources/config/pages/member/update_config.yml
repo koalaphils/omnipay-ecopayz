@@ -6,6 +6,11 @@ data:
         method: findById
         arguments:
             - '@=app.getRequest().attributes.get("id")'
+    referrerByCode:
+        class: '@member.manager'
+        method: 'getReferrerByReferrerCode'
+        arguments:
+            - '@=pageManager.getData("customer").getReferrerCode()'
 
 widgets:
     profileForm:
@@ -49,14 +54,6 @@ widgets:
                         label: Email
                         required: true
                     type: email
-                    size: 12
-                    group: Left
-                # zimi#802ddfbe
-                phoneNumber:
-                    type: text
-                    options:
-                        label: Phone number
-                        required: false
                     size: 12
                     group: Left
                 status:
@@ -128,6 +125,18 @@ widgets:
                         required: true
                     size: 12
                     group: Left
+                gender:
+                    type: choices
+                    options:
+                        choices:
+                            Not set: 0 
+                            Male: 1
+                            Female: 2
+                        label: Gender
+                        required: true
+                    group: Left
+                    size: 12
+                    type: dropdown
                 joinedAt:
                     options:
                         label: Date Joined
@@ -247,6 +256,7 @@ widgets:
                         label: Confirm Password
                         required: false
                     type: password
+
     sendResetPasswordForm:
         type: AppBundle\Widget\Page\FormWidget
         properties:
@@ -269,6 +279,7 @@ widgets:
                         function: '@member.manager::getOriginSetting'
                         label: result['name'] ~ ' (' ~ result['code'] ~ ')'
                         value: result['url']
+
     contactsForm:
         type: AppBundle\Widget\Page\FormWidget
         properties:
@@ -374,6 +385,11 @@ widgets:
                     type: function
                     from: isActive
                     function: productListStatus
+                requestedAt:
+                    label: Date Requested
+                    type: function
+                    from: requestedAt
+                    function: formatRequestedAt
                 action:
                     label: Action
                     type: function
@@ -535,7 +551,7 @@ widgets:
                     label: Type
                     type: function
                     function: translateTypeText
-            filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'ft>>poyar<'form-group' <'m-t-10'>>>
+            filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'ft>>poysar<'form-group' <'m-t-10'>>>
             filters:
                 from:
                     label: From
@@ -615,7 +631,29 @@ widgets:
                         transfer: Transfer
                         p2ptransfer: P2P Transfer
                         dwl: Win/Loss
+                        bonus: Bonus
+                        bet: Bet
+                        commission: Commission
+                        debit_adjustment: Debit
+                        credit_adjustment: Credit
                     value: :types
+                status:
+                    dom: <'form-group form-group-sm m-r-10 xs-filter'i>
+                    label: Status
+                    type: select
+                    symbol: s
+                    class: selectpicker
+                    applyOnChanged: 0
+                    attrs:
+                        data-style: btn-white btn-sm
+                        multiple: multiple
+                        data-none-selected-text: Select Status
+                        data-width: auto
+                    value: :status
+                    choicesFrom:
+                        function: '@member.manager::getTransactionStatusFilterList'
+                        label: result['label']
+                        value: result['value']
                 applyFilter:
                     attrs:
                         class: btn btn-sm btn-default
@@ -963,8 +1001,9 @@ widgets:
                     from: campaign_name
                 website:
                     label: Website
-                    type: text
-                    from: member_website.website
+                    type: function
+                    function: formatWebsite
+                    from: member_website
                 referralCode:
                     label: Referral Code
                     type: text
@@ -1086,6 +1125,7 @@ widgets:
                     params:
                         id: '@=pageManager.getData("customer").getId()'
                         orderBy: 'productName'
+                        precision: '2'
                 type: POST
             columns:
                 productName:
@@ -1127,7 +1167,7 @@ widgets:
                         type: function
                         function: turnoverCommissionTotalCommission
                         from: totals
-            filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'ft>>ar<'form-group' <'m-t-10'>>c<'form-group' <'m-t-10'>>>
+            filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'fth>>ar<'form-group' <'m-t-10'>>c<'form-group' <'m-t-10'>>>
             filters:
                 dwlDateFrom:
                     label: DWL Date From
@@ -1148,6 +1188,11 @@ widgets:
                         placeholder: DWL Date To
                         type: input
                         class: form-control cls-date
+                    applyOnChanged: 0
+                hideZeroTurnover:
+                    label: 'Hide zero turnover?'
+                    type: checkbox
+                    symbol: h
                     applyOnChanged: 0
                 applyFilter:
                     attrs:
@@ -1171,6 +1216,7 @@ widgets:
                     params:
                         id: '@=pageManager.getData("customer").getId()'
                         orderBy: 'memberId'
+                        precision: '2'
                 type: POST
             columns:
                 memberId:
@@ -1212,7 +1258,7 @@ widgets:
                         type: function
                         function: turnoverCommissionTotalCommission
                         from: totals
-            filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'ft>>ar<'form-group' <'m-t-10'>>c<'form-group' <'m-t-10'>>>
+            filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'fth>>ar<'form-group' <'m-t-10'>>c<'form-group' <'m-t-10'>>>
             filters:
                 dwlDateFrom:
                     label: DWL Date From
@@ -1233,6 +1279,11 @@ widgets:
                         placeholder: DWL Date To
                         type: input
                         class: form-control cls-date
+                    applyOnChanged: 0
+                hideZeroTurnover:
+                    label: 'Hide zero turnover?'
+                    type: checkbox
+                    symbol: h
                     applyOnChanged: 0
                 applyFilter:
                     attrs:

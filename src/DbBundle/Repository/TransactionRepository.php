@@ -2,6 +2,7 @@
 
 namespace DbBundle\Repository;
 
+use DbBundle\Entity\PaymentOption;
 use Doctrine\ORM\Query;
 use DbBundle\Entity\Transaction;
 use DbBundle\Entity\SubTransaction;
@@ -9,6 +10,7 @@ use DbBundle\Entity\User;
 use DbBundle\Entity\Currency;
 use DbBundle\Entity\CustomerProduct;
 use DbBundle\Entity\Product;
+use Doctrine\ORM\QueryBuilder;
 
 /**
  * TransactionRepository.
@@ -17,7 +19,7 @@ use DbBundle\Entity\Product;
  * repository methods below.
  */
 class TransactionRepository extends BaseRepository
-{   
+{
     public function save($entity)
     {
         try {
@@ -31,7 +33,7 @@ class TransactionRepository extends BaseRepository
         }
     }
 
-    public function findById($id, $hydrationMode = \Doctrine\ORM\Query::HYDRATE_OBJECT)
+    public function findById($id, $hydrationMode = Query::HYDRATE_OBJECT)
     {
         $qb = $this->createQueryBuilder('t');
         $qb->join('t.customer', 'c');
@@ -44,7 +46,7 @@ class TransactionRepository extends BaseRepository
         return $qb->getQuery()->getSingleResult($hydrationMode);
     }
 
-    public function findByReferenceNumber($referenceNumber, $hydrationMode = \Doctrine\ORM\Query::HYDRATE_OBJECT)
+    public function findByReferenceNumber($referenceNumber, $hydrationMode = Query::HYDRATE_OBJECT)
     {
         $qb = $this->createQueryBuilder('t');
         $qb->join('t.customer', 'c');
@@ -56,30 +58,25 @@ class TransactionRepository extends BaseRepository
         return $qb->getQuery()->getSingleResult($hydrationMode);
     }
 
-    public function findByIdAndType($id, $type, $hydrationMode = \Doctrine\ORM\Query::HYDRATE_OBJECT, $lockMode = null)
+    public function findByIdAndType($id, $type, $hydrationMode = Query::HYDRATE_OBJECT, $lockMode = null)
     {
         $qb = $this->createQueryBuilder('t');
-        
         $qb->join('t.customer', 'c');
-        $qb->leftJoin('c.user', 'u');
-
-        // zimi-comment
-        // $qb->join('t.subTransactions', 's');
-        // $qb->join('s.customerProduct', 'cp');
-        // $qb->join('cp.customer', 'cpc');p
-        
+        $qb->join('t.subTransactions', 's');
+        $qb->join('s.customerProduct', 'cp');
+        $qb->join('cp.customer', 'cpc');
         $qb->leftJoin('t.gateway', 'g');
-        $qb->leftJoin('g.currency', 'gc');        
-        $qb->select('t,c,g,gc,u');
-        $qb->where('t.id = :id AND t.type = :type')->setParameter('id', $id)->setParameter('type', $type);        
+        $qb->leftJoin('g.currency', 'gc');
+
+        $qb->select('t,c,s,cp,g,gc,cpc');
+        $qb->where('t.id = :id AND t.type = :type')->setParameter('id', $id)->setParameter('type', $type);
+
         $qu = $qb->getQuery();
-            
         if (!is_null($lockMode)) {
             $qu->setLockMode($lockMode);
         }
 
-        // zimi          
-        return $qu->getSingleResult($hydrationMode);               
+        return $qu->getSingleResult($hydrationMode);
     }
 
     /**
@@ -189,7 +186,6 @@ class TransactionRepository extends BaseRepository
 
     public function findTransactions($filters = [], $orders = [], $limit = 10, $offset = 0, $select = [], $hydrationMode = Query::HYDRATE_OBJECT): array
     {
-
         $queryBuilder = $this->createFilterQueryBuilder($filters);
         $queryBuilder->setMaxResults($limit);
         $queryBuilder->setFirstResult($offset);
@@ -228,11 +224,16 @@ class TransactionRepository extends BaseRepository
         $queryBuilder->addSelect('IFNULL(JSON_UNQUOTE(JSON_EXTRACT(transaction.fees, \'$.total_customer_fee\')), 0) as memberFee');
         $queryBuilder->addSelect("CONCAT(
             IFNULL(JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.code')), JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOption.code'))) ,
-            '(' , 
-            IFNULL(IFNULL(JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.email')), JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOption.email'))),'') , 
-            IFNULL(JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.accountId')),'') ,
-             ')'
-            ) 
+            '(' ,
+                IFNULL(NULLIF(transaction.virtualBitcoinReceiverUniqueAddress, 'null'), 
+                    IFNULL(JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.email')), 
+                        IFNULL(JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOption.email')),
+                            IFNULL(JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.accountId')), '') 
+                        )
+                    )
+                ),
+            ')'
+            )
             as immutablePaymentOptionDataOnTransaction");
         $queryBuilder->addSelect('IF (createdBy.type = '. User::USER_TYPE_MEMBER .',true,false) as wasCreatedFromAms');
         $queryBuilder->addSelect('currency.code as currencyCode');
@@ -240,16 +241,16 @@ class TransactionRepository extends BaseRepository
         CONCAT(
             GROUP_CONCAT(
                 CONCAT(
-                    IFNULL(withdrawal_product.name, ''), 
-                    ' (', 
+                    IFNULL(withdrawal_product.name, ''),
+                    ' (',
                     IFNULL(withdrawal_customerProduct.userName, '')
                     ,') '
-                ) SEPARATOR ', '), 
+                ) SEPARATOR ', '),
             ' ',
             GROUP_CONCAT(
                 CONCAT(
-                    IFNULL(product.name, ''), 
-                    ' (', 
+                    IFNULL(product.name, ''),
+                    ' (',
                     IFNULL(customerProduct.userName, ''),
                     ')'
                  ) SEPARATOR ', '
@@ -319,17 +320,80 @@ class TransactionRepository extends BaseRepository
         $qb->setMaxResults($limit);
         $qb->setFirstResult($offset);
         $qb->andWhere('t.status = :status');
-        $qb->setParameter('status', \DbBundle\Entity\Transaction::TRANSACTION_STATUS_START);
+        $qb->setParameter('status', Transaction::TRANSACTION_STATUS_START);
         $qb->orderBy('t.createdAt', 'desc');
 
         return $qb->getQuery()->getResult();
     }
-    
-    private function createFilterQueryBuilder($filters, $joins = []): \Doctrine\ORM\QueryBuilder
+
+    public function getTotalMemberDepositTransactionWithTypeAndStatus(
+        int $memberId,
+        int $status,
+        string $paymentMode
+    ): int {
+        $queryBuilder = $this->createQueryBuilder('transaction');
+        $queryBuilder
+            ->select('COUNT(transaction.id) totalTransaction')
+            ->innerJoin('transaction.paymentOptionType', 'paymentOptionType')
+            ->where($queryBuilder->expr()->andX()->addMultiple([
+                'transaction.customer = :memberId',
+                'transaction.status = :status',
+                'paymentOptionType.paymentMode = :paymentMode'
+            ]))
+            ->setParameters([
+                'memberId' => $memberId,
+                'status' => $status,
+                'paymentMode' => $paymentMode,
+            ]);
+
+        return $queryBuilder->getQuery()->getSingleScalarResult();
+    }
+
+    public function getTransactionsToDecline(string $interval, int $status, int $type, array $paymentOptionType): array
+    {
+        $queryBuilder = $this->createQueryBuilder('t');
+        $queryBuilder
+            ->select('t.id')
+            ->where('t.status = :status AND t.isVoided = 0')
+            ->andWhere('t.updatedAt <= :interval')
+            ->andWhere('t.type = :type')
+            ->andWhere('t.paymentOptionType IN (:paymentOptionType)')
+            ->andWhere("JSON_EXTRACT(t.details, '$.bitcoin.confirmation_count') IS NULL")
+            ->setParameter('interval', new \DateTime("-" . $interval))
+            ->setParameter('status', $status)
+            ->setParameter('type', $type)
+            ->setParameter('paymentOptionType', $paymentOptionType);
+
+        return $queryBuilder->getQuery()->getArrayResult();
+    }
+
+    public function getBitcoinTransactionsToLock(string $interval): array
+    {
+        $queryBuilder = $this->createQueryBuilder('t');
+        $queryBuilder
+            ->select('t.id')
+            ->where('t.status = :status AND t.isVoided = 0')
+            ->andWhere('t.updatedAt <= :interval')
+            ->andWhere('t.type = :type')
+            ->andWhere('t.paymentOptionType IN (:paymentOptionType)')
+            ->andWhere("JSON_CONTAINS(t.details, 'false', '$.bitcoin.rate_expired') = true")
+            ->setParameter('interval', new \DateTime("-" . $interval))
+            ->setParameter('status', Transaction::TRANSACTION_STATUS_START)
+            ->setParameter('type', Transaction::TRANSACTION_TYPE_DEPOSIT)
+            ->setParameter('paymentOptionType', ['BITCOIN']);
+
+        return $queryBuilder->getQuery()->getArrayResult();
+    }
+
+    private function createFilterQueryBuilder($filters, $joins = []): QueryBuilder
     {
         $queryBuilder = $this->createQueryBuilder('transaction');
-        $this->queryBuilderJoin($queryBuilder, 'transaction.customer', 'customer');
-        $this->queryBuilderJoin($queryBuilder, 'customer.user', 'user');
+
+        if ($this->validFilter($filters, 'excludeStatus') || $this->validFilter($filters, 'search') || $this->validFilter($filters, 'isUsingExport')) {
+            $this->queryBuilderJoin($queryBuilder, 'transaction.customer', 'customer');
+            $this->queryBuilderJoin($queryBuilder, 'customer.user', 'user');
+        }
+
         foreach ($joins as $key => $alias) {
             $this->queryBuilderJoin($queryBuilder, $key, $alias);
         }
@@ -378,6 +442,7 @@ class TransactionRepository extends BaseRepository
         }
 
         if ($this->validFilter($filters, 'search', '')) {
+            $searchValue = array_get($filters, 'search');
             $exp = $queryBuilder->expr()->orX();
             $exp->add("transaction.number LIKE :search");
 
@@ -393,9 +458,14 @@ class TransactionRepository extends BaseRepository
                 $queryBuilder->setParameter('searchTransactionIds', $filters['searchTransactionIds']);
             }
 
+            $exp->add('transaction.virtualBitcoinReceiverUniqueAddress LIKE :receiverAddress ');
+            $exp->add('transaction.virtualBitcoinTransactionHash = :bitcoinTransactionHash');
+
             $queryBuilder
                 ->andWhere($exp)
-                ->setParameter('search', array_get($filters, 'search') . '%')
+                ->setParameter('search', $searchValue . '%')
+                ->setParameter('bitcoinTransactionHash', $searchValue)
+                ->setParameter('receiverAddress', '%'. $searchValue . '%')
             ;
         }
 
@@ -412,11 +482,48 @@ class TransactionRepository extends BaseRepository
             $queryBuilder->andWhere($exp);
         }
 
+        // for handling default pending filter value
+        if ($this->validFilter($filters, 'excludeStatus')) {
+            if(empty(array_get($filters, 'status', []))){
+                //no additional filter on status
+                $filters['status'] = array(Transaction::TRANSACTION_STATUS_START, Transaction::TRANSACTION_STATUS_ACKNOWLEDGE, Transaction::DETAIL_BITCOIN_STATUS_PENDING);
+            }
+        }
+
         if (!empty(array_get($filters, 'status', []))) {
             $exp = $queryBuilder->expr()->orX();
-            if (is_array($filters['status']) && in_array(Transaction::TRANSACTION_STATUS_VOIDED, $filters['status'])) {
-                $exp->add('transaction.isVoided = true');
+
+            if (is_array($filters['status'])) {
+                if (in_array(Transaction::TRANSACTION_STATUS_VOIDED, $filters['status'])) {
+                    $exp->add('transaction.isVoided = true');
+                }
+
+                if (in_array(Transaction::DETAIL_BITCOIN_STATUS_PENDING, $filters['status'])) {
+                    $exp->add('transaction.paymentOptionType = :bitcoin
+                                AND transaction.type = :deposit
+                                AND transaction.status != :endStatus
+                                AND transaction.isVoided = 0
+                                AND IFNULL(transaction.bitcoinConfirmationCount, 0) < 3');
+
+                    $queryBuilder->setParameter('bitcoin', PaymentOption::PAYMENT_MODE_BITCOIN)
+                        ->setParameter('endStatus', Transaction::TRANSACTION_STATUS_END)
+                        ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT);
+                }
+
+                if (in_array(Transaction::DETAIL_BITCOIN_STATUS_CONFIRMED, $filters['status'])) {
+                    $exp->add('transaction.paymentOptionType = :bitcoin
+                                AND transaction.type = :deposit
+                                AND transaction.bitcoinConfirmationCount IS NOT NULL
+                                AND transaction.status != :endStatus
+                                AND transaction.isVoided = 0
+                                AND transaction.bitcoinConfirmationCount >= 3');
+
+                    $queryBuilder->setParameter('bitcoin', PaymentOption::PAYMENT_MODE_BITCOIN)
+                        ->setParameter('endStatus', Transaction::TRANSACTION_STATUS_END)
+                        ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT);
+                }
             }
+
             $exp->add('transaction.status IN (:status) AND transaction.isVoided = false');
             $queryBuilder->setParameter('status', $filters['status']);
             $queryBuilder->andWhere($exp);
@@ -426,6 +533,12 @@ class TransactionRepository extends BaseRepository
             $queryBuilder->andWhere(
                 $queryBuilder->expr()->notIn('transaction.status', ':excludeStatus')
             )->setParameter('excludeStatus', $filters['excludeStatus']);
+        } else {
+            if ($this->validFilter($filters, 'isDataTableTransaction')) {
+                $queryBuilder
+                    ->andWhere('transaction.status NOT IN (:transactionStatus)')
+                    ->setParameter('transactionStatus', Transaction::getPendingStatus());
+            }
         }
 
         if ($this->validFilter($filters, 'voided')) {
@@ -452,7 +565,7 @@ class TransactionRepository extends BaseRepository
         return $queryBuilder;
     }
 
-    private function queryBuilderJoin(\Doctrine\ORM\QueryBuilder $queryBuilder, string $key, string $alias)
+    private function queryBuilderJoin(QueryBuilder $queryBuilder, string $key, string $alias)
     {
         $joinDqlPart = $queryBuilder->getDQLParts()['join'];
         $aliasAlreadyExists = false;
@@ -490,11 +603,59 @@ class TransactionRepository extends BaseRepository
             'bonus' => Transaction::TRANSACTION_TYPE_BONUS,
             'dwl' => Transaction::TRANSACTION_TYPE_DWL,
             'bet' => Transaction::TRANSACTION_TYPE_BET,
+            'commission' => Transaction::TRANSACTION_TYPE_COMMISSION,
+            'debit_adjustment' => Transaction::TRANSACTION_TYPE_DEBIT_ADJUSTMENT,
+            'credit_adjustment' => Transaction::TRANSACTION_TYPE_CREDIT_ADJUSTMENT,
         ];
     }
 
     private function getTypeValue(string $type): int
     {
         return $this->getTypesValue()[$type];
+    }
+
+    public function findLastTransactionDateByMemberId(int $memberId): ?\DateTimeInterface
+    {
+        $qb = $this->createQueryBuilder('t');
+        $qb->select('MAX(t.date) as lastTransactionDate');
+        $qb->where('t.customer = :memberId')->setParameter('memberId', $memberId);
+
+        $lastTransactionDate = $qb->getQuery()->getSingleScalarResult();
+
+        if (!is_null($lastTransactionDate)) {
+            return new \DateTimeImmutable($lastTransactionDate);
+        }
+        return null;
+    }
+
+    public function getLessThanConfirmationBitcoinTransactionForMember(int $memberId, int $confirmation): Transaction
+    {
+        $qb = $this->createQueryBuilder('transaction');
+        $qb
+            ->select('transaction, paymentOptionType, m')
+            ->innerJoin('transaction.paymentOptionType', 'paymentOptionType')
+            ->innerJoin('transaction.customer', 'm')
+            ->where($qb->expr()->andX()->addMultiple([
+                'transaction.customer = :memberId',
+                'transaction.type = :type',
+                'paymentOptionType.paymentMode = :paymentMode',
+                'transaction.status = :status',
+                'transaction.isVoided = false'
+            ]))
+            ->andWhere($qb->expr()->orX()->addMultiple([
+                'transaction.bitcoinConfirmation < :confirmation',
+                'transaction.bitcoinConfirmation IS NULL'
+            ]))
+            ->setParameters([
+                'memberId' => $memberId,
+                'confirmation' => $confirmation,
+                'type' => Transaction::TRANSACTION_TYPE_DEPOSIT,
+                'paymentMode' => PaymentOption::PAYMENT_MODE_BITCOIN,
+                'status' => Transaction::TRANSACTION_STATUS_START,
+            ])
+            ->setMaxResults(2)
+        ;
+
+        return $qb->getQuery()->getSingleResult();
     }
 }

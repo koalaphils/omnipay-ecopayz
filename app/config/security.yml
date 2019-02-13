@@ -36,7 +36,11 @@ security:
         payment:
             pattern: ^/payment
             security: false
-
+        
+        blockchain:
+            pattern: ^/blockchain
+            security: false
+            
         main:
             pattern: ^/
             anonymous: ~
@@ -51,12 +55,12 @@ security:
                 check_path: app.login_check
                 default_target_path: app.dashboard_page
 
-    # access_control:
-    #     - { path: ^/(%app_locales%)/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-    #     -
-    #         path: ^/(%app_locales%)/api/me
-    #         allow_if: "has_role('ROLE_CUSTOMER')"
+    access_control:
+        - { path: ^/(%app_locales%)/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        -
+            path: ^/(%app_locales%)/api/me
+            allow_if: "has_role('ROLE_CUSTOMER')"
 
-    #     - { path: ^/(%app_locales%)/api, roles: [ROLE_API] }
-    #     - { path: ^/(%app_locales%)/api/customers, roles: [ROLE_API] }
-    #     - { path: ^/, roles: [ROLE_ADMIN,ROLE_MAINTENANCE] }
+        - { path: ^/(%app_locales%)/api, roles: [ROLE_API] }
+        - { path: ^/(%app_locales%)/api/customers, roles: [ROLE_API] }
+        - { path: ^/, roles: [ROLE_ADMIN,ROLE_MAINTENANCE] }

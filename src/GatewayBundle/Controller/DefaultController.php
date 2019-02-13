@@ -241,9 +241,4 @@ class DefaultController extends AbstractController
     {
         return $this->getDoctrine()->getRepository(PaymentOption::class);
     }
-
-    private function getFormFactory(): \Symfony\Component\Form\FormFactory
-    {
-        return $this->get('form.factory');
-    }
 }

@@ -21,6 +21,7 @@ class SubTransaction
     private $transaction;
     private $username;
     private $code;
+    private $paymentDetails;
 
     public function getProduct()
     {
@@ -104,5 +105,34 @@ class SubTransaction
         $this->code = $code;
         
         return $this;
+    }
+    
+    public function getPaymentDetails(): ?PaymentInterface
+    {
+        return $this->paymentDetails;
+    }
+    
+    public function setPaymentDetails(?PaymentInterface $paymentDetails): self
+    {
+        $this->paymentDetails = $paymentDetails;
+        if ($this->paymentDetails instanceof PaymentInterface && $this->getTransaction() instanceof Transaction) {
+            $this->paymentDetails->setTransaction($this->getTransaction());
+        }
+        
+        return $this;
+    }
+    
+    public function hasPaymentDetails(): bool
+    {
+        return $this->getPaymentDetails() instanceof PaymentInterface;
+    }
+
+    public function isPaymentBitcoin(): bool
+    {
+        if (!empty($this->getPaymentDetails()) && isset($this->getPaymentDetails()->getDetails()['bitcoin'])) {
+            return true;
+        }
+
+        return false;
     }
 }

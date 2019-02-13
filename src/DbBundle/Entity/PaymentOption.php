@@ -15,6 +15,7 @@ class PaymentOption extends Entity implements ActionInterface, TimestampInterfac
     use Traits\ActionTrait;
     use Traits\TimestampTrait;
     const PAYMENT_MODE_ECOPAYZ = 'ecopayz';
+    const PAYMENT_MODE_BITCOIN = 'bitcoin';
     const PAYMENT_MODE_OFFLINE = 'offline';
     const FIELD_CODE_REQUIRED = 'isRequired';
     const FIELD_CODE_UNIQUE = 'isUnique';
@@ -229,6 +230,16 @@ class PaymentOption extends Entity implements ActionInterface, TimestampInterfac
     public function isPaymentEcopayz(): bool
     {
         return $this->getPaymentMode() == self::PAYMENT_MODE_ECOPAYZ ? true : false;
+    }
+
+    public function isPaymentBitcoin(): bool
+    {
+        return $this->getPaymentMode() === self::PAYMENT_MODE_BITCOIN;
+    }
+
+    public function isBitcoinHasEnabledAutoDecline(): bool
+    {
+        return $this->isPaymentBitcoin() && $this->hasAutoDecline();
     }
 
     public function getCodeOfRequiredField(): array

@@ -1,0 +1,9 @@
+HTTP/1.1 200 OK
+Server: nginx/1.6.0
+Date: Fri, 23 Aug 2018 14:08:00 GMT
+Content-Type: text/json; charset=utf-8
+Connection: keep-alive
+Keep-Alive: timeout=60
+Cache-Control: private, max-age=0
+
+{"address": "16HcgcaeADNGxs1jHUcAxR2SAanaQE4Sjv", "callback": "http://mock.com/callback", "index": 23}

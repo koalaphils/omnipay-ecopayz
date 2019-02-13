@@ -6,6 +6,7 @@ use AppBundle\Manager\SettingManager;
 use DbBundle\Entity\CustomerProduct;
 use DbBundle\Entity\DWL;
 use DbBundle\Repository\CustomerProductRepository;
+use DbBundle\Repository\SubTransactionRepository;
 use Doctrine\ORM\EntityManager;
 use DWLBundle\Manager\DWLManager;
 use DWLBundle\Repository\TransactionRepository;
@@ -24,10 +25,16 @@ abstract class AbstractDWLService
     use ContainerAwareTrait;
 
     protected $logger = null;
+    protected $subTransactionRepository;
 
     public function setLogger(LoggerInterface $logger)
     {
         $this->logger = $logger;
+    }
+
+    public function setSubTransactionRepository(SubTransactionRepository $subTransactionRepository): void
+    {
+        $this->subTransactionRepository = $subTransactionRepository;
     }
 
     protected function updateProcess(DWL $dwl, int $process, int $total)
@@ -171,12 +178,12 @@ abstract class AbstractDWLService
     {
         return $this->container->get($serviceName);
     }
-    
+
     protected function getContainer(): ContainerInterface
     {
         return $this->container;
     }
-    
+
     protected function getUser()
     {
         if (!$this->container->has('security.token_storage')) {
@@ -193,5 +200,10 @@ abstract class AbstractDWLService
         }
 
         return $user;
+    }
+
+    protected function getSubTransactionRepository(): SubTransactionRepository
+    {
+        return $this->subTransactionRepository;
     }
 }

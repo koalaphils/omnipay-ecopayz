@@ -6,7 +6,18 @@ DbBundle\Entity\Product:
             expose: true
         code:
             expose: true
+            groups: ['Default', 'request_list']
         name:
             expose: true
+            groups: ['Default', 'request_list']
         deletedAt:
             expose: true
+    virtual_properties:
+        hasUsername:
+            expose: true
+            serialized_name: has_username
+            groups: ['API']
+        canBeRequested:
+            expose: true
+            serialized_name: can_be_requested
+            groups: ['API']

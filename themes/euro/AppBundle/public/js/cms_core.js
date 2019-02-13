@@ -7,7 +7,9 @@ String.prototype.getHashCode = (function(id) {
     }
 }(0));
 
-
+String.prototype.ellipsis = function(n) {
+    return this.substr(0, n-1) + (this.length > n ? '&hellip;' :'');
+};
 
 var objs = {};
 

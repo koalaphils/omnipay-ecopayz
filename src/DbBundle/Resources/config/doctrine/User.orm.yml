@@ -16,6 +16,8 @@ DbBundle\Entity\User:
             columns: [user_email]
         username_index:
             columns: [user_username]
+        usertype_index:
+            columns: [user_type]
     uniqueConstraints:
         username_unq:
             columns: [user_username, user_type]
@@ -35,13 +37,7 @@ DbBundle\Entity\User:
         email:
             type: string
             length: 255
-            nullable: true
             column: user_email
-        phoneNumber:
-            type: string
-            length: 255
-            nullable: true
-            column: user_phone_number
         type:
             type: integer
             length: 1

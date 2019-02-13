@@ -15,6 +15,8 @@ class MemberUpdatePage extends MemberCreatePage
     public static $formTitle = 'Update Member';
     public static $profileTabHeader = 'Member Details';
     public static $profileTabMarketingHeader = 'Marketing Info';
+    public static $profileLinkMemberHeader = 'Link Member';
+    public static $profileLinkMemberSuccessfulHeader = 'Successful';
 
     public static $turnoverCommissionWinLossHeader = 'Total Member W/L';
     public static $turnoverCommissionTurnoverHeader = 'Total Turnover';
@@ -32,6 +34,9 @@ class MemberUpdatePage extends MemberCreatePage
     public static $productsTableACWalletRowProductStatusColumn = '//*[@id="DataTables_Table_0"]/tbody/tr[td//text()[contains(., \'AC Wallet\')]]/td[4]';
 
     public static $addProductButton = '//*[@id="addProduct"]';
+    public static $autoLinkReferrerButton = '//*[@id="autoLink"]';
+    public static $linkMemberButton = '/html/body/div[3]/div[7]/div/button';
+    public static $linkMemberOkButton = '/html/body/div[3]/div[7]/div/button';
     
     public static $memberListURL = 'members/';
     public static $pikachiProductButton = '#DataTables_Table_0 > tbody > tr:nth-child(1) > td:nth-child(8) > a.btn.btn-icon.waves-effect.waves-light.btn-warning.btn-xs.btn-icn.active-state-action > i';
@@ -40,6 +45,7 @@ class MemberUpdatePage extends MemberCreatePage
     public static $balanceAmountField = '#update_productForm_data_balance';
     public static $saveProductButton = '#update_productForm_data_btnSave';
     public static $saveButtonLabel = 'Save';
+    public static $referrerField = '//*[@id="update_profileForm_data_referrer"]';
 
     public static $profileButton = '#DataTables_Table_0 > tbody > tr > td:nth-child(8) > a.btn.btn-primary.waves-effect.waves-light.btn-xs > i';
     public static $tagsField = '//*[@id="update_profileForm_data"]/div[1]/div[1]/div/div/div[2]/div/div/div[6]/div[2]/div/button/span[1]';

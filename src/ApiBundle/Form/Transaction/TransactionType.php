@@ -24,10 +24,15 @@ class TransactionType extends AbstractType
             'entry_type' => SubTransactionType::class,
             'allow_add' => true,
             'constraints' => [new \Symfony\Component\Validator\Constraints\Valid()],
-            'entry_options' => ['hasFee' => $options['hasFee']],
+            'entry_options' => [
+                'hasFee' => $options['hasFee'],
+            ],
         ]);
 
         $builder->add('customerFee', Type\NumberType::class);
+        $builder->add('bankDetails', Type\TextType::class, [
+            'required' => false
+        ]);
 
         if ($options['hasTransactionPassword']) {
             $builder->add('transactionPassword', Type\TextType::class);

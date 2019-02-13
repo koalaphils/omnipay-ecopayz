@@ -28,10 +28,14 @@ else
     # envsubst '\$SYMFONY_ENV \$DATABASE_HOST \$DATABASE_NAME \$DATABASE_USER \$DATABASE_PASSWORD' < /etc/nginx/sites-available/prod.conf > /etc/nginx/sites-enabled/prod.conf && nginx -g 'daemon off;'
 fi
 
+rm /etc/supervisor.d/jms_queue.ini
+envsubst '\$SYMFONY_ENV' < /etc/supervisor.d/jms_queue.ini.tmp > /etc/supervisor.d/jms_queue.ini
+
 chown www:www /backoffice/var -Rf
 chown www:www /backoffice/src -Rf
+chown www:www /backoffice/c3tmp -Rf
+chmod 777 /backoffice/c3tmp -Rf
 chmod 777 /backoffice/var -Rf
-chmod  777 /backoffice/var -Rf
 chmod 777 /uploads/
 setfacl -R -d -m o::rwx /backoffice/var
 setfacl -R -d -m g::rwx /backoffice/var

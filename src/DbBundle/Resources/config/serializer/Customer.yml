@@ -11,7 +11,7 @@ DbBundle\Entity\Customer:
         lName:
             groups: ['Default', 'name']
         fullName:
-            groups: ['Default', 'name']
+            groups: ['Default', 'name', 'request_list']
         birthDate:
             groups: ['Default']
         currency:
@@ -21,7 +21,7 @@ DbBundle\Entity\Customer:
             groups: ['Default', 'country']
             type: DbBundle\Entity\Country
         user:
-            groups: ['Default', 'user']
+            groups: ['Default', 'user', 'credentials']
         balance:
             serialized_name: unallocated_balance
             expose: true
@@ -47,11 +47,17 @@ DbBundle\Entity\Customer:
             groups: ['paymentOptions']
         tags:
             expose: true
-        pinUserCode:
-            groups: ['Default']
-        pinLoginId:
-            groups: ['Default']
     virtual_properties:
+        websocket:
+            exp: object.getWebsocketDetails()
+            groups: ['websocket']
+            serialized_name: websocket
+        getReferrerByCodeDetails:
+            type: array
+            serialized_name: referrer_by_code
+        getCurrentReferrerDetails:
+            type: array
+            serialized_name: current_referrer
         hasConfirmReferrerTermsAndConditions:
             type: boolean
             serialized_name: has_confirm_terms_and_conditions
@@ -94,10 +100,6 @@ DbBundle\Entity\Customer:
             type: array
             groups: [preferences]
             serialized_name: preferences
-        websocket:
-            exp: object.getWebsocketDetails()
-            groups: [websocket]
-            serialized_name: websocket
         brokerageSyncId:
             exp: object.getBrokerageProductSyncId()
             expose: true

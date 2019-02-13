@@ -5,8 +5,14 @@ namespace PaymentOptionBundle\Controller;
 use AppBundle\Controller\AbstractController;
 use AppBundle\Exceptions\FormValidationException;
 use PaymentOptionBundle\Form\PaymentOptionType;
+use PaymentBundle\Form\BitcoinRateSettingsDTOType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use PaymentBundle\Manager\BitcoinManager;
+use PaymentBundle\Form\BitcoinSettingType;
+use PaymentBundle\Model\Bitcoin\SettingModel;
+use PaymentBundle\Component\Blockchain\Rate;
+use Doctrine\ORM\NoResultException;
 
 class PaymentOptionController extends AbstractController
 {
@@ -40,7 +46,7 @@ class PaymentOptionController extends AbstractController
         return $this->render('PaymentOptionBundle:PaymentOption:create.html.twig', ['form' => $form->createView()]);
     }
 
-    public function updatePageAction($id)
+    public function updatePageAction(Request $request, $id, $activeTab)
     {
         $this->denyAccessUnlessGranted(['ROLE_PAYMENTOPTION_UPDATE']);
         $paymentOption = $this->getPaymentOptionRepository()->find($id);
@@ -49,14 +55,78 @@ class PaymentOptionController extends AbstractController
         if ($paymentOption === null) {
             throw $this->createNotFoundException();
         }
-
-        $form = $this->createForm(PaymentOptionType::class, $paymentOption, [
+        
+        $formProfile = $this->createForm(PaymentOptionType::class, $paymentOption, [
             'action' => $this->generateUrl('paymentoption.save', ['id' => $id]),
             'method' => 'POST',
             'id' => $id,
         ]);
 
-        return $this->render('PaymentOptionBundle:PaymentOption:update.html.twig', ['form' => $form->createView()]);
+        $isPaymentBitcoin = $paymentOption->isPaymentBitcoin();
+        if ($isPaymentBitcoin) {
+            $bitcoinManager = $this->getBitcoinManager();
+            $validationGroups = ['default', 'bitcoinSetting'];
+            $bitcoinConfiguration = $bitcoinManager->getBitcoinConfiguration();
+            $bitcoinLockDownSetting = $bitcoinManager->getBitcoinLockDownRateSetting();
+            $bitcoinSettingModel = $bitcoinManager->prepareBitcoinSetting($bitcoinConfiguration, $bitcoinLockDownSetting);
+            $formBitcoinSetting = $this->createForm(BitcoinSettingType::class, $bitcoinSettingModel, [
+                'action' => $this->generateUrl('payment.bitcoin_save'),
+                'method' => 'POST',
+                'validation_groups' => $validationGroups,
+            ]);
+
+            $dto = $bitcoinManager->createRateSettingsDTO();
+            $dto->preserveOriginal();
+
+            $bitcoinRateSettingForm = $this->createForm(BitcoinRateSettingsDTOType::class, $dto, [
+                'action' => $this->generateUrl('payment.bitcoin_rate_save'),
+                'method' => 'POST',
+            ]);
+            
+            $bitcoinManager->prepareRateSettingForm($bitcoinRateSettingForm);
+            $bitcoinAdjustment = $bitcoinManager->createBitcoinAdjustment(Rate::RATE_EUR);
+
+            $choiceStatuses = [];
+            foreach ($this->getSettingManager()->getSetting('transaction.status') as $statusKey => $status) {
+                $choiceStatuses[$status['label']] = $statusKey;
+            }
+
+            $formBitcoinConfirmations = $this->createNamedFormTypeBuilder(
+                'confirmations',
+                \Symfony\Component\Form\Extension\Core\Type\CollectionType::class,
+                $this->getBitcoinManager()->getListOfConfirmations(),
+                [
+                    'entry_type' => \PaymentBundle\Form\BitcoinConfirmationType::class,
+                    'allow_add' => true,
+                    'allow_delete' => true,
+                    'prototype' => true,
+                    'prototype_name' => '__fieldname__',
+                    'entry_options' => [
+                        'transactionStatuses' => $choiceStatuses
+                    ],
+                    'csrf_protection' => false,
+                    'action' => $this->generateUrl('payment.bitcoin_confirmations_save'),
+                    'method' => 'POST'
+                ]
+            )->getForm();
+            
+            return $this->render('PaymentOptionBundle:PaymentOption:update.html.twig', [
+                'formProfile' => $formProfile->createView(),
+                'formBitcoinConfiguration' => $formBitcoinSetting->createView(),
+                'formRateSetting' => $bitcoinRateSettingForm->createView(),
+                'withBitcoinConfigurations' => $isPaymentBitcoin,
+                'activeTab' => $activeTab,
+                'bitcoinAdjustment' => $bitcoinAdjustment,
+                'bitcoinConfiguration' => $bitcoinManager->getBitcoinConfiguration(),
+                'formBitcoinConfirmation' => $formBitcoinConfirmations->createView(),
+            ]);
+        } else {
+            return $this->render('PaymentOptionBundle:PaymentOption:update.html.twig', [
+                'formProfile' => $formProfile->createView(),
+                'withBitcoinConfigurations' => $isPaymentBitcoin,
+                'activeTab' => $activeTab,
+            ]);
+        }  
     }
 
     public function saveAction(Request $request, $id)
@@ -90,7 +160,7 @@ class PaymentOptionController extends AbstractController
         $code = $request->request->get('code');
         $paymentOption = $this->getPaymentOptionRepository()->find($code);
         if (!$paymentOption) {
-             throw new \Doctrine\ORM\NoResultException;
+            throw new NoResultException();
         } else if ($paymentOption->getIsActive()) {
             $paymentOption->suspend();
             $this->getPaymentOptionRepository()->save($paymentOption);
@@ -117,7 +187,7 @@ class PaymentOptionController extends AbstractController
         $code = $request->request->get('code');
         $paymentOption = $this->getPaymentOptionRepository()->find($code);
         if (!$paymentOption) {
-             throw new \Doctrine\ORM\NoResultException;
+            throw new NoResultException();
         } else if (!$paymentOption->getIsActive()) {
             $paymentOption->enable();
             $this->getPaymentOptionRepository()->save($paymentOption);
@@ -146,5 +216,10 @@ class PaymentOptionController extends AbstractController
     protected function getPaymentOptionRepository(): \DbBundle\Repository\PaymentOptionRepository
     {
         return $this->getRepository(\DbBundle\Entity\PaymentOption::class);
+    }
+    
+    protected function getBitcoinManager(): BitcoinManager
+    {
+        return $this->get('payment.bitcoin_manager');
     }
 }

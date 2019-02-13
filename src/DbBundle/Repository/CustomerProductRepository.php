@@ -173,15 +173,16 @@ class CustomerProductRepository extends BaseRepository
 
         return $qb->getQuery()->getArrayResult();
     }
-    
+
     public function getCustomerProductListInNative(array $filters = [], array $orders = [], int $limit = 20, int $offset = 0): array
     {
         $entityManager = $this->getEntityManager();
         $connection = $entityManager->getConnection();
         $queryBuilder = $connection->createQueryBuilder();
-        
+
         $queryBuilder
-            ->select("cp.cproduct_id id, cp.cproduct_username userName, cp.cproduct_balance balance, cp.cproduct_is_active isActive, cp.cproduct_details details,"
+            ->select("cp.cproduct_id id, cp.cproduct_username userName, cp.cproduct_balance balance, 
+                cp.cproduct_is_active isActive, cp.cproduct_requested_at requestedAt, cp.cproduct_details details,"
                 . "c.customer_id, "
                 . "p.product_id, p.product_name, p.product_details")
             ->from("customer_product", "cp")
@@ -209,7 +210,7 @@ class CustomerProductRepository extends BaseRepository
         if (!empty($orders)) {
             if (!empty($orders)) {
                 foreach ($orders as $column => $dir) {
-                    $qb->addOrderBy($column, $dir);
+                    $queryBuilder->addOrderBy($column, $dir);
                 }
             }
         } else {
@@ -356,6 +357,8 @@ class CustomerProductRepository extends BaseRepository
     public function getSyncedMemberProduct(string $syncId): ?MemberProduct
     {
         return $this->createQueryBuilder('cp')
+            ->select('cp', 'product')
+            ->innerJoin('cp.product', 'product')
             ->where('cp.betSyncId = :syncId')
             ->setParameter('syncId', $syncId)
             ->getQuery()
@@ -418,7 +421,7 @@ class CustomerProductRepository extends BaseRepository
         return $queryBuilder;
     }
 
-    public function getReferralCurrencies(int $referrerId): array
+    public function getReferralCurrenciesByReferrer(int $referrerId): array
     {
         $queryBuilder = $this->createQueryBuilder('mp');
 
@@ -429,6 +432,36 @@ class CustomerProductRepository extends BaseRepository
             ->join('mp.product', 'p', Join::WITH, "JSON_EXTRACT(p.details, '$.ac_wallet') IS NULL")
             ->setParameter('referrerId', $referrerId)
             ->groupBy('currency.id');
+
+        return $queryBuilder->getQuery()->getArrayResult();
+    }
+
+    public function getRequestList($limit = 10, $offset = 0, $hydrationMode = Query::HYDRATE_OBJECT): array
+    {
+        $queryBuilder = $this->createQueryBuilder('mp');
+
+        $queryBuilder
+            ->select('mp', 'p', 'm')
+            ->join('mp.product', 'p')
+            ->join('mp.customer', 'm')
+            ->where($queryBuilder->expr()->isNotNull('mp.requestedAt'))
+            ->orderBy('mp.requestedAt', 'DESC');
+
+        $queryBuilder->setMaxResults($limit);
+        $queryBuilder->setFirstResult($offset);
+
+        return $queryBuilder->getQuery()->getResult($hydrationMode);
+    }
+
+    public function getProductCodeListOfMember(int $memberId): array
+    {
+        $queryBuilder = $this->createQueryBuilder('mp');
+
+        $queryBuilder->select('DISTINCT (p.code) AS code', 'p.name')
+            ->join('mp.customer', 'm')
+            ->join('mp.product', 'p')
+            ->where($queryBuilder->expr()->eq('mp.isActive', true))
+            ->andWhere($queryBuilder->expr()->eq('m.id', $memberId));
 
         return $queryBuilder->getQuery()->getArrayResult();
     }

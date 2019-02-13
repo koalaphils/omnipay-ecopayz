@@ -154,17 +154,29 @@ class DWLRepository extends BaseRepository
         return $queryBuilder->getQuery()->getSingleScalarResult();
     }
 
-    public function findDWLByDateProductAndCurrency(int $productId, int $currencyId, DateTime $dwlDate): ?DWL
+    public function findDWLByDateProductAndCurrency(int $productId, int $currencyId, \DateTimeInterface $dwlDate): ?DWL
     {
         $queryBuilder = $this->createQueryBuilder('dwl');
         $queryBuilder->where('dwl.product = :productId AND dwl.currency = :currencyId AND dwl.date = :dwlDate');
         $queryBuilder->setParameters([
             'productId' => $productId,
             'currencyId' => $currencyId,
-            'dwlDate' => $dwlDate,
+            'dwlDate' => $dwlDate->format('Y-m-d'),
         ]);
 
         return $queryBuilder->getQuery()->getOneOrNullResult();
+    }
+
+    public function findDWLByDateAndProductId(\DateTimeInterface $dwlDate, int $productId): array
+    {
+        $queryBuilder = $this->createQueryBuilder('dwl');
+        $queryBuilder->where('dwl.product = :productId AND dwl.date = :dwlDate');
+        $queryBuilder->setParameters([
+            'productId' => $productId,
+            'dwlDate' => $dwlDate->format('Y-m-d'),
+        ]);
+
+        return $queryBuilder->getQuery()->getResult();
     }
 
     public function getDWLIdsFromRange(
@@ -179,10 +191,30 @@ class DWLRepository extends BaseRepository
             ->andWhere('dwl.currency = :currencyId')
             ->andWhere('dwl.date >= :from')
             ->andWhere('dwl.date <= :to')
-            ->orderBy('dwl.date', 'ACS')
+            ->orderBy('dwl.date', 'ASC')
             ->setParameters([
                 'producId' => $productId,
                 'currencyId' => $currencyId,
+                'from' => $from,
+                'to' => $to,
+            ]);
+
+        return $queryBuilder->getQuery()->getScalarResult();
+    }
+
+    public function getDWLIdsFromRangeAndProduct(
+        int $productId,
+        DateTimeInterface $from,
+        DateTimeInterface $to
+    ): array {
+        $queryBuilder = $this->createQueryBuilder('dwl');
+        $queryBuilder->select('dwl.id')
+            ->where('dwl.product = :producId')
+            ->andWhere('dwl.date >= :from')
+            ->andWhere('dwl.date <= :to')
+            ->orderBy('dwl.date', 'ASC')
+            ->setParameters([
+                'producId' => $productId,
                 'from' => $from,
                 'to' => $to,
             ]);

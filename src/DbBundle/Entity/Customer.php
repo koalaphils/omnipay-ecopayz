@@ -5,7 +5,6 @@ namespace DbBundle\Entity;
 use DbBundle\Entity\Interfaces\AuditAssociationInterface;
 use DbBundle\Entity\Interfaces\AuditInterface;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use AppBundle\ValueObject\Number;
 
 class Customer extends Entity implements AuditInterface, AuditAssociationInterface
@@ -18,6 +17,14 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     const CUSTOMER_ENABLED = 'enabled';
     const CUSTOMER_REGISTERED = 'registered';
     const CUSTOMER_SUSPENDED = 'suspended';
+    const MEMBER_GENDER_NOT_SET = 0;
+    const MEMBER_GENDER_MALE = 1;
+    const MEMBER_GENDER_FEMALE = 2;
+
+    public const DETAIL_BITCOIN = 'bitcoin';
+    public const DETAIL_BITCOIN_INDEX = 'bitcoin.index';
+    public const DETAIL_BITCOIN_ADDRESS = 'bitcoin.address';
+    public const DETAIL_BITCOIN_CALLBACK = 'bitcoin.callback';
 
     /**
      * @var string
@@ -148,11 +155,15 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
 
     private $tags;
 
+    private $referrerByCode;
+    private $gender;
+
     public function __construct()
     {
         $this->setVerifiedAt(null);
         $this->setUser(new User());
         $this->setBirthDate(null);
+        $this->setGender(self::MEMBER_GENDER_NOT_SET);
         $this->setTransactionPassword('');
         $this->setLevel(1);
         $this->setMName('');
@@ -256,6 +267,18 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this->fullName;
     }
 
+    public function setGender(int $gender): self
+    {
+        $this->gender = $gender;
+
+        return $this;
+    }
+
+    public function getGender(): int
+    {
+        return $this->gender;
+    }
+
     /**
      * Set birthDate.
      *
@@ -289,14 +312,14 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
      */
     public function setBalance($balance = 0)
     {
-        // zimi - 1544522191
-        $this->balance = $this->balance + $balance;
+        $this->balance = $balance;
 
         return $this;
     }
 
     /**
-     * Get balance.
+     * todo: DO NOT USE THIS! this is not used anymore
+     * todo: what you would want to use is Customer::getAvailableBalance
      *
      * @return decimal
      */
@@ -479,6 +502,11 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         array_set($this->details, $key, $detail);
 
         return $this;
+    }
+
+    public function hasDetail(string $key): bool
+    {
+        return array_has($this->details, $key);
     }
 
     /**
@@ -764,9 +792,9 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this;
     }
 
-    public function getProducts() 
+    public function getProducts()
     {
-        return $this->products; 
+        return $this->products;
     }
 
     /**
@@ -858,6 +886,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     {
         $preferences = $this->getUser()->getPreferences();
         $preferences += $this->extraPreferences;
+
         $preferences['paymentOptionTypes'] = [];
 
         foreach ($this->getPaymentOptions() as $paymentOption) {
@@ -905,7 +934,6 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         $this->getUser()->setIsActive(true);
         return $this;
     }
-
     public function getWebsocketDetails(): ?array
     {
         return $this->getDetail('websocket');
@@ -914,6 +942,16 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     public function getReferrals()
     {
         return $this->referrals;
+    }
+
+    public function setReferrerByCode(Customer $referrer): void
+    {
+        $this->referrerByCode = $referrer;
+    }
+
+    public function getReferrerByCode(): ?Customer
+    {
+        return $this->referrerByCode;
     }
 
     /**
@@ -1097,119 +1135,105 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this->getCurrency()->getCode();
     }
 
-    public function getUsername(): string
+    public function getReferrerCode(): ?string
+    {
+        return $this->getUser()->getPreference('affiliateCode');
+    }
+
+    public function linkReferrer(Customer $referrer): void
+    {
+        $this->setReferrer($referrer);
+    }
+
+    public function getUsername(): ?string
     {
         return $this->getUser()->getUsername();
     }
-    /**
-     * @var string
-     */
-    private $pinUserCode;
 
-    /**
-     * @var string
-     */
-    private $pinLoginId;
-
-
-    /**
-     * Set pinUserCode
-     *
-     * @param string $pinUserCode
-     *
-     * @return Customer
-     */
-    public function setPinUserCode($pinUserCode)
+    public function getCurrentReferrerDetails(): array
     {
-        $this->pinUserCode = $pinUserCode;
+        $referrer = $this->getAffiliate();
+        $referrerDetails = [];
+
+        if (!is_null($referrer)) {
+            $referrerDetails = [
+                'id' => $referrer->getId(),
+                'fullName' => $referrer->getFullName(),
+                'username' => $referrer->getUsername(),
+            ];
+        }
+
+        return $referrerDetails;
+    }
+
+    public function getReferrerByCodeDetails(): array
+    {
+        $referrerByCode = $this->getReferrerByCode();
+        $referrerDetails = [];
+
+        if (!is_null($referrerByCode)) {
+            $referrerDetails = [
+                'id' => $referrerByCode->getId(),
+                'fullName' => $referrerByCode->getFullName(),
+                'username' => $referrerByCode->getUsername(),
+            ];
+        }
+
+        return $referrerDetails;
+    }
+
+    public function setBitcoinDetails(array $details): self
+    {
+        $this->setDetail(self::DETAIL_BITCOIN, $details);
 
         return $this;
     }
 
-    /**
-     * Get pinUserCode
-     *
-     * @return string
-     */
-    public function getPinUserCode()
+    public function getBitcoinDetails(): ?array
     {
-        return $this->pinUserCode;
+        return $this->getDetail(self::DETAIL_BITCOIN, null);
     }
 
-    /**
-     * Set pinLoginId
-     *
-     * @param string $pinLoginId
-     *
-     * @return Customer
-     */
-    public function setPinLoginId($pinLoginId)
+    public function hasBitcoinReceivingAddress(): bool
     {
-        $this->pinLoginId = $pinLoginId;
-
-        return $this;
+        return $this->hasDetail(self::DETAIL_BITCOIN_ADDRESS);
     }
 
-    /**
-     * Get pinLoginId
-     *
-     * @return string
-     */
-    public function getPinLoginId()
+    public function getBitcoinAddress(): string
     {
-        return $this->pinLoginId;
+        return $this->getDetail(self::DETAIL_BITCOIN_ADDRESS);
     }
 
-    /**
-     * Add referral
-     *
-     * @param \DbBundle\Entity\Customer $referral
-     *
-     * @return Customer
-     */
-    public function addReferral(\DbBundle\Entity\Customer $referral)
+    public function hasBitcoinAddress(): bool
     {
-        $this->referrals[] = $referral;
+        if (!$this->hasDetail(self::DETAIL_BITCOIN_ADDRESS)) {
+            return false;
+        }
 
-        return $this;
+        return $this->getBitcoinAddress() !== '';
     }
 
-    /**
-     * Remove referral
-     *
-     * @param \DbBundle\Entity\Customer $referral
-     */
-    public function removeReferral(\DbBundle\Entity\Customer $referral)
+    public function getBitcoinIndex(): int
     {
-        $this->referrals->removeElement($referral);
-    }
-    /**
-     * @var string
-     */
-    private $phoneNumber;
-
-
-    /**
-     * Set phoneNumber
-     *
-     * @param string $phoneNumber
-     *
-     * @return Customer
-     */
-    public function setPhoneNumber($phoneNumber)
-    {
-        $this->phoneNumber = $phoneNumber;
-
-        return $this;
+        return (int) $this->getDetail(self::DETAIL_BITCOIN_INDEX);
     }
 
-    /**
-     * Get phoneNumber
-     *
-     * @return string
-     */
-    public function getPhoneNumber()
+    public function getBitcoinCallback(): string
     {
-        return $this->phoneNumber;
+        return $this->getDetail(self::DETAIL_BITCOIN_CALLBACK);
+    }
+
+    public function hasBitcoinCallback(): bool
+    {
+        return $this->hasDetail(self::DETAIL_BITCOIN_CALLBACK);
+    }
+
+    public function equalsToBitcoinCallback(string $callback): bool
+    {
+        if (!$this->hasBitcoinCallback()) {
+            return false;
+        }
+
+        return $this->getBitcoinCallback() === $callback;
     }
 }

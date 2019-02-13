@@ -15,6 +15,8 @@ class DWL extends Entity implements ActionInterface, TimestampInterface, Version
     use Traits\ActionTrait;
     use Traits\TimestampTrait;
 
+    private const DETAIL_TOTAL_RECORD = 'total.record';
+
     const DWL_STATUS_UPLOADED = 1;
     const DWL_STATUS_PROCESSING = 2;
     const DWL_STATUS_PROCESSED = 3;
@@ -404,5 +406,17 @@ class DWL extends Entity implements ActionInterface, TimestampInterface, Version
     public function getEncodedUpdatedAt(): string
     {
         return base64_encode($this->getUpdatedAt()->format('Y-m-d H:i:s'));
+    }
+
+    public function setTotalRecord(int $totalRecord): self
+    {
+        $this->setDetail(self::DETAIL_TOTAL_RECORD, $totalRecord);
+
+        return $this;
+    }
+
+    public function getTotalRecord(): int
+    {
+        return (int) $this->getDetail(self::DETAIL_TOTAL_RECORD, 0);
     }
 }

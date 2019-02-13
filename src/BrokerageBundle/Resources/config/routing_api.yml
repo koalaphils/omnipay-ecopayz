@@ -51,3 +51,9 @@ api_dwl.update_date_winloss_item:
     defaults:
         _controller: BrokerageBundle:Brokerage:updateDateWinLossItem
     methods: [POST]
+
+api_dwl.resync_winloss_items:
+    path: brokerage/dwl/resync-winloss-items
+    defaults:
+        _controller: BrokerageBundle:Brokerage:resyncWinLossItems
+    methods: [POST]

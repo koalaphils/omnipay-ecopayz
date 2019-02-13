@@ -27,6 +27,9 @@
         <ul class="list-inline quicklinks font-13 font-normal text-right">
             <li>Quick Links:</li>
             {% if is_granted('ROLE_TRANSACTION_CREATE') %}
+            <li><a href="{{ path("transaction.create_page", {'type': 'adjustment'}) }}">Adjustment</a></li>|
+            {% endif %}
+            {% if is_granted('ROLE_TRANSACTION_CREATE') %}
             <li><a href="{{ path("transaction.create_page", {'type': 'deposit'}) }}">Deposit</a></li>|
             {% endif %}
             {% if is_granted('ROLE_TRANSACTION_CREATE') %}
@@ -83,6 +86,7 @@
     {{ block('paymentOption') }}
     {{ block('paymentOptionOnTransaction') }}
     {{ block('gateway') }}
+    {{ block('adjustment') }}
 {% endblock left_pane %}
 
 {% block middle_pane %}
@@ -92,6 +96,62 @@
                 {{ form_row(form.number) }}
                 {{ form_row(form.date) }}
                 {{ form_row(form.currency) }}
+
+                {% if transaction.isTransactionPaymentBitcoin() and transaction.isDeposit() %}
+                    <div class="col-sm-12 btc-deposit-address">
+                        <div class="form-group">
+                            <label class="control-label">Bitcoin Address</label>
+                            <div class="input-group">
+                                <span class="input-group-addon"><strong>{{ "fields.receiverAddress"|trans({},'TransactionBundle') }}</strong></span>
+                                {{ form_widget(form.receiverAddress) }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <div class="form-group"><label class="control-label" for="Transaction_deposit_request_rate">Deposit Request Rate</label>
+                            <div class="input-group" id="deposit-request-range-wrap">
+                                <div>
+                                    <input type="text" class="form-control" value="1" disabled="disabled">
+                                    <span class="currency">BTC</span>
+                                </div>
+                                <span class="input-group-addon bg-inverted b-0">=</span>
+                                <div id="Transaction_deposit_request_rate" name="Transaction[deposit_request_rate]">
+                                    <input type="text" class="form-control" class="form-control" disabled="disabled" value="{{ transaction.getBitcoinRate() }}">
+                                    <span class="currency">{{transaction.getCurrency().getName()}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="row hide" id="bitcoinFields">
+                <div class="col-sm-12 btc-deposit-address">
+                    <div class="form-group m-b-5">
+                        <label class="control-label">Bitcoin Address</label>
+                        <div class="input-group">
+                            <span class="input-group-addon"><strong>{{ "fields.receiverAddress"|trans({},'TransactionBundle') }}</strong></span>
+                            {{ form_widget(form.details.bitcoin.receiver_unique_address) }}
+                        </div>
+                        <span class="help-block"><ul></ul></span>
+                    </div>
+                </div>
+                <div class="col-sm-12">
+                    <div class="form-group"><label class="control-label" for="Transaction_details_deposit_request_rate">{{ "fields.depositRequestRate"|trans({},'TransactionBundle') }}</label>
+                        <div class="input-group" id="deposit-request-range-wrap">
+                            <div>
+                                <input type="text" class="form-control" value="1" disabled="disabled">
+                                <span class="currency">BTC</span>
+                            </div>
+                            <span class="input-group-addon bg-inverted b-0">=</span>
+                            <div id="Transaction_deposit_request_rate" name="Transaction[deposit_request_rate]">
+                                {{ form_widget(form.details.bitcoin.rate) }}
+                                <span class="currency">EURO</span>
+                            </div>
+                        </div>
+                        <span class="help-block"><ul></ul></span>
+                    </div>
+                </div>
             </div>
         </div>
         {{ form_row(form.subTransactions) }}
@@ -105,24 +165,36 @@
                     {{ form_row(form.companyFee) }}
                 </div>
             </div>
+        {% if not transaction.hasBitcoinDepositAndNotConfirmed() %}
         <div class="card-box">
-            <div class="row">              
+            <div class="row">
                 {% if transaction.isEnd() and transaction.isVoided() %}
                     {{ form_row(form.notes, {'view': true}) }}
                 {% else %}
                     {{ form_row(form.notes) }}
                 {% endif %}
-                {% if transaction.isDeclined() or transaction.isVoided() %}     
+                {% if transaction.isDeclined() or transaction.isVoided() %}
                     {{ form_row(form.reasonToVoidOrDecline, {'view': true}) }}
                 {% endif %}
             </div>
         </div>
-        {% if form.actions.children | length > 0 %}
-            <div class="row">
-                {{ form_row(form.actions) }}
-            </div>
         {% else %}
-            {{ form_row(form.actions) }}
+        <div class="card-box">
+            <div class="row">
+                {% if transaction.isDeclined() or transaction.isVoided() %}
+                    {{ form_row(form.reasonToVoidOrDecline, {'view': true}) }}
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        {% if (not transaction.hasBitcoinDepositAndNotConfirmed()) or (transaction.isStart() and transaction.isPaymentBitcoin()) %}
+            {% if form.actions.children | length > 0 %}
+                <div class="row">
+                    {{ form_row(form.actions) }}
+                </div>
+            {% else %}
+                {{ form_row(form.actions) }}
+            {% endif %}
         {% endif %}
     </div>
 {% endblock middle_pane %}
@@ -133,6 +205,8 @@
             Products
             {%- if form.vars.addSubtransaction -%}
             &nbsp;&nbsp;|<button type="button" class="btn btn-success btn-xs btn-add-product btn-icon m-l-10"><i class="fa fa-plus" title="Add Product"></i></button>
+            {% else %}
+                <button type="button" class="btn btn-success btn-xs btn-add-product hide">
             {%- endif %}
         </h4>
         <div class="product-list">
@@ -142,7 +216,7 @@
 
 {% block right_pane %}
     <div class="summary-inner-wrap">
-        <i class="summary-holder ti ti-receipt visible-xs"></i>            
+        <i class="summary-holder ti ti-receipt visible-xs"></i>
         <div id='summary'>
         </div>
     </div>
@@ -204,14 +278,28 @@
 {% endblock %}
 
 {% block gateway %}
-    <div class="card-box" id="gateway-container">
-        <h4 class="m-t-0 m-b-30 header-title">{{ "Payment Gateway"|trans({},'TransactionBundle') }}</h4>
-        <div class="form-group {% if form.gateway.vars.errors|length > 0 %} has-error {% endif %}">
-            {{ form_widget(form.gateway, {'attr': {'disabled': 'disabled'}}) }}
-            {{ form_errors(form.gateway) }}
+    {% if form.gateway is defined %}
+        <div class="card-box" id="gateway-container">
+            <h4 class="m-t-0 m-b-30 header-title">{{ "Payment Gateway"|trans({},'TransactionBundle') }}</h4>
+            <div class="form-group {% if form.gateway.vars.errors|length > 0 %} has-error {% endif %}">
+                {{ form_widget(form.gateway, {'attr': {'disabled': 'disabled'}}) }}
+                {{ form_errors(form.gateway) }}
+            </div>
         </div>
-    </div>
+    {% endif %}
 {% endblock gateway %}
+
+{% block adjustment %}
+    {% if form.adjustment is defined %}
+        <div class="card-box" id="adjustment-container">
+            <h4 class="m-t-0 m-b-30 header-title">{{ "Transaction"|trans({},'TransactionBundle') }}</h4>
+            <div class="form-group {% if form.adjustment.vars.errors|length > 0 %} has-error {% endif %}">
+                {{ form_widget(form.adjustment, {'attr': {'disabled': 'disabled'}}) }}
+                {{ form_errors(form.adjustment) }}
+            </div>
+        </div>
+    {% endif %}
+{% endblock adjustment %}
 
 {% block javascript_plugins %}
     {{ form_assetjs(form) }}
@@ -274,9 +362,13 @@
                 'company_fee': (new Decimal(this.data.fees.companyFee || 0)).toFixed(2,1),
                 'customer_fee': (new Decimal(this.data.fees.customerFee || 0)).toFixed(2,1)
             };
-            total.amount = this.processEquation(this.options.equations.totalAmount.equation, this.options.equations.totalAmount.variables, values);
-            total.customer = this.processEquation(this.options.equations.customerAmount.equation, this.options.equations.customerAmount.variables, values);
-
+            
+            total.amount = 0;
+            total.customer = 0;
+            if (this.options.equations != null) {
+                total.amount = this.processEquation(this.options.equations.totalAmount.equation, this.options.equations.totalAmount.variables, values);
+                total.customer = this.processEquation(this.options.equations.customerAmount.equation, this.options.equations.customerAmount.variables, values);
+            }
             values['total_amount'] = (new Decimal(total.amount)).toFixed(2,1);
             values['customer_amount'] = (new Decimal(total.customer)).toFixed(2,1);
             values['status'] = this.options.status;
@@ -287,7 +379,7 @@
                 values['reason'] = this.data.reason;
             }
 
-            if(typeof this.options.equations.gateway != 'undefined' && typeof this.data.gateway != 'undefined') {
+            if(this.options.equations != null && typeof this.options.equations.gateway != 'undefined' && typeof this.data.gateway != 'undefined') {
                 var vr = {};
                 for(var i in this.options.equations.gateway.variables) {
                     var vv = this.options.equations.gateway.variables[i];

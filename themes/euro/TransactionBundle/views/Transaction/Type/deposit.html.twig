@@ -44,6 +44,8 @@
     </div>
 {% endblock %}
 
+
+
 {% block javascripts %}
     {{ parent() }}
     <script type="text/javascript">
@@ -56,10 +58,12 @@
                 'type': '{{ child.vars.data.type }}',
                 'customerProduct': '{{ child.vars.data.customerProduct.id|default(null) }}',
                 'immutableCustomerProductData': '{{ child.vars.data.immutableCustomerProductData|default(null) }}',
+                'isAMSTransaction' : {%- if form.vars.data.creator.type == 2 -%} false {%- else -%} true {%- endif -%},
                 'showImmutableCustomerProductData': '{{  child.vars.value.parent.isClosedForFurtherProcessing  }}',
                 'amount': '{{ child.vars.data.amount }}',
                 'enabled': {% if child.vars.view -%} false {%- else -%} true {%- endif -%},
-                'errors': '{{ form_errors(child) }}'
+                'errors': '{{ form_errors(child) }}',
+                'bitcoinRequestedAmount' : {% if child.vars.data.details.bitcoin.requested_btc is defined -%} {{ child.vars.data.details.bitcoin.requested_btc | number_format(8, '.') }} {%- else -%} 0 {% endif -%}
             });
             {% else %}
             products.add({
@@ -74,9 +78,31 @@
             $('#payment-option-container').removeClass('hide');
         }
 
+        function resetBitcoinFields(memberPaymentOptionText) {
+            $('#{{form.details.bitcoin.rate.vars.id}}').val('');
+            $('#{{form.details.bitcoin.receiver_unique_address.vars.id}}').val(memberPaymentOptionText);
+        }
+
+        function removeBitcoinErrors() {
+            $('#bitcoinFields').find('.form-group').removeClass('has-error');
+            $('#bitcoinFields').find('.help-block ul li').remove();
+        }
+
+        function loadBitcoinFields(memberPaymentOptionText) {
+            $('#bitcoinFields').removeClass('hide');
+            removeBitcoinErrors();
+            resetBitcoinFields(memberPaymentOptionText);
+        }
+
+        function unloadBitcoinFields() {
+            $('#bitcoinFields').addClass('hide');
+            resetBitcoinFields();
+        }
+
         $(function() {
             $('#{{ form.customer.vars.id }}').on('select2:select', function(event) {
                 products.clear();
+                $('#bitcoinFields').addClass('hide');
             });
 
             $('.btn-add-product').click(function() {
@@ -95,6 +121,19 @@
 
             $('#{{ form.customer.vars.id }}').trigger('select2:select');
         });
+
+        {% if transaction.hasDepositUsingBitcoin() and not transaction.isNew() and not transaction.isVoided() and not transaction.hasEnded() %}
+        $(document).on('onWebsocketOpen', function (e, session) {
+            session.subscribe('bo.topic.transaction_declined', function(args) {
+                var data = args[0];
+                var transactionIds = data.transactionIds;
+                var hasTransactionId = data.transactionIds.includes('{{transaction.getId()}}');
+                if (data.forPageReload && hasTransactionId) {
+                    location.reload();
+                }
+            });
+        });
+        {% endif%}
     </script>
 {% endblock %}
 
@@ -106,10 +145,17 @@
         <div class='card-box'>
         <div class='card-box'>
             <div class='row'>
-                <div class='col-md-6 col-sm-12 col-xs-12'>
+                <div class='col-md-5 col-sm-12 col-xs-12'>
                     <b>{{ "Status"|trans({},"TransactionBundle") }}</b>
                 </div>
-                <div class='col-md-6 col-sm-12 col-xs-12'>
+                <div class='col-md-7 col-sm-12 col-xs-12'>
+                    {% if transaction.hasDepositUsingBitcoin() and not transaction.isBitcoinRequestedOnConfirmation() and not transaction.isVoided() and not transaction.hasEnded() and not transaction.isDeclined() %}
+                        {% if transaction.isBitcoinPendingOnConfirmation() %}
+                            <span class="label label-warning">{{ "Pending Confirmation"|trans({}, "TransactionBundle") }}</span>
+                        {% elseif transaction.isBitcoinConfirmedOnConfirmation() %}
+                            <span class="label label-success">{{ "Confirmed"|trans({}, "TransactionBundle") }}</span>
+                        {% endif %}
+                    {% else %}
                     <xsl:choose>
                         <xsl:when test="statusinfo/id = 2 and voided = 1">
                             <span class="label label-danger">{{ "Voided"|trans({}, "TransactionBundle") }}</span>
@@ -121,9 +167,24 @@
                             <span class="label label-success"><xsl:value-of select="statusinfo/label"/></span>
                         </xsl:otherwise>
                     </xsl:choose>
+                    {% endif %}
                 </div>
             </div>
-            <div class='row'>
+            {% if transaction.hasDepositUsingBitcoin() and not transaction.isBitcoinRequestedOnConfirmation() and not transaction.isVoided() and not transaction.hasEnded() and not transaction.isDeclined() %}
+            <div class='row m-t-5'>
+                <div class='col-md-5 col-sm-12 col-xs-12'>
+                    <b>{{ "Confirmation Status"|trans({},"TransactionBundle") }}</b>
+                </div>
+                <div class='col-md-7 col-sm-12 col-xs-12'>
+                        {% if transaction.isBitcoinPendingOnConfirmation() %}
+                            <span class="text-warning">{{transaction.getBitcoinConfirmation()}}/3 {{ "confirmation(s) received"|trans({},"TransactionBundle") }}</span>
+                        {% elseif transaction.isBitcoinConfirmedOnConfirmation() %}
+                            <span class="text-success">{{transaction.getBitcoinConfirmation()}}/3 {{ "confirmation(s) received"|trans({},"TransactionBundle") }}</span>
+                        {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            <div class='row m-t-5'>
                 <div class='col-sm-12 col-xs-12'>
                     <b>{{ "Transaction Number"|trans({},"TransactionBundle") }}</b>
                 </div>
@@ -156,7 +217,6 @@
                 <div class='col-md-6 col-sm-6 col-xs-6'>
                     <b>{{ "After Balance"|trans({},"TransactionBundle") }}</b>
                 </div>
-
                 <div class='col-md-6 col-sm-6 col-xs-6'>
                     <span><xsl:value-of select="gateway/afterbalance"/></span>
                 </div>

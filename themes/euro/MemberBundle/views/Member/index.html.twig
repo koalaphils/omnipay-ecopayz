@@ -16,17 +16,12 @@
 
 {% block pageHeaderExtra %}
     <div class="pull-right">
-        <a class="btn btn-primary waves-effect waves-light pull-right m-b-10"
-           href="{{ path("member.create_page") }}"><span><i
-                        class="ti-plus m-r-5"></i></span> {{ 'Add Member'|trans({}, 'MemberBundle') }}</a>
+        <a class="btn btn-primary waves-effect waves-light pull-right m-b-10" href="{{ path("member.create_page") }}"><span><i class="ti-plus m-r-5"></i></span> {{ 'Add Member'|trans({}, 'MemberBundle') }}</a>
         <ul class="list-inline quicklinks font-13 font-normal text-right">
             <li>Quick Links:</li>
-            <li><a href="{{ path("member.create_page") }}"> {{ "Add Member"|trans({},"MemberBundle") }}</a></li>
-            |
-            <li><a href="{{ path("customer.group_list_page") }}"> {{ "Member Group"|trans({},"MemberBundle") }}</a></li>
-            |
-            <li><a href="{{ path("transaction.list_page") }}"> {{ "Transaction List"|trans({},"MemberBundle") }}</a>
-            </li>
+            <li><a href="{{ path("member.create_page") }}"> {{ "Add Member"|trans({},"MemberBundle") }}</a></li>|
+            <li><a href="{{ path("customer.group_list_page") }}"> {{ "Member Group"|trans({},"MemberBundle") }}</a></li>|
+            <li><a href="{{ path("transaction.list_page") }}"> {{ "Transaction List"|trans({},"MemberBundle") }}</a></li>
         </ul>
     </div>
 {% endblock pageHeaderExtra %}
@@ -46,7 +41,8 @@
 
 {% block javascripts %}
     <script>
-        function listFullname(data, text, full) {
+        function listFullname(data, text, full)
+        {
             var fullName = data.fullName;
             if (data.user.activationTimestamp !== null) {
                 fullName = fullName + "&nbsp;<i  class=' icon-user-following cls-activate' title='AMS Activated'></i>";
@@ -59,19 +55,18 @@
             return fullName;
         }
 
-        function listKyc(data, text, full) {            
+        function listKyc(data, text, full)
+        {
             return (data) ? "Verified" : "Not Verified";
         }
 
-        function listCreator(data, text, full) {
+        function listCreator(data, text, full)
+        {
             return (data !== null) ? data.username : "";
         }
 
-        function listCountry(data, text, full) {
-            return (data !== null) ? data.name : "";
-        }
-
-        function listStatus(data, text, full) {
+        function listStatus(data, text, full)
+        {
             var status = 'Registered';
             if (!data.details.enabled && data.user.isActive) {
                 status = 'Registered';
@@ -84,7 +79,8 @@
             return status;
         }
 
-        function {{ page.getWidget('list').getFullId() }}_extendData(ztableData, dataTable) {
+        function {{ page.getWidget('list').getFullId() }}_extendData(ztableData, dataTable)
+        {
             var filters = {};
             var newData = ztableData;
             filters.filter = ztableData.data.filters;
@@ -98,47 +94,12 @@
             return newData;
         }
 
-        function listPaymentOption(data, text, full) {
-            var paymentOptions = '';
-            var time = 0;
-            data.forEach(function (e) {
-                if (e.paymentOption) {
-                    if (time >= 1) {
-                        paymentOptions = paymentOptions + ', ';
-                    }
-                    paymentOptions = paymentOptions + e.paymentOption.code.toString();
-                }
-                time++;
-            });
-            return paymentOptions;
-        }
-
-        function listTag(data) {
-            var tag = '';
-            var isCustomer = data.isCustomer;
-            var isAffiliate = data.isAffiliate;
-
-            if (isCustomer === true) {
-                tag = 'Member';
-                if (isAffiliate === true) {
-                    tag = 'Member, Affiliate';
-                }
-            } else if (isAffiliate === true) {
-                tag = 'Affiliate';
-            }
-            return tag;
-
-        }
-
-        function listCurrency(data, text, full){
-            return [];
-        }
-
-        function listAction(data, text, full) {            
+        function listAction(data, text, full)
+        {
             var action = "<a class='btn btn-primary waves-effect waves-light btn-xs ' title='Profile' href='" + full.routes.update + "/profile'><i class='ti-user'></i> </a>";
             var finance = "<a action='transaction' href='" + full.routes.update + "/transactions' title='Transaction History' class='btn btn-icon waves-effect waves-light btn-xs btn-purple btn-icn active-state-action'><i class='ti-money'></i></a>";
             var product = "<a action='product' href='" + full.routes.update + "/product' title='Product'  class='btn btn-icon waves-effect waves-light btn-warning btn-xs btn-icn active-state-action'> <i class='ti-bag'></i> </button>";
-            var customer = "<a action='customer' href='" + full.routes.update + "/referrals' title='" + full.referralCount + "' class='btn btn-icon waves-effect waves-light btn-info btn-xs btn-icn active-state-action'> <i class='icon-people'></i> </button>";
+            var customer = "<a action='customer' href='" + full.routes.update + "/referrals' title='"+ full.referralCount +"' class='btn btn-icon waves-effect waves-light btn-info btn-xs btn-icn active-state-action'> <i class='icon-people'></i> </button>";
 
             action = action + '' + finance;
             action = action + '' + product;

@@ -1,0 +1,72 @@
+DbBundle\Entity\BitcoinRateSetting:
+    type: entity
+    table: bitcoin_rate_setting
+    repositoryClass: DbBundle\Repository\BitcoinRateSettingRepository
+    id:
+        id:
+            type: integer
+            id: true
+            generator:
+                strategy: AUTO
+            column: bitcoin_rate_setting_id
+            options:
+                unsigned: true
+    fields:
+        rangeFrom:
+            type: decimal
+            precision: 65
+            scale: 10
+            options:
+                default: 0
+            column: bitcoin_rate_setting_range_from
+            nullable: true
+        rangeTo:
+            type: decimal
+            precision: 65
+            scale: 10
+            options:
+                default: 0
+            column: bitcoin_rate_setting_range_to
+            nullable: true
+        fixedAdjustment:
+            type: decimal
+            precision: 65
+            scale: 10
+            options:
+                default: 0
+            column: bitcoin_rate_setting_fixed_adjustment
+            nullable: true
+        percentageAdjustment:
+            type: decimal
+            precision: 65
+            scale: 10
+            options:
+                default: 0
+            column: bitcoin_rate_setting_percentage_adjustment
+            nullable: true
+        isDefault:
+            type: boolean
+            column: bitcoin_rate_setting_is_default
+            options:
+                default: false
+        createdBy:
+            type: bigint
+            nullable: true
+            column: bitcoin_rate_setting_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: bitcoin_rate_setting_created_at
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: bitcoin_rate_setting_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            column: bitcoin_rate_setting_updated_at
+            nullable: true
+
+

@@ -38,6 +38,14 @@ DbBundle\Entity\Transaction:
             columns: [transaction_bet_event_id]
         commission_computed_original_index:
             columns: [transaction_commission_computed_original]
+        virtual_bitcoin_transaction_hash_index:
+            columns: [transaction_virtual_bitcoin_transaction_hash]
+        bitcoin_confirmation_count_index:
+            columns: [transaction_bitcoin_confirmation_count]
+        # virtual_bitcoin_sender_address_index:
+        #    columns: [transaction_virtual_bitcoin_sender_address]
+        bitcoin_confirmation:
+            columns: [transaction_bitcoin_confirmation]
     fields:
         number:
             type: string
@@ -94,8 +102,7 @@ DbBundle\Entity\Transaction:
             type: datetime
             column: transaction_updated_at
             nullable: true
-            # zimi-comment
-            # version: true
+            version: true
         deletedAt:
             type: datetime
             nullable: true
@@ -137,6 +144,41 @@ DbBundle\Entity\Transaction:
                 readOnly: true
             column: transaction_commission_computed_original
             nullable: true
+        virtualBitcoinTransactionHash:
+            type: string
+            nullable: true
+            options:
+                generate: transaction_other_details->>"$.bitcoin.transaction.hash"
+                readOnly: true
+            column: transaction_virtual_bitcoin_transaction_hash
+        bitcoinConfirmationCount:
+            type: integer
+            nullable: true
+            options:
+                generate: transaction_other_details->>"$.bitcoin.confirmation_count"
+                readOnly: true
+            column: transaction_bitcoin_confirmation_count
+        virtualBitcoinSenderAddress:
+            type: json
+            nullable: true
+            options:
+                generate: transaction_other_details->>"$.bitcoin.transaction.sender_address"
+                readOnly: true
+            column: transaction_virtual_bitcoin_sender_address
+        virtualBitcoinReceiverUniqueAddress:
+            type: string
+            nullable: true
+            options:
+                generate: transaction_other_details->>"$.bitcoin.transaction.receiver_unique_address"
+                readOnly: true
+            column: transaction_virtual_bitcoin_receiver_unique_address
+        bitcoinConfirmation:
+            type: integer
+            options:
+                generate: transaction_other_details->"$.bitcoin.confirmation_count"
+                readOnly: true
+            column: transaction_bitcoin_confirmation
+            nullable: true
     manyToOne:
         customer:
             targetEntity: DbBundle\Entity\Customer
@@ -144,8 +186,6 @@ DbBundle\Entity\Transaction:
             joinColumn:
                 name: transaction_customer_id
                 referencedColumnName: customer_id
-            # zimi
-            cascade: ['persist']
         gateway:
             targetEntity: DbBundle\Entity\Gateway
             joinColumn:

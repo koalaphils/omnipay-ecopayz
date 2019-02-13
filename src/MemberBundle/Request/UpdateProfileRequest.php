@@ -8,10 +8,10 @@ class UpdateProfileRequest
     private $user;
     private $username;
     private $email;
-    private $phoneNumber;
     private $status;
     private $fullName;
     private $birthDate;
+    private $gender;
     private $country;
     private $groups;
     private $referrer;
@@ -27,25 +27,21 @@ class UpdateProfileRequest
     private $tags;
     private $clientIp;
 
-    private function __construct()
-    {
-        $this->email = "";
+    private function __construct() {
         $this->groups = [];
     }
 
     public static function fromEntity(\DbBundle\Entity\Customer $customer): UpdateProfileRequest
     {
-        $requestEmail = $customer->getUser()->getEmail();
-        $requestPhoneNumber = $customer->getUser()->getPhoneNumber();
         $request = new UpdateProfileRequest();
         $request->customer = $customer;
         $request->user = $customer->getUser();
         $request->username = $customer->getUser()->getUsername();
-        $request->email = isset($requestEmail) ? $requestEmail : "";
-        $request->phoneNumber = isset($requestPhoneNumber) ? $requestPhoneNumber : "";
+        $request->email = $customer->getUser()->getEmail();
         $request->status = $customer->getUser()->isActive();
         $request->fullName = $customer->getFullName();
         $request->birthDate = $customer->getBirthDate();
+        $request->gender = $customer->getGender();
         $request->country = $customer->getCountry()->getId();
         $request->currency = $customer->getCurrency()->getId();
         $request->referrer = $customer->getReferral();
@@ -99,16 +95,6 @@ class UpdateProfileRequest
         $this->email = $email;
     }
 
-    public function getPhoneNumber(): string
-    {
-        return $this->phoneNumber;
-    }
-
-    public function setPhoneNumber(string $phoneNumber): void
-    {
-        $this->phoneNumber = $phoneNumber;
-    }
-
     public function getStatus(): ?string
     {
         return $this->status;
@@ -117,6 +103,16 @@ class UpdateProfileRequest
     public function setStatus(string $status): void
     {
         $this->status = $status;
+    }
+
+    public function getGender(): int
+    {
+        return $this->gender;
+    }
+
+    public function setGender(int $gender)
+    {
+        $this->gender = $gender;
     }
 
     public function getFullName(): string

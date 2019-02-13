@@ -247,10 +247,25 @@
                 <div class='col-md-6 col-sm-6 col-xs-6'>
                     <b>{{ "Win/Loss"|trans({},"TransactionBundle") }}</b>
                 </div>
+
                 <div class='col-md-6 col-sm-6 col-xs-6'>
-                    <span>{{ subtransaction.amount|number_format(2, '.', '') }}</span>
+                    {% if subtransaction.details.dwl.brokerage is defined %}
+                        <span>{{ subtransaction.details.dwl.brokerage.winLoss|number_format(2, '.', '') }}</span>
+                    {% else %}
+                        <span>{{ subtransaction.amount|number_format(2, '.', '') }}</span>
+                    {% endif %}
                 </div>
             </div>
+            {% if subtransaction.details.dwl.brokerage is defined and subtransaction.details.dwl.brokerage is not null %}
+            <div class='row'>
+                <div class='col-md-6 col-sm-6 col-xs-6'>
+                    <b>{{ "Returned"|trans({},"TransactionBundle") }}</b>
+                </div>
+                <div class='col-md-6 col-sm-6 col-xs-6'>
+                    <span>{{ subtransaction.getDwlReturn()|number_format(2, '.', '') }}</span>
+                </div>
+            </div>
+            {% endif %}
             <div class='row'>
                 <div class='col-md-6 col-sm-6 col-xs-6'>
                     <b>{{ "Turnover"|trans({},"TransactionBundle") }}</b>

@@ -3,6 +3,7 @@
 namespace MemberBundle\RequestHandler;
 
 
+use MemberBundle\Manager\MemberManager;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -13,9 +14,9 @@ use DbBundle\Entity\AuditRevisionLog;
 use DbBundle\Entity\Country;
 use DbBundle\Entity\Currency;
 use DbBundle\Entity\Customer;
+use DbBundle\Entity\Customer as Member;
 use DbBundle\Entity\CustomerGroup;
 use DbBundle\Entity\MarketingTool;
-use DbBundle\Repository\MarketingToolRepository;
 use DbBundle\Listener\VersionableListener;
 use Doctrine\ORM\EntityManager;
 use MemberBundle\Event\ReferralEvent;
@@ -28,18 +29,21 @@ class UpdateProfileRequestHandler
     private $requestStack;
     private $eventDisptacher;
     private $auditManager;
+    private $memberManager;
 
     public function __construct(
         EntityManager $entityManager,
         RequestStack $requestStack,
         EventDispatcherInterface $eventDispatcher,
-        AuditManager $auditManager
+        AuditManager $auditManager,
+        MemberManager $memberManager
     )
     {
         $this->entityManager = $entityManager;
         $this->requestStack = $requestStack;
         $this->eventDisptacher = $eventDispatcher;
         $this->auditManager = $auditManager;
+        $this->memberManager = $memberManager;
     }
 
     public function handle(UpdateProfileRequest $request)
@@ -57,9 +61,12 @@ class UpdateProfileRequestHandler
         $customer->setCountry($this->entityManager->getPartialReference(Country::class, $request->getCountry()));
         $customer->setCurrency($this->entityManager->getPartialReference(Currency::class, $request->getCurrency()));
         $customer->setBirthDate($request->getBirthDate());
+        $customer->setGender($request->getGender());
         $customer->setJoinedAt($request->getJoinedAt());
         $customer->setRiskSetting($request->getRiskSetting());
         $customer->setTags($request->getTags());
+
+        $this->setReferrerByCode($request->getAffiliateLink(), $customer);
 
         if ($this->hasChangeAffiliateLink($request->getAffiliateLink(), $originalAffiliateLink)) {
             $marketingTool = $this->entityManager->getRepository(MarketingTool::class)->findMarketingToolByMember($customer);
@@ -147,10 +154,6 @@ class UpdateProfileRequestHandler
             $newReferrer = $this->entityManager->getRepository(Customer::class)->findById($currentReferrerId);
             $this->dispatchEvent(Events::EVENT_REFERRAL_LINKED, new ReferralEvent($newReferrer, $member));
         }
-
-        if ($oldReferrer !== null && $currentReferrerId === null) {
-            $this->dispatchEvent(Events::EVENT_REFERRAL_UNLINKED, new ReferralEvent($oldReferrer, $member));
-        }
     }
 
     private function hasChangePromoCode(?string $newPromoCode = '', ?string $originalPromoCode = ''): bool
@@ -189,5 +192,16 @@ class UpdateProfileRequestHandler
         ];
 
         $this->auditManager->audit($marketingTool, AuditRevisionLog::OPERATION_UPDATE, null, $auditLogFields);
+    }
+
+    private function setReferrerByCode(?string $referrerCode, Member $member): void
+    {
+        if (!is_null($referrerCode) && $referrerCode !== '') {
+            $referrer = $this->memberManager->getReferrerByReferrerCode($referrerCode);
+
+            if (!is_null($referrer)) {
+                $member->setReferrerByCode($referrer);
+            }
+        }
     }
 }

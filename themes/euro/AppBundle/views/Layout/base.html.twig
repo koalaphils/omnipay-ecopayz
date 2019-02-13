@@ -190,6 +190,7 @@
           <div class="fl-fl float-widgets">
             <i class="widgets-holder fa fa-money"></i>
               <ul>
+                <a href="{{ path("transaction.create_page", {'type': 'adjustment'}) }}"><li>Adjustment</li></a>
                 <a href="{{ path("transaction.create_page", {'type': 'deposit'}) }}"><li>Deposit</li></a>
                 <a href="{{ path("transaction.create_page", {'type': 'withdraw'}) }}"><li>Withdrawal</li></a>
                 <a href="{{ path("transaction.create_page", {'type': 'transfer'}) }}"><li>Transfer</li></a>
@@ -237,7 +238,10 @@
             <script type="text/javascript" src="{{ asset_url }}"></script>
         {%- endjavascripts %}
         <script>
-            var customerCreatedTopic = "{{ constant('TransactionBundle\\WebsocketTopics::TOPIC_CUSTOMER_CREATED') }}";
+            var topics = {
+                'memberCreated': "{{ constant('TransactionBundle\\WebsocketTopics::TOPIC_CUSTOMER_CREATED') }}",
+                'productRequested': "{{ constant('WebSocketBundle\\Topics::TOPIC_MEMBER_PRODUCT_REQUESTED') }}"
+            };
         </script>
         <script type='text/javascript' src="{{ asset('assets/plugins/dotdotdot/jquery.dotdotdot-3.2.2.js') }}"></script>
         {% block javascript_plugins %}{% endblock %}
@@ -365,10 +369,12 @@
                         'cDwl': {'value': 23},
                         'bet': {'value': 24},
                         'transactionBonus': {'value': 25},
-                         'memberBanner': {'value': 27},
-                         'memberWebsite': {'value': 28},
-                         'memberReferralName': {'value': 29},
-                         'bannerImage': {'value': 30}
+                        'memberBanner': {'value': 27},
+                        'memberWebsite': {'value': 28},
+                        'memberReferralName': {'value': 29},
+                        'bannerImage': {'value': 30},
+                        'debitAdjustment': {'value': 34},
+                        'creditAdjustment': {'value': 35}
                     }
                 };
 
@@ -553,6 +559,12 @@
                         } else {
                             message = data.list[i].fName + ' '+ data.list[i].lName +' was created.';
                         }
+                    } else if (data.list[i].notificationType == 'requestProduct') {
+                        var details = data.list[i];
+
+                        url = Global.dummyCustomerProfileUrl.replace('/__id__', '/'+ details.customer.id).replace('/__activeTab__', '/product');
+                        title = 'PRODUCT REQUEST';
+                        message = 'Product ' + details.product.name + ' has been added. (' + details.customer.fullName + ')';
                     }
 
                     var htmlContent = '<a href="'+ url +'" class="date-created list-group-item '+ notifStatus +'" data-date="'+ creationDate +'">'
@@ -593,6 +605,6 @@
                 });
             }
         </script>
-        <!-- <script type="text/javascript" src="{{ asset('bundles/websocket/js/websocket_v2.js') }}"></script> -->
+        <script type="text/javascript" src="{{ asset('bundles/websocket/js/websocket_v2.js') }}"></script>
     </body>
 </html>

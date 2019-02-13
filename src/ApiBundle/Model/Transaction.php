@@ -27,9 +27,8 @@ class Transaction
     private $email;
     private $transactionPassword;
     private $customerFee;
-
-    #zimi
-    private $amount;
+    private $paymentDetails;
+    private $bankDetails;
 
     public function __construct()
     {
@@ -130,29 +129,36 @@ class Transaction
     {
         return $this->customerFee;
     }
-
-    // zimi
-    /**
-     * Set amount.
-     *
-     * @param string $amount
-     *
-     * @return Transaction
-     */
-    public function setAmount($amount = 0)
+    
+    public function getPaymentDetails(): ?PaymentInterface
     {
-        $this->amount = $amount;
+        return $this->paymentDetails;
+    }
+    
+    public function setPaymentDetails(?PaymentInterface $paymentDetails): self
+    {
+        $this->paymentDetails = $paymentDetails;
+        if ($paymentDetails instanceof PaymentInterface) {
+            $this->paymentDetails->setTransaction($this);
+        }
+        
+        return $this;
+    }
+    
+    public function hasPaymentDetails(): bool
+    {
+        return $this->getPaymentDetails() instanceof PaymentInterface;
+    }
+
+    public function setBankDetails(string $bankDetails): self
+    {
+        $this->bankDetails = $bankDetails;
 
         return $this;
     }
 
-    /**
-     * Get amount.     
-     *
-     * @return string
-     */
-    public function getAmount()
+    public function getBankDetails(): ?string
     {
-        return $this->amount;
+        return $this->bankDetails;
     }
 }

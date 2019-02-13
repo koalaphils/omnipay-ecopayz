@@ -8,6 +8,7 @@ use AppBundle\Helper\Publisher;
 use CustomerBundle\Event\CustomerProductSaveEvent;
 use CustomerBundle\Event\CustomerProductActivatedEvent;
 use CustomerBundle\Event\CustomerProductSuspendedEvent;
+use MemberBundle\Event\MemberProductRequestEvent;
 use CustomerBundle\Events as CustomerEvents;
 use DbBundle\Entity\CustomerProduct;
 use DbBundle\Entity\Customer as Member;
@@ -31,7 +32,8 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
             CustomerEvents::EVENT_CUSTOMER_PRODUCT_SUSPENDED => ['onCustomerProductSuspended', 300],
             CustomerEvents::EVENT_CUSTOMER_PRODUCT_ACTIVATED => ['onCustomerProductActivated', 300],
             MemberEvents::EVENT_REFERRAL_LINKED => ['onReferralLinked'],
-            MemberEvents::EVENT_REFERRAL_UNLINKED => ['onReferralUnlinked']
+            MemberEvents::EVENT_REFERRAL_UNLINKED => ['onReferralUnlinked'],
+            MemberEvents::EVENT_MEMBER_PRODUCT_REQUESTED => ['onMemberProductRequested', 300],
         ];
     }
 
@@ -100,6 +102,29 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
     
         $this->createNotification($referrer, 'Referral ' . $referral->getId() . ' has been unlinked. '. '(' . $this->getCurrentDatetime() . ')');
         $this->publisher->publish(Topics::TOPIC_REFERRAL_UNLINKED . '.' . $channel, json_encode($payload));
+    }
+
+    public function onMemberProductRequested(MemberProductRequestEvent $event): void
+    {
+        $member = $event->getMember();
+        $memberProducts = [];
+
+        foreach ($event->getMemberProducts() as $memberProduct) {
+            $memberProducts[] = $memberProduct->getProductName();
+        }
+
+        $channel = $member->getWebsocketDetails()['channel_id'];
+        $payload['message'] = sprintf('Product/s %s has been added.', implode($memberProducts, ', '));
+
+        $this->createNotification($member, $payload['message']);
+        $this->publisher->publish(Topics::TOPIC_MEMBER_PRODUCT_REQUESTED . '.' . $channel, json_encode($payload));
+
+        foreach ($memberProducts as $memberProduct) {
+            $payload['title'] = 'Product Request';
+            $payload['message'] = sprintf('Product %s has been added.', $memberProduct) . ' (' . $member->getFullName() . ')';
+            $payload['otherDetails'] = ['type' => 'product', 'id' => $member->getId()];
+            $this->publisher->publish(Topics::TOPIC_MEMBER_PRODUCT_REQUESTED, json_encode($payload));
+        }
     }
 
     /**

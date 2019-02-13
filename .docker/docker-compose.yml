@@ -3,7 +3,7 @@ services:
     bo:
         build:
             context: ../
-            dockerfile: .docker/Dockerfile
+            dockerfile: $PWD/Dockerfile
             args:
                 BASE_IMAGE: ${BASE_IMAGE}
                 BASE_IMAGE_TAG: ${BASE_IMAGE_TAG}
@@ -13,12 +13,14 @@ services:
             DATABASE_USER: ${DATABASE_USER}
             DATABASE_PASSWORD: ${DATABASE_PASSWORD}
             DATABASE_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
+            BLOCKCHAIN_API_KEY: ${BLOKCHAIN_API_KEY}
+            SLACK_CHANNEL: ${SLACK_CHANNEL}
         depends_on:
             - database
     database:
         build:
             context: ./
-            dockerfile: DockerfileMysql
+            dockerfile: $PWD/DockerfileMysql
         environment:
             MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
             MYSQL_DATABASE: ${DATABASE_NAME}
@@ -28,3 +30,7 @@ services:
         image: selenium/standalone-chrome:3.12.0-cobalt
         volumes:
             - /dev/shm:/dev/shm
+    wallet:
+        build:
+            context: ./
+            dockerfile: $PWD/DockerfileBlockchainWallet

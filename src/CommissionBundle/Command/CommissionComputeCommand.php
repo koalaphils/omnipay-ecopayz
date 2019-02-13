@@ -17,29 +17,42 @@ use Symfony\Component\Process\Process;
 
 class CommissionComputeCommand extends AbstractCommand
 {
+    public const COMMAND_NAME = 'commission:period:compute';
+    private const OPTION_PERIOD = 'period';
+    private const OPTION_MEMBER = 'member';
+    private const OPTION_MEMBERS = 'members';
+    private const OPTION_RECOMPUTE = 'recompute';
+
     protected function configure()
     {
         $this
-            ->setName('commission:period:compute')
+            ->setName(self::COMMAND_NAME)
             ->setDescription('Compute the commissions for periods that was already completed')
             ->addOption(
-                'period',
+                self::OPTION_PERIOD,
                 'p',
                 InputOption::VALUE_REQUIRED,
                 'Period Id or use \"all\" if all available period', 'all'
             )
-            ->addOption('members', 's', InputOption::VALUE_REQUIRED, 'Member Ids in json format', '[]')
+            ->addOption(self::OPTION_MEMBERS, 's', InputOption::VALUE_REQUIRED, 'Member Ids in json format', '[]')
             ->addOption(
-                'member',
+                self::OPTION_MEMBER,
                 'm',
                 InputOption::VALUE_REQUIRED,
                 'Member Id or use \"all\" for all referrer with commission within the period',
                 'all'
             )
+            ->addOption(
+                self::OPTION_RECOMPUTE,
+                'r',
+                InputOption::VALUE_REQUIRED,
+                "Force Recompute",
+                '0'
+            )
         ;
         parent::configure();
     }
-    
+
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         set_time_limit(0);
@@ -48,7 +61,7 @@ class CommissionComputeCommand extends AbstractCommand
         $memberId = $input->getOption('member');
         $executePayout = $input->hasOption('payout');
         $logger = new ConsoleLogger($output);
-        
+
         if ($period === 'all') {
             do {
                 $commissionPeriod = $this->getCommissionManager()->getCommissionPeriodIdThatWasNotYetComputed();
@@ -60,6 +73,8 @@ class CommissionComputeCommand extends AbstractCommand
                         $input->getArgument('username'),
                         '--period',
                         $commissionPeriod->getId(),
+                        '--' . self::OPTION_RECOMPUTE,
+                        $input->getOption(self::OPTION_RECOMPUTE),
                         '--env',
                         $this->getEnvironment(),
                     ]);
@@ -97,6 +112,8 @@ class CommissionComputeCommand extends AbstractCommand
                         $commissionPeriod->getId(),
                         '--member',
                         $data[0]['id'],
+                        '--' . self::OPTION_RECOMPUTE,
+                        $input->getOption(self::OPTION_RECOMPUTE),
                         '--env',
                         $this->getEnvironment(),
                     ]);
@@ -114,7 +131,7 @@ class CommissionComputeCommand extends AbstractCommand
                 $commissionPeriod->setToFailedComputation();
                 $commissionPeriod->setDetails(['error' => $ex->getMessage()]);
                 $this->getCommissionPeriodRepository()->save($commissionPeriod, true);
-                
+
                 throw $ex;
             }
         } else {
@@ -126,35 +143,56 @@ class CommissionComputeCommand extends AbstractCommand
                 $member->getUser()->getUsername(),
                 $member->getFullName()
             ));
-            $this->getCommissionPayoutService()->computeCommissionForMember($commissionPeriod, $member);
+            $forceRecompute = $input->getOption(self::OPTION_RECOMPUTE) == 1;
+            $this->getCommissionPayoutService()->computeCommissionForMember($commissionPeriod, $member, $forceRecompute);
         }
     }
-    
+
+    private function getVerboseAsOption(OutputInterface $output): string
+    {
+        switch ($output->getVerbosity()) {
+            case OutputInterface::VERBOSITY_VERBOSE:
+                $verbose = '-v';
+                break;
+            case OutputInterface::VERBOSITY_VERY_VERBOSE:
+                $verbose = '--vv';
+                break;
+            case OutputInterface::VERBOSITY_DEBUG:
+                $verbose = '--vvv';
+                break;
+            default:
+                $verbose = '';
+                break;
+        }
+
+        return $verbose;
+    }
+
     private function getCommissionPeriodRepository(): CommissionPeriodRepository
     {
         return $this->getDoctrine()->getRepository(CommissionPeriod::class);
     }
-    
+
     private function getRootDirectory(): string
     {
         return $this->getContainer()->get('kernel')->getRootDir();
     }
-    
+
     private function getCommissionPayoutService(): CommissionPayoutService
     {
         return $this->getContainer()->get('commission.payout_service');
     }
-    
+
     private function getMemberRepository(): MemberRepository
     {
         return $this->getDoctrine()->getRepository(Member::class);
     }
-    
+
     private function getEnvironment(): string
     {
         return $this->getContainer()->get('kernel')->getEnvironment();
     }
-    
+
     private function getCommissionManager(): CommissionManager
     {
         return $this->getContainer()->get('commission.manager');

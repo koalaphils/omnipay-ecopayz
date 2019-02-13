@@ -37,11 +37,37 @@ class TransactionValidator
         }
     }
 
+    public static function validateBitcoin($object, ExecutionContextInterface $context): void
+    {
+        $nullMessage = 'This should not be blank';
+        
+        if (is_null($object['bitcoin']['rate'])) {
+            $context->buildViolation($nullMessage)
+                    ->atPath('[bitcoin][rate]')
+                    ->addViolation();
+        }
+        
+        if (is_null($object['bitcoin']['receiver_unique_address'])) {
+            $context->buildViolation($nullMessage)
+                    ->atPath('[bitcoin][receiver_unique_address]')
+                    ->addViolation();
+        }
+    }
+    
     public static function validateSub($subtransaction, ExecutionContextInterface $context)
     {
         if ($subtransaction->isWithdrawal()) {
            // AC66-334
            // self::preventNegativeBalance($subtransaction, $context);
+        }
+    }
+
+    public static function validateNotes($details, ExecutionContextInterface $context)
+    {
+        if (!isset($details['notes'])) {
+            $context->buildViolation('This value should not be blank.')
+                    ->atPath('[notes]')
+                    ->addViolation();
         }
     }
 

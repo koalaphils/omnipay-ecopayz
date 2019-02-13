@@ -71,13 +71,28 @@
                                 <b>{{ "activation.title"|trans({},'CustomerBundle') }}</b>
                             </h4>
                             <p>
-                                <em>{{ "activation.sentOn"|trans({},'CustomerBundle') }} {{ customer.user.activationSentTimestamp|date('m/d/Y H:i:s') }}.</em>
+                                {% if customer.user.activationSentTimestamp %}
+                                    <em>
+                                    {{ "activation.sentOn"|trans({},'CustomerBundle') }}
+                                    {{ customer.user.activationSentTimestamp|date('m/d/Y H:i:s') }}
+                                    </em>
+                                {% endif %}
 
                                 {% if customer.user.activationTimestamp %}
                                     <br/>
                                     <em>{{ "activation.activatedOn"|trans({},'CustomerBundle') }} {{ customer.user.activationTimestamp|date('m/d/Y H:i:s') }}.</em>
                                 {% endif %}
                             </p>
+
+                            {% if customer.user.activationSentTimestamp %}
+                                {% if customer.user.activationSentTimestamp == customer.user.activationTimestamp %}
+                                    <hr>
+                                    <small>{{ "activation.note"|trans({},'CustomerBundle') }}.</small>
+                                    <br>
+                                    <a href="#activate" id="activate" class="btn btn-success">{{ "activation.button"|trans({},'CustomerBundle') }}</a>
+                                {% endif %}
+                            {% endif %}
+
                             {% if not customer.user.activationTimestamp %}
                                 <a href="#activate" id="activate" class="btn btn-success">{{ "activation.button"|trans({},'CustomerBundle') }}</a>
                                 <button id="activateCustomer" class="btn btn-primary">{{ "activation.buttonActivate"|trans({},'CustomerBundle') }}</button>
@@ -117,26 +132,22 @@
                                     <ul class="nav nav-tabs navtab-bg nav-justified">
                                         <li class="active">
                                             <a href="#running-commission" data-toggle="tab" aria-expanded="false">
-                                                <span class="visible-xs"><i class="fa fa-home"></i></span>
-                                                <span class="hidden-xs">Running Commissions</span>
+                                                <span>Running Commissions</span>
                                             </a>
                                         </li>
                                         <li class="">
                                             <a href="#commission-setting" data-toggle="tab" aria-expanded="true">
-                                                <span class="visible-xs"><i class="fa fa-user"></i></span>
-                                                <span class="hidden-xs">Commission Settings</span>
+                                                <span>Commission Settings</span>
                                             </a>
                                         </li>
                                         <li class="">
                                             <a href="#turnover-commission-product" data-toggle="tab" aria-expanded="false">
-                                                <span class="visible-xs"><i class="fa fa-envelope-o"></i></span>
-                                                <span class="hidden-xs">Turnover/Commission (Product)</span>
+                                                <span>Turnover/Commission (Product)</span>
                                             </a>
                                         </li>
                                         <li class="">
                                             <a href="#turnover-commission-member" data-toggle="tab" aria-expanded="false">
-                                                <span class="visible-xs"><i class="fa fa-envelope-o"></i></span>
-                                                <span class="hidden-xs">Turnover/Commission (Member)</span>
+                                                <span>Turnover/Commission (Member)</span>
                                             </a>
                                         </li>
                                     </ul>
@@ -284,6 +295,19 @@
     <script type="text/javascript">
         var transactionUrl = "{{ path('transaction.update_page', {"type":"__type__", "id":"__id__"}) }}";
         var locationHref = getLocation(window.location.href);
+        var referrer = {
+            'byCode': {
+                'id': '{{ referrerByCode.id|default('') }}',
+                'name': '{{ referrerByCode.fullName|default('') }}',
+                'username': '{{ referrerByCode.username|default('') }}'
+            },
+            'current': {
+                'id': '{{ customer.referrer.id|default('') }}',
+                'name': '{{ customer.referrer.fullName|default('') }}',
+                'username': '{{ customer.referrer.username|default('') }}'
+            }
+        };
+
         var turnoverCommissionReport = {
             'exportUrl': '{{ path('member.turnover_commission.download', { 'id': '__id__', 'orderBy': '__orderBy__' }) }}',
             'filters': {
@@ -292,6 +316,7 @@
             }
         };
         goToDefaultUrlWhenInCorrectURL(locationHref);
+        toggleLinkReferrerButton();
 
         function goToDefaultUrlWhenInCorrectURL(href) {
             if (!href.pathname.match(/\/(\d+)\/(.*)/)) {
@@ -310,63 +335,43 @@
             return location;
         }
 
-        {#function turnoverCommissionDwlAmount(data, type, full) {#}
-            {#return full.currencyCode + ' ' + formatAmount(data);#}
-        {#}#}
+        function turnoverCommissionDwlAmount(data, type, full) {
+            return full.currencyCode + ' ' + data.rounded;
+        }
 
-        {#function turnoverCommissionAffiliateAmount(data, type, full) {#}
-            {#return '{{ customer.currencyCode }} ' + formatAmount(data);#}
-        {#}#}
+        function turnoverCommissionAffiliateAmount(data, type, full) {
+            return '{{ customer.currencyCode }} ' + data.rounded;
+        }
 
-        {#function turnoverCommissionTotalTurnover(totals) {#}
-            {#var value = '{{ customer.currencyCode }} ' + formatAmount(0);#}
+        function turnoverCommissionTotalTurnover(totals) {
+            var value = '';
 
-            {#if (!$.isEmptyObject(totals)) {#}
-                {#value = '';#}
+            $.each(totals, function(key, total) {
+                value += total.currencyCode + ' ' + total.totalTurnover.rounded + "<br/>";
+            });
 
-                {#$.each(totals, function(key, total) {#}
-                    {#value += total.currencyCode + ' ' + formatAmount(total.totalTurnover) + "<br/>";#}
-                {#});#}
-            {#}#}
+            return value;
+        }
 
-            {#return value;#}
-        {#}#}
+        function turnoverCommissionTotalWinLoss(totals) {
+            var value = '';
 
-        {#function turnoverCommissionTotalWinLoss(totals) {#}
-            {#var value = '{{ customer.currencyCode }} ' + formatAmount(0);#}
+            $.each(totals, function(key, total) {
+                value += total.currencyCode + ' ' + total.totalWinLoss.rounded + "<br/>";
+            });
 
-            {#if (!$.isEmptyObject(totals)) {#}
-                {#value = '';#}
+            return value;
+        }
 
-                {#$.each(totals, function(key, total) {#}
-                    {#value += total.currencyCode + ' ' + formatAmount(total.totalWinLoss) + "<br/>";#}
-                {#});#}
-            {#}#}
+        function turnoverCommissionTotalCommission(totals) {
+            var memberCurrencyCode = '{{ customer.currencyCode }}';
 
-            {#return value;#}
-        {#}#}
-
-        {#function turnoverCommissionTotalCommission(totals) {#}
-            {#var memberCurrencyCode = '{{ customer.currencyCode }}';#}
-            {#var value = memberCurrencyCode + ' ' + formatAmount(0);#}
-
-            {#if (!$.isEmptyObject(totals)) {#}
-                {#var total = totals.filter(obj => {#}
-                    {#return obj.currencyCode == memberCurrencyCode;#}
-                {#})[0];#}
-
-                {#if (typeof total == 'undefined') {#}
-                    {#total = { 'totalAffiliateCommission' : 0 };#}
-                {#}#}
-
-                {#value = memberCurrencyCode + ' ' + formatAmount(total.totalAffiliateCommission);#}
-            {#}#}
-
-            {#return value;#}
-        {#}#}
-
-        function formatAmount(amount) {
-            return (new Decimal(amount)).toFixed(2);
+            try {
+                var total = totals[0];
+                return memberCurrencyCode + ' ' + total.totalAffiliateCommission.rounded;
+            } catch (err) {
+                return memberCurrencyCode;
+            }
         }
 
         function turnoverCommissionPeriod(period) {
@@ -388,14 +393,16 @@
 
         $('#{{ widgets.turnoverCommissionByMemberList.getFullId() }}_container, #{{ widgets.turnoverCommissionByProductList.getFullId() }}_container')
             .on('xhr.dt', function (e, settings, json, xhr) {
-                var table = $(this);
-                var response = JSON.parse(xhr.responseText);
-                var period = response.period;
+                if (typeof xhr.responseText !== 'undefined') {
+                    var table = $(this);
+                    var response = JSON.parse(xhr.responseText);
+                    var period = response.period;
 
-                turnoverCommissionReport.filters[response.filters.orderBy] = response.filters;
+                    turnoverCommissionReport.filters[response.filters.orderBy] = response.filters;
 
-                table.find('input[name=dwlDateFrom]').val(moment(period.dwlDateFrom).format('L'));
-                table.find('input[name=dwlDateTo]').val(moment(period.dwlDateTo).format('L'));
+                    table.find('input[name=dwlDateFrom]').val(moment(period.dwlDateFrom).format('L'));
+                    table.find('input[name=dwlDateTo]').val(moment(period.dwlDateTo).format('L'));
+                }
             });
 
         $('#{{ widgets.turnoverCommissionByProductList.getFullId() }}_container').on('click', 'button[name=btnExportCsv]', function () {
@@ -416,11 +423,19 @@
 
         function transactionListStatus(data, type, full)
         {
-            if (full.is_voided) {
-                return '{{ 'voided'|trans({}, 'TransactionBundle') }}';
+            var label = data;
+
+            if (full.is_bitcoin_status_pending_confirmation == true) {
+                label = "{{ "pending_confirmation"|trans({}, "TransactionBundle") }}";
+            } else if (full.is_bitcoin_status_confirmed == true) {
+                label = "{{ "confirmed"|trans({}, "TransactionBundle") }}";
             }
 
-            return data;
+            if (full.is_voided) {
+                label = '{{ 'voided'|trans({}, 'TransactionBundle') }}';
+            }
+
+            return label;
         }
 
         function translateTypeText(data, type, full)
@@ -433,7 +448,9 @@
                 'p2p_transfer': "{{ "types.p2p_transfer"|trans({}, "TransactionBundle") }}",
                 'dwl': "{{ "types.dwl"|trans({}, "TransactionBundle") }}",
                 'bet': "{{ "types.bet"|trans({}, "TransactionBundle") }}",
-                'commission': "{{ "types.commission"|trans({}, 'TransactionBundle') }}"
+                'commission': "{{ "types.commission"|trans({}, 'TransactionBundle') }}",
+                'debit_adjustment': "{{ "types.debit_adjustment"|trans({}, 'TransactionBundle') }}",
+                'credit_adjustment': "{{ "types.credit_adjustment"|trans({}, 'TransactionBundle') }}"
             };
 
             if (data === 'dwl') {
@@ -448,6 +465,12 @@
         function transactionListAmount(data, type, full)
         {
             if (full.type == {{ constant('DbBundle\\Entity\\Transaction::TRANSACTION_TYPE_DEPOSIT') }}) {
+                var btcTotalAmount = new Number(full.bitcoin_total_amount);
+                if (full.is_transaction_payment_bitcoin && btcTotalAmount != '0') {
+                    var btcAmount = new Number(full.bitcoin_total_amount);
+                    return full.customer_amount + ' (' + btcAmount.toFixed(5) + ' BTC)';
+                }
+                
                 return full.customer_amount;
             }
 
@@ -474,6 +497,16 @@
             } else {
                 return 'Disabled';
             }
+        }
+
+        function formatRequestedAt(data, type, full) {
+            var requestedAt = '';
+
+            if (data !== null) {
+                requestedAt = moment(data).format('MMM D, YYYY hh:mm a');
+            }
+
+            return requestedAt;
         }
 
         function productListAction(data, type, full)
@@ -513,7 +546,8 @@
 
             var productUsername = '';
             $.each(data , function(key,val) {
-                productUsername  += '&nbsp;' + val.customer_product.product.name + '(' + val.immutable_customer_product_data + '),';
+                var customerProductUserName = val.immutable_customer_product_data === '' ? val.customer_product.username : val.immutable_customer_product_data;
+                productUsername  += '&nbsp;' + val.customer_product.product.name + '(' + customerProductUserName + '),';
             });
             productUsername = productUsername.replace(/,*$/, "");
             productUsername = productUsername.split(",");
@@ -541,7 +575,7 @@
                 paymentOption = '';
             }
 
-            return paymentOption;
+            return paymentOption.ellipsis(30);
         }
 
         function listFullname(data, type, full)
@@ -789,7 +823,7 @@
         }
 
         $(document).ajaxStop(function() {
-            $('.customer-tab').click(function(e){
+            $('body').on('click', '.customer-tab', function(e){
                 e.preventDefault();
                 var currentTab = $($('.li-customer-tab.active .customer-tab').attr('href') + '.tab-pane');
 
@@ -874,6 +908,72 @@
                 }
             });
         }
+
+        $('#autoLink').click(function(e) {
+            var profileForm = $(this).closest('form');
+            var referrerElement = $('#{{ widgets.profileForm.getFormView().referrer.vars.id }}');
+
+            e.preventDefault();
+
+            confirm2(
+                'Are you sure you want to link <b>{{ customer.fullName }}</b> to <b>' + referrer.byCode.name + '</b>?',
+                'Link Member',
+                {
+                    'type': null,
+                    'confirmButtonClass': 'btn-warning btn-md',
+                    'confirmButtonText': 'Link',
+                    'cancelButtonClass': 'btn-inverse btn-md',
+                    'cancelButtonText': 'Cancel',
+                    'html': true,
+                    'showLoaderOnConfirm': true
+                },
+                function (isUnlink) {
+                    if (isUnlink) {
+                        $.ajax({
+                            'globalAjaxComplete': false,
+                            'globalAjaxError': false,
+                            'headers': {
+                                'X-WIDGET-REQUEST': 'OnLinkMember'
+                            },
+                            'type': 'POST',
+                        }).always(function (data) {
+                            if (typeof data.responseJSON !== 'undefined') {
+                                var notifications = data.responseJSON.__notifications[0];
+                                referrer.byCode = data.responseJSON.referrer;
+                                referrer.current = data.responseJSON.referrer;
+                            } else {
+                                var notifications = data.__notifications[0];
+                                referrer.byCode = data.referrer;
+                                referrer.current = data.referrer;
+                            }
+
+                            swal({
+                                'type': notifications.type,
+                                'title': notifications.title,
+                                'text': notifications.message
+                            }, function() {
+                                referrerElement.select2('trigger', 'select', {
+                                    'data': { 'id': referrer.byCode.id, 'text' : referrer.byCode.name + ' (' + referrer.byCode.username + ')' }
+                                });
+
+                                profileForm.data('initialSate', profileForm.serialize());
+
+                                originalReferrer = referrerElement.val();
+                                toggleLinkReferrerButton();
+                            });
+                        });
+                    }
+                }
+            );
+        });
+
+        function toggleLinkReferrerButton() {
+            $('#autoLink').prop('disabled', true);
+
+            if (referrer.byCode.id != '' && (referrer.byCode.id != referrer.current.id)) {
+                $('#autoLink').prop('disabled', false);
+            }
+        };
 
         // Send Activation Email
         $('#activate').click(function(e) {
@@ -1044,6 +1144,16 @@
             } else {
                 return '<button class="btn btn-xs btn-success btn-website-enable">Enable</button>';
             }
+        }
+
+        function formatWebsite(data, type, full) {
+            var website = '';
+
+            if (data !== null && data !== '') {
+                website = data.website;
+            }
+
+            return website;
         }
 
         $(function () {

@@ -67,10 +67,10 @@ services:
         lazy: true
         arguments: [ "@doctrine.orm.entity_manager", "DbBundle\\Entity\\Product" ]
 
-    api.product_repository:
-        class: ApiBundle\Repository\ProductRepository
-        lazy: true
-        arguments: [ "@doctrine.orm.entity_manager", "DbBundle\\Entity\\Product" ]
+    #api.product_repository:
+    #    class: ApiBundle\Repository\ProductRepository
+    #    lazy: true
+    #    arguments: [ "@doctrine.orm.entity_manager", "DbBundle\\Entity\\Product" ]
 
     api.transaction_manager:
         class: ApiBundle\Manager\TransactionManager
@@ -103,6 +103,7 @@ services:
 
     api.customer.event_subscriber:
         class: ApiBundle\Subscriber\CustomerSubscriber
+        arguments: ["%asianconnect_url%", "%asianconnect09_domain%"]
         tags:
             - { name: kernel.event_subscriber }
         calls:
@@ -144,5 +145,22 @@ services:
     api.same_currency_constraint:
         class: ApiBundle\Validator\SameCurrencyConstraintValidator
         arguments: ["@=service('security.token_storage').getToken().getUser()"]
+        tags:
+            - { name: validator.constraint_validator }
+
+    api.unique_member_product.validator:
+        class: ApiBundle\Validator\Constraints\UniqueMemberProductValidator
+        arguments:
+            - '@=service("doctrine").getRepository("DbBundle\\Entity\\CustomerProduct")'
+            - '@security.token_storage'
+        tags:
+          - { name: validator.constraint_validator }
+
+    api.bitcoin_transaction_validator:
+        class: ApiBundle\Validator\Bitcoin\BitcoinTransactionConstraintValidator
+        arguments: ["@api.transaction_repository"]
+        calls:
+            - ['setMaxBitcoinDeposit', ['@=service("app.setting_manager").getSetting("bitcoin.setting.configuration.maximumAllowedDeposit")']]
+            - ['setMinBitcoinDeposit', ['@=service("app.setting_manager").getSetting("bitcoin.setting.configuration.minimumAllowedDeposit")']]
         tags:
             - { name: validator.constraint_validator }

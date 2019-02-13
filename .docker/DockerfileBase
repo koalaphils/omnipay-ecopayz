@@ -37,6 +37,7 @@ RUN apk add --update openssh \
     php7-session \
     php7-pdo_mysql \
     php7-zip \
+    php7-iconv \
     acl \
     grep \
     supervisor \

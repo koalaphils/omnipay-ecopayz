@@ -56,10 +56,17 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
             if ($transitionName === 'customer-new' && $event->fromCustomer() && $transaction->isDeposit()) {
                 $this->getPaymentManager()->processPaymentOption($transaction);
             }
-
-            if ($this->getTransactionWorkflow()->can($transaction, $transaction->getTypeText() . '-' . $transitionName)) {
+            
+            $paymentOptionMode = \DbBundle\Entity\PaymentOption::PAYMENT_MODE_OFFLINE;
+            if ($transaction->getPaymentOptionType() instanceof \DbBundle\Entity\PaymentOption) {
+                $paymentOptionMode = $transaction->getPaymentOptionType()->getPaymentMode();
+            }
+            
+            if ($this->getTransactionWorkflow()->can($transaction, $paymentOptionMode . '-' . $transitionName)) {
+                $this->getTransactionWorkflow()->apply($transaction, $paymentOptionMode . '-' . '-' . $transitionName);
+            } elseif ($this->getTransactionWorkflow()->can($transaction, $transaction->getTypeText() . '-' . $transitionName)) {
                 $this->getTransactionWorkflow()->apply($transaction, $transaction->getTypeText() . '-' . $transitionName);
-            } else if ($this->getTransactionWorkflow()->can($transaction, $transitionName)) {
+            } elseif ($this->getTransactionWorkflow()->can($transaction, $transitionName)) {
                 $this->getTransactionWorkflow()->apply($transaction, $transitionName);
             } else {
                 throw new TransitionGuardException('Unable to transition the transaction');

@@ -5,6 +5,7 @@ tag:
 page:
     create_title: Request {type} Transaction
     update_title: Update {type} Transaction
+    view_title: View {type} Transaction
     setting: Transaction
     title:
         setting: Settings | Transaction
@@ -24,6 +25,10 @@ types:
     dwl: Daily Win Loss
     bet: Bet
     commission: Commission
+    adjustment: Adjustment
+    debit_adjustment: Debit
+    credit_adjustment: Credit
+
 fields:
     number: Number
     currency: Currency
@@ -40,6 +45,11 @@ fields:
     paymentOption: Payment Option
     type: Type
     action: Action
+    transactionHash: Trans Hash
+    receiverAddress: Receiver
+    depositRate: Deposit Rate
+    depositRequestRate: Deposit Request Rate
+    senderAddress: Sender
 
 menus:
     Transaction: Transaction
@@ -50,6 +60,9 @@ menus:
     P2PTransfer: P2P Transfer
     DWL: Daily Win/Loss
     Bonus: Bonus
+    Bet: Bet
+    Commission: Commission
+    Adjustment: Adjustment
 
 quicklinks:
     name: Quick Links
@@ -68,6 +81,8 @@ roles:
         changeProcess: Change Transaction Process
 
 voided: Voided
+pending_confirmation: Pending Confirmation
+confirmed: Confirmed
 
 settings:
     transaction:
@@ -102,3 +117,8 @@ settings:
 
 Payment Option on Record: Payment Option on Record
 Payment Option on Transaction: Payment Option on Transaction
+
+notifications:
+    notUpdatedForm:
+        title: Error
+        message: Another agent is currently updating the Payment Gateway's balance. Please refresh your browser to check the updated balance, review data, and resubmit the transaction if you still wish to proceed.

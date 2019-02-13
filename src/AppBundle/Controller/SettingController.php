@@ -100,7 +100,7 @@ class SettingController extends AbstractController
 
         if (!empty($scheduler[Setting::SCHEDULER_TASK])) {
             $validationGroups = ['default', 'customer'];
-            $tasks = $this->getManager()->getAutoDeclineSechedulerConfig($scheduler);
+            $tasks = $this->getManager()->getItemConfig($scheduler, Setting::SCHEDULER_TASK);
             
             $formAutoDecline = $this->createForm(SchedulerType::class, $tasks[Setting::TASK_AUTODECLINE], [
                 'validation_groups' => $validationGroups,
@@ -111,7 +111,8 @@ class SettingController extends AbstractController
                 $data = $formAutoDecline->getData();
 
                 if ($this->getManager()->hasValidTimeInMinutes($data)) {
-                    $this->getManager()->updateSetting('scheduler.' . Setting::SCHEDULER_TASK , [Setting::TASK_AUTODECLINE => $data]);
+                    $tasks[Setting::TASK_AUTODECLINE] = $data;
+                    $this->getManager()->saveSetting('scheduler.' . Setting::SCHEDULER_TASK , $tasks);
                     $message = [
                         'title' => $this->getTranslator()->trans('notification.scheduler.title', [], 'AppBundle'),
                         'message' => $this->getTranslator()->trans('notification.scheduler.message', [], 'AppBundle'),

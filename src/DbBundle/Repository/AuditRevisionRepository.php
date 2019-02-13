@@ -4,8 +4,12 @@ namespace DbBundle\Repository;
 
 use DbBundle\Entity\AuditRevision;
 use DbBundle\Entity\AuditRevisionLog;
+use DbBundle\Entity\CustomerProduct;
+use DbBundle\Entity\SubTransaction;
 use DbBundle\Entity\User;
+use Doctrine\ORM\Internal\Hydration\IterableResult;
 use Doctrine\ORM\Query;
+use Doctrine\DBAL\Connection;
 
 class AuditRevisionRepository extends BaseRepository
 {
@@ -22,15 +26,14 @@ class AuditRevisionRepository extends BaseRepository
         }
     }
 
-    public function getListQb($filters)
+    public function getListSubQueryBuilder(?array $filters = null, $orders = []) : \Doctrine\DBAL\Query\QueryBuilder
     {
-        $qb = $this->createQueryBuilder('ar');
-
-        $qb->join('ar.user', 'u');
-
-        if (!empty(array_get($filters, 'type', []))) {
-            $type = $filters['type'] == AuditRevision::TYPE_MEMBER ? User::USER_TYPE_MEMBER : User::USER_TYPE_ADMIN;
-            $qb->andWhere('u.type = :type')->setParameter('type', $type);
+        $queryBuilder = $this->getEntityManager()->getConnection()->createQueryBuilder();
+        $queryBuilder->select("audit_revision_id, audit_revision_user_id, audit_revision_timestamp, audit_revision_client_ip");
+        $queryBuilder->from('audit_revision', 'ar');
+        if (!empty(array_get($filters, 'userIds', []))) {
+            $queryBuilder->andWhere('ar.audit_revision_user_id IN (:users)');
+            $queryBuilder->setParameter('users', $filters['userIds'], Connection::PARAM_INT_ARRAY);
         }
 
         $groupFilters = [];
@@ -40,55 +43,126 @@ class AuditRevisionRepository extends BaseRepository
 
         if (!empty($groupFilters)) {
             if (!empty(array_get($groupFilters, 'from', ''))) {
-                $qb->andWhere('ar.timestamp >= :from');
-                $qb->setParameter('from', new \DateTime($groupFilters['from']));
+                $queryBuilder->andWhere('ar.audit_revision_timestamp >= :from');
+                $queryBuilder->setParameter('from', (new \DateTimeImmutable($groupFilters['from']))->format('Y-m-d H:i:s'));
             }
 
             if (!empty(array_get($groupFilters, 'to', ''))) {
-                $qb->andWhere('ar.timestamp < :to');
-                $qb->setParameter('to', (new \DateTime($groupFilters['to'] . '+1 day')));
+                $queryBuilder->andWhere('ar.audit_revision_timestamp < :to');
+                $queryBuilder->setParameter('to', (new \DateTimeImmutable($groupFilters['to'] . '+1 day'))->format('Y-m-d H:i:s'));
             }
 
             if (!empty(array_get($groupFilters, 'operation', [])) || !empty(array_get($groupFilters, 'category', []))) {
                 if (!empty($groupFilters['operation'])) {
-                    $qb->andWhere('(SELECT COUNT(arl.id) FROM ' . AuditRevisionLog::class . ' AS arl WHERE ar.id = arl.auditRevision AND arl.operation IN (:operation)) > 0')
-                        ->setParameter('operation', $groupFilters['operation']);
+                    $queryBuilder->andWhere('(SELECT COUNT(arl.audit_revision_log_id) FROM audit_revision_log AS arl WHERE ar.audit_revision_id = arl.audit_revision_log_audit_revision_id AND arl.audit_revision_log_operation IN (:operation)) > 0');
+                    $queryBuilder->setParameter('operation', $groupFilters['operation'], Connection::PARAM_INT_ARRAY);
                 }
                 if (!empty($groupFilters['category'])) {
-                    $qb->andWhere('(SELECT COUNT(arl2.id) FROM ' . AuditRevisionLog::class . ' AS arl2 WHERE ar.id = arl2.auditRevision AND arl2.category IN (:category)) > 0')
-                        ->setParameter('category', $groupFilters['category']);
+                    $queryBuilder->andWhere('(SELECT COUNT(arl2.audit_revision_log_id) FROM audit_revision_log AS arl2 WHERE ar.audit_revision_id = arl2.audit_revision_log_audit_revision_id AND arl2.audit_revision_log_category IN (:category)) > 0');
+                    $queryBuilder->setParameter('category', $groupFilters['category'], Connection::PARAM_INT_ARRAY);
                 }
             }
-            
+
             if (!empty($groupFilters['search'])) {
-                $exp = $qb->expr()->orX();
-                $qb->andWhere($exp->addMultiple([
-                    "u.username LIKE :search",
-                    "ar.clientIp LIKE :search",
-                    "(SELECT COUNT(arl3.id) FROM " . AuditRevisionLog::class . " AS arl3 WHERE ar.id = arl3.auditRevision AND JSON_EXTRACT(arl3.details, '$.label') LIKE :search ) > 0"
-                ]))->setParameter('search', '%' . $groupFilters['search'] . '%');
+                $queryBuilder->innerJoin("ar", "user", "u", "ar.audit_revision_user_id = u.user_id");
+                $exp = $queryBuilder->expr()->orX();
+                $queryBuilder->andWhere($exp->addMultiple([
+                    "u.user_username LIKE :search",
+                    "ar.audit_revision_client_ip LIKE :search",
+                    "(SELECT COUNT(arl3.audit_revision_log_id) FROM audit_revision_log AS arl3 WHERE ar.audit_revision_id = arl3.audit_revision_log_audit_revision_id AND JSON_EXTRACT(arl3.audit_revision_log_details, '$.label') LIKE :search ) > 0"
+                ]));
+                $queryBuilder->setParameter('search', '%' . $groupFilters['search'] . '%');
             }
         }
 
-        return $qb;
+        return $queryBuilder;
+    }
+
+    public function getListQb($filters = null, $orders = [])
+    {
+        $queryBuilder = $this->getEntityManager()->getConnection()->createQueryBuilder();
+        $subQueryBuilder = $this->getListSubQueryBuilder($filters, $orders);
+
+        if (isset($filters['start'])) {
+            $subQueryBuilder->setFirstResult($filters['start']);
+        }
+
+        if (isset($filters['length'])) {
+            $subQueryBuilder->setMaxResults($filters['length']);
+        }
+
+        if (!empty($orders)) {
+            foreach ($orders as $order) {
+                $subQueryBuilder->addOrderBy($order['column'], $order['dir']);
+            }
+        }
+
+        if (!empty(array_get($filters, 'userIds', []))) {
+            $queryBuilder->setParameter('users', $filters['userIds'], Connection::PARAM_INT_ARRAY);
+        }
+
+        $groupFilters = array_get($filters, 'filter', []);
+
+        if (!empty($groupFilters)) {
+            if (!empty(array_get($groupFilters, 'from', ''))) {
+                $queryBuilder->setParameter('from', (new \DateTime($groupFilters['from']))->format('Y-m-d H:i:s'));
+            }
+
+            if (!empty(array_get($groupFilters, 'to', ''))) {
+                $queryBuilder->setParameter('to', (new \DateTime($groupFilters['to'] . '+1 day'))->format('Y-m-d H:i:s'));
+            }
+
+            if (!empty(array_get($groupFilters, 'operation', [])) || !empty(array_get($groupFilters, 'category', []))) {
+                if (!empty($groupFilters['operation'])) {
+                    $queryBuilder->setParameter('operation', $groupFilters['operation'], Connection::PARAM_INT_ARRAY);
+                }
+                if (!empty($groupFilters['category'])) {
+                    $queryBuilder->setParameter('category', $groupFilters['category'], Connection::PARAM_INT_ARRAY);
+                }
+            }
+        }
+
+        $queryBuilder
+            ->select("ar.audit_revision_id")
+            ->from("( " . $subQueryBuilder->getSql() . ")", "ar")
+        ;
+
+        if (!empty($groupFilters)) {
+            if (!empty($groupFilters['search'])) {
+                $queryBuilder->setParameter('search', '%' . $groupFilters['search'] . '%');
+            }
+        }
+
+        return $queryBuilder;
     }
 
     public function getList($filters = null, $orders = [], $hydrationMode = Query::HYDRATE_ARRAY)
     {
-        $qb = $this->getListQb($filters);
-
+        $getListQb = $this->getListQb($filters, $orders);
         if (!empty($orders)) {
             foreach ($orders as $order) {
-                $qb->addOrderBy($order['column'], $order['dir']);
+                $getListQb->addOrderBy($order['column'], $order['dir']);
             }
         }
 
-        if (isset($filters['length'])) {
-            $qb->setMaxResults($filters['length']);
+        if (array_has($filters, 'length')) {
+            $getListQb->setMaxResults($filters['length']);
         }
 
-        if (isset($filters['start'])) {
-            $qb->setFirstResult($filters['start']);
+        $listArIds = $getListQb->execute()->fetchAll(\PDO::FETCH_ASSOC);
+
+        $arIds = [];
+        foreach ($listArIds as $value) {
+            $arIds[] = $value["audit_revision_id"];
+        }
+
+        $qb = $this->createQueryBuilder('ar');
+        $qb->andWhere('ar.id IN (:arid)')->setParameter('arid',$arIds);
+
+        if (!empty($orders)) {
+            foreach ($orders as $order) {
+                $qb->addOrderBy($order['columnQB'], $order['dir']);
+            }
         }
 
         return $qb->getQuery()->getResult($hydrationMode);
@@ -96,10 +170,16 @@ class AuditRevisionRepository extends BaseRepository
 
     public function getListFilterCount($filters = null)
     {
-        $qb = $this->getListQb($filters);
-        $qb->select('COUNT(ar.id)');
+        $qb = $this->getListSubQueryBuilder($filters);
+        $qb->select('COUNT(ar.audit_revision_id) as filterCount');
+        if (!empty(array_get($filters, 'userIds', []))) {
+            $qb->setParameter('users', $filters['userIds'], Connection::PARAM_INT_ARRAY);
+        }
 
-        return $qb->getQuery()->getSingleScalarResult();
+        $listFilterCount = $qb->execute()->fetch(\PDO::FETCH_ASSOC);
+        $filterCount = array_get($listFilterCount, 'filterCount');
+
+        return $filterCount;
     }
 
     public function getListAllCount($filters = null)
@@ -107,12 +187,8 @@ class AuditRevisionRepository extends BaseRepository
         $qb = $this->createQueryBuilder('ar');
         $qb->select('COUNT(ar.id)');
 
-        if (array_has($filters, 'type')) {
-            $type = $filters['type'] == AuditRevision::TYPE_MEMBER ? User::USER_TYPE_MEMBER : User::USER_TYPE_ADMIN;
-
-            $qb->join('ar.user', 'u')
-                ->where($qb->expr()->eq('u.type', ':type'))
-                ->setParameter('type', $type);
+        if (!empty(array_get($filters, 'userIds', []))) {
+            $qb->andWhere('ar.user IN (:arid)')->setParameter('arid', $filters['userIds'], Connection::PARAM_INT_ARRAY);
         }
 
         return $qb->getQuery()->getSingleScalarResult();
@@ -139,6 +215,72 @@ class AuditRevisionRepository extends BaseRepository
         }
 
         return $queryBuilder->getQuery()->getArrayResult();
+    }
+    
+    public function getLastAuditLogFor(string $identifier, string $class, int $category): ?AuditRevisionLog
+    {
+        $queryBuilder = $this->getEntityManager()->createQueryBuilder()->from(AuditRevisionLog::class, 'log');
+        $queryBuilder
+            ->select('log', 'revision')
+            ->innerJoin('log.auditRevision', 'revision')
+            ->where($queryBuilder->expr()->andX()->addMultiple([
+                "log.identifier = :identifier",
+                "log.className = :className",
+                "log.category = :category",
+            ]))
+            ->orderBy('revision.id', 'DESC')
+            ->setMaxResults(1)
+            ->setParameters([
+                'identifier' => $identifier,
+                'className' => $class,
+                'category' => $category,
+            ]);
+        
+        return $queryBuilder->getQuery()->getOneOrNullResult();
+    }
+    
+    public function getAuditLogsForDWLSubtransactionIdentifier(
+        SubTransaction $subTransaction,
+        \DateTimeInterface $dateStart,
+        \DateTimeInterface $dateEnd
+    ): IterableResult {
+        $this->setToBuffered();
+        $transaction = $subTransaction->getParent();
+        $queryBuilder = $this->getEntityManager()->createQueryBuilder()->from(AuditRevisionLog::class, 'log');
+        $expSubTransaction = $queryBuilder->expr()->andX()->addMultiple([
+            "log.identifier = :subTransactionId",
+            "log.className = :subTransactionClassName",
+            "log.category = :memberDWLCategory",
+        ]);
+        $expMemberProduct = $queryBuilder->expr()->andX()->addMultiple([
+            "log.identifier = :memberProductId",
+            "log.className = :memberProductClassName",
+            "log.category = :memberProductCategory",
+            "log.operation = :updateOperation",
+        ]);
+        
+        $queryBuilder
+            ->select('log', 'revision')
+            ->innerJoin('log.auditRevision', 'revision')
+            ->where($queryBuilder->expr()->andX()->addMultiple([
+                $queryBuilder->expr()->orX()->addMultiple([$expSubTransaction, $expMemberProduct]),
+                'revision.timestamp >= :dateStart',
+                'revision.timestamp <= :dateEnd',
+            ]))
+            ->orderBy('revision.id', 'ASC')
+            ->setParameters([
+                'subTransactionId' => (string) $subTransaction->getId(),
+                'subTransactionClassName' => SubTransaction::class,
+                'memberDWLCategory' => AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_DWL,
+                'memberProductId' => (string) $subTransaction->getCustomerProduct()->getId(),
+                'memberProductClassName' => CustomerProduct::class,
+                'memberProductCategory' => AuditRevisionLog::CATEGORY_CUSTOMER_PRODUCT,
+                'updateOperation' => AuditRevisionLog::OPERATION_UPDATE,
+                'dateStart' => $dateStart,
+                'dateEnd' => $dateEnd,
+            ]);
+        
+        return $queryBuilder->getQuery()->iterate();
     }
 
     protected function getHistoryIPListQb(array $filters = []):  \Doctrine\ORM\QueryBuilder

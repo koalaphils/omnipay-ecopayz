@@ -77,6 +77,10 @@ DbBundle\Entity\CustomerProduct:
                 readOnly: true
             column: cproduct_bet_sync_id
             nullable: true
+        requestedAt:
+            type: datetime
+            nullable: true
+            column: cproduct_requested_at
     manyToOne:
         product:
             targetEntity: DbBundle\Entity\Product

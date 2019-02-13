@@ -27,11 +27,6 @@ services:
         calls:
             - [ 'setContainer', ['@service_container'] ]
 
-    app.piwi_middleware_helper:
-        class: AppBundle\Helper\PiwiMiddlewareHelper
-        calls:
-            - [ 'setContainer', ['@service_container'] ]
-
     # component
     app.component.data_transfer:
         class: AppBundle\Component\DataTransfer
@@ -198,6 +193,8 @@ services:
     app.publisher:
         class: AppBundle\Helper\Publisher
         arguments: ["%websocket.url%", "%websocket.realm%", "%jwt_key%"]
+        calls:
+            - ['setWampUrl', ['%websocket.wamp%']]
 
     # form extension
     app.form.extension.model_transformer:
@@ -221,6 +218,8 @@ services:
     app.notification_manager:
         class: AppBundle\Manager\NotificationManager
         parent: app.base_manager
+        arguments:
+            - '@=service("doctrine").getRepository("DbBundle\\Entity\\CustomerProduct")'
 
     app.referral_tool_generator:
         class: AppBundle\Helper\ReferralToolGenerator

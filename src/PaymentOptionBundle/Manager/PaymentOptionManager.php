@@ -55,7 +55,7 @@ class PaymentOptionManager extends AbstractManager
             }, $this->getRepository()->filter($filters, $orders, $limit, $offset, \Doctrine\ORM\Query::HYDRATE_SCALAR));
             $result['recordsFiltered'] = $filteredTotal;
         } else {
-            $result['data'] = $this->getRepository()->filter($filters, $orders, $limit, $offset);
+            $result['data'] = $this->getRepository()->filter($params, $orders, $limit, $offset);
         }
 
         return $result;

@@ -20,7 +20,7 @@ class CustomerProductManager extends AbstractManager
         return $this->getDoctrine()->getRepository('DbBundle:CustomerProduct');
     }
 
-    public function getCustomerProductList($filters = null)
+    public function getCustomerProductList($filters = null, bool $isSelect = false)
     {
         $status = true;
         $results = [];
@@ -57,7 +57,12 @@ class CustomerProductManager extends AbstractManager
             $results['recordsFiltered'] = $this->getRepository()->getCustomerProductListFilterCount($filters);
             $results['recordsTotal'] = $this->getRepository()->getCustomerProductListAllCount();
         } else {
-            $results = $this->getRepository()->getCustomerProductList($filters);
+            if ($isSelect === true) {
+                $totalRecords = $this->getRepository()->getCustomerProductListAllCount();
+                $results = $this->getRepository()->getCustomerProductList($filters, $order = [], $totalRecords, $offset = 0);
+            } else {
+                $results = $this->getRepository()->getCustomerProductList($filters);
+            }
         }
 
         return $results;

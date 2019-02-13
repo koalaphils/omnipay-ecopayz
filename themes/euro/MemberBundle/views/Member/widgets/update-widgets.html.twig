@@ -27,9 +27,10 @@
         <div id="{{ id }}Modal" class="modal fade" aria-hidden="true">
             <div id="{{ id }}FormContainer"></div>
         </div>
-        <div id="{{ id }}Listing"></div>
+        <div id="{{ id }}Listing" class="masonry-container"></div>
     </div>
 {% endblock update_paymentOptions_container %}
+
 {% block update_paymentOptions_javascript %}
     {{ widget_render_block(widget, 'javascript') }}
     <script type="text/javascript">
@@ -313,7 +314,15 @@
                 <div class="panel-heading"><h3 class="panel-title">Update Product</h3></div>
                 <div class='panel-body p-20'>
                     {% for fieldName in widget.getGroup('Default') %}
-                    {{ form_row(form[fieldName]) }}
+                        {{ form_row(form[fieldName]) }}
+                        {% if fieldName == 'balance' %}
+                            <div class="col-sm-12 hidden">
+                                <div class="form-group">
+                                    <label>Balance</label>
+                                    <span class="form-control" id="brokerageBalanceInput"></span>
+                                </div>
+                            </div>
+                        {% endif %}
                     {% endfor %}
                 </div>
                 <div class='panel-footer text-right'>
@@ -357,6 +366,9 @@
         });
 
         function initForm(data) {
+            $("#{{ form.balance.vars.id }}").closest('.col-sm-12').removeClass('hidden');
+            $("#brokerageBalanceInput").text('').closest('.col-sm-12').addClass('hidden');
+
             $('#{{ form.username.vars.id }}').val(data.userName);
             $('#{{ form.balance.vars.id }}').val(data.balance);
             $('#{{ form.product.vars.id }}').selectpicker('val', data.product.id);
@@ -378,7 +390,8 @@
                 $("#{{form.brokerageFirstName.vars.id}}").val(brokerageFirstName);
                 $("#{{form.brokerageLastName.vars.id}}").val(brokerageLastName);
                 var balanceText = $("[for=update_updateProductForm_data_balance]").text();
-                $("[for=update_updateProductForm_data_balance]").text(balanceText + ' (BA:' + data.baBalance + ')');
+                $("#{{ form.balance.vars.id }}").closest('.col-sm-12').addClass('hidden');
+                $("#brokerageBalanceInput").text(data.baBalance).closest('.col-sm-12').removeClass('hidden');
             }
 
             if (!skype || !syncable) {
@@ -413,21 +426,21 @@
         }
 
         function hasBrokerage(data) {
-            
+
             var memberProductDetails = JSON.parse(data.details);
-            if (!(memberProductDetails == null || (typeof memberProductDetails['brokerage']  == null && typeof memberProductDetails['brokerage']['details']  == null))) {
+            if (memberProductDetails != null && typeof memberProductDetails['brokerage']  == 'object' && typeof memberProductDetails['brokerage']['details']  != 'undefined') {
                 return true;
-            } 
+            }
 
             return false;
         }
 
         function isSyncable(data) {
             var productDetails = JSON.parse(data.product.details);
-            
+
             if (!(productDetails == null || typeof productDetails['betadmin']  == 'undefined')) {
                 return productDetails['betadmin']['tosync'];
-            } 
+            }
 
             return false;
         }
@@ -536,7 +549,27 @@
         function {{ id }}ExtraExecPage()
         {
             $(function () {
-                $('#{{ form.vars.id }}').on('form.success', function () {
+                $('#{{ form.vars.id }}').on('form.success', function (form, response) {
+                    var data = response.data;
+                    referrer = {
+                        'current': { 'id': '', 'name': '', 'username': '' },
+                        'byCode': { 'id': '', 'name': '', 'username': '' }
+                    };
+
+                    if (!$.isEmptyObject(data.current_referrer)) {
+                        referrer.current.id = data.current_referrer.id;
+                        referrer.current.name = data.current_referrer.fullName;
+                        referrer.current.username = data.current_referrer.username;
+                    }
+
+                    if (!$.isEmptyObject(data.referrer_by_code)) {
+                        referrer.byCode.id = data.referrer_by_code.id;
+                        referrer.byCode.name = data.referrer_by_code.fullName;
+                        referrer.byCode.username = data.referrer_by_code.username;
+                    }
+
+                    toggleLinkReferrerButton();
+
                     swal.close();
                     originalReferrer = $('#{{ form.referrer.vars.id }}').val();
                 });
@@ -546,7 +579,7 @@
                     if (currentReferrer != originalReferrer && originalReferrer !== null) {
                         submitProfile = false;
                         confirm2(
-                            'We just found that you have remove the Referre, removing it will unlink the member to Referrer.</b>?',
+                            'We just found that you have removed the referrer, removing it will unlink the member to <b>' + referrer.current.name + '</b>?',
                             'Save and Unlink Member',
                             {
                                 'type': null,

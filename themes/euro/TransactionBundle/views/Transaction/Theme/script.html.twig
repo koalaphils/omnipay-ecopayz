@@ -34,7 +34,11 @@
                                 this.add(transactionPaymentOption);
                             }
                             {% if form.vars.data is not null %}
-                                this.add({'is_active': true, "id": {{ form.vars.data.id }}, "type": "{{ form.vars.data.paymentOption.code }}", "email": "{{ form.vars.data.fields.email  }}", "account_id": "{{ form.vars.data.fields.account_id  }}"});
+                                {% if form.vars.data.fields.account_id is defined %}
+                                    this.add({'is_active': true, "id": {{ form.vars.data.id }}, "type": "{{ form.vars.data.paymentOption.code }}", "email": "{{ form.vars.data.fields.email  }}", "account_id": "{{ form.vars.data.fields.account_id  }}"});
+                                {% else %}
+                                    this.add({'is_active': true, "id": {{ form.vars.data.id }}, "type": "{{ form.vars.data.paymentOption.code }}", "email": "{{ form.vars.data.fields.email  }}"});
+                                {% endif %}
                             {% endif %}
                             for (var i in data) {
                                 if (this.ids.indexOf(data[i].id) === -1) {
@@ -49,8 +53,10 @@
                 },
                 'add': function (data) {
                     var ecopayzName = "{{constant('DbBundle\\Entity\\PaymentOption::PAYMENT_MODE_ECOPAYZ')}}";
+                    var bitcoinName = "{{constant('DbBundle\\Entity\\PaymentOption::PAYMENT_MODE_BITCOIN')}}";
                     var fieldSelected = data.email;
-                    if (data.type === ecopayzName.toUpperCase()) {
+
+                    if (data.type === ecopayzName.toUpperCase() || data.type === bitcoinName.toUpperCase( )) {
                         var accountId = (typeof data.account_id !== "undefined") ? data.account_id : data.fields.account_id;
                         fieldSelected = accountId;
                     }
@@ -107,6 +113,26 @@
                 'url': '{{ path('customer.payment_option_list', {'id': '__customer_id__'}) }}',
                 'type': 'GET',
                 'dataType': 'json'
+            });
+            
+            $('#{{ form.vars.id }}').on('change', function() {
+                var memberPaymentOptionId = this.value;
+                if (typeof memberPaymentOptionId !== 'undefined' || memberPaymentOptionId !== null) {
+                    var memberPaymentOptionText = $(this).find("option:selected").text();
+                    var regExp = /\(([^)]+)\)/;
+                    var matches = regExp.exec(memberPaymentOptionText);
+                    var url = '{{ path('member.is_paymentOption_bitcoin', {"id": '__memberPaymentOptionId__'}) }}'.replace(/__memberPaymentOptionId__/g, memberPaymentOptionId);
+                    $.ajax({
+                        'url': url,
+                        'success': function (data) {
+                            if (data.isPaymentOptionBitcoin) {
+                                window.loadBitcoinFields((matches === null ? '' :matches[1]));
+                            } else {
+                                window.unloadBitcoinFields();
+                            }
+                        }
+                    });
+                } 
             });
         });
     </script>
@@ -206,8 +232,12 @@
             $('#{{ form.vars.id }}').on('select2:select', function(event) {
                 if($(this).select2('data')[0] !== undefined && $(this).select2('data')[0] !== null && $(this).select2('data')[0] !== '') {
                     var data = $(this).select2('data')[0];
-                    {% if not form.parent.gateway.vars.view|default(false) %}
+                    {% if not form.parent.gateway.vars.view|default(false) and form.parent.gateway.vars.id is defined %}
                     $('#{{ form.parent.gateway.vars.id }}').removeAttr('disabled');
+                    {% endif %}
+                        
+                    {% if not form.parent.adjustment.vars.view|default(false) and form.parent.adjustment.vars.id is defined %}
+                    $('#{{ form.parent.adjustment.vars.id }}').removeAttr('disabled');
                     {% endif %}
 
                     var transactionisNew = {{ form.parent.vars.value.customer is null ? 'true' : 'false' }};
@@ -270,8 +300,9 @@
                         'user': data.user
                     });
                     applySummary();
-
-                    $('#{{ form.parent.gateway.vars.id }}').trigger('select2:select');
+                    {% if form.parent.gateway.vars.id is defined %}
+                        $('#{{ form.parent.gateway.vars.id }}').trigger('select2:select');
+                    {% endif %}
                 }else {
                     $('#{{ form.parent.currency.vars.id }}').html('');
                 }
@@ -319,7 +350,7 @@
                 return this.items[index];
             },
             'getAvailable': function(type) {
-                if(this.type == "deposit" || this.type == "withdraw" || this.type == "transfer") {
+                if(this.type == "deposit" || this.type == "withdraw" || this.type == "transfer" || this.type == "adjustment") {
                     var _products = $.extend({},this.products);
 
                     for(var i in this.items) {
@@ -389,7 +420,12 @@
 
         Product.prototype = {
             "init": function() {
-                this.info.amount = (new Decimal(this.info.amount)).toFixed(2,1);
+                var isPaymentBitcoin = "{{ form.parent.vars.value.isTransactionPaymentBitcoin }}";
+                
+                if (!isPaymentBitcoin) {
+                    this.info.amount = (new Decimal(this.info.amount)).toFixed(2,1);
+                }
+                
                 var info = this.info;
                 var prototype = this.list.prototype;
                 var labelProductDeleted = '(DELETED)';
@@ -398,11 +434,16 @@
                 this.view = $(prototype);
                 let customerProductId = info.customerProduct;
                 let subtransaction = this.info;
-                this.view.find('.subtransaction-type').val(subtransaction.type);
-                this.view.find('span.subtransaction-amount').html(subtransaction.amount);
-                this.view.find('input.subtransaction-amount').val(subtransaction.amount);
-                if (typeof this.products[customerProductId] != 'undefined') {
 
+                this.view.find('.subtransaction-type').val(subtransaction.type);
+                subtransactionAmountText = new Decimal(subtransaction.amount).toFixed(2);
+                if (isPaymentBitcoin && this.info.isAMSTransaction) {
+                    subtransactionAmountText = subtransactionAmountText + ' (' + this.info.bitcoinRequestedAmount + ' BTC)';
+                }
+                this.view.find('span.subtransaction-amount').html(subtransactionAmountText);
+                this.view.find('input.subtransaction-amount').val(subtransactionAmountText);
+
+                if (typeof this.products[customerProductId] != 'undefined') {
                     showImmutable = this.info.showImmutableCustomerProductData;
                     if (showImmutable) {
                         labelProductDeleted = (this.products[customerProductId].product.deletedAt != null) ? labelProductDeleted : '';
@@ -456,7 +497,22 @@
                 this.view.data('product',this);
 
                 this.view.find('input.subtransaction-amount').on('keyup',{'product': this},function(e) {
-                    e.data.product.info.amount = $(this).val();
+                    var _val = Number.parseFloat($(this).val());
+                    if (isNaN(_val)) {
+                        e.data.product.info.amount = 0;
+                    } else {
+                        e.data.product.info.amount = _val;
+                    }
+                    e.data.product.applySummary();
+                });
+                this.view.find('input.subtransaction-amount').on('focus',{'product': this}, function(e){
+                    var _val = Number.parseFloat($(this).val());
+                    if (isNaN(_val)) {
+                        e.data.product.info.amount = 0;
+                    } else {
+                        e.data.product.info.amount = _val;
+                    }
+                    $(this).val(e.data.product.info.amount);
                     e.data.product.applySummary();
                 });
 
@@ -498,9 +554,10 @@
                 var recipientCustomerProductList = this.list.toProducts;
                 var transactionIsP2pTransfer =  this.list.type === 'p2p_transfer';
                 var transactionisTransfer = this.list.type === 'transfer';
+                var transactionisAdjustment = this.list.type === 'adjustment';
                 var subtransactionTypeIsWithdrawal =   this.info.type == 2;
 
-                if (transactionisTransfer) {
+                if (transactionisTransfer || transactionisAdjustment) {
                     customerProductListsToUpdate = $(document);
                 }
 
@@ -568,6 +625,7 @@
                     'index': this.index,
                     'type': this.info.type
                 };
+                summary['customerProduct']['bitcoinRequestedAmount'] = this.info.bitcoinRequestedAmount;
                 summary['customerProduct']['balance'] = (new Decimal(summary['customerProduct']['balance'])).toFixed(2,1);
                 summary['customerProduct']['immutableCustomerProductData'] = this.info.immutableCustomerProductData;
                 addSummaryInfo('subtransactions.' + this.index, summary);

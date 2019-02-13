@@ -10,12 +10,16 @@ use Symfony\Component\Form\Extension\Core\Type;
 use AppBundle\Form\Type as CType;
 use Symfony\Component\Form\CallbackTransformer;
 use DbBundle\Entity\Transaction;
+use DbBundle\Entity\Currency;
 use Symfony\Bundle\FrameworkBundle\Routing\Router;
 use JMS\Serializer\SerializerInterface;
 use AppBundle\Manager\SettingManager;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
-
+use MemberBundle\Manager\MemberManager;
+use Symfony\Component\Validator\Constraints\Valid;
+use Doctrine\DBAL\LockMode;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
  * Description of TransactionType.
@@ -28,13 +32,15 @@ class TransactionType extends AbstractType
     private $router;
     private $settingManager;
     private $jmsSerializer;
+    private $memberManager;
 
-    public function __construct(Registry $doctrine, Router $router, SettingManager $settingManager, SerializerInterface $jmsSerializer)
+    public function __construct(Registry $doctrine, Router $router, SettingManager $settingManager, SerializerInterface $jmsSerializer, MemberManager $memberManager)
     {
         $this->doctrine = $doctrine;
         $this->router = $router;
         $this->settingManager = $settingManager;
         $this->jmsSerializer = $jmsSerializer;
+        $this->memberManager = $memberManager;
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options)
@@ -94,7 +100,22 @@ class TransactionType extends AbstractType
             ],
             'property_path' => 'fees[company_fee]',
             'mapped' => array_get($builder->getOption('unmap'), 'companyFee', true),
-        ]);
+        ])->add(
+            $builder->create('details', Type\FormType::class, ['constraints' => [new Valid()]])
+            ->add(
+                $builder->create('bitcoin', Type\FormType::class, ['constraints' => [new Valid()]])
+                ->add('rate', Type\TextType::class, [
+                    'translation_domain' => 'TransactionBundle',
+                    'label' => 'fields.depositRate',
+                    'required' => true,
+                ])
+                ->add('receiver_unique_address', Type\TextType::class, [
+                    'translation_domain' => 'TransactionBundle',
+                    'label' => 'fields.receiverAddress',
+                    'required' => true,
+                ])
+            )
+        );
 
         if ($this->getSettingManager()->getSetting('transaction.paymentGateway') === 'customer-level') {
             $builder->add('gateway', Type\TextType::class, [
@@ -106,27 +127,29 @@ class TransactionType extends AbstractType
         } elseif ($this->getSettingManager()->getSetting('transaction.paymentGateway') === 'customer-currency'
             || $this->getSettingManager()->getSetting('transaction.paymentGateway') === 'customer-group'
         ) {
-            $builder->add('gateway', CType\Select2Type::class, [
-                'label' => 'fields.gateway',
-                'required' => false,
-                'attr' => [
-                    'data-autostart' => 'true',
-                    'data-ajax--type' => 'POST',
-                    'data-minimum-input-length' => 0,
-                    'data-length' => 10,
-                    'data-ajax--cache' => 1,
-                    'data-minimum-results-for-search' => 'Infinity',
-                ],
-                'placeholder' => 'Select Payment Gateway',
-                'translation_domain' => 'TransactionBundle',
-                'mapped' => array_get($builder->getOption('unmap'), 'gateway', true),
-                'text' => '{name}',
-            ]);
+            if ($options['isCommission'] === false && $options['hasAdjustment'] === false) {
+                $builder->add('gateway', CType\Select2Type::class, [
+                    'label' => 'fields.gateway',
+                    'required' => false,
+                    'attr' => [
+                        'data-autostart' => 'true',
+                        'data-ajax--type' => 'POST',
+                        'data-minimum-input-length' => 0,
+                        'data-length' => 10,
+                        'data-ajax--cache' => 1,
+                        'data-minimum-results-for-search' => 'Infinity',
+                    ],
+                    'placeholder' => 'Select Payment Gateway',
+                    'translation_domain' => 'TransactionBundle',
+                    'mapped' => array_get($builder->getOption('unmap'), 'gateway', true),
+                    'text' => '{name}',
+                ]);
+            }
         }
 
         $builder->add('subTransactions', Type\CollectionType::class, [
             'entry_type' => SubTransactionType::class,
-            'constraints' => [new \Symfony\Component\Validator\Constraints\Valid()],
+            'constraints' => [new Valid()],
             'entry_options' => [
                 'view' => $builder->getData()->getId() ? true : false,
                 'views' => array_get($builder->getOption('views', []), 'subTransactions', []),
@@ -141,6 +164,9 @@ class TransactionType extends AbstractType
 
         $builder->add('notes', Type\TextareaType::class, [
             'required' => false,
+            'attr' => [
+                'rows' => 8
+            ],
             'property_path' => 'details[notes]',
         ]);
 
@@ -148,7 +174,7 @@ class TransactionType extends AbstractType
             'required' => false,
             'property_path' => 'details[reasonToVoidOrDecline]',
             'constraints' => [
-                new \Symfony\Component\Validator\Constraints\NotBlank([
+                new NotBlank([
                     'message' => 'Reason is required.',
                     'groups' => 'isForVoidingOrDecline',
                 ])
@@ -156,6 +182,8 @@ class TransactionType extends AbstractType
         ]);
 
         $this->showVoidOrDeclineReason($builder);
+        $this->showReceiverForBitcoin($builder);
+        $this->showAdjustmentType($builder);
 
         $builder->add('actions', CType\GroupType::class, [
             'attr' => [
@@ -208,47 +236,52 @@ class TransactionType extends AbstractType
                 return $customerEntity;
             }
         ));
+        
+        if ($options['isCommission'] === false && $options['hasAdjustment'] === false) {
+            $builder->get('gateway')->addModelTransformer(new CallbackTransformer(
+                function ($data) {
+                    if ($data instanceof \DbBundle\Entity\Gateway && method_exists($data, '__isInitialized') && $data->__isInitialized() === false) {
+                        $data = $this->getGatewayRepository()->findById($data->getId(), LockMode::PESSIMISTIC_WRITE);
+                    }
+                    $context = \JMS\Serializer\SerializationContext::create();
+                    $context->setGroups(['Default', 'balance', 'details']);
 
-        $builder->get('gateway')->addModelTransformer(new CallbackTransformer(
-            function ($data) {
-                if ($data instanceof \DbBundle\Entity\Gateway && method_exists($data, '__isInitialized') && $data->__isInitialized() === false) {
-                    $data = $this->getGatewayRepository()->findById($data->getId());
+                    return json_decode($this->jmsSerializer->serialize($data, 'json', $context), true);
+                },
+                function ($data) {
+                    if ($data && !($data instanceof \DbBundle\Entity\Gateway)) {
+                        return $this->getGatewayRepository()->find($data, LockMode::PESSIMISTIC_WRITE);
+                    }
+
+                    return null;
                 }
-                $context = \JMS\Serializer\SerializationContext::create();
-                $context->setGroups(['Default', 'balance', 'details']);
+            ));
 
-                return json_decode($this->jmsSerializer->serialize($data, 'json', $context), true);
-            },
-            function ($data) {
-                if ($data && !($data instanceof \DbBundle\Entity\Gateway)) {
-                    return $this->getGatewayRepository()->find($data);
+            $builder->get('gateway')->addViewTransformer(new CallbackTransformer(
+                function ($data) {
+                    if ($data === null) {
+                        return [];
+                    }
+
+                    return [$data];
+                },
+                function ($data) {
+                    return $data;
                 }
-
-                return null;
-            }
-        ));
-
-        $builder->get('gateway')->addViewTransformer(new CallbackTransformer(
-            function ($data) {
-                if ($data === null) {
-                    return [];
-                }
-
-                return [$data];
-            },
-            function ($data) {
-                return $data;
-            }
-        ));
+            ));
+        }
 
         $this->showImmutablePaymentOptionData($builder, $options);
 
         $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) {
             $form = $event->getForm();
+            $transaction = $event->getData();
+
             if ($form->getData()->getId() !== null) {
                 $customer = $form->getData()->getCustomer()->getId();
             } else {
-                $customer = array_get($event->getData(), 'customer', null);
+                $customer = array_get($transaction, 'customer', null);
+
             }
 
             if ($form->has('immutablePaymentOptionOnTransactionData')) {
@@ -304,7 +337,7 @@ class TransactionType extends AbstractType
                     $form->add('immutablePaymentOptionData', Type\TextType::class, [
                         'mapped' => false,
                     ]);
-                } else {
+                } elseif (!$transaction->isCommission() && !$transaction->hasAdjustment()) {
                     $form->add('immutablePaymentOptionData', Type\TextType::class);
                 }
             } elseif ($customer === null) {
@@ -356,40 +389,67 @@ class TransactionType extends AbstractType
                 return $groups;
             },
             'cascade_validation' => true,
-            'constraints' => [new \Symfony\Component\Validator\Constraints\Valid()],
+            'constraints' => [new Valid()],
             'actions' => [],
             'unmap' => [],
             'views' => [],
             'addSubtransaction' => true,
             'isForVoidingOrDecline' => false,
+            'isCommission' => false,
+            'hasAdjustment' => false,
         ]);
     }
 
     public function finishView(\Symfony\Component\Form\FormView $view, \Symfony\Component\Form\FormInterface $form, array $options)
     {
-        parent::finishView($view, $form, $options);
+        if ($options['hasAdjustment']) {
+            parent::finishView($view, $form, $options);
 
-        $data = $form->getData();
+            $data = $form->getData();
 
-        $view->children['subTransactions']->vars['addSubtransaction'] = $options['addSubtransaction'];
+            $view->children['subTransactions']->vars['addSubtransaction'] = $options['addSubtransaction'];
 
-        if ($data->getCustomer()) {
-            if ($data->getCurrency() instanceof \DbBundle\Entity\Currency) {
-                $view->children['currency']->vars['value'] = $data->getCurrency()->getName();
-            } else {
-                $view->children['currency']->vars['value'] = $data->getCustomer()->getCurrency()->getName();
+            if ($data->getCustomer()) {
+                if ($data->getCurrency() instanceof Currency) {
+                    $view->children['currency']->vars['value'] = $data->getCurrency()->getName();
+                } else {
+                    $view->children['currency']->vars['value'] = $data->getCustomer()->getCurrency()->getName();
+                }
+            }
+
+            $view->children['currency']->vars['view'] = true;
+            $view->children['customer']->vars['view'] = true;
+            if (!$data->isNew() && $data->hasAdjustment()) {
+                $view->children['adjustment']->vars['view'] = true;
+            }
+        } else {
+            parent::finishView($view, $form, $options);
+
+            $data = $form->getData();
+
+            $view->children['subTransactions']->vars['addSubtransaction'] = $options['addSubtransaction'];
+
+            if ($data->getCustomer()) {
+                if ($data->getCurrency() instanceof Currency) {
+                    $view->children['currency']->vars['value'] = $data->getCurrency()->getName();
+                } else {
+                    $view->children['currency']->vars['value'] = $data->getCustomer()->getCurrency()->getName();
+                }
+            }
+
+            foreach ($form->getConfig()->getOption('views') as $field => $isView) {
+                if (!is_array($isView)) {
+                    $view->children[$field]->vars['view'] = $isView;
+                }
+            }
+            $view->children['currency']->vars['view'] = true;
+            if ($this->getSettingManager()->getSetting('transaction.paymentGateway') === 'customer-level' 
+                    && $options['isCommission'] === false ) 
+            {
+                $view->children['gateway']->vars['view'] = true;
             }
         }
-
-        foreach ($form->getConfig()->getOption('views') as $field => $isView) {
-            if (!is_array($isView)) {
-                $view->children[$field]->vars['view'] = $isView;
-            }
-        }
-        $view->children['currency']->vars['view'] = true;
-        if ($this->getSettingManager()->getSetting('transaction.paymentGateway') === 'customer-level') {
-            $view->children['gateway']->vars['view'] = true;
-        }
+        
     }
 
     /**
@@ -420,6 +480,11 @@ class TransactionType extends AbstractType
         return $this->settingManager;
     }
 
+    public function getMemberManager(): MemberManager
+    {
+        return $this->memberManager;
+    }
+
     /**
      * Get gateway repository.
      *
@@ -447,6 +512,83 @@ class TransactionType extends AbstractType
                 $form->add('reasonToVoidOrDecline', Type\TextAreaType::class, [
                     'required' => false,
                     'property_path' => 'details[reasonToVoidOrDecline]',
+                ]);
+            }
+        });
+    }
+
+    private function showReceiverForBitcoin(FormBuilderInterface $builder): void
+    {
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
+            $transaction = $event->getData();
+            if ($transaction->isTransactionPaymentBitcoin() && !$transaction->isNew() && $transaction->isDeposit()) {
+                $form = $event->getForm();
+                $form->add('receiverAddress', Type\TextType::class, [
+                    'translation_domain' => 'TransactionBundle',
+                    'label' => 'fields.receiverAddress',
+                    'property_path' => 'details[bitcoin][receiver_unique_address]',
+                    'attr' => [
+                        'readonly' => true,
+                    ],
+                    'required' => false,
+                ]);
+
+                if ($transaction->hasBitcoinDepositAndNotConfirmed()) {
+                    $form->remove('notes');
+                }
+            }
+        });
+    }
+
+    private function showAdjustmentType(FormBuilderInterface $builder)
+    {
+        $builder->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event) use ($builder) {
+            $transaction = $event->getData();
+            $form = $event->getForm();
+            if (!$transaction->isNew() && $transaction->hasAdjustment()) {
+                $adjustmentType = '';
+                if ($transaction->isDebitAdjustment()) {
+                    $adjustmentType = 'Debit (-)';
+                }
+                if ($transaction->isCreditAdjustment()) {
+                    $adjustmentType = 'Credit (+)';
+                }
+                $form->add('adjustment', Type\TextType::class, [
+                    'required' => false,
+                    'property_path' => 'details[adjustment]',
+                    'data' => $adjustmentType,
+                    'mapped' => false,
+                ]);
+            } elseif ($transaction->isNew() && $transaction->hasAdjustment()) {
+                $option = [ 
+                    '' => '',
+                    'debit' => 'Debit (-)',
+                    'credit' => 'Credit (+)',                   
+                ];
+                $form->add('adjustment', Type\ChoiceType::class, [
+                    'choices'  => $option,
+                    'choice_label' => function ($value, $key) use ($option) {
+                            if ($value !== null) {
+                                return $option[$key];
+                            }
+
+                            return '';
+                        },
+                        'choice_value' => function ($value) use ($option) {
+                            if ($value !== null) {
+                                return  array_search($value, $option);
+                            }
+
+                            return '';
+                        },
+                        'mapped' => false,
+                        'property_path' => 'details[adjustment]',
+                        'constraints' => [
+                            new NotBlank([
+                                'message' => 'This value should not be blank.',
+                                'groups' => 'withAdjustment',
+                            ])
+                        ],         
                 ]);
             }
         });

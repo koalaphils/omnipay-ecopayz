@@ -66,7 +66,7 @@ class ProductRepository extends BaseRepository
         if (array_has($filters, 'isActive')) {
             $qb->andWhere($qb->expr()->andX('p.isActive = :isActive'))->setParameter('isActive', $filters['isActive']);
         }
-        
+
         if (isset($filters['excludeAcWallet']) && array_get($filters, 'excludeAcWallet', false) === true) {
             $qb
                 ->andWhere('(JSON_CONTAINS(p.details, :acWalletTag) = 0 OR p.details IS NULL)')
@@ -160,6 +160,15 @@ class ProductRepository extends BaseRepository
         $queryBuilder = $this->createQueryBuilder('product')
             ->select('product')
             ->where("JSON_EXTRACT(product.details, '$.ac_wallet') IS NOT NULL");
+
+        return $queryBuilder->getQuery()->getOneOrNullResult();
+    }
+
+    public function getSkypeBettingProduct(): ?Product
+    {
+        $queryBuilder = $this->createQueryBuilder('product')
+            ->select('product')
+            ->where("JSON_CONTAINS(product.details, '{\"betadmin\": {\"tosync\": true}}') = 1");
 
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }

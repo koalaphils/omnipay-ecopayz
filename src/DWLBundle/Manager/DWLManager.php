@@ -103,22 +103,22 @@ class DWLManager extends AbstractManager
                 $this->getContainer()->get('kernel')->getEnvironment(),
                 $this->getContainer()->getParameter('upload_dwl_filename')
             );
-            
+
             $commandArguments = [
                 $dwl->getId(),
                 $this->getUser()->getUsername(),
                 '--env',
                 $this->getContainer()->get('kernel')->getEnvironment(),
             ];
-            
+
             if ($submitType === self::SUBMIT_TYPE_FORCE) {
                 $commandArguments[] = '--submit=force';
             }
-            
+
             $job = new Job('dwl:submit', $commandArguments, true, 'dwl-submit');
             $this->getEntityManager()->persist($job);
             $this->getEntityManager()->flush($job);
-            
+
             return ['success' => true];
         } else {
             return ['success' => false, 'error' => 'notifications.submit.error.message'];
@@ -168,7 +168,7 @@ class DWLManager extends AbstractManager
         );
         #$process = new Process(implode(' ', $command) . " >> $logDir/$logName 2>&1 &");
         #$process->start();
-        
+
         $job = new Job('dwl:file:process', [
             $data->getId(),
             $this->getUser()->getUsername(),
@@ -373,7 +373,7 @@ class DWLManager extends AbstractManager
                 foreach ($dwlNeedsToGenerateFile as $dwlId) {
                     $this->runProcessForGenerateFile($dwlId);
                 }
-                
+
                 if ($transaction->getCustomer()->hasReferrer()) {
                     $referrer = $transaction->getCustomer()->getReferrer();
                     $period = $this->getCommissionPeriodRepository()->getCommissionForDWL($dwl);
@@ -398,7 +398,7 @@ class DWLManager extends AbstractManager
             }
             $this->saveDWLFile($dwl, $data);
             $this->getRepository()->commit();
-            
+
             return $item;
         } catch (\Exception $e) {
             $this->getRepository()->rollback();
@@ -467,6 +467,7 @@ class DWLManager extends AbstractManager
             $rootDir . "/console",
             'dwl:generate:file',
             $dwlId,
+            $this->getUser()->getUsername(),
             '&',
         ];
 
@@ -496,6 +497,49 @@ class DWLManager extends AbstractManager
         }
 
         return $rows;
+    }
+
+    public function getListOfDwlItems(int $dwlId): array
+    {
+        $dwl = $this->getRepository()->find($dwlId);
+        $result = $this->getSubTransactionRepository()->getDwlSubTransaction($dwlId);
+        $subTransactionAsArray = ['items' => []];
+        foreach ($result as $subTransactionIterate) {
+            $subTransaction = $subTransactionIterate[0];
+            $subTransactionAsArray['items'][] = $this->generateTransactionDWLItemData($subTransaction);
+        }
+        $subTransactionAsArray['total'] = $dwl->getTotalRecord();
+
+        return $subTransactionAsArray;
+    }
+
+    public function generateTransactionDWLItemData(SubTransaction $subTransaction): array
+    {
+        $itemData = [
+            "id" => $subTransaction->getCustomerProduct()->getId(),
+            "username" => $subTransaction->getCustomerProduct()->getUserName(),
+            "turnover" => $subTransaction->getDetail('dwl.turnover', 0),
+            "gross" => $subTransaction->getDetail('dwl.gross', 0),
+            "winLoss" => $subTransaction->getDetail('dwl.winLoss', 0),
+            "commission" => $subTransaction->getDetail('dwl.commission', 0),
+            "amount" => $subTransaction->getAmount(),
+            "transaction" => [
+                "id" => $subTransaction->getParent()->getId(),
+                "subId" => $subTransaction->getId(),
+            ],
+            "calculatedAmount" => $subTransaction->getAmount(),
+            "errors" => [],
+            "customer" => [
+                "balance" =>  $subTransaction->getDetail('dwl.customer.balance', null),
+            ],
+            "brokerage" => [
+                'stake' => $subTransaction->getDwlBrokerageStake(),
+                'winLoss' => $subTransaction->getDwlBrokerageWinLoss(),
+            ],
+            'exclude' => $subTransaction->isDwlExcludeInList(),
+        ];
+
+        return $itemData;
     }
 
     /**
@@ -557,17 +601,17 @@ class DWLManager extends AbstractManager
     {
         return $this->getContainer()->get('app.setting_manager');
     }
-    
+
     private function getCommissionManager(): CommissionManager
     {
         return $this->getContainer()->get('commission.manager');
     }
-    
+
     private function getCommissionPeriodRepository(): CommissionPeriodRepository
     {
         return $this->getDoctrine()->getRepository(CommissionPeriod::class);
     }
-    
+
     private function getRootDirectory(): string
     {
         return $this->getContainer()->get('kernel')->getRootDir();

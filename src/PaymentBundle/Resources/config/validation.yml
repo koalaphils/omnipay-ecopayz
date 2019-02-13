@@ -1,0 +1,75 @@
+PaymentBundle\Model\Bitcoin\SettingModel:
+    properties:
+        minutesInterval:
+            - NotNull: 
+                message: "Minutes of interval cannot be empty."
+                groups: [bitcoinSetting]
+            - NotEqualTo:
+                value: 0
+                message: "Minutes of interval should not be 0."
+                groups: [bitcoinSetting]
+        minimumAllowedDeposit:
+            - NotNull: 
+                message: "Minumum allowed deposit cannot be empty."
+                groups: [bitcoinSetting]
+            - Type:
+                type: numeric
+                message: "Minimum deposit should be number format"
+                groups: [bitcoinSetting]
+            - NotEqualTo:
+                value: 0
+                message: "Minimum allowed deposit should not be 0."
+                groups: [bitcoinSetting]
+            - Expression:
+                expression: "this.getMinimumAllowedDeposit() < this.getMaximumAllowedDeposit()"
+                message: "Minimum allowed deposit should be less than maximum allowed deposit"
+                groups: [bitcoinSetting]
+            - Regex:
+                pattern: '/^(?:\d+|\d*\.\d{1,10}+)$/'
+                message: Max of 10 decimal places
+                groups: [bitcoinSetting]
+        maximumAllowedDeposit:
+            - NotNull: 
+                message: "Maximum allowed deposit cannot be empty."
+                groups: [bitcoinSetting]
+            - Type:
+                type: numeric
+                message: "Minimum deposit should be number format"
+                groups: [bitcoinSetting]
+            - NotEqualTo:
+                value: 0
+                message: "Minimum deposit should not be 0."
+                groups: [bitcoinSetting]
+            - Regex:
+                pattern: '/^\s*(?=.*[1-9])\d*(?:\.\d{0,10})?\s*$/'
+                message: Only positive numbers and maximum of 10 decimal places are allowed.
+                groups: [bitcoinSetting]
+        minutesLockDownInterval:
+            - NotNull: 
+                message: "Minutes of interval lock down period cannot be empty."
+                groups: [bitcoinSetting]
+            - NotEqualTo:
+                value: 0
+                message: "Minutes of interval lock down period should not be 0."
+                groups: [bitcoinSetting]
+
+PaymentBundle\Model\Bitcoin\BitcoinRateSettingsDTO:
+    constraints:
+        - PaymentBundle\Validator\Constraints\ValidRange: ~
+    properties:
+        defaultRateSetting:
+            - PaymentBundle\Validator\Constraints\ValidAdjustment: ~
+        bitcoinRateSettings:
+            - Valid: ~
+
+
+DbBundle\Entity\BitcoinRateSetting:
+    properties:
+        rangeTo:
+            - NotBlank: 
+                message: "Range to should not be blank."
+                # groups: [bitcoinRate]
+        rangeFrom:
+            - NotBlank: 
+                message: "Range from should not be blank."
+                # groups: [bitcoinRate]

@@ -1,0 +1,10 @@
+services:
+    widget.member_product_request_list:
+      class: MemberBundle\Widget\Page\MemberProductRequestWidget
+      parent: app.widget_abstract
+      calls:
+          - [ 'setType', ['memberProductRequestList'] ]
+      shared: false
+      lazy: true
+      tags:
+          - { name: app.widget, widget_name: memberProductRequestList }

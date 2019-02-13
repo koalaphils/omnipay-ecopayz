@@ -21,7 +21,7 @@ if (isset($_SERVER['HTTP_CLIENT_IP'])
 
 
 }
-
+include __DIR__ .'/../c3.php';
 /** @var \Composer\Autoload\ClassLoader $loader */
 $loader = require __DIR__ . '/../app/autoload.php';
 Debug::enable();

@@ -15,8 +15,8 @@ class CountryRepository extends BaseRepository
         $qb = $this->createQueryBuilder('c');
         $qb->select('c, cu');
         $qb->leftJoin('c.currency', 'cu')
-            ->where('c.id = :currency')
-            ->setParameter('currency', $id);
+                ->where('c.id = :currency')
+                ->setParameter('currency', $id);
 
         return $qb->getQuery()->getSingleResult($hydrationMode);
     }
@@ -44,7 +44,7 @@ class CountryRepository extends BaseRepository
             $json = json_encode($filters['tags']);
             $qb->andWhere('JSON_CONTAINS(country.tags, :tags) = 1')->setParameter('tags', $json);
         }
-
+        
         return $qb;
     }
 
@@ -52,18 +52,18 @@ class CountryRepository extends BaseRepository
     {
         $qb = $this->getCountryListQb($filters);
         $qb->select('country, currency');
-
+        
         if (array_has($filters, 'length') || array_has($filters, 'limit')) {
             $qb->setMaxResults(array_get($filters, 'length', array_get($filters, 'limit', 20)));
         }
         if (array_has($filters, 'start') || array_has($filters, 'offset')) {
             $qb->setFirstResult(array_get($filters, 'start', array_get($filters, 'offset', 0)));
         }
-
+        
         foreach (array_get($filters, 'order', []) as $order) {
             $qb->addOrderBy($order['column'], $order['dir']);
         }
-
+        
         return $qb->getQuery()->getResult($hydrationMode);
     }
 
@@ -90,14 +90,5 @@ class CountryRepository extends BaseRepository
         $qb->where('c.code = :code')->setParameter('code', $code);
 
         return $qb->getQuery()->getSingleResult($hydrationMode);
-    }
-
-    public function findByPhoneCode($code, $hydrationMode = \Doctrine\ORM\Query::HYDRATE_OBJECT)
-    {
-        $qb = $this->createQueryBuilder('c');
-        $qb->select('PARTIAL c.{id, name, phoneCode, code}');
-        $qb->where('c.phoneCode = :phone_code')->setParameter('phone_code', $code);
-
-        return $qb->getQuery()->getOneOrNullResult($hydrationMode);
     }
 }

@@ -176,7 +176,6 @@
             'status': {{ form.vars.data.status  }},
             'equations': {{ setting('transaction.equations.' ~ (app.request.get('type')), false)|json_encode()|raw }}
         });
-        //console.log({{ setting('transaction.equations.' ~ (app.request.get('type')), false)|json_encode()|raw }});
 
         var summaryTemplate = "{{ block('summary_template')|escape('js') }}";
         summaryTemplate = new XslTemplate(summaryTemplate, false);

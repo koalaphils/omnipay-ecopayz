@@ -16,6 +16,15 @@ class CustomerSubscriber implements EventSubscriberInterface
 {
     use \Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
+    private $asianconnectUrl;
+    private $asianconnect09Domain;
+
+    public function __construct(string $asianconnectUrl, string $asianconnect09Domain)
+    {
+        $this->asianconnectUrl = $asianconnectUrl;
+        $this->asianconnect09Domain = $asianconnect09Domain;
+    }
+
     public static function getSubscribedEvents(): array
     {
         return [
@@ -30,6 +39,7 @@ class CustomerSubscriber implements EventSubscriberInterface
             'password' => $this->getContainer()->getParameter('customer_temp_password'),
             'activation_code' => $event->getCustomer()->getUser()->getActivationCode(),
         ];
+
         $customer = $event->getCustomer();
         $paymentMethod = $customer->getPaymentOptions();
         $paymentMethod = $paymentMethod->map(function($entity) {
@@ -49,13 +59,15 @@ class CustomerSubscriber implements EventSubscriberInterface
             'paymentMethod' => array_get($paymentMethod, 0),
             'socials' => array_get($customer->getSocials(), 0),
             'products' => $products,
-            'originFrom' => $event->getOriginUrl(),
+            'originFrom' => $this->getOrigin($event->getOriginUrl()),
             'activationCode' => JWT::encode($ativationCode, 'AMSV2'),
             'ipAddress' => $customer->getUser()->getPreference('ipAddress'),
             'affiliate' => $customer->getDetail('affiliate'),
             'referrer' =>  $customer->getUser()->getPreference('referrer'),
             'tag' => $customer->getTags(),
             'isAffiliate' => $customer->isTagAsAffiliate(),
+            'username' => $event->getCustomer()->getUser()->getUsername(),
+            'password' => $event->getTempPassword()
         ];
         $this->sendAdminMail($params);
         $this->sendActivationMail($params);
@@ -126,11 +138,15 @@ class CustomerSubscriber implements EventSubscriberInterface
         return $this->getContainer()->getParameter($parameterName);
     }
 
-    private function wasRegisteredFromAsianconnect($originUrl) : Bool
+    private function getOrigin($originUrl): string
     {
-        $asianconnectDomain = parse_url($this->getParameter('asianconnect_url'), PHP_URL_HOST);
-        $originDomain = parse_url($originUrl, PHP_URL_HOST);
+        return $this->isRegisteredFromAsianconnect09($originUrl) ? $this->asianconnectUrl : $originUrl;
+    }
 
-        return $asianconnectDomain === $originDomain ? true : false;
+    private function isRegisteredFromAsianconnect09($originUrl) : bool
+    {
+        $domainOrigin = parse_url($originUrl, PHP_URL_HOST);
+
+        return $this->asianconnect09Domain === $domainOrigin ? true : false;
     }
 }

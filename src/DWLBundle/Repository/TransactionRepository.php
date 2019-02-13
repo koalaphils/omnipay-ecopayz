@@ -39,6 +39,22 @@ class TransactionRepository
         return $queryBuilder->getQuery()->getResult();
     }
 
+    public function getSubtransactionsByDWLIteratable(int $dwlId): \Doctrine\ORM\Internal\Hydration\IterableResult
+    {
+        $this->setToBuffered();
+
+        $queryBuilder = $this->createQueryBuilderForSubtransaction();
+        $queryBuilder
+            ->join('subtransaction.parent', 'transaction')
+            ->where("subtransaction.dwlId = :dwlId")
+            ->setParameters([
+                'dwlId' => $dwlId,
+            ])
+        ;
+
+        return $queryBuilder->getQuery()->iterate();
+    }
+
     public function getSubtransactionByProductAndDwlId(int $customerProductId, int $dwlId): ?SubTransaction
     {
         $queryBuilder = $this->createQueryBuilderForSubtransaction();
@@ -135,5 +151,13 @@ class TransactionRepository
             ->select('transaction')
             ->from(Transaction::class, 'transaction')
         ;
+    }
+
+    private function setToBuffered(): void
+    {
+        $this->entityManager
+            ->getConnection()
+            ->getWrappedConnection()
+            ->setAttribute(\PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
     }
 }

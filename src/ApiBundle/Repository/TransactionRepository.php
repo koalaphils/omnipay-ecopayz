@@ -8,7 +8,8 @@ use DbBundle\Collection\Collection;
 use DbBundle\Entity\SubTransaction;
 use DbBundle\Entity\Transaction;
 use DbBundle\Entity\CustomerProduct;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use DbBundle\Entity\Customer as Member;
+use DbBundle\Entity\PaymentOption;
 
 class TransactionRepository
 {
@@ -30,11 +31,10 @@ class TransactionRepository
         return $qb->getQuery()->getOneOrNullResult($hydrationMode);
     }
 
-    // 2ec7e87b
     public function filters($filters, $orders = [], $hydrationMode = \Doctrine\ORM\Query::HYDRATE_OBJECT): array
     {
-        $qb = $this->createFilterQb($filters);        
-        
+        $qb = $this->createFilterQb($filters);
+
         $offset = array_get($filters, 'offset', 0);
         $limit = array_get($filters, 'limit', 20);
 
@@ -105,7 +105,35 @@ class TransactionRepository
         }
         
         if (array_has($filters, 'status')) {
-            $qb->andWhere('t.status IN (:status)')->setParameter('status', $filters['status']);
+            if (in_array(Transaction::TRANSACTION_STATUS_VOIDED, $filters['status'])) {
+                $qb->andWhere('t.isVoided = 1');
+            } elseif (in_array(Transaction::DETAIL_BITCOIN_STATUS_PENDING, $filters['status'])) {
+                $qb->andWhere('t.paymentOptionType = :bitcoin 
+                                AND t.type = :deposit
+                                AND t.bitcoinConfirmationCount IS NOT NULL 
+                                AND t.status != :endStatus 
+                                AND t.isVoided = 0
+                                AND t.bitcoinConfirmationCount < 3');
+
+                $qb->setParameter('bitcoin', PaymentOption::PAYMENT_MODE_BITCOIN)
+                    ->setParameter('endStatus', Transaction::TRANSACTION_STATUS_END)
+                    ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT);
+            } elseif (in_array(Transaction::DETAIL_BITCOIN_STATUS_CONFIRMED, $filters['status'])) {
+                $qb->andWhere('t.paymentOptionType = :bitcoin 
+                                AND t.type = :deposit
+                                AND t.bitcoinConfirmationCount IS NOT NULL 
+                                AND t.status != :endStatus 
+                                AND t.isVoided = 0
+                                AND t.bitcoinConfirmationCount = 3');
+
+                $qb->setParameter('bitcoin', PaymentOption::PAYMENT_MODE_BITCOIN)
+                    ->setParameter('endStatus', Transaction::TRANSACTION_STATUS_END)
+                    ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT);
+            } else {
+                $qb->andWhere('t.status IN (:status)')
+                    ->andWhere('t.isVoided = 0')
+                    ->setParameter('status', $filters['status']);
+            }
         }
         
         if (array_has($filters, 'paymentOption')) {
@@ -122,7 +150,7 @@ class TransactionRepository
             $qb->andWhere('t.date <= CURRENT_TIMESTAMP() AND t.date >= :interval');
             $qb->setParameter('interval', new \DateTime("-" . $filters['interval']));
         }
-      
+
         return $qb;
     }
 
@@ -131,5 +159,25 @@ class TransactionRepository
         return $this->em->createQueryBuilder()
             ->select($alias)
             ->from($this->entityClass, $alias, $indexBy);
+    }
+
+    public function findActiveBitcoinTransaction(Member $member): ?Transaction
+    {
+        $nonActiveTypes = [Transaction::TRANSACTION_STATUS_END];
+        $queryBuilder = $this->createQueryBuilder('transaction');
+        $queryBuilder
+            ->select('transaction', 'paymentOptionType')
+            ->innerJoin('transaction.paymentOptionType', 'paymentOptionType')
+            ->where('transaction.customer = :customer')
+            ->andWhere('transaction.type NOT IN (:nonActiveTypes)')
+            ->andWhere('transaction.isVoided != true')
+            ->andWhere('paymentOptionType.paymentMode = :paymentMode')
+            ->andWhere("JSON_CONTAINS(transaction.details, 'false', '$.bitcoin.acknowledged_by_user') = true")
+            ->setParameter('customer', $member)
+            ->setParameter('nonActiveTypes', $nonActiveTypes)
+            ->setParameter('paymentMode', PaymentOption::PAYMENT_MODE_BITCOIN)
+        ;
+
+        return $queryBuilder->getQuery()->getOneOrNullResult();
     }
 }

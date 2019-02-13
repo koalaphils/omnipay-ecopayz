@@ -1,0 +1,9 @@
+HTTP/1.1 200 OK
+Server: nginx/1.6.0
+Date: Fri, 23 Aug 2018 14:08:00 GMT
+Content-Type: text/json; charset=utf-8
+Connection: keep-alive
+Keep-Alive: timeout=60
+Cache-Control: private, max-age=0
+
+{"ver":1,"inputs":[{"sequence":4294967295,"witness":"","prev_out":{"spent":true,"tx_index":376999931,"type":0,"addr":"16HcgcaeADNGxs1jHUcAxR2SAanaQE4Sjv","value":477563300,"n":0,"script":"76a914013007bb00b09e06d616bf5cc2e2486fd8bdbf0288ac"},"script":"47304402204057a1d3d9bb61055e2d199d69acf30ec8db1b68d98e1e2742c992cc94231f02022065b1ab6f5544adec60c240fc164f155d97bfabd1a6bbdd9ab9277108d1d419de012103cfa809d3c9178ca3fa51fca942047d2ae09552df411c6ceaee091656906afa57"}],"weight":892,"block_height":543279,"relayed_by":"0.0.0.0","out":[{"spent":false,"tx_index":377007114,"type":0,"addr":"3BMEXqrQ95EkbLoBjYy6vvzixbEGVN9kqC","value":446557,"n":0,"script":"a91469f376b797dadbaff7d82636ddf56c175d4d1b7587"},{"spent":true,"tx_index":377007114,"type":0,"addr":"1Lv56gd4HTWz1mgVkkMwe3bUGJEhJzrNXL","value":477016743,"n":1,"script":"76a914da73db502ed157040a5201feef6ac8fcee05725088ac"}],"lock_time":0,"size":223,"double_spend":false,"time":1538042428,"tx_index":377007114,"vin_sz":1,"hash":"68f7b9257d72ca197d9ac7330663e36f4fe2b9858abeadaf97470d6d1c2f22c1","vout_sz":2}

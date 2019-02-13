@@ -28,7 +28,6 @@ class TransactionManagerTest extends \Codeception\Test\Unit
         $result = $transactionManager->isTransactionNumber($searchString);
 
         $this->assertSame($expectedResult, $result);
-
     }
 
     /**

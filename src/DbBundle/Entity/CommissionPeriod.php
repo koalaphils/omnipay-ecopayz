@@ -20,6 +20,10 @@ class CommissionPeriod extends Entity implements ActionInterface, TimestampInter
 {
     use ActionTrait;
     use TimestampTrait;
+
+    private const DETAIL_PAYOUT_AT = 'payoutAt';
+    private const DETAIL_DATE_FROM = 'dateFrom';
+    private const DETAIL_DATE_TO = 'dateTo';
     
     const STATUS_NOT_YET_COMPUTED = 1;
     const STATUS_COMPUTING = 2;
@@ -221,5 +225,14 @@ class CommissionPeriod extends Entity implements ActionInterface, TimestampInter
         $this->conditions = $conditions;
 
         return $this;
+    }
+
+    public function getPeriodDateDetails(): array
+    {
+        return [
+            self::DETAIL_PAYOUT_AT => $this->getPayoutAt()->format('Y-m-d'),
+            self::DETAIL_DATE_FROM => $this->getDWLDateFrom()->format('Y-m-d'),
+            self::DETAIL_DATE_TO => $this->getDWLDateTo()->format('Y-m-d'),
+        ];
     }
 }

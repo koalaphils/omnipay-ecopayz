@@ -187,6 +187,26 @@ class TransactionBundle extends Bundle
                         'variables' => ['x' => 'sum_withdraw_products'],
                     ],
                 ],
+                'debit_adjustment' => [
+                    'totalAmount' => [
+                        'equation' => 'x',
+                        'variables' => ['x' => 'sum_withdraw_products'],
+                    ],
+                    'customerAmount' => [
+                        'equation' => 'x',
+                        'variables' => ['x' => 'sum_withdraw_products'],
+                    ],
+                ],
+                'credit_adjustment' => [
+                    'totalAmount' => [
+                        'equation' => 'x',
+                        'variables' => ['x' => 'sum_deposit_products'],
+                    ],
+                    'customerAmount' => [
+                        'equation' => 'x',
+                        'variables' => ['x' => 'sum_deposit_products'],
+                    ],
+                ],
             ],
         ];
     }

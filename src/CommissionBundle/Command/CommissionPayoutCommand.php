@@ -17,10 +17,12 @@ use Symfony\Component\Process\Process;
 
 class CommissionPayoutCommand extends AbstractCommand
 {
+    public const COMMAND_NAME = 'commission:period:pay';
+
     protected function configure()
     {
         $this
-            ->setName('commission:period:pay')
+            ->setName(self::COMMAND_NAME)
             ->setDescription('Payout the commissions for periods')
             ->addOption(
                 'period',
@@ -39,7 +41,7 @@ class CommissionPayoutCommand extends AbstractCommand
         ;
         parent::configure();
     }
-    
+
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         set_time_limit(0);
@@ -47,7 +49,7 @@ class CommissionPayoutCommand extends AbstractCommand
         $period = $input->getOption('period');
         $memberId = $input->getOption('member');
         $logger = new ConsoleLogger($output);
-        
+
         if ($period === 'all') {
             do {
                 $commissionPeriod = $this->getCommissionManager()->getCommissionPeriodIdThatWasNotPaid();
@@ -123,32 +125,32 @@ class CommissionPayoutCommand extends AbstractCommand
             $this->getCommissionPayoutService()->payoutCommissionForMember($commissionPeriod, $member);
         }
     }
-    
+
     private function getCommissionPeriodRepository(): CommissionPeriodRepository
     {
         return $this->getDoctrine()->getRepository(CommissionPeriod::class);
     }
-    
+
     private function getRootDirectory(): string
     {
         return $this->getContainer()->get('kernel')->getRootDir();
     }
-    
+
     private function getCommissionPayoutService(): CommissionPayoutService
     {
         return $this->getContainer()->get('commission.payout_service');
     }
-    
+
     private function getMemberRepository(): MemberRepository
     {
         return $this->getDoctrine()->getRepository(Member::class);
     }
-    
+
     private function getEnvironment(): string
     {
         return $this->getContainer()->get('kernel')->getEnvironment();
     }
-    
+
     private function getCommissionManager(): CommissionManager
     {
         return $this->getContainer()->get('commission.manager');

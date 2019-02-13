@@ -9,24 +9,29 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use MemberBundle\Manager\MemberManager;
+use Doctrine\DBAL\LockMode;
 
 class TransactionController extends AbstractController
 {
     public function indexAction(Request $request)
     {
         $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_VIEW']);
-        $statuses = $this->getSettingManager()->getSetting('transaction.status');
-        $statuses = $this->getManager()->addVoidedStatus($statuses);
+        $statuses = $this->getManager()->getTransactionStatus();
         $this->getRepository('DbBundle:Setting')->updateSetting($key = 'transaction', $code = 'counter', $newCounter = 0);
         $filter = [];
+        $nonPendingStatuses = [];
 
         if (trim($request->get('filter', '')) !== '') {
             $filterName = $request->get('filter');
             $filter = $this->getSettingManager()->getSetting('transaction.list.filters.' . $filterName, []);
+        } else {
+            $nonPendingStatuses = $this->getManager()->getNonPendingTransactionStatus($statuses);
         }
 
         return $this->render('TransactionBundle:Default:index.html.twig', [
             'statuses' => $statuses,
+            'nonPendingStatuses' => $nonPendingStatuses,
             'filter' => $filter,
         ]);
     }
@@ -112,11 +117,15 @@ class TransactionController extends AbstractController
 
         $transaction = $this->getRepository('DbBundle:Transaction')->findByIdAndType($id, $this->getManager()->getType($type));
         $dwl = null;
+        $memberRunningCommission = null;
+        $commissionPeriod = null;
 
-        // zimi-comment
-        // if ($transaction->isDwl()) {
-        //     $dwl = $this->getDWLRepository()->find($transaction->getDwlId());
-        // }
+        if ($transaction->isDwl()) {
+            $dwl = $this->getDWLRepository()->find($transaction->getDwlId());
+        } elseif ($transaction->isCommission()) {
+            $memberRunningCommission = $this->getRepository('DbBundle:MemberRunningCommission')->findOneByCommissionTransaction($transaction->getId());
+            $commissionPeriod = $this->getRepository('DbBundle:CommissionPeriod')->findOneById($memberRunningCommission->getCommissionPeriodId());
+        }
 
         $form = $this->getManager()->createForm($transaction, false);
 
@@ -133,14 +142,15 @@ class TransactionController extends AbstractController
             'transaction' => $transaction,
             'toCustomer' => $toCustomer,
             'dwl' => $dwl,
+            'memberRunningCommission' => $memberRunningCommission,
+            'commissionPeriod' => $commissionPeriod,
         ]);
     }
 
     public function saveAction(Request $request, $type, $id = 'new')
     {
-        
         if ($id === 'new') {
-            $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_CREATE']);
+        $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_CREATE']);
             return $this->createAction($request, $type);
         }
 
@@ -177,40 +187,76 @@ class TransactionController extends AbstractController
     public function voidTransactionAction(Request $request, $type, $id)
     {
         $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_UPDATE']);
-        $transactionRequest = $request->request->get('Transaction');
-        $reasonForVoiding = array_has($transactionRequest, 'reasonToVoidOrDecline') ? strip_tags($transactionRequest['reasonToVoidOrDecline']) : '';
-        $transaction = $this->getRepository('DbBundle:Transaction')->findByIdAndType($id, $this->getManager()->getType($type));
-        if (!$transaction || empty($reasonForVoiding)) {
-            if (empty($reasonForVoiding)) {
-                return new JsonResponse([
-                    '__notifications' => [
-                        'type'      => 'error',
-                        'title'     => 'Validation Failed',
-                        'message_box'   => 'Reason is required.',
-                        'message_notification'   => 'Some fields are invalid.',
-                    ],
-                ], Response::HTTP_UNPROCESSABLE_ENTITY);
-            }
-            throw new \Doctrine\ORM\NoResultException;
-        } elseif (!$transaction->isVoided() && !$transaction->isDwl()) {
-            $transaction->setReasonToVoidOrDecline($reasonForVoiding);
-            $this->getManager()->processTransaction($transaction, 'void');
-            $message = [
-                'type'      => 'success',
-                'title'     => 'Void',
-                'message'   => 'Transaction number ('. $transaction->getNumber() . ') has been voided',
-            ];
-            if (!$request->isXmlHttpRequest()) {
-                $this->getSession()->getFlashBag()->add('notifications', $message);
 
-                return $this->redirect($request->headers->get('referer'), Response::HTTP_OK);
+        try {
+            $this->getManager()->beginTransaction();
+            $transactionRequest = $request->request->get('Transaction');
+            $reasonForVoiding = array_has($transactionRequest, 'reasonToVoidOrDecline') ? strip_tags($transactionRequest['reasonToVoidOrDecline']) : '';
+            $transaction = $this->getRepository('DbBundle:Transaction')->findByIdAndType($id, $this->getManager()->getType($type), \Doctrine\ORM\Query::HYDRATE_OBJECT, LockMode::PESSIMISTIC_WRITE);
+            if (!$transaction || empty($reasonForVoiding)) {
+                if (empty($reasonForVoiding)) {
+                    return new JsonResponse([
+                        '__notifications' => [
+                            'type'      => 'error',
+                            'title'     => 'Validation Failed',
+                            'message_box'   => 'Reason is required.',
+                            'message_notification'   => 'Some fields are invalid.',
+                        ],
+                    ], Response::HTTP_UNPROCESSABLE_ENTITY);
+                }
+                throw new \Doctrine\ORM\NoResultException;
+            } elseif (!$transaction->isVoided() && !$transaction->isDwl()) {
+                $transaction->setReasonToVoidOrDecline($reasonForVoiding);
+                $this->getManager()->processTransaction($transaction, 'void');
+                $this->getManager()->commit();
+                $message = [
+                    'type'      => 'success',
+                    'title'     => 'Void',
+                    'message'   => 'Transaction number ('. $transaction->getNumber() . ') has been voided',
+                ];
+                if (!$request->isXmlHttpRequest()) {
+                    $this->getSession()->getFlashBag()->add('notifications', $message);
+
+                    return $this->redirect($request->headers->get('referer'), Response::HTTP_OK);
+                } else {
+                    return new JsonResponse([
+                        '__notifications' => $message
+                    ], Response::HTTP_OK);
+                }
             } else {
-                return new JsonResponse([
-                    '__notifications' => $message
-                ], Response::HTTP_OK);
+                throw new \Exception('Transaction number (' . $transaction->getNumber() . ') is already voided', Response::HTTP_UNPROCESSABLE_ENTITY);
             }
-        } else {
-            throw new \Exception('Transaction number (' . $transaction->getNumber() . ') is already voided', Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (PessimisticLockException $e) {
+            $this->getManager()->rollBack();
+            $notifications = [
+                'type' => 'error',
+                'title' => $this->getTranslator()->trans('notifications.notUpdatedForm.title', [], 'TransactionBundle'),
+                'message' => $this->getTranslator()->trans('notifications.notUpdatedForm.message', [], 'TransactionBundle'),
+            ];
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse(['__notifications' => [$notifications]], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+        } catch (Exception $e) {
+            $this->getManager()->rollBack();
+            
+            throw $e;
+        }
+    }
+
+    public function viewDwlTransactionAction(int $id): Response
+    {
+        $this->getSession()->save();
+        try {
+            $transaction = $this->getManager()->getTransactionById($id);
+            if (!$transaction->isDwl()) {
+                throw $this->createNotFoundException('Not found');
+            }
+
+            $dwl = $this->getDWLRepository()->find($transaction->getDwlId());
+
+            return $this->render('TransactionBundle:Transaction/view:dwl.html.twig', ['transaction' => $transaction, 'dwl' => $dwl]);
+        } catch (\Doctrine\ORM\NoResultException $e) {
+            throw $this->createNotFoundException('Not found', $e);
         }
     }
 
@@ -224,31 +270,75 @@ class TransactionController extends AbstractController
         return $this->get('transaction.manager');
     }
 
+    protected function getMemberManager(): MemberManager
+    {
+        return $this->get('member.manager');
+    }
+
     private function createAction(Request $request, $type)
     {
-        $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_CREATE']);
-        $transaction = new Transaction();
-        $transaction->setType($this->getManager()->getType($type));
-        $validationGroups = ['default'];
-        if ($transaction->isDeposit() || $transaction->isWithdrawal()) {
-            $validationGroups[] = 'hasFees';
-            $validationGroups[] = 'withGateway';
-            $validationGroups[] = 'withPaymentOption';
-        }
-        if ($transaction->isBonus()) {
-            $validationGroups[] = 'withGateway';
-        }
-
-        $form = $this->getManager()->createForm($transaction, true, [
-            'validation_groups' => $validationGroups,
-        ]);
-        $response = ['success' => true];
         try {
-            $transaction = $this->getManager()->handleFormTransaction($form, $request);
-            $response['data'] = $transaction;
-        } catch (\AppBundle\Exceptions\FormValidationException $e) {
-            $response['success'] = false;
-            $response['errors'] = $e->getErrors();
+            $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_CREATE']);
+            $this->getManager()->beginTransaction();
+            $isPaymentOptionIdBitcoin = false;
+            $validationGroups = ['default'];
+            $transaction = new Transaction();
+            $transaction->setType($this->getManager()->getType($type));
+            $transactionRequest = $request->request->get('Transaction');
+            if ($transaction->hasAdjustment() && isset($transactionRequest['adjustment']) && !empty($transactionRequest['adjustment'])) {
+                $adjustmentType = $this->getManager()->getAdjustmentType($transactionRequest['adjustment']);
+                $transaction->setType($adjustmentType);
+            }
+            if ($transaction->isDeposit() || $transaction->isWithdrawal()) {
+                $validationGroups[] = 'hasFees';
+                $validationGroups[] = 'withGateway';
+                $validationGroups[] = 'withPaymentOption';
+            }
+            if ($transaction->isBonus()) {
+                $validationGroups[] = 'withGateway';
+            }
+            if ($transaction->hasAdjustment()) {
+                $validationGroups[] = 'withAdjustment';
+            }
+
+            if (array_has($transactionRequest, 'paymentOption')) {
+                $isPaymentOptionIdBitcoin = $this->getMemberManager()->isPaymentOptionIdBitcoin($transactionRequest['paymentOption']);  
+            }
+
+            if ($transaction->isNew() && $transaction->isDeposit() && $isPaymentOptionIdBitcoin) {
+                $validationGroups[] = 'withBitcoin';
+                $transaction->setBitcoinConfirmationAsConfirmed();
+            }
+
+            $form = $this->getManager()->createForm($transaction, true, [
+                'validation_groups' => $validationGroups,
+            ]);
+            $response = ['success' => true];
+            try {
+                if ($transaction->isDeposit() && $isPaymentOptionIdBitcoin) {
+                    $this->getMemberManager()->updateMemberPaymentOptionBitcoinAddress($transactionRequest);
+                }
+                $transaction = $this->getManager()->handleFormTransaction($form, $request);
+                $response['data'] = $transaction;
+            } catch (\AppBundle\Exceptions\FormValidationException $e) {
+                $response['success'] = false;
+                $response['errors'] = $e->getErrors();
+            }
+            $this->getManager()->commit();
+        } catch (PessimisticLockException $e) {
+            $this->getManager()->rollBack();
+            $notifications = [
+                'type' => 'error',
+                'title' => $this->getTranslator()->trans('notifications.notUpdatedForm.title', [], 'TransactionBundle'),
+                'message' => $this->getTranslator()->trans('notifications.notUpdatedForm.message', [], 'TransactionBundle'),
+            ];
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse(['__notifications' => [$notifications]], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+        } catch (Exception $e) {
+            $this->getManager()->rollBack();
+            
+            throw $e;
         }
 
         return $this->response($request, $response, ['groups' => ['Default', '_link']]);
@@ -268,21 +358,38 @@ class TransactionController extends AbstractController
     private function updateAction(Request $request, $type, $id)
     {
         $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_UPDATE']);
-        $transaction = $this->getRepository('DbBundle:Transaction')->findByIdAndType($id, $this->getManager()->getType($type));
-        $isForVoidingOrDecline = $this->isRequestToVoidOrDecline($transaction, $request);
-        $form = $this->getManager()->createForm($transaction, true, [
-            'isForVoidingOrDecline' => $isForVoidingOrDecline,
-        ]);
 
-        $response = ['success' => true];
         try {
-            // zimi
-            $transaction = $this->getManager()->handleFormTransaction($form, $request);
+            $this->getManager()->beginTransaction();
+            $transaction = $this->getRepository('DbBundle:Transaction')->findByIdAndType($id, $this->getManager()->getType($type), \Doctrine\ORM\Query::HYDRATE_OBJECT, LockMode::PESSIMISTIC_WRITE);
+            $isForVoidingOrDecline = $this->isRequestToVoidOrDecline($transaction, $request);
+            $form = $this->getManager()->createForm($transaction, true, [
+                'isForVoidingOrDecline' => $isForVoidingOrDecline,
+            ]);
 
-            $response['data'] = $transaction;
-        } catch (\AppBundle\Exceptions\FormValidationException $e) {
-            $response['success'] = false;
-            $response['errors'] = $e->getErrors();
+            $response = ['success' => true];
+            try {
+                $transaction = $this->getManager()->handleFormTransaction($form, $request);
+                $response['data'] = $transaction;
+            } catch (\AppBundle\Exceptions\FormValidationException $e) {
+                $response['success'] = false;
+                $response['errors'] = $e->getErrors();
+            }
+            $this->getManager()->commit();
+        } catch (PessimisticLockException $e) {
+            $this->getManager()->rollBack();
+            $notifications = [
+                'type' => 'error',
+                'title' => $this->getTranslator()->trans('notifications.notUpdatedForm.title', [], 'TransactionBundle'),
+                'message' => $this->getTranslator()->trans('notifications.notUpdatedForm.message', [], 'TransactionBundle'),
+            ];
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse(['__notifications' => [$notifications]], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+        } catch (Exception $e) {
+            $this->getManager()->rollBack();
+            
+            throw $e;
         }
 
         return $this->response($request, $response, ['groups' => ['Default', '_link']]);

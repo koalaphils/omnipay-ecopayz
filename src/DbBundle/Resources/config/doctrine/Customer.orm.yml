@@ -48,7 +48,7 @@ DbBundle\Entity\Customer:
             type: boolean
             column: customer_is_customer
             options:
-                default: true
+                default: true            
         isAffiliate:
             type: boolean
             column: customer_is_affiliate
@@ -58,6 +58,13 @@ DbBundle\Entity\Customer:
             type: date
             column: customer_birthdate
             nullable: true
+        gender:
+            type: tinyint
+            column: customer_gender
+            nullable: false
+            options:
+                default: 0
+                unsigned: true
         balance:
             type: decimal
             column: customer_balance
@@ -108,27 +115,20 @@ DbBundle\Entity\Customer:
             nullable: false
             options:
                 default: ''
-        pinUserCode:
-            type: string
-            column: customer_pin_user_code
-        pinLoginId:
-            type: string
-            column: customer_pin_login_id
     manyToOne:
         currency:
             targetEntity: DbBundle\Entity\Currency
             joinColumn:
-                nullable: true
+                nullable: false
                 name: customer_currency_id
                 referencedColumnName: currency_id
         country:
             targetEntity: DbBundle\Entity\Country
-            nullable: true
             joinColumn:
                 nullable: true
                 name: customer_country_id
                 referencedColumnName: country_id
-
+        
         affiliate:
             targetEntity: DbBundle\Entity\Customer
             joinColumn:

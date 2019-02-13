@@ -15,16 +15,27 @@ class AuditManager extends AbstractManager
 {
     public function getList($filters = null): array
     {
-        $results = [];
+        $userIds = [];
+        if (!empty(array_get($filters, 'type', []))) {
+            $userType = $filters['type'] == AuditRevision::TYPE_MEMBER ? User::USER_TYPE_MEMBER : User::USER_TYPE_ADMIN;
+            $userIdList = $this->getUserRepository()->findByType($userType);
 
+            foreach ($userIdList as $value) {
+                $userIds[] = intval($value["id"]);
+            }
+        }
+
+        $filters['userIds'] = $userIds;
+
+        $results = [];
         if (array_get($filters, 'datatable', 0)) {
             if (false !== array_get($filters, 'search.value', false)) {
                 $filters['search'] = $filters['search']['value'];
             }
-            $orders = (!array_has($filters, 'order')) ? [['column' => 'ar.timestamp', 'dir' => 'desc'], ['column' => 'ar.id', 'dir' => 'desc']] : $filters['order'];
-
+            $orders = (!array_has($filters, 'order')) ? [['column' => 'ar.audit_revision_timestamp', 'columnQB' => 'ar.timestamp', 'dir' => 'desc'], ['column' => 'ar.audit_revision_id', 'columnQB' => 'ar.id', 'dir' => 'desc']] : $filters['order'];
             $results['data'] = $this->getRepository()->getList($filters, $orders, \Doctrine\ORM\Query::HYDRATE_OBJECT);
             $results['draw'] = $filters['draw'];
+            $results['type'] = $userType;
             $results['recordsFiltered'] = $this->getRepository()->getListFilterCount($filters);
             $results['recordsTotal'] = $this->getRepository()->getListAllCount($filters);
         } else {
@@ -152,5 +163,10 @@ class AuditManager extends AbstractManager
     protected function getRepository(): \DbBundle\Repository\AuditRevisionRepository
     {
         return $this->getDoctrine()->getRepository('DbBundle:AuditRevision');
+    }
+
+    public function getUserRepository(): \DbBundle\Repository\UserRepository
+    {
+        return $this->getDoctrine()->getRepository('DbBundle:User');
     }
 }

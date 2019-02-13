@@ -22,7 +22,7 @@ class SubTransactionType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder->add('product', Type\IntegerType::class);
-        $builder->add('amount', Type\NumberType::class);
+        $builder->add('amount', Type\TextType::class);
         if ($options['hasFee']) {
             $builder->add('forFee', Type\ChoiceType::class, [
                 'choices' => [

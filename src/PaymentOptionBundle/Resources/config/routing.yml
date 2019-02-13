@@ -29,9 +29,10 @@ paymentoption.create_page:
     methods: [GET]
 
 paymentoption.update_page:
-    path: /{id}
+    path: /{id}/{activeTab}
     defaults:
         _controller: PaymentOptionBundle:PaymentOption:updatePage
+        activeTab: ''
     methods: [GET]
 
 paymentoption.save:

@@ -4,6 +4,9 @@ services:
     transaction.manager:
         class: TransactionBundle\Manager\TransactionManager
         parent: app.base_manager
+        calls:
+            - ['setMemberRunningCommissionRepository', ['@=service("doctrine").getRepository("DbBundle\\Entity\\MemberRunningCommission")']]
+            - ['setCommissionPeriodRepository', ['@=service("doctrine").getRepository("DbBundle\\Entity\\CommissionPeriod")']]
 
     # form type
     transaction.form_type.bonus:
@@ -20,7 +23,7 @@ services:
 
     transaction.form_type.transaction:
         class: TransactionBundle\Form\TransactionType
-        arguments: [ "@doctrine", "@router", "@app.setting_manager", "@jms_serializer" ]
+        arguments: [ "@doctrine", "@router", "@app.setting_manager", "@jms_serializer", "@member.manager" ]
         tags:
             - { name: form.type }
 
@@ -46,8 +49,9 @@ services:
         calls:
             - [ "setContainer", ["@service_container"] ]
         shared: false
-        
-    transaction.transaction_repository:
-        class: TransactionBundle\Repository\TransactionRepository
-        lazy: true
-        arguments: [ "@doctrine.orm.entity_manager"]
+
+    transaction.lock.service:
+        class: TransactionBundle\Service\TransactionBitcoinLockRateService
+        calls:
+            - [ "setContainer", ["@service_container"] ]
+        shared: false

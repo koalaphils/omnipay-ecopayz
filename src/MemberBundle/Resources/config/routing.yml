@@ -1,3 +1,25 @@
+member.inactive.list_page:
+    path: /inactive-members/
+    defaults:
+        _controller: MemberBundle:InactiveMember:list
+
+member.inactive.list_search:
+    path: /inactive-members/search
+    defaults:
+        _controller: MemberBundle:InactiveMember:search
+
+member.inactive.update_list:
+    path: /inactive-members/update-list
+    defaults:
+        _controller: MemberBundle:InactiveMember:updateList
+    condition:  "request.isXMLHttpRequest()"
+
+member.inactive.remove_member:
+    path: /inactive-members/{memberId}/remove-from-list
+    defaults:
+        _controller: MemberBundle:InactiveMember:removeMember
+    condition:  "request.isXMLHttpRequest()"
+
 member.list_page:
     path: /
     defaults:
@@ -22,6 +44,11 @@ member.login_history:
 
 customer.group:
     resource: "@CustomerBundle/Resources/config/group_routing.yml"
+
+member.is_paymentOption_bitcoin:
+    path: /check-id/{id}
+    defaults: 
+        _controller: MemberBundle:Member:checkMemberPaymentOptionIfBitcoin
 
 member.update_page:
     path: /{id}/{activeTab}

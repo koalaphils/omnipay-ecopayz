@@ -10,6 +10,7 @@ DbBundle\Entity\SubTransaction:
         fees:
             groups: ['fees']
         details:
+            expose: true
             groups: ['details']
         customerProduct:
             expose: true
@@ -17,3 +18,9 @@ DbBundle\Entity\SubTransaction:
         immutableCustomerProductData:
             expose: true
             exp: object.getImmutableCustomerProductData()
+        brokerageWinLoss:
+            expose: true
+            exp: object.getDwlBrokerageWinLoss()
+        brokerageReturn:
+            expose: true
+            exp: object.getDwlReturn()

@@ -12,6 +12,7 @@ use TransactionBundle\WebsocketTopics;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\Transaction;
 use TransactionBundle\Repository\TransactionRepository;
+use TransactionBundle\Event\BitcoinRateExpiredEvent;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 class TransactionSubscriberForWebsocket implements EventSubscriberInterface
@@ -34,8 +35,24 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
             ],
             'transaction.autoDeclined' => [
                 ['onTransactionAutoDecline', 50],
+            ],
+            BitcoinRateExpiredEvent::NAME => [
+                ['onTransactionBitcoinRateExpired', 50],
             ]
         ];
+    }
+
+    public function onTransactionBitcoinRateExpired(BitcoinRateExpiredEvent $event): void
+    {
+        $transaction = $event->getTransaction();
+        $customer = $transaction->getCustomer();
+        $channel = $customer->getWebsocketDetails()['channel_id'];
+
+        $payload = [
+            'transaction_id' => $transaction->getId(),
+        ];
+        
+        $this->publisher->publish(WebsocketTopics::TOPIC_BITCOIN_RATE_TRANSACTION_EXPIRED . '.' . $channel, json_encode($payload));
     }
 
     public function onTransactionAutoDecline(TransactionProcessEvent $event): void
@@ -47,11 +64,10 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
     {
         if ($event->getTransaction()->getType() !== Transaction::TRANSACTION_TYPE_DWL) {
             $transactionNumber = $event->getTransaction()->getNumber();
-            $type = $event->getTransaction()->getTypeText();
-
-            
+            $type = $event->getTransaction()->getTypeAsText();
             $status = empty($event->getAction()) ? $this->getPastTense('Decline') : $this->getPastTense($event->getAction()['label']);
             $payload['message'] = 'Transaction ' . $transactionNumber . ' ' . $type . ' has been ' . $status;
+            $payload['id'] = $event->getTransaction()->getId();
             $payload['status'] = $status;
 
             if ($event->getTransaction()->isP2pTransfer()) {
@@ -65,8 +81,7 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
                 $channel = $customer->getWebsocketDetails()['channel_id'];
 
                 $this->createNotification($customer, $payload['message']);
-                // zimi
-                // $this->publishWebsocketTopic($channel, $payload);
+                $this->publishWebsocketTopic($channel, $payload);
             }
         }
     }

@@ -8,6 +8,7 @@ use DbBundle\Entity\CustomerProduct;
 use DbBundle\Entity\MemberBanner;
 use DbBundle\Entity\MemberReferralName;
 use DbBundle\Entity\MemberWebsite;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\AbstractQuery;
@@ -32,15 +33,43 @@ class CustomerRepository extends BaseRepository
         $qb->join('c.user', 'u');
         $qb->join('c.currency', 'ccu');
         $qb->leftJoin('c.country', 'cco');
+        $qb->select(
+            'PARTIAL c.{id, fName, mName, lName, fullName, country, currency, balance, gender, socials, joinedAt, birthDate, socials, details, contacts, verifiedAt, isAffiliate, isCustomer, transactionPassword, files, riskSetting, tags, notifications}'
+            . ', PARTIAL u.{username, id, email, isActive, activationCode, activationSentTimestamp, activationTimestamp, preferences, password, resetPasswordCode, resetPasswordSentTimestamp}'
+            . ', PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}'
+        );
+        $qb->where('c.id = :id')->setParameter('id', $id);
+
+        return $qb->getQuery()->getSingleResult($hydrationMode);
+    }
+
+    public function getById(int $memberId): Member
+    {
+        $qb = $this->createQueryBuilder('c');
+        $qb->join('c.user', 'u');
+        $qb->join('c.currency', 'ccu');
+        $qb->leftJoin('c.country', 'cco');
         $qb->leftjoin('c.groups', 'g');
         $qb->select(
             'PARTIAL c.{id, fName, mName, lName, fullName, country, currency, balance, socials, joinedAt, birthDate, socials, details, contacts, verifiedAt, isAffiliate, isCustomer, transactionPassword, files, riskSetting, tags, notifications}'
             . ', PARTIAL u.{username, id, email, isActive, activationSentTimestamp, activationTimestamp, preferences, password, resetPasswordCode, resetPasswordSentTimestamp}'
             . ', PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}, g'
         );
-        $qb->where('c.id = :id')->setParameter('id', $id);
+        $qb->where('c.id = :id')->setParameter('id', $memberId);
 
-        return $qb->getQuery()->getSingleResult($hydrationMode);
+        return $qb->getQuery()->getSingleResult();
+    }
+
+    public function findMembersByFullNamePartialMatch(string $queryString, $hydrationMode = \Doctrine\ORM\Query::HYDRATE_OBJECT): array
+    {
+        $qb = $this->createQueryBuilder('c');
+        $qb->join('c.user', 'u');
+        $qb->select('c'
+        );
+        $qb->where('c.fullName LIKE :queryString');
+        $qb->setParameter('queryString', '%'. $queryString . '%');
+
+        return $qb->getQuery()->getResult($hydrationMode);
     }
 
     public function findRequesterByZendeskId($zendeskId, $hydrationMode = \Doctrine\ORM\Query::HYDRATE_OBJECT)
@@ -169,15 +198,13 @@ class CustomerRepository extends BaseRepository
         $qb = $this->getCustomerListQb($filters);
         $qb
             ->select(
-                "PARTIAL c.{id, fName, mName, lName, fullName, country, currency, balance, socials, level, isAffiliate, isCustomer, details, verifiedAt, joinedAt, tags, pinUserCode , pinLoginId}, "
+                "PARTIAL c.{id, fName, mName, lName, fullName, country, currency, balance, socials, level, isAffiliate, isCustomer, details, verifiedAt, joinedAt, tags}, "
                 . "PARTIAL u.{username, id, email, preferences, createdAt, isActive, activationTimestamp, creator}, "
                 . "PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}, "
                 . "PARTIAL a.{id},"
-                . "PARTIAL cr.{id, username} , cpot , cpopo"
+                . "PARTIAL cr.{id, username}"
             )
             ->leftJoin('c.affiliate', 'a')
-            ->leftJoin('c.paymentOptions', 'cpot')
-            ->leftJoin('cpot.paymentOption', 'cpopo')
             ->groupBy('c.id')
         ;
 
@@ -545,25 +572,6 @@ class CustomerRepository extends BaseRepository
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }
 
-
-    public function findByPinUserCode($userCode)
-    {
-        $qb = $this->createQueryBuilder('c');
-
-        $qb->select('c')
-            ->where($qb->expr()->eq('c.pinUserCode', ':pin_user_code'))
-//            ->andWhere($qb->expr()->eq('u.type', ':type'))
-            ->setParameter('pin_user_code', $userCode)
-//            ->setParameter('type', $type)
-        ;
-
-//        if ($isActivated) {
-//            $qb->andWhere($qb->expr()->isNotNull('u.activationTimestamp'));
-//        }
-
-        return $qb->getQuery()->getOneOrNullResult();
-    }
-
     public function hasSomeMemberUsingRiskSetting(string $resourceId): bool
     {
         $queryBuilder = $this->createQueryBuilder('c');
@@ -655,8 +663,13 @@ class CustomerRepository extends BaseRepository
         }
 
         if (array_has($filters, 'search') && array_get($filters, 'search')) {
-            $queryBuilder->where($queryBuilder->expr()->like('p.name', ':search'))
-                ->setParameter('search', '%' . array_get($filters, 'search') . '%');
+            $queryBuilder->where(
+                $queryBuilder->expr()->orX(
+                    $queryBuilder->expr()->like('p.name', ':search'),
+                    $queryBuilder->expr()->like('m.id', ':search')
+                )
+            )
+            ->setParameter('search', '%' . array_get($filters, 'search') . '%');
         }
 
         return $queryBuilder;

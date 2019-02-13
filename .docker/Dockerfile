@@ -6,7 +6,7 @@ FROM $BASE_IMAGE:$BASE_IMAGE_TAG
 COPY .docker/manifest/ /
 COPY ./ /backoffice/
 
-RUN mkdir /backoffice/vendor \
+RUN mkdir /backoffice/vendor && mkdir /backoffice/c3tmp \
     && chown -R www:www /home/www/.composer /backoffice/var /backoffice/web /backoffice/vendor /backoffice/app/config /uploads \
     && setfacl -R -d -m u:www:rwx -R -m u:www:rwx -R -d -m g:www:rwx -R -m g:www:rwx /var/tmp/ /tmp/ /backoffice/var /backoffice/web /uploads /backoffice/vendor /backoffice/app/config
 

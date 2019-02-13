@@ -28,7 +28,6 @@ use ApiBundle\Event\CustomerCreatedEvent;
 use Firebase\JWT\JWT;
 use MemberBundle\Manager\MemberManager;
 
-
 /**
  * Description of CustomerManager
  *
@@ -47,53 +46,34 @@ class CustomerManager extends AbstractManager
 
     public function handleRegister(RegisterModel $registerModel, $originUrl, $locale, $ipAddress, $referrerUrl)
     {
-//        $bank = $registerModel->getBanks();
-//        $birthDate = $registerModel->getBirthDateString();
-//        $socials = $registerModel->getSocials();
-//        $bookies = $registerModel->getBookies();
-
-
-//        $country = $registerModel->getCountry();
-//        $currency = $registerModel->getCurrency();
-//        $fName = $registerModel->getFirstName();
-//        $mName = trim($registerModel->getMiddleInitial());
-//        $lName = $registerModel->getLastName();
-//        $contact = trim($registerModel->getContact());
-//        $depositMethod = $registerModel->getDepositMethod();
-//        $affiliate = trim($registerModel->getAffiliate());
-//        $promo = trim($registerModel->getPromo());
-        $pinUserCode = $registerModel->getPinUserCode();
-        $pinLoginId = $registerModel->getPinLoginId();
-        $email = $registerModel->getEmail() ? trim($registerModel->getEmail()) : null;
-        $phoneNumber = $registerModel->getPhoneNumber() ? trim($registerModel->getPhoneNumber()) : null;
-        if (isset($email) && $email != '') {
-            $type = $email;
-        } elseif (isset($phoneNumber) && $phoneNumber != '') {
-            $type = $phoneNumber;
-        } else {
-            $type = '';
-        }
-        $password = trim($registerModel->getPassword());
-        $countryPhoneCode = $registerModel->getCountryPhoneCode();
-
-        $fName = 'firstName';
-        $mName = 'middleName';
-        $lName = 'lastName';
+        $bank = $registerModel->getBanks();
+        $birthDate = $registerModel->getBirthDateString();
+        $socials = $registerModel->getSocials();
+        $bookies = $registerModel->getBookies();
+        $email = trim($registerModel->getEmail());
+        $country = $registerModel->getCountry();
+        $currency = $registerModel->getCurrency();
+        $fName = $registerModel->getFirstName();
+        $mName = trim($registerModel->getMiddleInitial());
+        $lName = $registerModel->getLastName();
+        $contact = trim($registerModel->getContact());
+        $depositMethod = $registerModel->getDepositMethod();
+        $affiliate = trim($registerModel->getAffiliate());
+        $promo = trim($registerModel->getPromo());
 
         $this->beginTransaction();
 
         $user = new User();
-        $user->setUsername($pinLoginId);
+        $user->setUsername(uniqid(str_replace(' ', '', $fName . $lName) . '_'));
         $user->setEmail($email);
-        $user->setPhoneNumber($phoneNumber);
         $user->setType(User::USER_TYPE_MEMBER);
-        $user->setRoles(['ROLE_MEMBER' => 2,]);
+        $user->setRoles(['ROLE_MEMBER' => 2, ]);
         $user->setPreferences([
             'locale' => $locale,
             'ipAddress' => $ipAddress,
             'referrer' => $referrerUrl,
             'originUrl' => $originUrl,
-//            'affiliateCode' => $affiliate
+            'affiliateCode' => $affiliate
         ]);
 
         $user->setActivationCode(
@@ -103,82 +83,82 @@ class CustomerManager extends AbstractManager
         $user->setZendeskId(null);
         $user->setIsActive(true);
         $user->setPassword(
-            $this->getUserManager()->encodePassword($user, $password)
+            $this->getUserManager()->encodePassword(
+                $user,
+                $this->getContainer()->getParameter('customer_temp_password')
+            )
         );
 
-        $countryEntity = $this->getCountryRepository()->findByPhoneCode($countryPhoneCode);
-        $currencyEntity = $this->getCurrencyRepository()->findByCode('EUR');
+        $countryEntity = $this->getCountryRepository()->findByCode($country);
+        $currencyEntity = $this->getCurrencyRepository()->findByCode($currency);
+
         $customer = new Customer();
         $customer->setUser($user);
-        $customer->setBirthDate(\DateTime::createFromFormat('Y-m-d', date('Y-m-d')));
+        $customer->setBirthDate(\DateTime::createFromFormat('Y-m-d', $birthDate));
         $customer->setCountry($countryEntity);
         $customer->setCurrency($currencyEntity);
         $customer->setFName($fName);
         $customer->setMName($mName);
         $customer->setLName($lName);
-
-        $customer->setFullName("Customer" . " " . $pinLoginId);
-        $customer->setPinLoginId($pinLoginId);
-        $customer->setPinUserCode($pinUserCode);
-//        $customer->setContacts([
-//            [
-//                'type' => 'mobile',
-//                'value' => $contact,
-//            ],
-//        ]);
+        $customer->setContacts([
+            [
+                'type' => 'mobile',
+                'value' =>  $contact,
+            ],
+        ]);
         $customer->setIsCustomer(true);
         $customer->setTransactionPassword();
         $customer->setLevel();
-//        $customer->setSocials([
-//            [
-//                'type' => 'skype',
-//                'value' => $socials['skype'],
-//            ],
-//        ]);
-//        $customer->setDetails([
-//            'affiliate' => [
-//                'name' => $affiliate,
-//                'code' => $promo,
-//            ],
-//            'websocket' => [
-//                'channel_id' => uniqid($customer->getId() . generate_code(10, false, 'ld')),
-//            ],
-//            'enabled' => false,
-//        ]);
+        $customer->setSocials([
+            [
+                'type' => 'skype',
+                'value' => $socials['skype'],
+            ],
+        ]);
+        $customer->setDetails([
+            'affiliate'=> [
+                'name' => $affiliate,
+                'code' => $promo,
+            ],
+            'websocket' => [
+                'channel_id' => uniqid($customer->getId() . generate_code(10, false, 'ld')),
+            ],
+            'enabled' => false,
+        ]);
         $customer->setBalance(0);
         $customer->setJoinedAt(new \DateTime('now'));
 
-//        foreach ($bookies as $key => $id) {
-//            $userName = $id->getUsername();
-//            $productEntity = $this->getProductRepository()->findByCode($id->getCode());
-//            $customerProduct = new CustomerProduct();
-//            $customerProduct->setProduct($productEntity);
-//            $customerProduct->setUsername(!is_null($userName) ? $userName : uniqid('tmp_' . str_replace(' ', '', $productEntity->getName()) . '_'));
-//            $customerProduct->setBalance('0.00');
-//            $customerProduct->setIsActive(true);
-//            $customer->addProduct($customerProduct);
-//        }
-//
-//        $paymentOption = $this->getPaymentOptionRepository()->find($depositMethod);
-//        $customerPaymentOption = new CustomerPaymentOption();
-//        $customerPaymentOption->setCustomer($customer);
-//        $customerPaymentOption->setPaymentOption($paymentOption);
-//        $customerPaymentOption->setFields([
-//            [
-//                'name' => $bank['name'],
-//                'account' => $bank['account'],
-//                'holder' => $bank['holder'],
-//            ],
-//        ]);
-//        $customer->addPaymentOption($customerPaymentOption);
-//        $defaultGroup = $this->getCustomerGroupRepository()->getDefaultGroup();
-//        $customer->getGroups()->add($defaultGroup);
+        foreach ($bookies as $key => $id) {
+            $userName = $id->getUsername();
+            $productEntity = $this->getProductRepository()->findByCode($id->getCode());
+            $customerProduct = new CustomerProduct();
+            $customerProduct->setProduct($productEntity);
+            $customerProduct->setUsername(!is_null($userName) ? $userName : uniqid('tmp_' . str_replace(' ', '', $productEntity->getName()) . '_'));
+            $customerProduct->setBalance('0.00');
+            $customerProduct->setIsActive(true);
+            $customer->addProduct($customerProduct);
+        }
+
+        $paymentOption = $this->getPaymentOptionRepository()->find($depositMethod);
+        $customerPaymentOption = new CustomerPaymentOption();
+        $customerPaymentOption->setCustomer($customer);
+        $customerPaymentOption->setPaymentOption($paymentOption);
+        $customerPaymentOption->setFields([
+            [
+                'name' => $bank['name'],
+                'account' => $bank['account'],
+                'holder' => $bank['holder'],
+            ],
+        ]);
+        $customer->addPaymentOption($customerPaymentOption);
+        $defaultGroup = $this->getCustomerGroupRepository()->getDefaultGroup();
+        $customer->getGroups()->add($defaultGroup);
 
         try {
             $this->save($customer);
             $this->commit();
-//            $event = new CustomerCreatedEvent($customer, $originUrl);
-//            $this->get('event_dispatcher')->dispatch('customer.created', $event);
+            $event = new CustomerCreatedEvent($customer, $originUrl);
+            $this->get('event_dispatcher')->dispatch('customer.created', $event);
         } catch (\PDOException $e) {
             $this->rollback();
             throw $e;
@@ -190,8 +170,9 @@ class CustomerManager extends AbstractManager
     public function handleRegisterV2(RegisterV2Model $registerModel, $registrationDetails)
     {
         $user = new User();
-        $user->setUsername($registerModel->getUsername());
-        $user->setEmail($email = $registerModel->getEmail());
+        $email = $registerModel->getEmail();
+        $user->setUsername($email);
+        $user->setEmail($email);
         $user->setType(User::USER_TYPE_MEMBER);
         $user->setRoles($registerModel->getRoles());
 
@@ -204,19 +185,22 @@ class CustomerManager extends AbstractManager
             'preferredPaymentGateway' => $registerModel->getPreferredPaymentGateway(),
         ];
 
+        $tempPassword = $registerModel->getTempPassword();
+
         if (array_key_exists('registrationDetails', $registrationDetails)) {
             $preferences['registrationDetails'] = $registrationDetails['registrationDetails'];
         }
-
         $user->setPreferences($preferences);
         $user->setActivationCode($this->getUserManager()->encodeActivationCode($user));
         $user->setActivationSentTimestamp(new \DateTime('now'));
+        $user->setActivationTimestamp(new \DateTime('now'));
         $user->setPassword(
             $this->getUserManager()->encodePassword(
                 $user,
-                $this->getContainer()->getParameter('customer_temp_password')
+                $tempPassword
             )
         );
+        $user->setPlainPassword($tempPassword);
 
         $customer = new Customer();
         $customer->setUser($user);
@@ -226,11 +210,12 @@ class CustomerManager extends AbstractManager
         $customer->setFullName($registerModel->getFullName());
         $customer->setFName('');
         $customer->setLName('');
+        $customer->setGender(Customer::MEMBER_GENDER_NOT_SET);
         $customer->setContacts($registerModel->getContactDetails());
         $customer->setIsCustomer(true);
         $customer->setSocials($registerModel->getSocialDetails());
         $customer->setDetails([
-            'affiliate' => $registerModel->getAffiliateDetails(),
+            'affiliate'=> $registerModel->getAffiliateDetails(),
             'enabled' => false,
             'websocket' => [
                 'channel_id' => uniqid($customer->getId() . generate_code(10, false, 'ld')),
@@ -270,7 +255,7 @@ class CustomerManager extends AbstractManager
         try {
             $this->save($customer);
             $this->commit();
-            $event = new CustomerCreatedEvent($customer, $originUrl);
+            $event = new CustomerCreatedEvent($customer, $originUrl, $tempPassword);
 
             if (null !== $registerModel->getWebsiteUrl()) {
                 $member = $event->getCustomer();
@@ -320,23 +305,7 @@ class CustomerManager extends AbstractManager
     {
         $user = $this->getUserRepository()->findByActivationCode($activationCode);
 
-        if ($user !== null) {
-            $today = new \DateTime('now');
-            $activationSentTimestamp = $user->getActivationSentTimestamp();
-            $activationSentTimestamp->modify($this->getParameter('activation.expiration_duration'));
-
-            if ($user->isActivated()) {
-                return [
-                    'message' => 'Your account has already been activated. Please contact our Customer Service Team for assistance. Thank you.',
-                    'code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                ];
-            } elseif ($activationSentTimestamp < $today) {
-                return [
-                    'message' => 'Link has already already expired. Please contact our Customer Service Team for assistance. Thank you.',
-                    'code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                ];
-            }
-        } else {
+        if ($user == null) {
             return [
                 'message' => 'Activation code is invalid. Please contact Customer Support to request for a new code.',
                 'code' => Response::HTTP_UNPROCESSABLE_ENTITY,
@@ -346,7 +315,7 @@ class CustomerManager extends AbstractManager
         return ['message' => 'Activation code is valid.', 'user' => $user, 'code' => Response::HTTP_OK];
     }
 
-    public function activateAccount($activationCode, AccountActivationModel $accountActivationModel): array
+    public function activateAccount(string $activationCode, AccountActivationModel $accountActivationModel): array
     {
         $result = $this->validateActivationCode($activationCode);
 
@@ -357,6 +326,7 @@ class CustomerManager extends AbstractManager
             $user->setUsername($accountActivationModel->getUsername());
             $user->setPassword($encoder->encodePassword($accountActivationModel->getPassword(), $user->getSalt()));
             $user->setActivationTimestamp(new \DateTime('now'));
+            $user->setActivationCode('');
 
             $customer = $user->getCustomer();
             $customer->setTransactionPassword($this->encodeTransactionPassword($user, $accountActivationModel->getTransactionPassword()));
@@ -372,7 +342,7 @@ class CustomerManager extends AbstractManager
                             $user->getEmail(),
                             'activated.html.twig',
                             [
-                                'firstName' => $customer->getFName(),
+                                'fullName' => $customer->getFullName(),
                                 'customerProducts' => implode(', ', array_column($customer->getCustomerProductNames(), 'productName')),
                             ]
                         );
@@ -383,18 +353,6 @@ class CustomerManager extends AbstractManager
         }
 
         return $result;
-    }
-
-    public function checkPinUserCodeIfExists($pinUserCode): array
-    {
-        //TODO : need to load customer repository by function like other
-        $user = $this->getDoctrine()->getRepository('DbBundle:Customer')->findByPinUserCode($pinUserCode);
-
-        if ($user !== null) {
-            return ['message' => 'Pin user code exists.', 'exist' => true, 'code' => Response::HTTP_UNPROCESSABLE_ENTITY];
-        }
-
-        return ['message' => 'Pin user code does not exist.', 'exist' => false, 'code' => Response::HTTP_OK];
     }
 
     public function checkEmailIfExists($email): array
@@ -408,80 +366,6 @@ class CustomerManager extends AbstractManager
         return ['message' => 'Email does not exist.', 'code' => Response::HTTP_OK];
     }
 
-    public function checkEmailOrPhoneNumberIfExists($input): array
-    {
-        $user = null;
-        if (isset($input['email']) && $input['email'] != '') {
-            $user = $this->getUserRepository()->findUserByEmail($input['email']);
-        } elseif (isset($input['phoneNumber']) && $input['phoneNumber'] != '') {
-            $countryPhoneCode = isset($input['countryPhoneCode']) ? $input['countryPhoneCode'] : "";
-            $user = $this->getUserRepository()->findUserByPhoneNumber($input['phoneNumber'], $countryPhoneCode);
-        }
-        if ($user !== null) {
-            return ['message' => 'User already exists.', 'exist' => 'true', 'code' => Response::HTTP_UNPROCESSABLE_ENTITY];
-        }
-
-        return ['message' => 'User does not exists.', 'exist' => 'false', 'code' => Response::HTTP_OK];
-    }
-
-    public function checkCredentialsIfExist($credentials): array
-    {
-        if (isset($credentials['phoneNumber']) && $credentials['phoneNumber']) {
-            $countryPhoneCode = isset($credentials['countryPhoneCode']) ? $credentials['countryPhoneCode'] : "";
-            $user = $this->getUserRepository()->findUserByPhoneNumber($credentials['phoneNumber'], $countryPhoneCode);
-        } else if (isset($credentials['email']) && $credentials['email']) {
-            $user = $this->getUserRepository()->findUserByEmail($credentials['email']);
-        } else {
-            $user = new User();
-        }
-
-        if ($user !== null) {
-            $customer = $user->getCustomer();
-            $customer_id = $customer->getId();
-            
-            if (isset($credentials['password'])) {
-                $checkPassword = $this->passwordIsValid($customer, $credentials['password']);
-                
-                // get paymentOptions                                
-                $query = 'select c.customer_payment_option_id as id, c.customer_payment_options_customer_id as cid, c.customer_payment_option_type as type
-                            from customer_payment_option c
-                            where c.customer_payment_options_customer_id = '.$customer_id.'
-                            and c.customer_payment_option_is_active = 1
-                            order by c.customer_payment_option_created_at desc';
-                $em = $this->getDoctrine()->getManager();
-                $qu = $em->getConnection()->prepare($query);
-                $qu->execute();
-                $res = $qu->fetchAll();
-                $customerPaymentOptions = [];
-                foreach($res as $key => $val){
-                    $customerPaymentOptions[strtolower($val['type'])][] = $val;
-                }
-                
-                if ($checkPassword) {
-                    return [
-                        'error' => 'false',
-                        'data' => [
-                            'userCode' => $customer->getPinUserCode(),
-                            'loginId' => $customer->getPinLoginId(),
-                            'balance' => $customer->getBalance(),
-                            'fullName' => $customer->getFullName(),
-                            'isVerified' => $customer->isVerified(),
-                            'paymentOptions' => $customerPaymentOptions
-                        ],
-                        'message' => ''
-                    ];
-                }
-            }
-        }
-
-        return [
-            'error' => 'true',
-            'message' => 'Credentials not exists'
-        ];
-    }
-
-//    public function chec
-
     public function checkUsernameIfExists($username): array
     {
         $user = $this->getUserRepository()->findByUsername($username, User::USER_TYPE_MEMBER);
@@ -491,6 +375,20 @@ class CustomerManager extends AbstractManager
         }
 
         return ['message' => 'Username does not exists.', 'code' => 200];
+    }
+
+    public function handleRestoreId(string $restoreId): array
+    {
+        $user = $this->getUser();
+
+        try {
+            $user->setRestoreId($restoreId);
+            $this->getUserManager()->save($user);
+        } catch (\Exception $e) {
+            return ['message' => $e->getMessage(), 'code' => $e->getCode()];
+        }
+
+        return ['code' => Response::HTTP_OK];
     }
 
     public function handleSecurity(SecurityModel $securityModel)
@@ -519,7 +417,6 @@ class CustomerManager extends AbstractManager
             );
         }
 
-
         try {
             $this->save($customer);
             $this->getUserManager()->save($user);
@@ -533,31 +430,6 @@ class CustomerManager extends AbstractManager
     public function encodeTransactionPassword(User $user, $transactionPassword): string
     {
         return $this->getPasswordEncoder()->encodePassword($user, $transactionPassword, User::getTransactionPasswordSalt());
-    }
-    
-    // zimi
-    public function handleForgotPassword($data)
-    {            
-        # via phone        
-        $user_repo = $this->getUserRepository();
-        if ($data['viaType'] == 0) {            
-            $user = $user_repo->findUserByPhoneNumber($data['phoneNumber'], $data['phoneCode']);
-        } else {            
-            $user = $user_repo->findUserByEmail($data['email']);
-        }
-
-        $encoder = $this->getEncoderFactory()->getEncoder($user);
-        $user->setPassword($encoder->encodePassword($data['password'], $user->getSalt()));
-        $user->setResetPasswordCode(null);
-        $user->setResetPasswordSentTimestamp(null);
-
-        try {
-            return $this->getUserManager()->save($user);
-        } catch (\Exception $e) {
-            return $e;
-        }
-
-        return false;
     }
 
     public function handleRequestResetPassword(RequestResetPasswordModel $requestResetPasswordModel, string $origin = '')
@@ -661,7 +533,7 @@ class CustomerManager extends AbstractManager
             return ['message' => $e->getMessage(), $e->getCode()];
         }
 
-        return ['user' => $user, 'code' => Response::HTTP_OK];
+        return ['user' => $user , 'code' => Response::HTTP_OK];
     }
 
     protected function getRepository()
@@ -741,10 +613,5 @@ class CustomerManager extends AbstractManager
     private function getMemberManager(): MemberManager
     {
         return $this->getContainer()->get('member.manager');
-    }
-
-    private function getCustomerPaymentOptionRepository(): \DbBundle\Repository\CustomerPaymentOptionRepository
-    {
-        return $this->getDoctrine()->getRepository('DbBundle:CustomerPaymentOption');
     }
 }

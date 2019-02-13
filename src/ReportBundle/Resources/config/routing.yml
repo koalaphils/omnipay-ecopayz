@@ -1,11 +1,12 @@
+# Member Reports
 report.customers:
-    path: /reports/customers
+    path: /reports/members
     defaults:
         _controller: ReportBundle:CustomerReport:index
     methods: ['GET']
 
 report.customers_currency:
-    path: /reports/customers/{currency}
+    path: /reports/members/{currencyCode}
     defaults:
         _controller: ReportBundle:CustomerReport:currencyReport
     methods: ['GET']
@@ -17,25 +18,30 @@ report.customers_currency_summary:
     methods: ['POST']
 
 report.customers_export:
-    path: /reports/customers/{currency}/export
+    path: /reports/members/{currency}/export
     defaults:
         _controller: ReportBundle:CustomerReport:exportCustomers
 
 report.customer:
-    path: /reports/customers/{currency}/{customerId}
+    path: /reports/members/{currency}/{customerId}
     defaults:
         _controller: ReportBundle:CustomerReport:customerPage
     methods: ['GET']
 
 report.customer_products:
-    path: /reports/customer-products
+    path: /reports/member-products
     defaults:
         _controller: ReportBundle:CustomerReport:customerProductsReport
 
 report.customer_products_export:
-    path: /reports/customer-products/export
+    path: /reports/member-products/export
     defaults:
         _controller: ReportBundle:CustomerReport:exportCustomerProducts
+
+report.member_products_of_member_export:
+    path: /reports/member-products/{memberId}/export
+    defaults:
+        _controller: ReportBundle:CustomerReport:exportCustomerProductsByMember
 
 # Product Report
 

@@ -9,8 +9,9 @@ modules:
         dsn: 'mysql:host=%DATABASE_HOST%;dbname=%DATABASE_FOR_TESTS_NAME%'
         user: '%DATABASE_USER%'
         password: '%DATABASE_PASSWORD%'
-        dump: 'tests/_data/webapi_oauth_token.sql'
+        tokendump: 'tests/_data/webapi_oauth_token.sql'
+        datadump: 'tests/_data/ac66dump_20181001.sql'
         populate: true # run populator before all tests
         cleanup: true # run populator before each test
-        populator: 'mysql -h$host -u$user -p$password $dbname < $dump'
+        populator: 'mysql -h$host -u$user -p$password $dbname < $datadump; mysql -h$host -u$user -p$password $dbname < $tokendump'
 

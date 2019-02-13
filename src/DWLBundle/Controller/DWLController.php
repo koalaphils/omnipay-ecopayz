@@ -71,7 +71,7 @@ class DWLController extends AbstractController
         $itemForm = $this->createForm(DWLItemType::class, $dwlItem, ['validation_groups' => ['default']]);
         $lastUpdateEncoded = base64_encode($dwl->getUpdatedAt()->format('Y-m-d H:i:s'));
         $isSkypeBettingProduct = $dwl->getProduct()->getBetadminToSync();
-        
+
         return $this->render('DWLBundle:DWL:update.html.twig', [
             'form' => $form->createView(),
             'itemForm' => $itemForm->createView(),
@@ -264,7 +264,7 @@ class DWLController extends AbstractController
             $item = $this->getManager()->saveItem($dwl, $dwlItem, $data);
             $encodedUpdateDate = base64_encode($dwl->getUpdatedAt()->format('Y-m-d H:i:s'));
             $item['_v'] = $encodedUpdateDate;
-            
+
             return new JsonResponse($item);
         }
         $errors = $this->getManager()->getErrorMessages($form);
@@ -295,6 +295,13 @@ class DWLController extends AbstractController
                 $dwl->getDate()->format('Ymd')
             ),
         ]);
+    }
+
+    public function getItemListAction(int $dwlId): Response
+    {
+        $response = $this->getManager()->getListOfDwlItems($dwlId);
+
+        return $this->jsonResponse($response);
     }
 
     /**

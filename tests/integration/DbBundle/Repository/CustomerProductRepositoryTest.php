@@ -6,8 +6,6 @@ use DbBundle\Entity\Currency;
 use DbBundle\Entity\Customer as Member;
 use DbBundle\Entity\CustomerProduct as MemberProduct;
 use DbBundle\Entity\Product;
-use DbBundle\Entity\User;
-use League\FactoryMuffin\Faker\Facade as Faker;
 
 
 class CustomerProductRepositoryTest extends \Codeception\Test\Unit
@@ -56,10 +54,14 @@ class CustomerProductRepositoryTest extends \Codeception\Test\Unit
     private function generateMemberWithReferralThatHasOnlyACWalletAsProduct(): Member
     {
         $em = $this->getModule('Doctrine2')->_getEntityManager();
-        $referrer = $this->tester->have(Member::class);
-        $referralsWithOnlyACWalletAsProduct = $this->tester->have(Member::class, ['affiliate' => $referrer]);
+        $euroCurrency = $em->getRepository(Currency::class)->findByCode('EUR');
 
-        $this->tester->have( MemberProduct::class,
+        $referrer = $this->tester->have(Member::class, [
+            'currency' => $euroCurrency,
+        ]);
+        $referralsWithOnlyACWalletAsProduct = $this->tester->have(Member::class, ['affiliate' => $referrer, 'currency' => $euroCurrency]);
+
+        $this->tester->have(MemberProduct::class,
             [
                 'product' => $em->getRepository(Product::class)->getAcWalletProduct(),
                 'customer' => $referralsWithOnlyACWalletAsProduct,
@@ -74,14 +76,20 @@ class CustomerProductRepositoryTest extends \Codeception\Test\Unit
     {
         $em = $this->getModule('Doctrine2')->_getEntityManager();
 
-        $referrer = $this->tester->have(Member::class);
-        $referralsWithMultipleProduct = $this->tester->haveMultiple(Member::class, 2, ['affiliate' => $referrer]);
+        $euroCurrency = $em->getRepository(Currency::class)->findByCode('EUR');
+        $referrer = $this->tester->have(Member::class, [
+            'currency' => $euroCurrency
+        ]);
+        $referralsWithMultipleProduct = $this->tester->haveMultiple(Member::class, 2, [
+            'affiliate' => $referrer,
+            'currency' => $euroCurrency
+        ]);
 
         foreach ($referralsWithMultipleProduct as $referral) {
             $this->tester->have(MemberProduct::class,
                 [
-                'customer' => $referral,
-                'product' => $em->getRepository(Product::class)->getAcWalletProduct()
+                    'customer' => $referral,
+                    'product' => $em->getRepository(Product::class)->getAcWalletProduct()
                 ]
             );
             $this->tester->have(MemberProduct::class,

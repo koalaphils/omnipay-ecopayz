@@ -29,7 +29,7 @@
                         </div>
                     </div>
                     <div class="table-detail text-right">
-                        <h4 class="m-t-0 m-b-5">{{ report.dwl.turnover|number_format(2, '.', ',') }}</h4>
+                        <h4 class="m-t-0 m-b-5">{{ report.dwl_turnover|number_format(2, '.', ',') }}</h4>
                         <h5 class="text-muted m-b-0 m-t-0">Total Turnover</h5>
                     </div>
                 </div>
@@ -46,7 +46,7 @@
                         </div>
                     </div>
                     <div class="table-detail text-right">
-                        <h4 class="m-t-0 m-b-5">{{ report.dwl.win_loss|number_format(2, '.', ',') }}</h4>
+                        <h4 class="m-t-0 m-b-5">{{ report.dwl_win_loss|number_format(2, '.', ',') }}</h4>
                         <h5 class="text-muted m-b-0 m-t-0">Total Win Loss</h5>
                     </div>
                 </div>
@@ -63,7 +63,7 @@
                         </div>
                     </div>
                     <div class="table-detail text-right">
-                        <h4 class="m-t-0 m-b-5">{{ report.dwl.commission|number_format(2, '.', ',') }}</h4>
+                        <h4 class="m-t-0 m-b-5">{{ report.dwl_commission|number_format(2, '.', ',') }}</h4>
                         <h5 class="text-muted m-b-0 m-t-0">Commission</h5>
                     </div>
                 </div>
@@ -111,11 +111,11 @@
                     <tfoot>
                         <tr>
                             <th>Total</th>
-                            <th>{{ report.dwl.turnover|number_format(2, '.', ',') }}</th>
-                            <th>{{ report.dwl.gross|number_format(2, '.', ',') }}</th>
-                            <th>{{ report.dwl.win_loss|number_format(2, '.', ',') }}</th>
-                            <th>{{ report.dwl.commission|number_format(2, '.', ',') }}</th>
-                            <th>{{ number(report.customer_current_balance).minus(report.after.total).__toString()|number_format(2, '.', ',') }}</th>
+                            <th>{{ report.dwl_turnover|number_format(2, '.', ',') }}</th>
+                            <th>{{ report.dwl_gross|number_format(2, '.', ',') }}</th>
+                            <th>{{ report.dwl_win_loss|number_format(2, '.', ',') }}</th>
+                            <th>{{ report.dwl_commission|number_format(2, '.', ',') }}</th>
+                            <th>{{ report.customer_available_balance_by_end_of_report_dates|number_format(2, '.', ',') }}</th>
                             <th>{{ report.customer_current_balance|number_format(2, '.', ',') }}</th>
                             <th>&nbsp;</th>
                         </tr>
@@ -137,8 +137,8 @@
                     'data': function (data, dataTable) {
                         data.filters.from = '{{ filters.from }}';
                         data.filters.to = '{{ filters.to }}';
-                        data.filters.customer = '{{ customer.id }}'
-
+                        data.filters.customer = '{{ customer.id }}';
+                        data.filters.currency = '{{ currency.getId() }}';
                         return data;
                     }
                 },
@@ -164,7 +164,9 @@
                                     },
                                     'filename': '{{ customer.fName }}_{{ customer.lName }}'
                                 }
-                                window.open('{{ path('report.customer_products_export') }}?' + $.param(query), '_blank');
+
+                                var reportUrl = '{{ path('report.member_products_of_member_export',{'memberId':customer.id}) }}';
+                                window.open(reportUrl + '?' + $.param(query), '_blank');
                             });
                         }
                     }
@@ -177,34 +179,31 @@
                         }
                     },
                     {
-                        'data': 'turnover',
+                        'data': 'dwl_turnover',
                         'render': function (data, type, full) {
                             return (new Decimal(data)).toFixed(2);
                         }
                     },
                     {
-                        'data': 'gross',
+                        'data': 'dwl_gross',
                         'render': function (data, type, full) {
                             return (new Decimal(data)).toFixed(2);
                         }
                     },
                     {
-                        'data': 'win_loss',
+                        'data': 'dwl_win_loss',
                         'render': function (data, type, full) {
                             return (new Decimal(data)).toFixed(2);
                         }
                     },
                     {
-                        'data': 'commission',
+                        'data': 'dwl_commission',
                         'render': function (data, type, full) {
                             return (new Decimal(data)).toFixed(2);
                         }
                     },
                     {
-                        'data': 'after.total',
-                        'render': function (data, type, full) {
-                            return Decimal.sub(full.current_balance, data).toFixed(2);
-                        }
+                        'data': 'end_of_report_date_balance',
                     },
                     {
                         'data': 'current_balance',

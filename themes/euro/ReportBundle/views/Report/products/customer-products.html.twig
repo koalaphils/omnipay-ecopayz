@@ -245,34 +245,31 @@
                         }
                     },
                     {
-                        'data': 'turnover',
+                        'data': 'dwl_turnover',
                         'render': function (data, type, full) {
                             return (new Decimal(data)).toFixed(2);
                         }
                     },
                     {
-                        'data': 'gross',
+                        'data': 'dwl_gross',
                         'render': function (data, type, full) {
                             return (new Decimal(data)).toFixed(2);
                         }
                     },
                     {
-                        'data': 'win_loss',
+                        'data': 'dwl_win_loss',
                         'render': function (data, type, full) {
                             return (new Decimal(data)).toFixed(2);
                         }
                     },
                     {
-                        'data': 'commission',
+                        'data': 'dwl_commission',
                         'render': function (data, type, full) {
                             return (new Decimal(data)).toFixed(2);
                         }
                     },
                     {
-                        'data': 'after.total',
-                        'render': function (data, type, full) {
-                            return Decimal.sub(full.current_balance, data).toFixed(2);
-                        }
+                        'data': 'end_of_report_date_balance',
                     },
                     {
                         'data': 'current_balance',
@@ -294,7 +291,7 @@
                                     status = 'Deleted (' + moment(data.date).format('MMM D, YYYY') + ')';
                                 }
                             }
-                            
+
                             return status;
                         }
                     }

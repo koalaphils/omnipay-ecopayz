@@ -2,6 +2,8 @@
 
 namespace MemberBundle\Request;
 
+use DbBundle\Entity\Customer;
+
 class CreateMemberRequest
 {
     private $username;
@@ -16,6 +18,7 @@ class CreateMemberRequest
     private $referal;
     private $currency;
     private $joinedAt;
+    private $gender;
 
     public function __construct()
     {
@@ -26,6 +29,7 @@ class CreateMemberRequest
         $this->groups = [];
         $this->password = '';
         $this->confirmPassword = '';
+        $this->gender = Customer::MEMBER_GENDER_NOT_SET;
     }
 
     public function getUsername(): string
@@ -106,6 +110,16 @@ class CreateMemberRequest
     public function setCountry(int $country): void
     {
         $this->country = $country;
+    }
+
+    public function getGender(): int
+    {
+        return $this->gender;
+    }
+
+    public function setGender(int $gender): void
+    {
+        $this->gender = $gender;
     }
 
     public function getCurrency(): ?int

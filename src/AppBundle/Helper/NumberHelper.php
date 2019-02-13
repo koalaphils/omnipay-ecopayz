@@ -55,11 +55,28 @@ class NumberHelper
 
         return $maxDecimal;
     }
-    
+
     public static function toFloat($value): float
     {
         eval('$var = ' . $value . ';');
-        
+
         return $var;
+    }
+
+    public static function removeExtraZero(string $value): string
+    {
+        list($real, $decimal) = explode('.', $value);
+
+        $decimal = rtrim($decimal, '0');
+        if ($decimal === '') {
+            $decimal = '0';
+        }
+
+        $real = ltrim($real, '0');
+        if ($real === '') {
+            $real = '0';
+        }
+
+        return $real . '.' . $decimal;
     }
 }

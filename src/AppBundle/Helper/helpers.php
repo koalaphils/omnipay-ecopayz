@@ -125,7 +125,7 @@ if (!function_exists('currency_exchangerate')) {
             'z' => $toRate,
         ];
         $value = AppBundle\ValueObject\Number::parseEquation($eq, $vars);
-        
+
         return $value->toString();
     }
 }

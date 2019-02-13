@@ -12,7 +12,7 @@ class MemberBannerRepository extends BaseRepository
         $queryBuilder = $this->createFilterQueryBuilder($filters);
 
         $queryBuilder->select('mb', 'mw', 'mrn', 'bi', 'm')
-            ->join('mb.memberWebsite', 'mw')
+            ->leftJoin('mb.memberWebsite', 'mw')
             ->join('mb.memberReferralName', 'mrn')
             ->join('mb.bannerImage', 'bi')
             ->join('mb.member', 'm');
@@ -29,7 +29,7 @@ class MemberBannerRepository extends BaseRepository
         $queryBuilder = $this->createFilterQueryBuilder($filters);
 
         $queryBuilder->select('mb', 'mw', 'mrn', 'bi', 'm')
-            ->join('mb.memberWebsite', 'mw')
+            ->leftJoin('mb.memberWebsite', 'mw')
             ->join('mb.memberReferralName', 'mrn')
             ->join('mb.bannerImage', 'bi')
             ->join('mb.member', 'm');

@@ -33,6 +33,9 @@ class TransactionWorkflowFactory
 
         // void
         $voidTransition = new Transition('void', Transaction::TRANSACTION_STATUS_END, Transaction::TRANSACTION_STATUS_END);
+        $declineTransition = new Transition(Transaction::TRANSACTION_STATUS_START. '_' . Transaction::TRANSACTION_STATUS_DECLINE, Transaction::TRANSACTION_STATUS_START, Transaction::TRANSACTION_STATUS_DECLINE);
+
+        $definitionBuilder->addTransition($declineTransition);
         $definitionBuilder->addTransition($voidTransition);
 
         // workflow for types
@@ -50,15 +53,36 @@ class TransactionWorkflowFactory
                 }
             }
         }
+        
+        static::generatePaymentTransitions($definitionBuilder, $settingManager, $actions);
 
         foreach ($actions as $key => $action) {
             $transition = new Transition($key, $action['from'], $action['to']);
             $definitionBuilder->addTransition($transition);
         }
-
+        
         $definition = $definitionBuilder->build();
         $marking = new SingleStateMarkingStore('status');
 
         return new Workflow($definition, $marking, $eventDispatcher, 'transaction');
+    }
+    
+    private static function generatePaymentTransitions(DefinitionBuilder $definitionBuilder, SettingManager $settingManager, array &$actions)
+    {
+        $paymentStatus = $settingManager->getSetting('transaction.payment.start', []);
+        $paymentWorkflows = $settingManager->getSetting('transaction.payment.workflow', []);
+        
+        foreach ($paymentStatus as $key => $startStatus) {
+            $definitionBuilder->addTransition(new Transition('payment-' . $key . '-new', Transaction::TRANSACTION_STATUS_START, $startStatus));
+        }
+        
+        foreach ($paymentWorkflows as $type => $statuses) {
+            foreach ($statuses as $key => $status) {
+                $definitionBuilder->addPlace($key);
+                foreach (array_get($status, 'actions', []) as $akey => $action) {
+                    $actions['payment-' . $type . '-' . $key . '_' . $action['status']] = ['from' => $key, 'to' => $action['status']];
+                }
+            }
+        }
     }
 }

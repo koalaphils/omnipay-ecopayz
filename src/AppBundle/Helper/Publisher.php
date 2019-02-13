@@ -14,12 +14,18 @@ class Publisher
     private $websocketUrl;
     private $websocketRealm;
     private $jwtKey;
+    private $wampUrl;
 
     public function __construct($websocketUrl, $websocketRealm, $jwtKey)
     {
         $this->websocketUrl = $websocketUrl;
         $this->websocketRealm = $websocketRealm;
         $this->jwtKey = $jwtKey;
+    }
+    
+    public function setWampUrl(string $wampUrl): void
+    {
+        $this->wampUrl = $wampUrl;
     }
 
     // TODO: Handle challenge or websocket error. This might cause our request to never return a response
@@ -48,5 +54,21 @@ class Publisher
         $client->publish($topic, $data);
 
         return $deferrer->promise();
+    }
+    
+    public function publishUsingWamp(string $topic, array $args): void
+    {
+        $data = ['topic' => $topic, 'args' => [$args]];
+        $encodedData = json_encode($data);
+        $encodedData = "'" . $encodedData . "'";
+
+        $command = [
+            'curl -H "Content-Type: application/json"',
+            '-d',
+            $encodedData,
+            $this->wampUrl . '/pub &'
+        ];
+        
+        shell_exec(implode(' ', $command));
     }
 }

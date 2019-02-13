@@ -240,6 +240,20 @@ jms_job_queue:
         payout:
             max_concurrent_jobs: 1
 
+monolog:
+    channels: ['dwl_submit', 'blockchain_callback', 'blockchain_request']
+    handlers:
+        blockchain_callback:
+            level: debug
+            type: stream
+            path: '%kernel.logs_dir%/blockchain/callback.log'
+            channels: ['blockchain_callback']
+        blockchain_request:
+            level: debug
+            type: stream
+            path: '%kernel.logs_dir%/blockchain/request.log'
+            channels: ['blockchain_request']
+
 #sensio_framework_extra:
 #    view:
 #        annotations: false
@@ -247,3 +261,9 @@ jms_job_queue:
 #sensio_framework_extra:
 #    view:    { annotations: false }
 #    router:  { annotations: true }
+
+brokerage:
+    url: '%betadmin.url%'
+    security:
+        token: '%betadmin.security.access_token%'
+        token_type: '%betadmin.security.token_type%'

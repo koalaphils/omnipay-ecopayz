@@ -5,16 +5,28 @@ DbBundle\Entity\CustomerProduct:
         id:
             expose: true
         userName:
-            expose: false
+            expose: true
+            groups: ['Default', 'request_list']
         product:
             expose: true
+            groups: ['Default', 'request_list']
         balance:
             expose: true
         isActive:
             expose: true
         details:
             expose: true
+        customer:
+            expose: true
+            groups: ['request_list']
+        requestedAt:
+            expose: true
+            groups: ['Default', 'request_list']
     virtual_properties:
+        isRequestedToday:
+            expose: true
+            serialized_name: is_requested_today
+            groups: ['API']
         username:
             exp: object.getUserName()
             expose: true

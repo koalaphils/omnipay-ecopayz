@@ -1,0 +1,17 @@
+payment.bitcoin_save:
+    path: /configuration/save
+    defaults:
+        _controller: PaymentBundle:Bitcoin:saveBitcoinSetting
+    methods: [POST]
+
+payment.bitcoin_rate_save:
+    path: /rate/save
+    defaults:
+        _controller: PaymentBundle:Bitcoin:saveBitcoinRate
+    methods: [POST]
+
+payment.bitcoin_confirmations_save:
+    path: /payment/bitcoin/confirmations
+    defaults:
+        _controller: PaymentBundle:Bitcoin:saveBitcoinConfirmation
+    methods: [POST]

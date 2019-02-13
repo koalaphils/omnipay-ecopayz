@@ -56,6 +56,9 @@ category:
     memberWebsite: Website
     memberReferralName: Referral Name
     bannerImage: Banner Image
+    bitcoinRateSetting: Bitcoin Rate Setting
+    debitAdjustment: Debit
+    creditAdjustment: Credit
 
 operation:
     create: Created

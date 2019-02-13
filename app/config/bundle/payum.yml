@@ -11,13 +11,18 @@ payum:
                 filesystem:
                     storage_dir: '%kernel.project_dir%/var/payum/gateways'
                     id_property: hash
+
     gateways:
+        bitcoin:
+            factory: blockchain
+            payum.action.capture: '@payment.bitcoin.capture'
+            payum.action.notify: '@payment.bitcoin.notify'
         ecopayz:
             factory: omnipay
             type: Ecopayz
             payum.action.capture: '@payment.ecopayz.capture'
             payum.action.notify: '@payment.ecopayz.notify'
-            testMode: %payum.gateways.ecopayz.testMode%
+            testMode: '%payum.gateways.ecopayz.testMode%'
         offline:
             factory: offline
 
@@ -49,3 +54,24 @@ payment:
                 type: \Symfony\Component\Form\Extension\Core\Type\TextType
                 options:
                     required: false
+        bitcoin:
+            guid:
+                type: \Symfony\Component\Form\Extension\Core\Type\TextType
+                options:
+                    required: true
+            password:
+                type: \Symfony\Component\Form\Extension\Core\Type\PasswordType
+                options:
+                    required: true
+            secondPassword:
+                type: \Symfony\Component\Form\Extension\Core\Type\PasswordType
+                options:
+                    required: false
+            receiverXpub:
+                type: \Symfony\Component\Form\Extension\Core\Type\TextType
+                options:
+                    required: true
+            senderXpub:
+                type: \Symfony\Component\Form\Extension\Core\Type\TextType
+                options:
+                    required: true

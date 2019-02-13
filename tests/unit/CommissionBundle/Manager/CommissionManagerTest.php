@@ -61,6 +61,7 @@ class CommissionManagerTest extends Unit
             NumberHelper::toFloat($expectedResult['commission']),
             NumberHelper::toFloat($computedAmount[$subTransaction->getParent()->getCurrency()->getCode()])
         );
+
         $this->assertSame(
             NumberHelper::toFloat($expectedResult['converted']),
             NumberHelper::toFloat($computedAmount[$referrer->getCurrency()->getCode()])

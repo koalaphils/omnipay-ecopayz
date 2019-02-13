@@ -23,11 +23,33 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     use ActionTrait;
     use SoftDeleteTrait;
     use TimestampTrait;
-    
+
+    public const DETAIL_BITCOIN_INFO = 'bitcoin';
+    public const DETAIL_BITCOIN_ADDRESS = 'bitcoin.receiver_unique_address';
+    public const DETAIL_BITCOIN_BLOCKCHAIN_RATE = 'bitcoin.block_chain_rate';
+    public const DETAIL_BITCOIN_RATE = 'bitcoin.rate';
+    public const DETAIL_BITCOIN_TOTAL_REQUESTED_BTC = 'bitcoin.total_requested_btc';
+    public const DETAIL_BITCOIN_RATE_DETAIL = 'bitcoin.rate_detail';
+    public const DETAIL_BITCOIN_CONFIRMATION = 'bitcoin.confirmation_count';
+    public const DETAIL_BITCOIN_STATUS = 'bitcoin.request_status';
+    public const DETAIL_BITCOIN_CALLBACK = 'bitcoin.callback';
+    public const DETAIL_BITCOIN_BLOCKCHAIN_INDEX = 'bitcoin.blokchain_index';
+    public const DETAIL_BITCOIN_TRANSACTION = 'bitcoin.transaction';
+    public const DETAIL_BITCOIN_TRANSACTION_HASH = 'bitcoin.transaction.hash';
+    public const DETAIL_BITCOIN_TRANSACTION_VALUE = 'bitcoin.transaction.value';
+    public const DETAIL_BITCOIN_TRANSACTION_VALUE_SATOSHI = 'bitcoin.transaction.value_satoshi';
+    public const DETAIL_BITCOIN_ACKNOWLEDGED_BY_USER = 'bitcoin.acknowledged_by_user';
+    public const DETAIL_BITCOIN_STATUS_PENDING = 'pending_confirmation';
+    public const DETAIL_BITCOIN_STATUS_CONFIRMED = 'confirmed';
+    public const DETAIL_BITCOIN_RATE_EXPIRED = 'bitcoin.rate_expired';
+    private const DETAIL_BITCOIN_TRANSACTION_SENDER_ADDRESS = 'bitcoin.transaction.sender_address';
+    private const DETAIL_BITCOIN_STATUS_NO_CONFIRMATION = 'no_confirmation';
+
     private const DETAIL_COMMISSION_CONVERTION_RATE = 'commission.convertion.rate';
     private const DETAIL_COMMISSION_PRODUCT_PERCENTAGE = 'commission.product.percentage';
     private const DETAIL_COMMISSION_COMPUTED = 'commission.computed';
     private const DETAIL_COMMISSION_CONVERTIONS = 'commission.convertions';
+    private const DETAIL_DWL_ID = 'dwl.id';
 
     const TRANSACTION_TYPE_DEPOSIT = 1;
     const TRANSACTION_TYPE_WITHDRAW = 2;
@@ -37,90 +59,47 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     const TRANSACTION_TYPE_DWL = 6;
     const TRANSACTION_TYPE_COMMISSION = 7;
     const TRANSACTION_TYPE_BET = 8;
+    const TRANSACTION_TYPE_ADJUSTMENT = 9;
+    const TRANSACTION_TYPE_DEBIT_ADJUSTMENT = 10;
+    const TRANSACTION_TYPE_CREDIT_ADJUSTMENT = 11;
 
     const TRANSACTION_STATUS_START = 1;
     const TRANSACTION_STATUS_END = 2;
     const TRANSACTION_STATUS_DECLINE = 3;
     const TRANSACTION_STATUS_ACKNOWLEDGE = 4;
-    const TRANSACTION_STATUS_VOIDED = 'voided'; //This status is not included to settings status. since it was use in the same filtering as status. it might needed to add as parameter
+    const TRANSACTION_STATUS_VOIDED = 'voided';
 
-    /**
-     * @var string
-     */
     private $number;
-
-    /**
-     * @var string
-     */
     private $currency;
-
-    /**
-     * @var string
-     */
     private $amount = 0;
-
-    /**
-     * @var json
-     */
     private $fees;
-
-    /**
-     * @var tinyint
-     */
     private $type;
-
-    /**
-     * @var DateTime
-     */
     private $date;
-
-    /**
-     * @var tinyint
-     */
     private $status;
-
-    /**
-     * @var tinyint
-     */
     private $isVoided = false;
-
-    /**
-     * @var json
-     */
     private $details;
-
-    /**
-     * @var ArrayCollection
-     */
     private $subTransactions;
-
-    /**
-     * @var Customer
-     */
     private $customer;
-
-    /**
-     * @var Gateway
-     */
     private $gateway;
-
     private $paymentOption;
-
     private $paymentOptionOnTransaction;
-
     private $paymentOptionType;
-
     private $creator;
-
     private $toCustomer;
     private $dwlId;
-
     private $betId;
     private $betEventId;
-
     private $commissionComputedOriginal;
-
     private $immutablePaymentOptionData;
+    private $virtualBitcoinTransactionHash;
+    private $bitcoinConfirmationCount;
+    private $virtualBitcoinSenderAddress;
+    private $virtualBitcoinReceiverUniqueAddress;
+
+    /**
+     * @var null|int
+     */
+    private $bitcoinConfirmation;
 
     public function __construct()
     {
@@ -273,14 +252,9 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         return $this;
     }
 
-    /**
-     * Get type.
-     *
-     * @return tinyint
-     */
-    public function getType()
+    public function getType(): int
     {
-        return $this->type;
+        return (int) $this->type;
     }
 
     public function getTypeText()
@@ -299,6 +273,9 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
             static::TRANSACTION_TYPE_DWL => 'dwl',
             static::TRANSACTION_TYPE_BET => 'bet',
             static::TRANSACTION_TYPE_COMMISSION => 'commission',
+            static::TRANSACTION_TYPE_ADJUSTMENT => 'adjustment',
+            static::TRANSACTION_TYPE_DEBIT_ADJUSTMENT => 'debit_adjustment',
+            static::TRANSACTION_TYPE_CREDIT_ADJUSTMENT => 'credit_adjustment',
         ];
     }
 
@@ -636,6 +613,17 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         return array_has($this->details, $key);
     }
 
+    public function isTransactionPaymentBitcoin(): bool
+    {
+        $paymentOption = $this->paymentOption;
+
+        if (is_null($paymentOption)) {
+            return false;
+        }
+
+        return $paymentOption->getPaymentOption()->isPaymentBitcoin();
+    }
+
     /**
      * to track the data of customer's payment option
      * (normally starting the time of transaction creation)
@@ -645,7 +633,10 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         $this->setDetail('paymentOption.email', array_get($this->paymentOption->getFields(),'email'));
         $this->setDetail('paymentOption.code', $this->paymentOption->getPaymentOption()->getCode());
         $this->setDetail('paymentOption.name', $this->paymentOption->getPaymentOption()->getName());
-        if ($this->paymentOption->getPaymentOption()->isPaymentEcopayz()) {
+
+        $paymentOption = $this->paymentOption->getPaymentOption();
+
+        if ($paymentOption->isPaymentEcopayz() || $paymentOption->isPaymentBitcoin()) {
             $this->setDetail('paymentOption.accountId', array_get($this->paymentOption->getFields(),'account_id'));
         }
     }
@@ -660,7 +651,8 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
             $this->setDetail('paymentOptionOnTransaction.email', array_get($paymentOptionOnTransaction->getFields(),'email'));
             $this->setDetail('paymentOptionOnTransaction.code', $paymentOptionOnTransaction->getPaymentOption()->getCode());
             $this->setDetail('paymentOptionOnTransaction.name', $paymentOptionOnTransaction->getPaymentOption()->getName());
-            if ($paymentOptionOnTransaction->getPaymentOption()->isPaymentEcopayz()) {
+
+            if ($paymentOptionOnTransaction->getPaymentOption()->isPaymentEcopayz() || $paymentOptionOnTransaction->getPaymentOption()->isPaymentBitcoin()) {
                 $this->setDetail('paymentOptionOnTransaction.accountId', array_get($paymentOptionOnTransaction->getFields(),'account_id'));
             }
         }
@@ -670,18 +662,23 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
      * @return String the PaymentOption data info during the time that the transaction was created / requested
      * this may not be the actual payment option used to process/finalize the transaction
      */
-    public function getImmutablePaymentOptionData() : String
+    public function getImmutablePaymentOptionData() : string
     {
         $email = $this->getDetail('paymentOption.email');
         $paymentOptionCode = $this->getDetail('paymentOption.code');
         $paymentOption = $this->getPaymentOption();
-        if ($paymentOption && $paymentOption->getPaymentOption()->isPaymentEcopayz()) {
-            $accountId = $this->getDetail('paymentOption.accountId');
+        $label = $paymentOptionCode. ' ('. $email .')';
 
-            return $paymentOptionCode. ' ('. $accountId .')';
+        if (!is_null($paymentOption)) {
+            if ($paymentOption->getPaymentOption()->isPaymentEcopayz()) {
+                $accountId = $this->getDetail('paymentOption.accountId');
+                $label = $paymentOptionCode. ' ('. $accountId .')';
+            } elseif ($this->isTransactionPaymentBitcoin()) {
+                $label = $paymentOptionCode. ' ('. $this->getBitcoinAddress() .')';
+            }
         }
 
-        return $paymentOptionCode. ' ('. $email .')';
+        return $label;
     }
 
     public function getImmutablePaymentOptionOnTransactionData() : String
@@ -689,13 +686,18 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         $email = $this->getDetail('paymentOptionOnTransaction.email');
         $paymentOptionCode = $this->getDetail('paymentOptionOnTransaction.code');
         $paymentOptionOnTransaction = $this->getPaymentOptionOnTransaction();
-        if ($paymentOptionOnTransaction && $paymentOptionOnTransaction->getPaymentOption()->isPaymentEcopayz()) {
-            $accountId = $this->getDetail('paymentOptionOnTransaction.accountId');
+        $label = $paymentOptionCode. ' ('. $email .')';
 
-            return $paymentOptionCode. ' ('. $accountId .')';
+        if (!is_null($paymentOptionOnTransaction)) {
+            $paymentOption = $this->getPaymentOptionOnTransaction()->getPaymentOption();
+
+            if ($paymentOption->isPaymentEcopayz() || $paymentOption->isPaymentBitcoin()) {
+                $accountId = $this->getDetail('paymentOptionOnTransaction.accountId');
+                $label = $paymentOptionCode. ' ('. $accountId .')';
+            }
         }
 
-        return $paymentOptionCode. ' ('. $email .')';
+        return $label;
     }
 
     public function copyImmutableCustomerProductData()
@@ -720,10 +722,8 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     }
 
     public function getCustomerAmount()
-    {        
-        // zimi
-        // return $this->getDetail('summary.customer_amount', $this->getDetail('summary.total_amount', 0));
-        return $this->getAmount();
+    {
+        return $this->getDetail('summary.customer_amount', $this->getDetail('summary.total_amount', 0));
     }
 
     public function canAutoSetPaymentOptionType()
@@ -794,6 +794,26 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         return $this->getType() === Transaction::TRANSACTION_TYPE_COMMISSION;
     }
 
+    public function isDebitAdjustment(): bool
+    {
+        return $this->getType() === Transaction::TRANSACTION_TYPE_DEBIT_ADJUSTMENT;
+    }
+
+    public function isCreditAdjustment(): bool
+    {
+        return $this->getType() === Transaction::TRANSACTION_TYPE_CREDIT_ADJUSTMENT;
+    }
+    
+    public function isAdjustment(): bool
+    {
+        return $this->getType() === Transaction::TRANSACTION_TYPE_ADJUSTMENT;
+    }
+
+    public function hasAdjustment(): bool
+    {
+        return $this->isAdjustment() || $this->isDebitAdjustment() || $this->isCreditAdjustment();
+    }
+
     public function isInProgress() : bool
     {
         $statusesThatAreNotInProgress = [
@@ -805,17 +825,63 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         return (!in_array($this->getStatus(), $statusesThatAreNotInProgress)) && !$this->isVoided();
     }
 
-    public static function getTypeAsTexts(): array
+    public function isStart(): bool
+    {
+        return $this->getStatus() === Transaction::TRANSACTION_STATUS_START;
+    }
+
+    public function hasDepositUsingBitcoin(): bool
+    {
+        return !is_null($this->getIdentifier())
+            && $this->isDeposit()
+            && $this->isPaymentBitcoin();
+    }
+
+    public function isPaymentBitcoin(): bool
+    {
+        if ($this->paymentOption === null) {
+            return false;
+        }
+
+        return $this->paymentOption->getPaymentOption()->isPaymentBitcoin();
+    }
+
+    public function isBitcoinStatusPendingConfirmation(): bool
+    {
+        if ( !$this->isDeclined() && !$this->isVoided()){
+           return $this->hasDepositUsingBitcoin()  && $this->isBitcoinPendingOnConfirmation();
+        }
+
+        return false;
+    }
+
+    public function isBitcoinStatusConfirmed(): bool
+    {
+        if( !$this->isDeclined() && !$this->isVoided()){
+            return $this->hasDepositUsingBitcoin() && !$this->hasEnded() && $this->isBitcoinConfirmedOnConfirmation();
+        }
+
+        return false;
+    }
+
+    public function getTypeAsText()
+    {
+        return $this->getTypeAsTexts()[$this->getType()];
+    }
+
+    public function getTypeAsTexts(): array
     {
         return [
-            self::TRANSACTION_TYPE_DEPOSIT => 'deposit',
-            self::TRANSACTION_TYPE_WITHDRAW => 'withdraw',
-            self::TRANSACTION_TYPE_TRANSFER => 'transfer',
-            self::TRANSACTION_TYPE_P2P_TRANSFER => 'p2p transfer',
+            self::TRANSACTION_TYPE_DEPOSIT => 'Deposit',
+            self::TRANSACTION_TYPE_WITHDRAW => 'Withdraw',
+            self::TRANSACTION_TYPE_TRANSFER => 'Transfer',
+            self::TRANSACTION_TYPE_P2P_TRANSFER => 'P2P Transfer',
             self::TRANSACTION_TYPE_BET => 'bet',
             self::TRANSACTION_TYPE_DWL => 'dwl',
             self::TRANSACTION_TYPE_BONUS => 'bonus',
             self::TRANSACTION_TYPE_COMMISSION => 'commission',
+            self::TRANSACTION_TYPE_DEBIT_ADJUSTMENT => 'Debit',
+            self::TRANSACTION_TYPE_CREDIT_ADJUSTMENT => 'Credit',
         ];
     }
 
@@ -849,6 +915,10 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
             $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_BONUS;
         } elseif ($this->isCommission()) {
             $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_COMMISSION;
+        } elseif ($this->isDebitAdjustment()) {
+            $category = AuditRevisionLog::CATEGORY_MEMBER_TRANSACTION_DEBIT_ADJUSTMENT;
+        } elseif ($this->isCreditAdjustment()) {
+            $category = AuditRevisionLog::CATEGORY_MEMBER_TRANSACTION_CREDIT_ADJUSTMENT;
         }
 
         return $category;
@@ -856,7 +926,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public function getIgnoreFields()
     {
-        return ['createdBy', 'createdAt', 'updatedBy', 'updatedAt', 'paymentOptionType', 'creator'];
+        return ['createdBy', 'createdAt', 'updatedBy', 'updatedAt', 'creator'];
     }
 
     public function getAssociationFields()
@@ -886,7 +956,19 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public function getDwlId(): ?int
     {
+        if (is_null($this->dwlId) && $this->hasDetail(self::DETAIL_DWL_ID)) {
+            $this->dwlId = $this->getDetail(self::DETAIL_DWL_ID);
+        }
+
         return $this->dwlId;
+    }
+
+    public function setDwlId(int $dwlId): self
+    {
+        $this->setDetail(self::DETAIL_DWL_ID, $dwlId);
+        $this->dwlId = $dwlId;
+
+        return $this;
     }
 
     public function getBetId(): ?int
@@ -902,6 +984,21 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     public function getCommissionComputedOriginal(): ?float
     {
         return $this->commissionComputedOriginal;
+    }
+
+    public function getVirtualBitcoinTransactionHash(): ?string
+    {
+        return $this->virtualBitcoinTransactionHash;
+    }
+
+    public function getBitcoinConfirmationCount(): ?int
+    {
+        return $this->bitcoinConfirmationCount;
+    }
+
+    public function getVirtualBitcoinSenderAddress(): ?array
+    {
+        return $this->virtualBitcoinSenderAddress;
     }
 
     public function setGatewayComputedAmount($amount): Transaction
@@ -927,6 +1024,11 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     public function getVoidingReason(): ?string
     {
         return $this->getDetail('reasonToVoidOrDecline');
+    }
+
+    public function getNotesInDetails(): ?string
+    {
+        return $this->getDetail('notes');
     }
 
     public function setReasonToVoidOrDecline($reason)
@@ -973,15 +1075,15 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     {
         $this->setDetail('commission.running_commission_id', $memberRunningCommissionid);
     }
-    
+
     public function computeCommission(CurrencyRate $convertionRate, string $productCommissionPercentage): void
     {
         $this->setCommissionConvertionRate($convertionRate);
         $this->setProductCommissionPercentage($productCommissionPercentage);
-        
+
         $turnover = $this->getFirstSubTransaction()->getDwlTurnover();
         $commissionPercentageAsDecimal = Number::div($productCommissionPercentage, 100);
-        
+
         $computed = [];
         $commission = new Money(
             $convertionRate->getSourceCurrency(),
@@ -992,37 +1094,252 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
         if (!$convertionRate->getSourceCurrency()->isEqualTo($convertionRate->getDestinationCurrency())) {
             $convertedCommission = $commission->convertToCurrency(
-                $convertionRate->getDestinationCurrency(), 
+                $convertionRate->getDestinationCurrency(),
                 $convertionRate->getSourceRate(),
                 $convertionRate->getDestinationRate()
             );
             $computed[$convertedCommission->getCurrencyCode()] = $convertedCommission->getAmount();
             $computed['original'] = $convertedCommission->getAmount();
         }
-        
+
         $this->setDetail(self::DETAIL_COMMISSION_COMPUTED, $computed);
     }
-    
+
     public function getCommissionForCurrency(string $code): string
     {
         return $this->getDetail(self::DETAIL_COMMISSION_COMPUTED . '.' . $code);
     }
-    
+
     public function getComputedAmount(): array
     {
         return $this->getDetail(self::DETAIL_COMMISSION_COMPUTED, []);
     }
-    
+
     public function setCommissionConvertions(array $convertions): void
     {
         $this->setDetail(self::DETAIL_COMMISSION_CONVERTIONS, $convertions);
     }
-    
+
     public function getCommissionConvertions(): array
     {
         return $this->getDetail(self::DETAIL_COMMISSION_CONVERTIONS, []);
     }
-    
+
+    public function setBitcoinInfo(array $info): void
+    {
+        foreach ($info as $key => $value) {
+            $this->setDetail($key, $value);
+        }
+    }
+
+    public function getBitcoinInfo(): array
+    {
+        return $this->getDetail(self::DETAIL_BITCOIN_INFO);
+    }
+
+    public function getBitcoinAddress(): ?string
+    {
+        return $this->getDetail(self::DETAIL_BITCOIN_ADDRESS, '');
+    }
+
+    public function setBitcoinAddress(string $address): self
+    {
+        $this->setDetail(self::DETAIL_BITCOIN_ADDRESS, $address);
+
+        return $this;
+    }
+
+    public function setBitcoinRateExpired(): self
+    {
+        $this->setDetail(self::DETAIL_BITCOIN_RATE_EXPIRED, true);
+
+        return $this;
+    }
+
+    public function setBitcoinRateExpiration(bool $isExpired): self
+    {
+        $this->setDetail(self::DETAIL_BITCOIN_RATE_EXPIRED, $isExpired);
+
+        return $this;
+    }
+
+    public function getBitcoinRate(): string
+    {
+        return $this->getDetail(self::DETAIL_BITCOIN_RATE, '');
+    }
+
+    public function getBitcoinTransactionHash(): string
+    {
+        return $this->getDetail(self::DETAIL_BITCOIN_TRANSACTION_HASH, '');
+    }
+
+    public function setBitcoinTransactionHash(string $hash): self
+    {
+        $this->setDetail(self::DETAIL_BITCOIN_TRANSACTION_HASH, $hash);
+
+        return $this;
+    }
+
+    public function setBitcoinRate(string $rate): self
+    {
+        $this->setDetail(self::DETAIL_BITCOIN_RATE, $rate);
+
+        return $this;
+    }
+
+    public function getBitcoinCallback(): string
+    {
+        return $this->getDetail(self::DETAIL_BITCOIN_CALLBACK, '');
+    }
+
+    public function setBitcoinCallback(string $callback): self
+    {
+        $this->setDetail(self::DETAIL_BITCOIN_CALLBACK, $callback);
+
+        return $this;
+    }
+
+    public function setBitcoinAcknowledgedByUser(bool $acknowledgedByUser): self
+    {
+        $this->setDetail(self::DETAIL_BITCOIN_ACKNOWLEDGED_BY_USER, $acknowledgedByUser);
+
+        return $this;
+    }
+
+    public function getBitcoinAcknowledgeByUser(): bool
+    {
+        return $this->getDetail(self::DETAIL_BITCOIN_ACKNOWLEDGED_BY_USER);
+    }
+
+    public function getBitcoinIndex(): int
+    {
+        return (int) $this->getDetail(self::DETAIL_BITCOIN_BLOCKCHAIN_INDEX, 0);
+    }
+
+    public function setBitcoinIndex(int $index): self
+    {
+        $this->setDetail(self::DETAIL_BITCOIN_BLOCKCHAIN_INDEX, $index);
+
+        return $this;
+    }
+
+    public function setBitcoinValue(string $value): self
+    {
+        $this->setDetail(self::DETAIL_BITCOIN_TRANSACTION_VALUE, $value);
+
+        return $this;
+    }
+
+    public function getBitcoinValue(): string
+    {
+        return $this->getDetail(self::DETAIL_BITCOIN_TRANSACTION_VALUE, '');
+    }
+
+    public function setBitcoinValueInSatoshi(string $value): self
+    {
+        $this->setDetail(self::DETAIL_BITCOIN_TRANSACTION_VALUE_SATOSHI, $value);
+
+        return $this;
+    }
+
+    public function getBitcoinValueInSatoshi(): string
+    {
+        return $this->getDetail(self::DETAIL_BITCOIN_TRANSACTION_VALUE_SATOSHI, '');
+    }
+
+    public function setBitcoinConfirmation(?int $confirmation): self
+    {
+        $this->setDetail(self::DETAIL_BITCOIN_CONFIRMATION, $confirmation);
+        $this->bitcoinConfirmation = $confirmation;
+
+        return $this;
+    }
+
+    public function setBitcoinConfirmationAsConfirmed(): self
+    {
+        $this->setBitcoinConfirmation(3);
+
+        return $this;
+    }
+
+    public function getBitcoinConfirmation(): ?int
+    {
+        if ($this->bitcoinConfirmation === null) {
+            $this->bitcoinConfirmation = $this->getDetail(self::DETAIL_BITCOIN_CONFIRMATION, null);
+        }
+
+        return $this->bitcoinConfirmation;
+    }
+
+    public function isBitcoinRequestedOnConfirmation(): bool
+    {
+        return $this->getBitcoinConfirmation() === null;
+    }
+
+    public function isBitcoinPendingOnConfirmation(): bool
+    {
+        $confirmations = $this->getBitcoinConfirmation();
+        
+        if ($confirmations === null) {
+            return false;
+        }
+
+        return $confirmations < 3;
+    }
+
+    public function isBitcoinConfirmedOnConfirmation(): bool
+    {
+        return $this->getBitcoinConfirmation() >= 3;
+    }
+
+    public function getBitcoinStatus(): string
+    {
+        $status = self::DETAIL_BITCOIN_STATUS_NO_CONFIRMATION;
+
+        if ($this->getBitcoinConfirmation() < 3){
+            $status = self::DETAIL_BITCOIN_STATUS_PENDING;
+        } else if ($this->getBitcoinConfirmation() >= 3) {
+            $status = self::DETAIL_BITCOIN_STATUS_CONFIRMED;
+        }
+
+        return $status;
+    }
+
+    public function hasBitcoinDepositAndNotConfirmed(): bool
+    {
+        return $this->hasDepositUsingBitcoin() && $this->getBitcoinConfirmation() < 3;
+    }
+
+    public static function getOtherStatus(): array
+    {
+        return [
+            self::TRANSACTION_STATUS_VOIDED,
+            self::DETAIL_BITCOIN_STATUS_CONFIRMED,
+            self::DETAIL_BITCOIN_STATUS_PENDING,
+        ];
+    }
+
+    public static function getPendingStatus(): array
+    {
+        return [
+            self::DETAIL_BITCOIN_STATUS_PENDING, 
+            self::TRANSACTION_STATUS_START,
+            self::TRANSACTION_STATUS_ACKNOWLEDGE,
+        ];
+    }
+
+    public function getBitcoinSenderAddresses(): array
+    {
+        return $this->getDetail(self::DETAIL_BITCOIN_TRANSACTION_SENDER_ADDRESS, []);
+    }
+
+    public function setBitcoinSenderAddresses(array $senderAddresses): self
+    {
+        $this->setDetail(self::DETAIL_BITCOIN_TRANSACTION_SENDER_ADDRESS, $senderAddresses);
+
+        return $this;
+    }
+
     private function setCommissionConvertionRate(CurrencyRate $rate): void
     {
         if (!$this->getCurrency()->isEqualTo($rate->getSourceCurrency())) {
@@ -1042,33 +1359,25 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
             ],
         ]);
     }
-    
+
     private function setProductCommissionPercentage(string $percentage): void
     {
         $this->setDetail(self::DETAIL_COMMISSION_PRODUCT_PERCENTAGE, $percentage);
     }
 
-    // zimi
-    public function getStatusText()
+    public function getBitcoinTotalAmount(): string
     {
-        return $this->getStatusList()[$this->getStatus()];
-    }
+        if ($this->isPaymentBitcoin()) {
+            $totalAmount = '0';
 
-    /**
-    const TRANSACTION_STATUS_START = 1;
-    const TRANSACTION_STATUS_END = 2;
-    const TRANSACTION_STATUS_DECLINE = 3;
-    const TRANSACTION_STATUS_ACKNOWLEDGE = 4;
-    const TRANSACTION_STATUS_VOIDED = 'voided';
-    **/
-    public function getStatusList(): array
-    {
-        return [
-            static::TRANSACTION_STATUS_START => 'requested',
-            static::TRANSACTION_STATUS_END => 'processed',
-            static::TRANSACTION_STATUS_DECLINE => 'declined',
-            static::TRANSACTION_STATUS_ACKNOWLEDGE => 'acknowledged',
-            static::TRANSACTION_STATUS_VOIDED => 'voided',            
-        ];
+            foreach ($this->getSubTransactions() as $subTransaction) {
+                $amount = $subTransaction->getDetail(SubTransaction::DETAIL_BITCOIN_REQUESTED_BTC, '0');
+                $totalAmount = Number::add($totalAmount, $amount);
+            }
+
+            return $totalAmount;
+        }
+
+        return '';
     }
 }

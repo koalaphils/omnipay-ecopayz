@@ -165,33 +165,4 @@ class Country extends Entity implements ActionInterface, TimestampInterface, Aud
     {
         return ['name' => $this->getName(), 'code' => $this->getCode()];
     }
-    /**
-     * @var string
-     */
-    private $phoneCode;
-
-
-    /**
-     * Set phoneCode
-     *
-     * @param string $phoneCode
-     *
-     * @return Country
-     */
-    public function setPhoneCode($phoneCode)
-    {
-        $this->phoneCode = $phoneCode;
-
-        return $this;
-    }
-
-    /**
-     * Get phoneCode
-     *
-     * @return string
-     */
-    public function getPhoneCode()
-    {
-        return $this->phoneCode;
-    }
 }

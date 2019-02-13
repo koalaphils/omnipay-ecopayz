@@ -14,7 +14,7 @@ modules:
             dsn: 'mysql:host=%DATABASE_HOST%;dbname=%DATABASE_FOR_TESTS_NAME%'
             user: '%DATABASE_USER%'
             password: '%DATABASE_PASSWORD%'
-            dump: 'tests/_data/ac66dump.sql'
+            dump: 'tests/_data/ac66dump_20181001.sql'
             populate: true
             cleanup: true
             populator: 'mysql -h$host -u$user -p$password $dbname < $dump'

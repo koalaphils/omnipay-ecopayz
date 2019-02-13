@@ -42,10 +42,6 @@ DbBundle\Entity\Country:
             type: datetime
             nullable: true
             column: country_updated_at
-        phoneCode:
-            type: string
-            length: '6'
-            column: country_phone_code
     manyToOne:
         currency:
             targetEntity: DbBundle\Entity\Currency

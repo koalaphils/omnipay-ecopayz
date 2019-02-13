@@ -55,3 +55,5 @@ sftp-config.json
 tests/_output
 /.docker/manifest/home/www/.composer/*
 !/.docker/manifest/home/www/.composer/.gitkeep
+./.idea/*
+.idea/*

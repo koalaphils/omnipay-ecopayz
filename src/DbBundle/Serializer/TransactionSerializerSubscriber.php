@@ -6,18 +6,27 @@ use JMS\Serializer\EventDispatcher\ObjectEvent;
 use DbBundle\Repository\DWLRepository;
 use Doctrine\ORM\EntityManager;
 use JMS\Serializer\Context;
+use AppBundle\Manager\SettingManager;
+use PaymentBundle\Manager\BitcoinManager;
+use TransactionBundle\Manager\TransactionManager;
 
 class TransactionSerializerSubscriber implements \JMS\Serializer\EventDispatcher\EventSubscriberInterface
 {
+    private const TRANSACTION_COMMISSION_PERIOD = 'commission_period';
+
     protected $settingManager;
     protected $entityManager;
+    protected $bitcoinManager;
+    private $transactionManager;
 
     public function __construct(
-        \AppBundle\Manager\SettingManager $settingManager,
-        EntityManager $entityManager
+        SettingManager $settingManager,
+        EntityManager $entityManager,
+        BitcoinManager $bitcoinManager
     ) {
         $this->settingManager = $settingManager;
         $this->entityManager = $entityManager;
+        $this->bitcoinManager = $bitcoinManager;
     }
 
     public static function getSubscribedEvents(): array
@@ -50,6 +59,28 @@ class TransactionSerializerSubscriber implements \JMS\Serializer\EventDispatcher
                 );
             }
         }
+
+        if ($object->isTransactionPaymentBitcoin()) {
+            $timeRemaining = $this->bitcoinManager->getBitcoinTransactionTimeRemaining($object);
+            $lockDownRateTimeRemaining = $this->bitcoinManager->getBitcoinTransactionLockdownRateRemaining($object);
+            $visitor->setData('time_remaining', $timeRemaining);
+            $visitor->setData('lock_down_rate_time_remaining', $lockDownRateTimeRemaining);
+        }
+
+        if (in_array('API', $groups) && $object->isCommission()) {
+            $commissionPeriod = $this->getTransactionManager()->getCommissionPeriodForTransaction($object->getId());
+            $visitor->setData(self::TRANSACTION_COMMISSION_PERIOD, $commissionPeriod->getPeriodDateDetails());
+        }
+    }
+
+    public function setTransactionManager(TransactionManager $transactionManager): void
+    {
+        $this->transactionManager = $transactionManager;
+    }
+
+    private function getTransactionManager(): TransactionManager
+    {
+        return $this->transactionManager;
     }
 
     private function getDWLRepository(): DWLRepository

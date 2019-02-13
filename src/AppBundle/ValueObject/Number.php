@@ -38,10 +38,16 @@ class Number
                 if ($pre >= 5) {
                     $broken_number[1] += 1;
                 }
+                $broken_number[1] = str_pad($broken_number[1], $config['precision'], '0', STR_PAD_LEFT);
             }
         }
 
         return implode('.', $broken_number);
+    }
+
+    public static function isNumber(string $number): bool
+    {
+        return preg_match('/^([+-]?(\d+(\.\d*)?)|(\.\d+))$/', $number);
     }
 
     public static function add($num1, $num2): Number
@@ -89,7 +95,7 @@ class Number
             throw new \Exception('Number is expecting 1 parameters to be a number.');
         }
     }
-    
+
     public function convertScientificToDecimal(string $num): string
     {
         $parts = explode('E', $num);
@@ -97,7 +103,7 @@ class Number
         if(count($parts) === 2){
             $exp = abs(end($parts)) + strlen($parts[0]);
             $decimal = number_format($num, $exp);
-            
+
             return rtrim($decimal, '.0');
         }
         else{

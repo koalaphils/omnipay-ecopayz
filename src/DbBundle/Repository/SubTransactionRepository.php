@@ -2,8 +2,8 @@
 
 namespace DbBundle\Repository;
 
-use DbBundle\Entity\CommissionPeriod;
 use DbBundle\Entity\Transaction;
+use Doctrine\ORM\Internal\Hydration\IterableResult;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 
@@ -44,9 +44,9 @@ class SubTransactionRepository extends BaseRepository
         return explode(',', $queryBuilder->getQuery()->getSingleScalarResult());
     }
 
-    public function getReferralTurnoverWinLossCommissionByReferrer(array $filters, int $referrerId): array
+    public function getReferralTurnoverWinLossCommissionByReferrer(array $filters, array $orders, int $referrerId, int $offset, int $limit): array
     {
-        $queryBuilder = $this->getReferralTurnoverWinLossCommissionByReferrerQb($filters, $referrerId);
+        $queryBuilder = $this->getReferralTurnoverWinLossCommissionByReferrerQb($filters, $orders, $referrerId);
 
         $queryBuilder->select(
             'mp.id AS memberProductId',
@@ -62,20 +62,33 @@ class SubTransactionRepository extends BaseRepository
                 ->setParameter('memberProductIds', array_get($filters, 'memberProductIds'));
         }
 
+        if (array_get($filters, 'hideZeroTurnover', false) == true) {
+            $queryBuilder
+                ->andHaving('totalTurnover > 0')
+                ->setFirstResult($offset)
+                ->setMaxResults($limit);
+        }
+
         $queryBuilder
             ->groupBy('memberProductId')
             ->addGroupBy('p.id')
             ->addGroupBy('m.id')
-            ->addGroupBy('dwlCurrency.id')
-            ->orderBy('p.id')
-            ->addOrderBy('m.id');
+            ->addGroupBy('dwlCurrency.id');
 
         return $queryBuilder->getQuery()->getArrayResult();
+    }
+    public function getReferralTurnoverWinLossCommissionFilterCountByReferrer(array $filters, int $referrerId): int
+    {
+        $queryBuilder = $this->getReferralTurnoverWinLossCommissionByReferrerQb($filters, [], $referrerId);
+
+        $queryBuilder->select('COUNT(DISTINCT(mp.id))');
+
+        return $queryBuilder->getQuery()->getSingleScalarResult();
     }
 
     public function getTotalReferralTurnoverWinLossCommissionByReferrer(array $filters, int $referrerId): array
     {
-        $queryBuilder = $this->getReferralTurnoverWinLossCommissionByReferrerQb($filters, $referrerId);
+        $queryBuilder = $this->getReferralTurnoverWinLossCommissionByReferrerQb($filters, [], $referrerId);
 
         $queryBuilder->select('dwlCurrency.code AS currencyCode',
             "SUM(IFNULL(st.dwlTurnover, 0)) totalTurnover",
@@ -88,7 +101,7 @@ class SubTransactionRepository extends BaseRepository
         return $queryBuilder->getQuery()->getArrayResult();
     }
 
-    private function getReferralTurnoverWinLossCommissionByReferrerQb(array $filters, int $referrerId): QueryBuilder
+    private function getReferralTurnoverWinLossCommissionByReferrerQb(array $filters, array $orders, int $referrerId): QueryBuilder
     {
         $queryBuilder = $this->createQueryBuilder('st');
 
@@ -104,6 +117,18 @@ class SubTransactionRepository extends BaseRepository
             ->setParameter('startDate', $filters['startDate'])
             ->setParameter('referrerId', $referrerId);
 
+        if (array_get($filters, 'hideZeroTurnover', false) == true) {
+            if (array_has($filters, 'search') && array_get($filters, 'search')) {
+                $queryBuilder->andWhere(
+                    $queryBuilder->expr()->orX(
+                        $queryBuilder->expr()->like('p.name', ':search'),
+                        $queryBuilder->expr()->like('m.id', ':search')
+                    )
+                )
+                ->setParameter('search', '%' . array_get($filters, 'search') . '%');
+            }
+        }
+
         if (array_has($filters, 'dwlDateFrom')) {
             $queryBuilder->andWhere($queryBuilder->expr()->gte('dwl.date', ':dwlDateFrom'))
                 ->setParameter('dwlDateFrom', array_get($filters, 'dwlDateFrom'));
@@ -114,6 +139,12 @@ class SubTransactionRepository extends BaseRepository
                 ->setParameter('dwlDateTo', array_get($filters, 'dwlDateTo'));
         }
 
+        if (!empty($orders)) {
+            foreach ($orders as $order) {
+                $queryBuilder->addOrderBy($order['column'], $order['dir']);
+            }
+        }
+
         $queryBuilder->andWhere($queryBuilder->expr()->eq('t.type', ':dwl'))
             ->andWhere($queryBuilder->expr()->eq('t.status', ':submitted'))
             ->andWhere($queryBuilder->expr()->eq('t.isVoided', ':isVoided'))
@@ -122,5 +153,123 @@ class SubTransactionRepository extends BaseRepository
             ->setParameter('isVoided', false);
 
         return $queryBuilder;
+    }
+
+    public function getSubTransactionByDwlAndMemberProduct(int $dwlId, int $memberProductId): ?\DbBundle\Entity\SubTransaction
+    {
+        $queryBuilder = $this->createQueryBuilder('subTransaction');
+        $queryBuilder
+            ->select('subTransaction', 'transaction', 'customerProduct')
+            ->innerJoin('subTransaction.parent', 'transaction')
+            ->innerJoin('subTransaction.customerProduct', 'customerProduct')
+            ->where($queryBuilder->expr()->andX()->addMultiple([
+                'subTransaction.dwlId = :dwlId',
+                'subTransaction.customerProduct = :memberProductId',
+            ]))
+            ->setParameters([
+                'dwlId' => $dwlId,
+                'memberProductId' => $memberProductId,
+            ]);
+
+        return $queryBuilder->getQuery()->getOneOrNullResult();
+    }
+
+    public function getSubTransactionsByDwlAndMemberProduct(int $dwlId, int $memberProductId): array
+    {
+        $queryBuilder = $this->createQueryBuilder('subTransaction');
+        $queryBuilder
+            ->select('subTransaction', 'transaction', 'customerProduct')
+            ->innerJoin('subTransaction.parent', 'transaction')
+            ->innerJoin('subTransaction.customerProduct', 'customerProduct')
+            ->where($queryBuilder->expr()->andX()->addMultiple([
+                'subTransaction.dwlId = :dwlId',
+                'subTransaction.customerProduct = :memberProductId',
+            ]))
+            ->setParameters([
+                'dwlId' => $dwlId,
+                'memberProductId' => $memberProductId,
+            ]);
+
+        return $queryBuilder->getQuery()->getResult();
+    }
+
+    public function getTotalSubTransactionForDwl(int $dwlId): int
+    {
+        $queryBuilder = $this->createQueryBuilder('subTransaction');
+        $queryBuilder
+            ->select('COUNT(subTransaction.id) totalSubtransaction')
+            ->where("subTransaction.dwlId = :dwlId AND JSON_EXTRACT(subTransaction.details, '$.dwl.exclude') = 0")
+            ->setParameter('dwlId', $dwlId);
+
+        return $queryBuilder->getQuery()->getSingleScalarResult();
+    }
+
+    public function getDwlSubTransactioIds(array $dwlIds): array
+    {
+        $queryBuilder = $this->createQueryBuilder('subTransaction');
+        $queryBuilder
+            ->select('subTransaction.id')
+            ->where($queryBuilder->expr()->andX()->addMultiple([
+                'subTransaction.dwlId IN (:dwlIds)',
+            ]))
+            ->setParameters([
+                'dwlIds' => $dwlIds,
+            ]);
+
+        return $queryBuilder->getQuery()->getScalarResult();
+    }
+
+    public function getDwlSubTransactionById(int $id): \DbBundle\Entity\SubTransaction
+    {
+        $queryBuilder = $this->createQueryBuilder('subTransaction');
+        $queryBuilder
+            ->select('subTransaction', 'transaction', 'customerProduct')
+            ->innerJoin('subTransaction.parent', 'transaction')
+            ->innerJoin('subTransaction.customerProduct', 'customerProduct')
+            ->where($queryBuilder->expr()->andX()->addMultiple([
+                'subTransaction.id = :id',
+            ]))
+            ->setParameters([
+                'id' => $id
+            ]);
+
+        return $queryBuilder->getQuery()->getSingleResult();
+    }
+
+    public function getDwlSubTransactionNotInGivenIds(array $subtransactionIds, int $dwlId): IterableResult
+    {
+        $queryBuilder = $this->createQueryBuilder('subTransaction');
+        $queryBuilder
+            ->select('subTransaction', 'transaction', 'customerProduct')
+            ->innerJoin('subTransaction.parent', 'transaction')
+            ->innerJoin('subTransaction.customerProduct', 'customerProduct')
+            ->where($queryBuilder->expr()->andX()->addMultiple([
+                'subTransaction.dwlId = :dwlId',
+                'subTransaction.id NOT IN (:subtransactionIds)',
+            ]))
+            ->setParameters([
+                'dwlId' => $dwlId,
+                'subtransactionIds' => $subtransactionIds,
+            ]);
+
+        return $queryBuilder->getQuery()->iterate();
+    }
+
+    public function getDwlSubTransaction(int $dwlId): IterableResult
+    {
+        $this->setToBuffered();
+        $queryBuilder = $this->createQueryBuilder('subTransaction');
+        $queryBuilder
+            ->select('subTransaction', 'transaction', 'customerProduct')
+            ->innerJoin('subTransaction.parent', 'transaction')
+            ->innerJoin('subTransaction.customerProduct', 'customerProduct')
+            ->where($queryBuilder->expr()->andX()->addMultiple([
+                'subTransaction.dwlId = :dwlId',
+            ]))
+            ->setParameters([
+                'dwlId' => $dwlId,
+            ]);
+
+        return $queryBuilder->getQuery()->iterate();
     }
 }

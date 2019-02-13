@@ -557,6 +557,21 @@ class ZTable
     types()
     {
         return {
+            'checkbox': {
+                'defaults': {
+                    'dom': "<'form-group form-group-sm m-r-10'<div class='checkbox'>>",
+                    'getValue': function (feature) {
+                        return $(feature.input).is(':checked') ? 1 : 0;
+                    },
+                    'resetValue': function (feature) {
+                        $(feature.input).prop('checked', feature.feature.value);
+                    },
+                },
+                'init': function (ztable, feature, featureType) {
+                    featureType.input = $('<input type="checkbox"/>');
+                    $(featureType.input).prop('checked', featureType.feature.value);
+                }
+            },
             'text': {
                 'defaults': {
                     'dom': "<'form-group form-group-sm m-r-10'l i>",
@@ -620,7 +635,7 @@ class ZTable
                         $(featureType.input).append(option);
                     }
                 }
-            }
+            },
         }
     }
 
@@ -669,6 +684,9 @@ class ZTable
 
     isServerSide()
     {
+        if (typeof this.dataTable.api().page.info() == 'undefined') {
+            return false;
+        }
         return this.dataTable.api().page.info().serverSide;
     }
 

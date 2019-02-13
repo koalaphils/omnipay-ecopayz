@@ -14,7 +14,7 @@ use JMS\JobQueueBundle\Entity\Job;
 use MemberBundle\Manager\MemberManager;
 
 class CommissionManager
-{   
+{
     private $currencyManager;
     private $memberManager;
     private $commissionPeriodRepository;
@@ -33,7 +33,7 @@ class CommissionManager
             'Y-m-d H:i:s',
             $dwl->getDate()->format('Y-m-d') . ' 23:59:59'
         );
-        
+
         if (!$transaction->getCustomer()->hasReferrer()) {
             return;
         }
@@ -48,7 +48,7 @@ class CommissionManager
             $firstSubtransaction->getCustomerProduct()->getProduct(),
             $currencyDateRate
         );
-        
+
         $transaction->computeCommission($currencyRate, $productCommissionPercentage);
     }
 
@@ -58,36 +58,36 @@ class CommissionManager
             ->getCommissionPeriodRepository()
             ->getCommissionPeriodForDate($currentDate);
     }
-    
+
     public function getCommissionPeriodIdThatWasNotYetComputed(): ?CommissionPeriod
     {
         $this->getCommissionPeriodRepository()->reconnectToDatabase();
-        
+
         return $this->getCommissionPeriodRepository()->getCommissionPeriodIdThatWasNotYetComputed();
     }
-    
+
     public function getCommissionPeriodIdThatWasNotPaid(): ?CommissionPeriod
     {
         $this->getCommissionPeriodRepository()->reconnectToDatabase();
-        
+
         return $this->getCommissionPeriodRepository()->getCommissionPeriodIdThatWasNotPaid();
     }
-    
+
     public function setCurrencyManager(CurrencyManager $currencyManager): void
     {
         $this->currencyManager = $currencyManager;
     }
-    
+
     public function setMemberManager(MemberManager $memberManager): void
     {
         $this->memberManager = $memberManager;
     }
-    
+
     private function getMemberManager(): MemberManager
     {
         return $this->memberManager;
     }
-    
+
     private function getCurrencyManager(): CurrencyManager
     {
         return $this->currencyManager;
@@ -107,7 +107,7 @@ class CommissionManager
      * @param int $commissionPeriodId
      * @return bool whether operation was successfull
      */
-    public function recomputeAndPayoutCommissionForPeriod(int $commissionPeriodId, string $usernameForAuditLog): bool
+    public function recomputeAndPayoutCommissionForPeriod(int $commissionPeriodId, string $usernameForAuditLog, bool $forceRecompute = false): bool
     {
         $period = $this->getCommissionPeriodRepository()->find($commissionPeriodId);
         if (!$period instanceof CommissionPeriod) {
@@ -120,6 +120,8 @@ class CommissionManager
                     $usernameForAuditLog,
                     '--period',
                     $period->getId(),
+                    '--recompute',
+                    $forceRecompute ? '1' : '0',
                     '--env',
                     $this->kernelEnvironment,
                 ],

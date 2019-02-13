@@ -28,7 +28,7 @@ class CommissionPeriodRepository extends BaseRepository
 
         return $queryBuilder->getQuery()->getResult();
     }
-    
+
     public function getCommissionPeriodListWithStatuses(array $filters = [], int $limit = 20, int $offset = 0): array
     {
         $queryBuilder = $this->createQueryBuilder('cs');
@@ -154,7 +154,7 @@ class CommissionPeriodRepository extends BaseRepository
 
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }
-    
+
     public function getCommissionPeriodsAfterTheDate(DateTimeInterface $date): array
     {
         $queryBuilder = $this->createQueryBuilder('cp');
@@ -162,10 +162,10 @@ class CommissionPeriodRepository extends BaseRepository
             ->where($queryBuilder->expr()->gt('cp.dwlDateTo', ':date'))
             ->orderBy('cp.dwlDateTo', 'ASC')
             ->setParameter('date', $date);
-        
+
         return $queryBuilder->getQuery()->getResult();
     }
-    
+
     public function getCommissionPeriodBeforeOrOnTheDate(DateTimeInterface $date): ?CommissionPeriod
     {
         $queryBuilder = $this->createQueryBuilder('cp');
@@ -174,10 +174,10 @@ class CommissionPeriodRepository extends BaseRepository
             ->orderBy('cp.dwlDateFrom', 'DESC')
             ->setParameter('date', $date)
             ->setMaxResults(1);
-        
+
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }
-    
+
     public function getCommissionPeriodIdThatWasNotYetComputed(): ?CommissionPeriod
     {
         $now = new DateTime('now');
@@ -192,10 +192,10 @@ class CommissionPeriodRepository extends BaseRepository
             ->setParameter('date', $now)
             ->setParameter('status', CommissionPeriod::STATUS_NOT_YET_COMPUTED)
         ;
-        
+
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }
-    
+
     public function getCommissionPeriodIdThatWasNotPaid(): ?CommissionPeriod
     {
         $now = new DateTime('now');
@@ -210,10 +210,10 @@ class CommissionPeriodRepository extends BaseRepository
             ->setParameter('date', $now)
             ->setParameter('status', CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION)
         ;
-        
+
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }
-    
+
     public function getReferrersIdForCommissionPeriod(CommissionPeriod $period, array $memberIds = []): IterableResult
     {
         $queryBuilder = $this->getEntityManager()->createQueryBuilder();
@@ -243,11 +243,11 @@ class CommissionPeriodRepository extends BaseRepository
                 ->where($queryBuilder->expr()->in('m.id', ':memberIds'))
                 ->setParameter('memberIds', $memberIds);
         }
-        
-        
+
+
         return $queryBuilder->getQuery()->iterate(null, Query::HYDRATE_SCALAR);
     }
-    
+
     public function getTransactionsForCommissionPeriod(CommissionPeriod $period, Member $member, int $limit = 20, int $offset = 0): array
     {
         $queryBuilder = $this->getEntityManager()->createQueryBuilder();
@@ -277,7 +277,7 @@ class CommissionPeriodRepository extends BaseRepository
                 'memberId' => $member->getId(),
             ]);
         ;
-        
+
         return $queryBuilder->getQuery()->getResult();
     }
 
@@ -300,7 +300,7 @@ class CommissionPeriodRepository extends BaseRepository
 
         return $queryBuilder->getQuery()->getArrayResult();
     }
-    
+
     public function remove($entity): void
     {
         $this->getEntityManager()->remove($entity);
@@ -312,8 +312,22 @@ class CommissionPeriodRepository extends BaseRepository
         if ($reconnect) {
             $this->reconnectToDatabase();
         }
-        
+
         $this->getEntityManager()->persist($entity);
         $this->getEntityManager()->flush($entity);
+    }
+
+    public function getCommissionPeriodsForDateRange(\DateTimeInterface $fromDate, DateTimeInterface $toDate): array
+    {
+        return $this->createQueryBuilder('csp')
+            ->where('csp.dwlDateFrom >= :fromDate')
+            ->andWhere('csp.dwlDateTo <= :toDate')
+            ->orderBy('csp.dwlDateFrom', 'ASC')
+            ->setParameters([
+                'fromDate' => $fromDate->format('Y-m-d'),
+                'toDate' => $toDate->format('Y-m-d'),
+            ])
+            ->getQuery()
+            ->getResult();
     }
 }

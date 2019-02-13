@@ -47,3 +47,9 @@ services:
         arguments: ['@app.publisher']
         tags:
             - { name: kernel.event_subscriber }
+
+    websocket.bitcoin_subscriber:
+        class: WebSocketBundle\EventSubscriber\BitcoinSubscriberForWebsocket
+        arguments: ['@app.publisher']
+        tags:
+            - { name: kernel.event_subscriber }

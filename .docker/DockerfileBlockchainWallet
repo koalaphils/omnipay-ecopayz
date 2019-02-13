@@ -1,0 +1,17 @@
+FROM node:alpine
+
+RUN apk add --update openssh supervisor \
+    && npm install -unsafe-perm -g blockchain-wallet-service \
+    && npm install -unsafe-perm -g xpub-scan \
+    && adduser -D -g 'www' www \
+    && echo -e "test123test\ntest123test" | passwd www
+
+RUN rm -rf /etc/ssh/ssh_host_rsa_key /etc/ssh/ssh_host_dsa_key
+
+COPY manifest-wallet /
+
+RUN chmod +x /entrypoint.sh
+
+EXPOSE 3000 22
+
+CMD ["/bin/sh", "/entrypoint.sh"]

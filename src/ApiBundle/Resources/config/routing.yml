@@ -59,11 +59,17 @@ api_customers.activate_account:
         _controller: ApiBundle:Customer:activateAccount
     methods: [POST]
 
+api_customers.me_restore_id_save:
+    path: me/restore-id/save
+    defaults:
+        _controller: ApiBundle:Customer:saveRestoreId
+    methods: [POST]
+
 api_customers.me_transactions:
     path: me/transactions
     defaults:
         _controller: ApiBundle:Transaction:customerTransactions
-    methods: [POST]
+    methods: [GET]
 
 api_customers.me_deposit_transaction:
     path: me/transactions/deposit
@@ -88,6 +94,30 @@ api_customers.me_p2p_transfer_transaction:
     defaults:
         _controller: ApiBundle:Transaction:p2pTransferTransaction
     methods: [POST]
+
+api_customers.me_check_for_active_bitcoin_transaction:
+    path: me/transactions/check-for-active-bitcoin-transaction
+    defaults:
+        _controller: ApiBundle:Transaction:checkForActiveBitcoinTransaction
+    methods: [GET]
+
+api_customers.me_acknowledge_bitcoin_transaction:
+    path: me/transactions/acknowledge-bitcoin-transaction
+    defaults:
+        _controller: ApiBundle:Transaction:acknowledgeBitcoinTransaction
+    methods: [PUT]
+
+api_customers.me_decline_bitcoin_transaction:
+    path: me/transactions/decline-bitcoin-transaction
+    defaults:
+        _controller: ApiBundle:Transaction:declineBitcoinTransaction
+    methods: [PUT]
+
+api_customers.me_lock_rate_bitcoin_transaction:
+    path: me/transactions/lock-rate-bitcoin-transaction
+    defaults:
+        _controller: ApiBundle:Transaction:lockRateBitcoinTransaction
+    methods: [PUT]
 
 api_customers.me_transaction:
     path: me/transactions/{id}
@@ -119,34 +149,12 @@ api_customers.check_email_if_exists:
         _controller: ApiBundle:Customer:checkEmailIfExists
     methods: [POST]
 
-api_customers.check_email_or_phone_number_if_exists:
-    path: customer/email-phone/check-if-exists
-    defaults:
-        _controller: ApiBundle:Customer:checkPhoneOrEmailIfExists
-    methods: [POST]
-
 api_customers.check_product_username_if_exists:
     path: customer/product-username/check-if-exists
     defaults:
         _controller: ApiBundle:CustomerProduct:checkIfProductUsernameExists
     methods: [POST]
 
-api_customers.check_pin_user_code_if_exists:
-    path: customer/pin-user-code/check-if-exists
-    defaults:
-        _controller: ApiBundle:Customer:checkPinUserCodeIfExists
-    methods: [POST]
-
-api_customers.check_credentials_if_exists:
-    path: customer/credentials/check-if-exists
-    defaults:
-        _controller: ApiBundle:Customer:checkCredentialsIfExists
-    methods: [POST]    
-api_customers.forgot_password:
-    path: customer/forgot-password
-    defaults:
-        _controller: ApiBundle:Customer:forgotPassword
-    methods: [POST]
 api_customers.register_customer:
     path: customers/register
     defaults:
@@ -181,6 +189,12 @@ api_paymentoptions.list:
     path: paymentoptions
     defaults:
         _controller: ApiBundle:PaymentOption:paymentOptionList
+    methods: [GET]
+
+api_paymentoptions.get_cached_bitcoin_adjustment:
+    path: paymentoptions/bitcoin-adjustment
+    defaults:
+        _controller: ApiBundle:PaymentOption:getCachedBitcoinAdjustment
     methods: [GET]
 
 api_customers.request_reset_password:
@@ -268,3 +282,14 @@ api_member.confirm_referrer_terms_and_conditions:
         _controller: ApiBundle:Member:confirmReferrerTermsAndConditions
     methods: [POST]
 
+api_brokerage.sync_win_loss:
+    path: brokerage/dwl/sync-win-loss
+    defaults:
+        _controller: ApiBundle:Brokerage:syncWinLossAction
+    methods: [POST]
+
+api_member_product.create:
+    path: me/product/create
+    defaults:
+        _controller: ApiBundle:MemberProduct:create
+    methods: [POST]

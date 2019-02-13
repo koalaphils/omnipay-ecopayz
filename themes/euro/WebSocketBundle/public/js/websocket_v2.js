@@ -17,7 +17,7 @@
         var message = details.message + ' Please proceed to pending tab to view.';
         var url = Global.dummyTransactionUrl.replace('/__type__', '/'+ details.otherDetails.type).replace('/__id__', '/'+ details.otherDetails.id);
 
-        if (notificationType == 'registration') {
+        if (notificationType == 'registration' || notificationType == 'requestProduct') {
             message = details.message + ' Please proceed to member list to view.';
             url = Global.dummyCustomerProfileUrl.replace('/__id__', '/'+ details.otherDetails.id).replace('/__activeTab__', '/'+ details.otherDetails.type);
         }
@@ -57,15 +57,19 @@
 
     connection.onopen = function(session, details) {
         if (typeof loginSubscription === "function") {
-          loginSubscription(session);
+            loginSubscription(session);
         }
 
-        session.subscribe(customerCreatedTopic, function(args) {
-          triggerNotification(args, 'registration', 'info',playMemberCreationSoundAlert);
+        session.subscribe(topics.memberCreated, function(args) {
+          triggerNotification(args, 'registration', 'info', playMemberCreationSoundAlert);
+        });
+
+        session.subscribe(topics.productRequested, function(args) {
+            triggerNotification(args, 'requestProduct', 'success');
         });
 
         session.subscribe('ms.topic.transaction_deposit', function(args) {
-          triggerNotification(args, 'transaction', 'success');
+            triggerNotification(args, 'transaction', 'success');
         });
 
         session.subscribe('ms.topic.transaction_withdrawal', function(args) {
@@ -80,6 +84,9 @@
             triggerNotification(args, 'transaction', 'success');
         });
 
+        if (typeof btcExchangeRateSubscription === "function") {
+            btcExchangeRateSubscription(session);
+        }
         session.subscribe('wamp.metaevent.session.on_leave', updateCounters);
         session.subscribe('wamp.metaevent.session.on_join', updateCounters);
 
@@ -94,7 +101,7 @@
             });
 
             getBOActiveSessions().then(function (result) {
-              $('#boCount').text(result);
+            $('#boCount').text(result);
             }).catch(function(error) {
                 console.log(error);
             });

@@ -31,6 +31,8 @@ class MemberController extends AbstractController
      *      {"name"="page", "dataType"="integer"},
      *      {"name"="search", "dataType"="string"},
      *      {"name"="orderBy", "dataType"="string"},
+     *      {"name"="precision", "dataType"="integer"},
+     *      {"name"="hideZeroTurnover", "dataType"="integer"}
      *  }
      * )
      */
@@ -42,6 +44,7 @@ class MemberController extends AbstractController
         $filters['page'] = (int) $request->get('page', 1);
         $filters['offset'] = ($filters['page'] - 1) * $filters['limit'];
         $filters['orderBy'] = $request->get('orderBy');
+        $filters['precision'] = $request->get('precision');
 
         if ($request->query->has('dwlDateFrom')) {
             $filters['dwlDateFrom'] = $request->query->get('dwlDateFrom');
@@ -53,6 +56,10 @@ class MemberController extends AbstractController
 
         if ($request->query->has('search')) {
             $filters['search'] = $request->query->get('search');
+        }
+
+        if ($request->query->has('hideZeroTurnover')) {
+            $filters['hideZeroTurnover'] = $request->query->get('hideZeroTurnover');
         }
 
         $currentPeriodReferralTurnoversAndCommissions = $this->getMemberManager()

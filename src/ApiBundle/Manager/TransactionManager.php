@@ -2,23 +2,22 @@
 
 namespace ApiBundle\Manager;
 
-use AppBundle\Manager\AbstractManager;
-use ApiBundle\Model\Transaction as TransactionModel;
+use ApiBundle\Event\TransactionCreatedEvent;
+use ApiBundle\Model\PaymentInterface;
 use ApiBundle\Model\SubTransaction as SubTransactionModel;
-use DbBundle\Entity\Transaction;
+use ApiBundle\Model\Transaction as TransactionModel;
+use ApiBundle\Model\Transfer as TransferModel;
+use AppBundle\Manager\AbstractManager;
 use DbBundle\Entity\CustomerPaymentOption;
 use DbBundle\Entity\SubTransaction;
-use ApiBundle\Model\Transfer as TransferModel;
-use ApiBundle\Event\TransactionCreatedEvent;
+use DbBundle\Entity\Transaction;
 
 class TransactionManager extends AbstractManager
 {
     public function handleDeposit(TransactionModel $transactionModel)
     {
         $transaction = new Transaction();
-        // zimi
-        $customer = $transactionModel->getCustomer();        
-        $transaction->setCustomer($customer);
+        $transaction->setCustomer($transactionModel->getCustomer());
         $transaction->setPaymentOption($transactionModel->getPaymentOption());
         $transaction->setType(Transaction::TRANSACTION_TYPE_DEPOSIT);
         $transaction->setNumber(date('Ymd-His-') . $this->getTransactionManager()->getType('deposit'));
@@ -26,28 +25,34 @@ class TransactionManager extends AbstractManager
         $transaction->setFee('customer_fee', $transactionModel->getCustomerFee());
         $transaction->setFee('company_fee', 0);
         $transaction->setDetail('email', $transactionModel->getEmail());
-        // zimi        
-        $transaction->setAmount($transactionModel->getAmount());
-        // $transaction->setAmount(40000);
-
+        
+        if ($transactionModel->hasPaymentDetails()) {
+            foreach ($transactionModel->getPaymentDetails()->toArray() as $key => $value) {
+                $transaction->setDetail($key, $value);
+            }
+        }
+        
         $transaction->autoSetPaymentOptionType();
 
-        // zimi-comment
         foreach ($transactionModel->getSubTransactions() as $subTransactionModel) {
             $subTransaction = new SubTransaction();
             $subTransaction->setCustomerProduct($subTransactionModel->getProduct());
             $subTransaction->setAmount($subTransactionModel->getAmount());
             $subTransaction->setType(Transaction::TRANSACTION_TYPE_DEPOSIT);
+            if ($subTransactionModel->hasPaymentDetails()) {
+                foreach ($subTransactionModel->getPaymentDetails()->toArray() as $key => $value) {
+                    $subTransaction->setDetail($key, $value);
+                }
+            }
 
             $transaction->addSubTransaction($subTransaction);
         }
-
         $transaction->setPaymentOptionOnTransaction($this->createPaymentOptionOnTransaction($transactionModel));
         $transaction->retainImmutableData();
 
         $this->beginTransaction();
         try {
-            $action = ['label' => 'Save', 'status' => Transaction::TRANSACTION_STATUS_START];            
+            $action = ['label' => 'Save', 'status' => Transaction::TRANSACTION_STATUS_START];
             $this->getTransactionManager()->processTransaction($transaction, $action, true);
             $this->commit();
 
@@ -71,9 +76,8 @@ class TransactionManager extends AbstractManager
         $transaction->setDate(new \DateTime());
         $transaction->setFee('company_fee', 0);
         $transaction->setFee('customer_fee', $transactionModel->getCustomerFee());
+        $transaction->setDetail('notes', $transactionModel->getBankDetails());
         $transaction->autoSetPaymentOptionType();
-        // zimi        
-        $transaction->setAmount($transactionModel->getAmount());
 
         foreach ($transactionModel->getSubTransactions() as $subTransactionModel) {
             $subTransaction = new SubTransaction();
@@ -185,6 +189,7 @@ class TransactionManager extends AbstractManager
     public function addCustomerPaymentOption(\DbBundle\Entity\Customer $customer, string $paymentOptionType, array $transaction = []):? \DbBundle\Entity\CustomerPaymentOption
     {
         $paymentOption = $this->getPaymentOptionRepository()->find($paymentOptionType);
+        $memberDetails = $customer->getDetails();
         
         $customerPaymentOption = new CustomerPaymentOption();
         $customerPaymentOption->setPaymentOption($paymentOption);
@@ -199,6 +204,27 @@ class TransactionManager extends AbstractManager
         $this->getEntityManager()->flush($customerPaymentOption);
 
         return $customerPaymentOption;
+    }
+
+    public function updateMemberPaymentOptionAccountId(\DbBundle\Entity\CustomerPaymentOption $memberPaymentOption, string $accountId): \DbBundle\Entity\CustomerPaymentOption
+    {
+        $memberPaymentOption->setAccountId($accountId);
+        
+        $this->getEntityManager()->persist($memberPaymentOption);
+        $this->getEntityManager()->flush($memberPaymentOption);
+        
+        return $memberPaymentOption;
+    }
+    
+    public function updateImmutablePaymentOptionOnBitcoinTransaction(Transaction $transaction, \DbBundle\Entity\CustomerPaymentOption $memberPaymentOption): Transaction
+    {
+        $transaction->setPaymentOptionOnTransaction($memberPaymentOption);
+        $transaction->setImmutablePaymentOptionOnTransactionData();
+        
+        $this->getEntityManager()->persist($transaction);
+        $this->getEntityManager()->flush($transaction);
+
+        return $transaction;
     }
 
     private function createPaymentOptionOnTransaction(TransactionModel $transactionModel): \DbBundle\Entity\CustomerPaymentOption
@@ -228,6 +254,14 @@ class TransactionManager extends AbstractManager
         }
 
         return $paymentOption;
+    }
+ 
+    public function acknowledgeBitcoinTransaction(Transaction $transaction): void
+    {
+        $entityManager = $this->getEntityManager();
+        $transaction->setBitcoinAcknowledgedByUser(true);
+        $entityManager->persist($transaction);
+        $entityManager->flush($transaction);
     }
 
     protected function getRepository(): \ApiBundle\Repository\TransactionRepository

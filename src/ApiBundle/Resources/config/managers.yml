@@ -10,3 +10,9 @@ services:
     api.member.manager:
         class: ApiBundle\Manager\MemberManager
         parent: app.base_manager
+
+    api.member_product.manager:
+        class: ApiBundle\Manager\MemberProductManager
+        arguments:
+            - '@api.member_product.create.request_handler'
+            - '@security.token_storage'

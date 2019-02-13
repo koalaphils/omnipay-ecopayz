@@ -3,11 +3,17 @@ DbBundle\Entity\User:
     properties:
         username:
             expose: true
+            groups: ['Default', 'credentials']
+        plainPassword:
+            expose: true
+            groups: ['credentials']
         email:
             expose: true
-        phoneNumber:
+        activationSentTimestamp:
             expose: true
         activationTimestamp:
+            expose: true
+        activationCode:
             expose: true
     virtual_properties:
         isActivated:

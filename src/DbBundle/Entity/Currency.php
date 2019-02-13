@@ -33,9 +33,6 @@ class Currency extends Entity implements ActionInterface, TimestampInterface, Au
     public function __construct()
     {
         $this->setRate(1);
-        // zimi - EUR default
-        $this->setCode('EUR');
-
     }
 
     public function getUpdater() : ?User

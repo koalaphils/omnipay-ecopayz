@@ -2,21 +2,19 @@
 
 namespace AppBundle\Command;
 
+use DbBundle\Entity\User;
+use DbBundle\Repository\UserRepository;
+use Doctrine\ORM\EntityManager;
+use Symfony\Bridge\Doctrine\RegistryInterface;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 
-/**
- * Description of Abstract Command
- *
- * @author cnonog
- */
 abstract class AbstractCommand extends ContainerAwareCommand
 {
-    /**
-     * Get current date formated as string
-     *
-     * @return  string
-     */
     protected function getNow()
     {
         $date = new \DateTime();
@@ -49,5 +47,38 @@ abstract class AbstractCommand extends ContainerAwareCommand
         }
         $trace[] = $e->getTraceAsString();
         $this->writeln("\n%s\n", [implode("\n", $trace)], $output, false);
+    }
+
+    protected function loginUser(string $username): User
+    {
+        $user = $this->getUserRepository()->loadUserByUsername($username);
+        if ($user === null) {
+            throw new UsernameNotFoundException('User not found');
+        }
+        $token = new UsernamePasswordToken($user, null, 'main', $user->getRoles());
+        $this->getContainer()->get('security.token_storage')->setToken($token);
+        $this->getRequestStack()->push(Request::create(''));
+
+        return $user;
+    }
+
+    protected function getUserRepository(): UserRepository
+    {
+        return $this->getEntityManager()->getRepository(User::class);
+    }
+
+    protected function getEntityManager(string $name = 'default'): EntityManager
+    {
+        return $this->getDoctrine()->getManager($name);
+    }
+
+    protected function getDoctrine(): RegistryInterface
+    {
+        return $this->getContainer()->get('doctrine');
+    }
+
+    protected function getRequestStack(): RequestStack
+    {
+        return $this->getContainer()->get('request_stack');
     }
 }

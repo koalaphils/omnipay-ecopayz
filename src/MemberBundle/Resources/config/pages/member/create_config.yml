@@ -29,35 +29,18 @@ widgets:
                     message: You have successfully added new member
                     title: Success
             fields:
-                country:
-                    options:
-                        label: Country
-                    type: choices
-                    group: Left
-                    size: 12
-                    choicesFrom:
-                        function: '@country.manager::getCountryList'
-                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
-                        value: result['id']
-                        preselect: false
-                email:
-                    options:
-                        label: Phone/Email
-                    type: text
-                    size: 12
-                    group: Left
                 username:
                     type: text
                     options:
                         label: Username
                     size: 12
                     group: Left
-                fullName:
+                email:
                     options:
-                        label: Full Name
-                    type: text
-                    group: Left
+                        label: Email
+                    type: email
                     size: 12
+                    group: Left
                 password:
                     options:
                         label: Password
@@ -68,6 +51,18 @@ widgets:
                         label: Confirm Password
                     type: password
                     group: Left
+                status:
+                    options:
+                        label: Status
+                        required: false
+                    type: switch
+                    group: Left
+                fullName:
+                    options:
+                        label: Full Name
+                    type: text
+                    group: Left
+                    size: 12
                 referal:
                     options:
                         label: Affiliates
@@ -80,25 +75,48 @@ widgets:
                         request: onFindMembers
                     transformer:
                         model: '@member.transformer.referrerTransformer'
-#                birthDate:
-#                    type: date
-#                    options:
-#                        label: Birth Date
-#                        widget: 'single_text'
-#                        format: 'M/dd/yyyy'
-#                    group: Right
-#                    size: 12
-#                currency:
-#                    options:
-#                        label: Currency
-#                    type: choices
-#                    group: Right
-#                    size: 12
-#                    choicesFrom:
-#                        function: '@currency.manager::getCurrencyList'
-#                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
-#                        value: result['id']
-#                        preselect: false
+                birthDate:
+                    type: date
+                    options:
+                        label: Birth Date
+                        widget: 'single_text'
+                        format: 'M/dd/yyyy'
+                    group: Right
+                    size: 12
+                gender:
+                    type: choices
+                    options:
+                        choices:
+                            Not set: 0 
+                            Male: 1
+                            Female: 2
+                        label: Gender
+                        required: true
+                    group: Right
+                    size: 12
+                    type: dropdown
+                country:
+                    options:
+                        label: Country
+                    type: choices
+                    group: Right
+                    size: 12
+                    choicesFrom:
+                        function: '@country.manager::getCountryList'
+                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
+                        value: result['id']
+                        preselect: false
+                currency:
+                    options:
+                        label: Currency
+                    type: choices
+                    group: Right
+                    size: 12
+                    choicesFrom:
+                        function: '@currency.manager::getCurrencyList'
+                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
+                        value: result['id']
+                        preselect: false
                 joinedAt:
                     options:
                         label: Date Joined
@@ -121,9 +139,3 @@ widgets:
                     defaultFrom:
                         label: result.getName()
                         value: result.getId()
-                status:
-                    options:
-                        label: Status
-                        required: false
-                    type: switch
-                    group: Right

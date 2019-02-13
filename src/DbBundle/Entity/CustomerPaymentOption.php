@@ -41,6 +41,16 @@ class CustomerPaymentOption extends Entity implements ActionInterface, Timestamp
         return $this;
     }
 
+    public function setAccountId(string $accountId): self
+    {
+        return $this->setField('account_id', $accountId);
+    }
+    
+    public function setBitcoinAddress(string $bitcoinAddress): self
+    {
+        return $this->setField('account_id', $bitcoinAddress);
+    }
+
     public function getCustomer(): Customer
     {
         return $this->customer;
@@ -93,6 +103,16 @@ class CustomerPaymentOption extends Entity implements ActionInterface, Timestamp
     public function getField($field, $default = null)
     {
         return array_get($this->fields, $field, $default);
+    }
+
+    public function getAccountIdField(): ?string
+    {
+        return $this->getField('account_id') ?? '';
+    }
+
+    public function getBitcoinField(): string
+    {
+        return $this->getField('account_id') ?? '';
     }
 
     public function setIsActive($isActive): self

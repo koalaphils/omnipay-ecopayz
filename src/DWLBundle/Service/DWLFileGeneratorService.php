@@ -11,6 +11,10 @@ class DWLFileGeneratorService extends AbstractDWLService
     {
         try {
             $this->guardDWL($dwl);
+            $totalRecord = $this->getSubTransactionRepository()->getTotalSubTransactionForDwl($dwl->getId());
+            $dwl->setTotalRecord($totalRecord);
+            $this->getEntityManager()->persist($dwl);
+            $this->getEntityManager()->flush($dwl);
         } catch (\Exception $e) {
             $this->log($e->getMessage(), 'error', [
                 'file' => $e->getFile(),
@@ -22,30 +26,27 @@ class DWLFileGeneratorService extends AbstractDWLService
         }
 
         $this->createFile($dwl);
-        $start = 0;
-        $limit = 100;
         $isFirst = true;
         $this->writeToFile($dwl, "{\n\"items\":[\n");
-        do {
-            $hasMoreRecord = false;
-            $subTransactions = $this->getTransactionRepository()->getSubtransactionsByDWLId($dwl->getId(), $limit, $start);
-            if (!empty($subTransactions)) {
-                $hasMoreRecord = true;
-                foreach ($subTransactions as $subTransaction) {
-                    $jsonItemData = '';
-                    if ($isFirst) {
-                        $isFirst = false;
-                    } else {
-                        $jsonItemData .= ",\n";
-                    }
-                    $dwlItemData = $this->generateTransactionDWLItemData($subTransaction);
-                    $jsonItemData .= \GuzzleHttp\json_encode($dwlItemData);
-                    $this->writeToFile($dwl, $jsonItemData);
+
+        $subTransactions = $this->getTransactionRepository()->getSubtransactionsByDWLIteratable($dwl->getId());
+        foreach ($subTransactions as $record) {
+            $subTransaction = $record[0];
+            if ($subTransaction->isDwlExcludeInList()) {
+                continue;
+            } else {
+                $jsonItemData = '';
+                if ($isFirst) {
+                    $isFirst = false;
+                } else {
+                    $jsonItemData .= ",\n";
                 }
-                $start += $limit;
+                $dwlItemData = $this->getDWLManager()->generateTransactionDWLItemData($subTransaction);
+                $jsonItemData .= \GuzzleHttp\json_encode($dwlItemData);
+                $this->writeToFile($dwl, $jsonItemData);
             }
-            unset($subTranasctions);
-        } while ($hasMoreRecord);
+        }
+
         $total = $dwl->getDetail('total');
         $this->writeToFile($dwl, "\n],");
         $this->writeToFile($dwl, "\"total\":" . \GuzzleHttp\json_encode($total));
@@ -68,28 +69,6 @@ class DWLFileGeneratorService extends AbstractDWLService
             'total' => $dwl->getDetail('total.record'),
         ];
         file_put_contents($this->getMediaManager()->getFilePath($fileName), \GuzzleHttp\json_encode($progressData));
-    }
-
-    private function generateTransactionDWLItemData(SubTransaction $subTransaction): array
-    {
-        return [
-            "id" => $subTransaction->getCustomerProduct()->getId(),
-            "username" => $subTransaction->getCustomerProduct()->getUserName(),
-            "turnover" => $subTransaction->getDetail('dwl.turnover', 0),
-            "gross" => $subTransaction->getDetail('dwl.gross', 0),
-            "winLoss" => $subTransaction->getDetail('dwl.winLoss', 0),
-            "commission" => $subTransaction->getDetail('dwl.commission', 0),
-            "amount" => $subTransaction->getAmount(),
-            "transaction" => [
-                "id" => $subTransaction->getParent()->getId(),
-                "subId" => $subTransaction->getId(),
-            ],
-            "calculatedAmount" => $subTransaction->getAmount(),
-            "errors" => [],
-            "customer" => [
-                "balance" =>  $subTransaction->getDetail('dwl.customer.balance', null),
-            ],
-        ];
     }
 
     private function writeToFile(DWL $dwl, string $input, string $openFlag = 'a+')

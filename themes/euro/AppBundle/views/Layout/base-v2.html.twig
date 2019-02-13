@@ -103,6 +103,7 @@
           <div class="fl-fl float-widgets">
             <i class="widgets-holder fa fa-money"></i>
               <ul>
+                <a href="{{ path("transaction.create_page", {'type': 'adjustment'}) }}"><li>Adjustment</li></a>
                 <a href="{{ path("transaction.create_page", {'type': 'deposit'}) }}"><li>Deposit</li></a>
                 <a href="{{ path("transaction.create_page", {'type': 'withdraw'}) }}"><li>Withdrawal</li></a>
                 <a href="{{ path("transaction.create_page", {'type': 'transfer'}) }}"><li>Transfer</li></a>
@@ -121,7 +122,6 @@
 
 
         {# Scripts #}
-        {# zimi-asset('assets/plugins/autobahn/autobahn.min.js') #}
         {{ asset_render('js', 'default', [
                 asset('bundles/app/js/Page.js'),
                 asset('assets/plugins/lodash/lodash.js'),
@@ -140,7 +140,8 @@
                 asset("assets/plugins/notifyjs/js/notify.js"),
                 asset("assets/plugins/notifications/notify-metro.js"),
                 asset("assets/plugins/bootstrap-sweetalert/sweetalert.min.js"),
-                asset("bundles/app/js/date.js"),                
+                asset("bundles/app/js/date.js"),
+                asset('assets/plugins/autobahn/autobahn.min.js'),
                 asset('bundles/app/js/xml.js'),
                 asset('assets/plugins/dotdotdot/jquery.dotdotdot-3.2.2.js'),
                 asset('assets/plugins/includejs/includejs.js')
@@ -149,7 +150,10 @@
         <script type="text/javascript">
             var resizefunc = [];
             window.lodash = _;
-            var customerCreatedTopic = "{{ constant('TransactionBundle\\WebsocketTopics::TOPIC_CUSTOMER_CREATED') }}";
+            var topics = {
+                'memberCreated': "{{ constant('TransactionBundle\\WebsocketTopics::TOPIC_CUSTOMER_CREATED') }}",
+                'productRequested': "{{ constant('WebSocketBundle\\Topics::TOPIC_MEMBER_PRODUCT_REQUESTED') }}"
+            };
             var websocketUrl = "{{ parameter("websocket.url") }}";
             var websocketRealm = "{{ parameter("websocket.realm") }}";
             var websocketJwt = "{% if jwt is defined %}{{ jwt }}{% endif %}";
@@ -159,10 +163,9 @@
                 asset("assets/js/jquery.core.js"),
                 asset("assets/js/jquery.app.js"),
                 asset('bundles/app/js/cms_core.js'),
-                
+                asset('bundles/websocket/js/websocket_v2.js')
             ]) }}
 
-        {# asset('bundles/websocket/js/websocket_v2.js') #}
         {{ asset_render('js', 'default') }}
         {% include 'AppBundle:Layout:partials/scripts.html.twig' %}
         {% block javascripts -%}{%- endblock %}

@@ -164,29 +164,33 @@ cmd>crontab -e
 ```
 
 Add to supervisor configuration for commission computation and payout
+```
 [program:jms_job_queue_runner]
-command=/usr/bin/php {{change-this-to-root-dir}}/app/console jms-job-queue:run --env=prod --verbose
+command=/usr/bin/php {{change-this-to-root-dir}}/app/console jms-job-queue:run --env={environment} --verbose
 process_name=%(program_name)s
-numprocs=5
+numprocs=1
 autostart=true
 autorestart=true
 startsecs=5
 startretries=10
-user={{change-this-to-username}}
 stdout_logfile={{change-this-to-root-dir}}/var/logs/prod.jms_job_queue_runner.out.log
 stderr_logfile={{change-this-to-root-dir}}/var/logs/prod.jms_job_queue_runner.error.log
+environment=HOME="/home/{your-user}",USER="{your-user}"
+user={your-user}
 
 [program:jms_job_queue_schedule]
-command=/usr/bin/php {{change-this-to-root-dir}}/app/console jms-job-queue:schedule --env=prod --verbose
+command=/usr/bin/php {{change-this-to-root-dir}}/app/console jms-job-queue:schedule --env={environment} --verbose
 process_name=%(program_name)s
-numprocs=5
+numprocs=1
 autostart=true
 autorestart=true
 startsecs=5
 startretries=10
-user={{change-this-to-username}}
 stdout_logfile={{change-this-to-root-dir}}/var/logs/prod.jms_job_queue_schedule.out.log
 stderr_logfile={{change-this-to-root-dir}}/var/logs/prod.jms_job_queue_schedule.error.log
+environment=HOME="/home/{your-user}",USER="{your-user}"
+user={your-user}
+```
 
 ## Running the Documentation
 

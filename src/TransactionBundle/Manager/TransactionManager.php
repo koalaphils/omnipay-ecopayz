@@ -2,24 +2,29 @@
 
 namespace TransactionBundle\Manager;
 
+use AppBundle\Exceptions\FormValidationException;
 use AppBundle\ValueObject\Number;
-use DbBundle\Entity\Product;
-use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
-use AppBundle\Manager\AbstractManager;
-use DbBundle\Entity\Transaction;
-use DbBundle\Entity\SubTransaction;
-use DbBundle\Entity\CustomerGroupGateway;
+use DbBundle\Entity\CommissionPeriod;
 use DbBundle\Entity\CustomerGroup;
-use TransactionBundle\Form\TransactionType;
+use DbBundle\Entity\CustomerGroupGateway;
+use DbBundle\Entity\SubTransaction;
+use DbBundle\Entity\Transaction;
+use DbBundle\Repository\CommissionPeriodRepository;
+use DbBundle\Repository\MemberRunningCommissionRepository;
+use Doctrine\ORM\Query;
+use PDO;
+use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\Request;
-use AppBundle\Exceptions\FormValidationException;
 use TransactionBundle\Event\TransactionProcessEvent;
-use \Doctrine\ORM\Query;
-use \PDO;
+use TransactionBundle\Exceptions\TransactionNotExistsException;
+use TransactionBundle\Form\TransactionType;
 
 class TransactionManager extends TransactionOldManager
 {
+    private $memberRunningCommissionRepository;
+    private $commissionPeriodRepository;
+
     public function findTransactions(Request $request)
     {
         $filters = $request->get('filters', []);
@@ -27,6 +32,11 @@ class TransactionManager extends TransactionOldManager
         $limit = (int) $request->get('length', 10);
         $page = (int) $request->get('page', 1);
         $offset = ($page - 1) * $limit;
+
+        $isDataTableTransaction = (bool) $request->get('isDataTableTransaction', false);
+        if ($isDataTableTransaction) {
+            $filters['isDataTableTransaction'] = true;
+        }
 
         $customerId = $request->query->get('customerId');
         if (!is_null($customerId)) {
@@ -61,7 +71,7 @@ class TransactionManager extends TransactionOldManager
 
         return $result;
     }
-    
+
     /**
      * prevents large sql results from being loaded in the memory and consuming all the server's memory
      */
@@ -113,9 +123,9 @@ class TransactionManager extends TransactionOldManager
             $transaction = array_pop($transaction);
             $csvReport .= $transaction['number'] . ($transaction['wasCreatedFromAms'] ? ' (AMS)' : '') . $separator;
             $csvReport .= $transaction['date']->format('Y-m-d H:i:s') . $separator;
-            $csvReport .= $transaction['customerFullName'] . $separator;
+            $csvReport .= '"' . $transaction['customerFullName'] . '"'. $separator;
             $csvReport .= '"' . ltrim(ltrim(trim(trim(trim(str_replace('()', '' ,$transaction['productsAndUsernames'])), ',')),',')) . '"' . $separator;
-            $csvReport .= $transaction['immutablePaymentOptionDataOnTransaction'] . $separator;
+            $csvReport .= '"' . $transaction['immutablePaymentOptionDataOnTransaction'] . '"' . $separator;
             $csvReport .= $transaction['currencyCode'] . $separator;
             $csvReport .= $transaction['memberFee'] . $separator;
             $csvReport .= $transaction['companyFee'] . $separator;
@@ -181,48 +191,48 @@ class TransactionManager extends TransactionOldManager
             $csvReport .= "To : " . $filters['to'] . " \n";
         }
         if (isset( $filters['product']) && !empty($filters['product'])) {
-            $csvReport .= "Product : \"";
+            $tmp = "Product : \"";
             foreach ($products as $productId) {
-                $csvReport .= $productId['name'] .', ';
+                $tmp .= $productId['name'] .', ';
             }
-            $csvReport = trim(trim($csvReport,','));
-            $csvReport .= "\"\n";
+            $tmp = trim(trim(trim($tmp),','));
+            $csvReport .= $tmp ."\"\n";
         }
         if (isset( $filters['paymentOption']) && !empty($filters['paymentOption'])) {
-            $csvReport .= "Payment Option : " . implode(',', $filters['paymentOption']) . " \n";
+            $csvReport .= "Payment Option : \"" . implode(',', $filters['paymentOption']) . "\" \n";
         }
         if (isset( $filters['types']) && !empty($filters['types'])) {
-            $csvReport .= "Types : \"";
+            $tmp = "Types : \"";
             foreach ($filters['types'] as $transactionType) {
-                $csvReport .= ucwords($transactionType) . ' ,';
+                $tmp .= ucwords($transactionType) . ' ,';
             }
-            $csvReport = trim(trim($csvReport,','));
-            $csvReport .="\" \n";
+            $tmp = trim(trim(trim($tmp),','));
+            $csvReport .= $tmp . "\" \n";
         }
         if (isset( $filters['source']) && !empty($filters['source'])) {
-            $csvReport .= "Source : \"";
+            $tmp = "Source : \"";
             foreach ($filters['source'] as $transactionSource) {
                 if ($transactionSource == 'member') {
-                    $csvReport .= 'Member Site, ';
+                    $tmp .= 'Member Site, ';
                 } elseif ($transactionSource == 'admin') {
-                    $csvReport .= 'Backoffice, ';
+                    $tmp .= 'Backoffice, ';
                 }
             }
-            $csvReport = trim(trim($csvReport,','));
-            $csvReport .= "\" \n";
+            $tmp = trim(trim(trim($tmp),','));
+            $csvReport .= $tmp . "\" \n";
         }
         if (isset( $filters['status']) && !empty($filters['status'])) {
-            $csvReport .= "Status : \"";
+            $tmp = "Status : \"";
             $statuses = '';
-            foreach ($filters['status'] as $transactionStatusId) {
+            foreach (array_unique($filters['status']) as $transactionStatusId) {
                 if (!isset($statusLabels[$transactionStatusId])) {
                     $statuses .= ucwords($transactionStatusId) .', ';
                     continue;
                 }
                 $statuses .= ucwords($statusLabels[$transactionStatusId]) .', ';
             }
-            $csvReport = trim(trim($statuses,','));
-            $csvReport .= $statuses . "\"\n";
+            $tmp = $tmp . trim(trim(trim($statuses),','));
+            $csvReport .= $tmp . "\"\n";
         }
         $csvReport .= "\n";
 
@@ -244,7 +254,8 @@ class TransactionManager extends TransactionOldManager
         $limit = (int) $request->get('length', 1600000);
         $page = (int) $request->get('page', 1);
         $offset = ($page - 1) * $limit;
-
+        $filters['isUsingExport'] = true;
+        
         if (array_has($filters, 'search') && trim($filters['search']) !== '') {
             if (!$this->isTransactionNumber($filters['search'])) {
                 $customerIds = [];
@@ -283,14 +294,14 @@ class TransactionManager extends TransactionOldManager
     {
         $form->handleRequest($request);
 
-        // zimi-comment:  && $form->isValid()
-        if ($form->isSubmitted()) {
+        if ($form->isSubmitted() && $form->isValid()) {
             $transaction = $form->getData();
             $transaction->retainImmutableData();
             $transaction->autoSetPaymentOptionType();
             $btn = $form->getClickedButton();
 
             $action = array_get($btn->getConfig()->getOption('attr', []), 'value', 'process');
+            
             if ($request->request->has('toCustomer')) {
                 $transaction->setDetail('toCustomer', $request->request->get('toCustomer'));
             }
@@ -325,13 +336,14 @@ class TransactionManager extends TransactionOldManager
 
         return $this->getRepository()->getTotalTransactionPerStatuses($statusesConditions);
     }
-    
+
     public function processTransaction(Transaction &$transaction, $action, bool $fromCustomer = false)
-    {        
-        // zimi-check $transaction !== null        
-        if ($transaction !== null && $transaction->getId()) {
+    {
+        if ($transaction->getId()) {
             if ($action === 'void') {
                 $action = ['label' => 'Void', 'status' => 'void'];
+            } else if ($action === 'decline'){
+                $action = ['label' => 'Decline', 'status' => Transaction::TRANSACTION_STATUS_DECLINE];
             } else {
                 $action = $this->getAction($transaction->getStatus(), $action, $transaction->getTypeText());
             }
@@ -347,9 +359,6 @@ class TransactionManager extends TransactionOldManager
                 $subtransaction->removeFee('customer_fee');
             }
         }
-        
-        // zimi        
-        $amount = $transaction->getAmount();
 
         $event = new TransactionProcessEvent($transaction, $action, $fromCustomer);
         try {
@@ -361,12 +370,8 @@ class TransactionManager extends TransactionOldManager
             }
 
             $this->getEventDispatcher()->dispatch('transaction.pre_save', $event);
-            
-            // zimi- DbBundle\Entity\Transaction            
-            $eventTransaction = $event->getTransaction();            
-            $eventTransaction->setAmount($amount);
-                        
-            $this->getRepository()->save($eventTransaction);            
+            $this->getRepository()->reconnectToDatabase();
+            $this->getRepository()->save($event->getTransaction());
             $this->getRepository()->commit();
             $this->getEventDispatcher()->dispatch('transaction.saved', $event);
 
@@ -450,13 +455,6 @@ class TransactionManager extends TransactionOldManager
         return $action;
     }
 
-    public function addVoidedStatus($statuses = []): array
-    {
-        $voided = Transaction::TRANSACTION_STATUS_VOIDED;
-
-        return $statuses + [$voided => ['label' => ucfirst($voided)]];
-    }
-
     public function revertCustomerProductBalance(\DbBundle\Entity\CustomerProduct $customerProduct, SubTransaction $subTransaction): void
     {
         $customerProductBalance = new Number($customerProduct->getBalance());
@@ -484,14 +482,41 @@ class TransactionManager extends TransactionOldManager
         return $statusIdAndLabels;
     }
 
+    public function getCommissionPeriodForTransaction(int $transactionId): CommissionPeriod
+    {
+        $memberRunningCommission = $this->getMemberRunningCommissionRepository()->findOneByCommissionTransaction($transactionId);
+        $commissionPeriod = $this->getCommissionPeriodRepository()->findOneById($memberRunningCommission->getCommissionPeriodId());
+
+        return $commissionPeriod;
+    }
+
+    public function setMemberRunningCommissionRepository(MemberRunningCommissionRepository $memberRunningCommissionRepository): void
+    {
+        $this->memberRunningCommissionRepository = $memberRunningCommissionRepository;
+    }
+
+    public function setCommissionPeriodRepository(CommissionPeriodRepository $commissionPeriodRepository): void
+    {
+        $this->commissionPeriodRepository = $commissionPeriodRepository;
+    }
+
     protected function getEventDispatcher()
     {
         return $this->get('event_dispatcher');
     }
 
+    private function getMemberRunningCommissionRepository(): MemberRunningCommissionRepository
+    {
+        return $this->memberRunningCommissionRepository;
+    }
+
+    private function getCommissionPeriodRepository(): CommissionPeriodRepository
+    {
+        return $this->commissionPeriodRepository;
+    }
+
     private function createNewForm(Transaction $transaction, $forSave = true, $args = [])
     {
-
         $statusStart = Transaction::TRANSACTION_STATUS_START;
         $form = $this->getContainer()->get('form.factory')->create(TransactionType::class, $transaction, [
             'action' => $this->getRouter()->generate('transaction.save', ['type' => $this->getType($transaction->getType(), true)]),
@@ -512,9 +537,10 @@ class TransactionManager extends TransactionOldManager
 
                 return $groups;
             },
+            'hasAdjustment' => $transaction->hasAdjustment(),
         ]);
 
-        if (($transaction->getType() == Transaction::TRANSACTION_TYPE_BONUS)
+        if (($transaction->isBonus())
             ? array_get($this->getStatus($transaction->getStatus()), 'editBonusAmount', false)
             : false
         ) {
@@ -529,14 +555,18 @@ class TransactionManager extends TransactionOldManager
     private function createUpdateForm(Transaction $transaction, $forSave = true, $args = [])
     {
         $actions = [];
+        $isForVoidingOrDecline = array_get($args, 'isForVoidingOrDecline', false);
+
         if (!$transaction->isDwl() && $transaction->hasEnded() && !$transaction->isVoided()) {
-            $actions = [
-                'void' => [
+            $actions['void'] =
+                [
                     'label' => 'Void',
                     'class' => 'btn-danger',
                     'status' => 'void',
-                ],
-            ];
+                ];
+        } else if (!$transaction->isDwl() && $transaction->isTransactionPaymentBitcoin() && !$transaction->isVoided() && $transaction->getStatus() == Transaction::TRANSACTION_STATUS_START && $transaction->isDeposit()) {
+            $actions['decline'] = ['label' => 'Decline', 'class' => 'btn-danger', 'status' => Transaction::TRANSACTION_STATUS_DECLINE];
+            $isForVoidingOrDecline = true;
         } else {
             $actions = array_get($this->getStatus($transaction->getStatus()), 'actions', []);
         }
@@ -553,8 +583,6 @@ class TransactionManager extends TransactionOldManager
             $unmap['gateway'] = true;
         }
 
-        $isForVoidingOrDecline = array_get($args, 'isForVoidingOrDecline', false);
-
         $form = $this->getContainer()->get('form.factory')->create(TransactionType::class, $transaction, [
             'action' => $this->getRouter()->generate('transaction.save', ['type' => $this->getType($transaction->getType(), true), 'id' => $transaction->getId()]),
             'actions' => $actions,
@@ -566,7 +594,7 @@ class TransactionManager extends TransactionOldManager
                 if (array_has($args, 'validation_groups')) {
                     return $args['validation_groups'];
                 }
-                $groups = ['default'];
+                $groups = ['default', 'withDecimalPlacesValidation'];
                 if (($transaction->isWithdrawal() || $transaction->isDeposit())
                     && $this->getSettingManager()->getSetting('transaction.paymentGateway', 'customer-level') !== 'customer-level'
                 ) {
@@ -587,8 +615,17 @@ class TransactionManager extends TransactionOldManager
                     }
                 }
 
+                if ($transaction->hasDepositUsingBitcoin()) {
+                    if (($key = array_search('withDecimalPlacesValidation', $groups)) !== false) {
+                        unset($groups[$key]);
+                    }
+                    $groups[] = 'withBitcoin';
+                }
+
                 return $groups;
             },
+            'isCommission' => $transaction->isCommission(),
+            'hasAdjustment' => $transaction->hasAdjustment(),
         ]);
 
         if (($transaction->isBonus())
@@ -659,16 +696,13 @@ class TransactionManager extends TransactionOldManager
             $isSubtransactionReadOnly = !$this->isAmountFieldEditable($transaction);
         }
 
-
         $isReadOnly = true;
-
-        return [
+        $formView = [
             'number' => $isReadOnly,
             'customer' => $isReadOnly,
             'date' => $isDateReadOnly,
             'customerFee' => !array_get($this->getStatus($transaction->getStatus()), 'editFees', false),
             'companyFee' => !array_get($this->getStatus($transaction->getStatus()), 'editFees', false),
-            'gateway' => !array_get($this->getStatus($transaction->getStatus()), 'editGateway', false),
             'subTransactions' => [
                 'type' => $isSubtransactionReadOnly,
                 'customerProduct' => $isSubtransactionReadOnly,
@@ -680,6 +714,45 @@ class TransactionManager extends TransactionOldManager
                     || $transaction->isDeclined(),
             ],
         ];
+
+        if (!$transaction->isCommission()) {
+            $formView = array_merge($formView, ['gateway' => !array_get($this->getStatus($transaction->getStatus()), 'editGateway', false)]);
+        }
+
+        return  $formView;
+    }
+
+    public function getTransactionStatus(): array
+    {
+        $status = $this->getSettingManager()->getSetting('transaction.status');
+        $otherStatus = Transaction::getOtherStatus();
+
+        foreach ($otherStatus as $data) {
+            $status[$data] = [
+                'label' => $this->getTranslator()->trans($data, [], 'TransactionBundle'),
+            ];
+        }
+
+        return $status;
+    }
+
+    public function getNonPendingTransactionStatus(array $statuses): array
+    {
+        $statusToRemove = Transaction::getPendingStatus();
+        foreach ($statusToRemove as $index => $key) {
+            if (array_key_exists($key, $statuses)) {
+                unset($statuses[$key]);
+            }
+        }
+
+        return $statuses;
+    }
+    
+    public function getTransactionById(int $id): Transaction
+    {
+        $transaction = $this->getRepository()->findById($id);
+
+        return $transaction;
     }
 
     private function getSubtransactionRepository(): \DbBundle\Repository\SubTransactionRepository
@@ -695,5 +768,10 @@ class TransactionManager extends TransactionOldManager
     private function isDateFieldEditable(Transaction $transaction) : bool
     {
         return array_get($this->getStatus($transaction->getStatus()), 'editDate', false);
+    }
+
+    public function findLastTransactionDateByMemberId(int $memberId): ?\DateTimeInterface
+    {
+        return $this->getRepository()->findLastTransactionDateByMemberId($memberId);
     }
 }
