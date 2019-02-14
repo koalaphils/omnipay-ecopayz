@@ -46,9 +46,9 @@ api_pinnacle_deposit:
     _format: json
   methods: [POST]
 
-api_pinnacle_widthdraw:
-  path: /api/pinnacle/widthdraw
-  controller: App\Controller\ApiPinnacle\ApiPinnacleController::widthdraw
+api_pinnacle_withdraw:
+  path: /api/pinnacle/withdraw
+  controller: App\Controller\ApiPinnacle\ApiPinnacleController::withdraw
   requirements:
     _format: json
   defaults:
@@ -62,6 +62,15 @@ api_pinnacle_users:
     _format: json
   defaults:
     _format: json
+
+api_pinnacle_users_balance:
+  path: /api/pinnacle/users/balance
+  controller: App\Controller\ApiPinnacle\ApiPinnacleController::getUserBalance
+  requirements:
+    _format: json
+  defaults:
+    _format: json
+  methods: [POST]
 
 # api piwi mwa
 api_piwi_mwa_test:

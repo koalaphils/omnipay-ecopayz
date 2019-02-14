@@ -46,7 +46,7 @@ class CountryController extends Controller
      */
     public function selectCountry()
     {        
-        $sources = app('db')->select("select country_phone_code from country");        
+        $sources = app('db')->select("select country_phone_code from country WHERE country_phone_code <> '' order by country_phone_code desc");        
         $ip = $this->getIP();
         $api = 'http://www.geoplugin.net/json.gp';
 

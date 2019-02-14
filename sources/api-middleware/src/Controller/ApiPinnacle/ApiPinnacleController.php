@@ -88,8 +88,28 @@ class ApiPinnacleController extends DefaultController
             $data =  $request->getContent();
             $data = json_decode($data);
 
-            $pdata = array('userCode' => $data->userCode, 'locale' => 'en');
+            $pdata = array('userCode' => $data->userCode, 'locale' => 'en');                        
             $url = 'https://paapistg.oreo88.com/b2b/player/login';
+            $token = $this->generateToken();        
+            $res = $this->callApi($url, $token, $pdata, 'GET');
+
+            $response->setContent(json_encode($res));
+        }
+
+        return $response;
+    }
+
+    public function logout(Request $request)
+    {   
+        $response = new Response();
+        
+        $isPost = $request->isMethod('POST');
+        if ($isPost) { 
+            $data =  $request->getContent();
+            $data = json_decode($data);
+
+            $pdata = array('userCode' => $data->userCode);
+            $url = 'https://paapistg.oreo88.com/b2b/player/logout';
             $token = $this->generateToken();        
             $res = $this->callApi($url, $token, $pdata, 'GET');
 
@@ -148,6 +168,27 @@ class ApiPinnacleController extends DefaultController
         }
 
         return new Response(json_encode(array('status'=>200, 'data'=> null)));
+    }
+
+    public function getUserBalance(Request $request)
+    {           
+        $response = new Response();
+        $isPost = $request->isMethod('POST');
+        if ($isPost) {       
+            $data =  $request->getContent();
+            $data = json_decode($data);
+
+            $pdata = array('userCode' => $data->userCode);
+            $url = 'https://paapistg.oreo88.com/b2b/player/info';
+            $token = $this->generateToken();        
+            $res = $this->callApi($url, $token, $pdata, 'GET');
+
+            $response->setContent(json_encode($res));
+                        
+            return $response;
+        }
+        
+        return new Response(null);
     }
 
     private function create_user()

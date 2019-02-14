@@ -35,16 +35,16 @@ class SmsCodeController extends Controller
     public function sendCode($toPhoneNumber, $message='')
     {  
         // test
-        $sid = 'AC7aa44b04cb254bad79d1036e65617ec4';
-        $api_key_sid = 'SKc41c5e1a05eec5dc29974e58a47f36b9';
-        $api_key_secret = 'mW6qXm90xm7ZoCVNty6zjMdvsQmHkolr';
-        $from = '+18124616835';
+        // $sid = 'AC7aa44b04cb254bad79d1036e65617ec4';
+        // $api_key_sid = 'SKc41c5e1a05eec5dc29974e58a47f36b9';
+        // $api_key_secret = 'mW6qXm90xm7ZoCVNty6zjMdvsQmHkolr';
+        // $from = '+18124616835';
         
         // live
-        // $sid = 'ACa8414b7fd5f78fa371c0aeb341931c8d';
-        // $api_key_sid = 'SK3f5e48d1f2663e53b60964e745bac2bf';
-        // $api_key_secret = 'z9xiYh8u7AH0bepYq2XAAxcz0I9CqJHS';
-        // $from = '+639179421398';
+        $sid = 'ACa8414b7fd5f78fa371c0aeb341931c8d';
+        $api_key_sid = 'SK3f5e48d1f2663e53b60964e745bac2bf';
+        $api_key_secret = 'z9xiYh8u7AH0bepYq2XAAxcz0I9CqJHS';
+        $from = '+972525436769';
 
         $url = 'https://api.twilio.com/2010-04-01/Accounts/'.$sid.'/Messages.json';
         $api_key = $api_key_sid . ':' . $api_key_secret;
@@ -88,7 +88,7 @@ class SmsCodeController extends Controller
             $sms->sms_code_json = json_encode($res);
             $sms->sms_code_customer_phone_number = $phoneNumber;                                
             $sms->sms_code_provider_id = '1';
-            $sms->sms_code_source_phone_number = '+18124616835';
+            $sms->sms_code_source_phone_number = '+972525436769';
         } else {            
             $sms->sms_code_customer_email = $rdata['email'];
             $customerEmail = $rdata['email'];

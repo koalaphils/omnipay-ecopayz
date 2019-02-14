@@ -9,6 +9,7 @@ class Controller extends BaseController
     public $base_url_pinnacle = 'http://47.254.197.223:9000/api/pinnacle';
     public $base_url_blockchain = 'http://47.254.197.223:9000/api/blockchain';
     public $base_url_piwi_bo = 'http://47.254.197.223:9002/en/api';
+    public $base_url_fresh_desk = 'https://piwi247.freshdesk.com/api/v2';
 
     public function callApi($url, $pdata=null, $method='GET')
     {
