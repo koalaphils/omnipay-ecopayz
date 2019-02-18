@@ -54,7 +54,6 @@ class CaptureAction implements ActionInterface
     public function execute($request)
     {
         RequestNotSupportedException::assertSupports($this, $request);
-
         $model = $request->getModel();
         $transaction = $model['transaction'];
 
@@ -72,10 +71,19 @@ class CaptureAction implements ActionInterface
         if (!$member->equalsToBitcoinCallback($callback)) {
             $payment = $request->getModel();
             $gateway = $payment['gateway'];
-            $xpub = $gateway->getConfig()['receiverXpub'];
 
+            $gateway_configs = $gateway->getConfig();            
+            // zimi-check null
+            if (array_key_exists('receiverXpub', $gateway_configs)) {                
+                $xpub = $gateway_configs['receiverXpub'];
+            } else {
+                $xpub = 'xpub6DA88KoJXbdTUao1rftYpfvduRHfUAWR3GJswdSiBe9uN1ip9WhtogpTkjD9KdkqfUg4isyV9cGPGDfZs8GyZkcZzvMC7JwzE6jV4C5YR7E';
+            }
+            
             try {
+                // zimi-comment: generate bitcoin address for customer
                 $result = $this->generateReceivingAddress($callback, $xpub, $gateway);
+                // zimi-comment
                 $member->setBitcoinDetails($result);
             } catch (HttpException $e) {
                 $response = $e->getResponse();
@@ -92,9 +100,16 @@ class CaptureAction implements ActionInterface
             }
         }
 
+        // zimi-comment
         $transaction->setBitcoinAddress($member->getBitcoinAddress());
         $transaction->setBitcoinCallback($member->getBitcoinCallback());
         $transaction->setBitcoinIndex($member->getBitcoinIndex());
+        
+        // zimi-bypass
+        // $transaction->setBitcoinAddress('bitcoin-address:79ed6474-cbaf-4c21-b08b-d0f9ef34146e');
+        // $transaction->setBitcoinCallback('www.api.callback.com');
+        // $transaction->setBitcoinIndex(0);
+
         $transaction->setBitcoinRateExpiration(false);
         $transaction->setBitcoinAcknowledgedByUser(false);
     }
@@ -159,6 +174,9 @@ class CaptureAction implements ActionInterface
 
     private function generateReceivingAddress(string $callback, string $xpub, Gateway $gateway): array
     {
+        // zimi-bypass        
+        // return ['bitcoin' => ['bitcoin.address' => 'sfdasfasfasdf']];
+
         $currentGap = $this->blockchain->getReceivePayment()->checkGap($xpub);
         if ($currentGap === 19) {
             $this->cycleFund($gateway);

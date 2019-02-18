@@ -10,6 +10,7 @@ use DbBundle\Entity\Transaction;
 use DbBundle\Entity\CustomerProduct;
 use DbBundle\Entity\Customer as Member;
 use DbBundle\Entity\PaymentOption;
+use Doctrine\DBAL\Connection;
 
 class TransactionRepository
 {
@@ -170,12 +171,35 @@ class TransactionRepository
             ->innerJoin('transaction.paymentOptionType', 'paymentOptionType')
             ->where('transaction.customer = :customer')
             ->andWhere('transaction.type NOT IN (:nonActiveTypes)')
+            ->andWhere('transaction.status NOT IN (:status)')
             ->andWhere('transaction.isVoided != true')
             ->andWhere('paymentOptionType.paymentMode = :paymentMode')
             ->andWhere("JSON_CONTAINS(transaction.details, 'false', '$.bitcoin.acknowledged_by_user') = true")
             ->setParameter('customer', $member)
             ->setParameter('nonActiveTypes', $nonActiveTypes)
             ->setParameter('paymentMode', PaymentOption::PAYMENT_MODE_BITCOIN)
+            ->setParameter('status', [Transaction::TRANSACTION_STATUS_END, Transaction::TRANSACTION_STATUS_DECLINE], Connection::PARAM_INT_ARRAY)
+        ;
+
+        return $queryBuilder->getQuery()->getOneOrNullResult();
+    }
+
+
+    public function findUserUnacknowledgedDepositBitcoinTransaction(Member $member): ?Transaction
+    {
+        $queryBuilder = $this->createQueryBuilder('transaction');
+        $queryBuilder
+            ->select('transaction', 'paymentOptionType')
+            ->innerJoin('transaction.paymentOptionType', 'paymentOptionType')
+            ->where('transaction.customer = :customer')
+            ->andWhere('transaction.type = 1')
+            ->andWhere('transaction.status NOT IN (:status)')
+            ->andWhere('transaction.isVoided != true')
+            ->andWhere('paymentOptionType.paymentMode = :paymentMode')
+            ->andWhere("JSON_CONTAINS(transaction.details, 'false', '$.bitcoin.acknowledged_by_user') = true")
+            ->setParameter('customer', $member)
+            ->setParameter('paymentMode', PaymentOption::PAYMENT_MODE_BITCOIN)
+            ->setParameter('status', [Transaction::TRANSACTION_STATUS_END], Connection::PARAM_INT_ARRAY)
         ;
 
         return $queryBuilder->getQuery()->getOneOrNullResult();

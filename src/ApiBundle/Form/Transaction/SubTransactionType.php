@@ -9,6 +9,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use DbBundle\Entity\Transaction;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use ApiBundle\Form\DataTransformer\CustomerProductTransformer;
+use ApiBundle\Model\SubTransaction;
 
 class SubTransactionType extends AbstractType
 {
@@ -38,7 +39,7 @@ class SubTransactionType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'data_class' => \ApiBundle\Model\SubTransaction::class,
+            'data_class' => SubTransaction::class,
             'csrf_protection' => false,
             'hasFee' => false,
         ]);

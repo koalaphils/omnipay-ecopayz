@@ -13,7 +13,7 @@
         "files": [ "vendor/symfony/symfony/src/Symfony/Component/VarDumper/Resources/functions/dump.php" ]
     },
     "require": {
-        "php": ">=5.5.9",
+        "php": ">=7.1.0",
         "ext-intl": "*",
         "beberlei/DoctrineExtensions": "^1.0",
         "cron/cron": "^1.3",

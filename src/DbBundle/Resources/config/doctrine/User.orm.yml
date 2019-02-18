@@ -37,7 +37,13 @@ DbBundle\Entity\User:
         email:
             type: string
             length: 255
+            nullable: true
             column: user_email
+        phoneNumber:
+            type: string
+            length: 255
+            nullable: true
+            column: user_phone_number
         type:
             type: integer
             length: 1

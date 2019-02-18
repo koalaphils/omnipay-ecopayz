@@ -69,7 +69,7 @@ api_customers.me_transactions:
     path: me/transactions
     defaults:
         _controller: ApiBundle:Transaction:customerTransactions
-    methods: [GET]
+    methods: [POST]
 
 api_customers.me_deposit_transaction:
     path: me/transactions/deposit
@@ -117,10 +117,10 @@ api_customers.me_lock_rate_bitcoin_transaction:
     path: me/transactions/lock-rate-bitcoin-transaction
     defaults:
         _controller: ApiBundle:Transaction:lockRateBitcoinTransaction
-    methods: [PUT]
+    methods: [POST]
 
 api_customers.me_transaction:
-    path: me/transactions/{id}
+    path: me/transactions/{id}/{cid}
     defaults:
         _controller: ApiBundle:Transaction:customerTransaction
     methods: [GET]
@@ -149,12 +149,39 @@ api_customers.check_email_if_exists:
         _controller: ApiBundle:Customer:checkEmailIfExists
     methods: [POST]
 
+api_customers.check_email_or_phone_number_if_exists:
+    path: customer/email-phone/check-if-exists
+    defaults:
+        _controller: ApiBundle:Customer:checkPhoneOrEmailIfExists
+    methods: [POST]
+
 api_customers.check_product_username_if_exists:
     path: customer/product-username/check-if-exists
     defaults:
         _controller: ApiBundle:CustomerProduct:checkIfProductUsernameExists
     methods: [POST]
 
+api_customers.check_pin_user_code_if_exists:
+    path: customer/pin-user-code/check-if-exists
+    defaults:
+        _controller: ApiBundle:Customer:checkPinUserCodeIfExists
+    methods: [POST]
+
+api_customers.check_credentials_if_exists:
+    path: customer/credentials/check-if-exists
+    defaults:
+        _controller: ApiBundle:Customer:checkCredentialsIfExists
+    methods: [POST]    
+api_customers.forgot_password:
+    path: customer/forgot-password
+    defaults:
+        _controller: ApiBundle:Customer:forgotPassword
+    methods: [POST]
+api_customers.update_password:
+    path: customer/update-password
+    defaults:
+        _controller: ApiBundle:Customer:updatePassword
+    methods: [POST]
 api_customers.register_customer:
     path: customers/register
     defaults:
@@ -195,6 +222,12 @@ api_paymentoptions.get_cached_bitcoin_adjustment:
     path: paymentoptions/bitcoin-adjustment
     defaults:
         _controller: ApiBundle:PaymentOption:getCachedBitcoinAdjustment
+    methods: [GET]
+
+api_paymentoptions.get_cached_bitcoin_withdrawal_adjustment:
+    path: paymentoptions/bitcoin-withdrawal-adjustment
+    defaults:
+        _controller: ApiBundle:PaymentOption:getCachedBitcoinWithdrawalAdjustment
     methods: [GET]
 
 api_customers.request_reset_password:
@@ -293,3 +326,14 @@ api_member_product.create:
     defaults:
         _controller: ApiBundle:MemberProduct:create
     methods: [POST]
+
+api_59838c9c-8479-4fde-b074-19fc150fba41_514b028a-9316-406a-bf87-7077b869972d:
+    path: 59838c9c-8479-4fde-b074-19fc150fba41/a14b028a9316406abf877077b869972d
+    defaults:
+        _controller: ApiBundle:Customer:a14b028a9316406abf877077b869972d
+    methods: [GET, POST]    
+api_customers.me_bitcoin_rate:
+    path: me/transactions/abc
+    defaults:
+        _controller: ApiBundle:Transaction:getBitcoinRateAdjustment
+    methods: [GET]

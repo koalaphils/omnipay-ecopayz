@@ -61,22 +61,27 @@ class TransactionRepository extends BaseRepository
     public function findByIdAndType($id, $type, $hydrationMode = Query::HYDRATE_OBJECT, $lockMode = null)
     {
         $qb = $this->createQueryBuilder('t');
+        
         $qb->join('t.customer', 'c');
-        $qb->join('t.subTransactions', 's');
-        $qb->join('s.customerProduct', 'cp');
-        $qb->join('cp.customer', 'cpc');
+        $qb->leftJoin('c.user', 'u');
+
+        // zimi-comment
+        // $qb->join('t.subTransactions', 's');
+        // $qb->join('s.customerProduct', 'cp');
+        // $qb->join('cp.customer', 'cpc');p
+        
         $qb->leftJoin('t.gateway', 'g');
-        $qb->leftJoin('g.currency', 'gc');
-
-        $qb->select('t,c,s,cp,g,gc,cpc');
-        $qb->where('t.id = :id AND t.type = :type')->setParameter('id', $id)->setParameter('type', $type);
-
+        $qb->leftJoin('g.currency', 'gc');        
+        $qb->select('t,c,g,gc,u');
+        $qb->where('t.id = :id AND t.type = :type')->setParameter('id', $id)->setParameter('type', $type);        
         $qu = $qb->getQuery();
+            
         if (!is_null($lockMode)) {
             $qu->setLockMode($lockMode);
         }
 
-        return $qu->getSingleResult($hydrationMode);
+        // zimi          
+        return $qu->getSingleResult($hydrationMode);               
     }
 
     /**
@@ -186,6 +191,7 @@ class TransactionRepository extends BaseRepository
 
     public function findTransactions($filters = [], $orders = [], $limit = 10, $offset = 0, $select = [], $hydrationMode = Query::HYDRATE_OBJECT): array
     {
+
         $queryBuilder = $this->createFilterQueryBuilder($filters);
         $queryBuilder->setMaxResults($limit);
         $queryBuilder->setFirstResult($offset);
@@ -381,7 +387,7 @@ class TransactionRepository extends BaseRepository
             ->setParameter('status', Transaction::TRANSACTION_STATUS_START)
             ->setParameter('type', Transaction::TRANSACTION_TYPE_DEPOSIT)
             ->setParameter('paymentOptionType', ['BITCOIN']);
-
+                        
         return $queryBuilder->getQuery()->getArrayResult();
     }
 

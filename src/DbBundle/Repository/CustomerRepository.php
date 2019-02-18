@@ -572,6 +572,25 @@ class CustomerRepository extends BaseRepository
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }
 
+
+    public function findByPinUserCode($userCode)
+    {
+        $qb = $this->createQueryBuilder('c');
+
+        $qb->select('c')
+            ->where($qb->expr()->eq('c.pinUserCode', ':pin_user_code'))
+//            ->andWhere($qb->expr()->eq('u.type', ':type'))
+            ->setParameter('pin_user_code', $userCode)
+//            ->setParameter('type', $type)
+        ;
+
+//        if ($isActivated) {
+//            $qb->andWhere($qb->expr()->isNotNull('u.activationTimestamp'));
+//        }
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
+
     public function hasSomeMemberUsingRiskSetting(string $resourceId): bool
     {
         $queryBuilder = $this->createQueryBuilder('c');

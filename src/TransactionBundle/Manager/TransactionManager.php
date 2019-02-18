@@ -14,6 +14,7 @@ use DbBundle\Repository\MemberRunningCommissionRepository;
 use Doctrine\ORM\Query;
 use PDO;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
+use AppBundle\Manager\AbstractManager;
 use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\Request;
 use TransactionBundle\Event\TransactionProcessEvent;
@@ -294,7 +295,8 @@ class TransactionManager extends TransactionOldManager
     {
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        // zimi-comment:  && $form->isValid()
+        if ($form->isSubmitted()) {
             $transaction = $form->getData();
             $transaction->retainImmutableData();
             $transaction->autoSetPaymentOptionType();
@@ -338,12 +340,17 @@ class TransactionManager extends TransactionOldManager
     }
 
     public function processTransaction(Transaction &$transaction, $action, bool $fromCustomer = false)
-    {
-        if ($transaction->getId()) {
+    {        
+        // zimi-check $transaction !== null        
+        if ($transaction !== null && $transaction->getId()) {
             if ($action === 'void') {
                 $action = ['label' => 'Void', 'status' => 'void'];
-            } else if ($action === 'decline'){
+            } elseif ($action === 'decline') {
                 $action = ['label' => 'Decline', 'status' => Transaction::TRANSACTION_STATUS_DECLINE];
+            } elseif ($action === 'confirm') {
+                $action = ['label' => 'Confirm', 'status' => Transaction::TRANSACTION_STATUS_ACKNOWLEDGE];
+                $transaction->setBitcoinConfirmation(3);
+                $transaction->setBitcoinAcknowledgedByUser(true);
             } else {
                 $action = $this->getAction($transaction->getStatus(), $action, $transaction->getTypeText());
             }
@@ -359,11 +366,14 @@ class TransactionManager extends TransactionOldManager
                 $subtransaction->removeFee('customer_fee');
             }
         }
+        
+        // zimi        
+        $amount = $transaction->getAmount();
 
         $event = new TransactionProcessEvent($transaction, $action, $fromCustomer);
         try {
             $this->getRepository()->beginTransaction();
-
+            
             $this->getEventDispatcher()->dispatch('transaction.saving', $event);
             if ($event->isPropagationStopped()) {
                 return;
@@ -371,7 +381,12 @@ class TransactionManager extends TransactionOldManager
 
             $this->getEventDispatcher()->dispatch('transaction.pre_save', $event);
             $this->getRepository()->reconnectToDatabase();
-            $this->getRepository()->save($event->getTransaction());
+            $this->updateBitcoinPaymentOption($transaction);
+            // zimi- DbBundle\Entity\Transaction            
+            $eventTransaction = $event->getTransaction();            
+            $eventTransaction->setAmount($amount);   
+
+            $this->getRepository()->save($eventTransaction);
             $this->getRepository()->commit();
             $this->getEventDispatcher()->dispatch('transaction.saved', $event);
 
@@ -453,6 +468,13 @@ class TransactionManager extends TransactionOldManager
         $action = $this->getSettingManager()->getSetting("transaction.status.$status.actions.$action");
 
         return $action;
+    }
+
+    public function addVoidedStatus($statuses = []): array
+    {
+        $voided = Transaction::TRANSACTION_STATUS_VOIDED;
+
+        return $statuses + [$voided => ['label' => ucfirst($voided)]];
     }
 
     public function revertCustomerProductBalance(\DbBundle\Entity\CustomerProduct $customerProduct, SubTransaction $subTransaction): void
@@ -566,6 +588,7 @@ class TransactionManager extends TransactionOldManager
                 ];
         } else if (!$transaction->isDwl() && $transaction->isTransactionPaymentBitcoin() && !$transaction->isVoided() && $transaction->getStatus() == Transaction::TRANSACTION_STATUS_START && $transaction->isDeposit()) {
             $actions['decline'] = ['label' => 'Decline', 'class' => 'btn-danger', 'status' => Transaction::TRANSACTION_STATUS_DECLINE];
+            $actions['confirm'] = ['label' => 'Confirm', 'class' => 'btn-danger', 'status' => Transaction::TRANSACTION_STATUS_ACKNOWLEDGE];
             $isForVoidingOrDecline = true;
         } else {
             $actions = array_get($this->getStatus($transaction->getStatus()), 'actions', []);

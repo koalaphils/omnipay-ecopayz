@@ -1,0 +1,51 @@
+DbBundle\Entity\Country:
+    type: entity
+    table: country
+    repositoryClass: DbBundle\Repository\CountryRepository
+    id:
+        id:
+            type: integer
+            id: true
+            generator:
+                strategy: AUTO
+            column: country_id
+            options:
+                unsigned: true
+    fields:
+        code:
+            type: string
+            length: '6'
+            unique: true
+            column: country_code
+        name:
+            type: string
+            length: '64'
+            unique: true
+            column: country_name
+        tags:
+            type: json
+        createdBy:
+            type: bigint
+            column: country_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: country_created_at
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: country_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            nullable: true
+            column: country_updated_at
+    manyToOne:
+        currency:
+            targetEntity: DbBundle\Entity\Currency
+            joinColumn:
+                name: country_currency_id
+                referencedColumnName: currency_id
+    lifecycleCallbacks: {  }

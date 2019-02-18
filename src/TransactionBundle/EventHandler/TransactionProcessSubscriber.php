@@ -34,7 +34,7 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
     }
 
     public function onTransactionSaving(TransactionProcessEvent $event)
-    {
+    {        
         $transaction = $event->getTransaction();
         $action = $event->getAction();
         if ($transaction->isNew() && !$event->fromCustomer()) {
@@ -50,11 +50,10 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
 
             if (!$transaction->getCurrency()) {
                 $transaction->setCurrency($transaction->getCustomer()->getCurrency());
-            }
-
-            $this->getTransactionManager()->processTransactionSummary($transaction);
-            if ($transitionName === 'customer-new' && $event->fromCustomer() && $transaction->isDeposit()) {
-                $this->getPaymentManager()->processPaymentOption($transaction);
+            }            
+            $this->getTransactionManager()->processTransactionSummary($transaction);            
+            if ($transitionName === 'customer-new' && $event->fromCustomer() && $transaction->isDeposit()) {                
+                $this->getPaymentManager()->processPaymentOption($transaction);       
             }
             
             $paymentOptionMode = \DbBundle\Entity\PaymentOption::PAYMENT_MODE_OFFLINE;
@@ -71,7 +70,7 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
             } else {
                 throw new TransitionGuardException('Unable to transition the transaction');
             }
-        } else {
+        } else {            
             if ($this->getTransactionWorkflow()->can($transaction, 'void')) {
                 $this->getTransactionWorkflow()->apply($transaction, 'void');
             } else {

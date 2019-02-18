@@ -708,4 +708,57 @@ class User extends Entity implements ActionInterface, TimestampInterface, Advanc
     {
         return $this->getMember()->getId();
     }
+    /**
+     * @var string
+     */
+    public $phoneNumber;
+
+
+    /**
+     * Set phoneNumber
+     *
+     * @param string $phoneNumber
+     *
+     * @return User
+     */
+    public function setPhoneNumber($phoneNumber)
+    {
+        $this->phoneNumber = $phoneNumber;
+
+        return $this;
+    }
+
+    /**
+     * Get phoneNumber
+     *
+     * @return string
+     */
+    public function getPhoneNumber()
+    {
+        return $this->phoneNumber;
+    }
+
+    /**
+     * Add auditRevision
+     *
+     * @param \DbBundle\Entity\AuditRevision $auditRevision
+     *
+     * @return User
+     */
+    public function addAuditRevision(\DbBundle\Entity\AuditRevision $auditRevision)
+    {
+        $this->auditRevision[] = $auditRevision;
+
+        return $this;
+    }
+
+    /**
+     * Remove auditRevision
+     *
+     * @param \DbBundle\Entity\AuditRevision $auditRevision
+     */
+    public function removeAuditRevision(\DbBundle\Entity\AuditRevision $auditRevision)
+    {
+        $this->auditRevision->removeElement($auditRevision);
+    }
 }

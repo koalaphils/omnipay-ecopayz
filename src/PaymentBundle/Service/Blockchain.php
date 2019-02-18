@@ -41,7 +41,8 @@ class Blockchain implements BlockchainInterface
     public function __construct(string $apiKey, string $walletUrl)
     {
         $this->requestMessageFactory = new GuzzleMessageFactory();
-        $this->client = new HttpMethodsClient(new GuzzleAdapter(new GuzzleClient()), $this->requestMessageFactory);
+        // zimi-temporary disabled verify ssl
+        $this->client = new HttpMethodsClient(new GuzzleAdapter(new GuzzleClient(['curl'=>[CURLOPT_SSL_VERIFYPEER => 0]])), $this->requestMessageFactory);
 
         $this->apiKey = $apiKey;
 

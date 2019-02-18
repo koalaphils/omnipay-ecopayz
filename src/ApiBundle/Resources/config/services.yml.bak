@@ -1,0 +1,166 @@
+imports:
+    - { resource: handlers.yml }
+    - { resource: managers.yml }
+    - { resource: forms.yml }
+
+services:
+    api.jms_parser:
+        class: ApiBundle\Parser\JmsMetadataParser
+        arguments: [ '@jms_serializer.metadata_factory', '@jms_serializer.naming_strategy', '@nelmio_api_doc.doc_comment_extractor' ]
+        tags:
+            - { name: nelmio_api_doc.extractor.parser }
+
+    api.collection_parser:
+         class: ApiBundle\Parser\CollectionParser
+         arguments: [ '@api.jms_parser' ]
+         tags:
+            - { name: nelmio_api_doc.extractor.parser, priority: 2 }
+
+    api.customer_manager:
+        class: ApiBundle\Manager\CustomerManager
+        parent: app.base_manager
+
+    api.view_handler:
+        class: ApiBundle\View\ViewHandler
+        parent: fos_rest.view_handler.default
+
+    api.oauth_storage:
+        class: ApiBundle\Storage\OAuthStorage
+        arguments:
+            - '@fos_oauth_server.client_manager'
+            - '@fos_oauth_server.access_token_manager'
+            - '@fos_oauth_server.refresh_token_manager'
+            - '@fos_oauth_server.auth_code_manager'
+            - '@fos_oauth_server.user_provider'
+            - '@security.encoder_factory'
+        calls:
+            - [ 'setRequestStack', [ '@request_stack' ] ]
+
+    api.oauth_user_provider:
+        class: ApiBundle\Security\OAuthUserProvider
+        factory: ['ApiBundle\Security\OAuthUserProvider', generate]
+        arguments: [ '@doctrine' ]
+
+    fos_oauth_server.security.authentication.provider:
+        class: ApiBundle\Security\OAuthProvider
+        arguments: [ '@api.oauth_user_provider', '@fos_oauth_server.server', '@security.user_checker', '@request_stack' ]
+
+    api.rest_serializer:
+        class: ApiBundle\Subscriber\RestSerializerSubscriber
+        arguments: [ '@router', '@request_stack', '@doctrine']
+        tags:
+            - { name: jms_serializer.event_subscriber }
+
+    api.member_banner_subsciber:
+        class: ApiBundle\Subscriber\MemberBannerSubscriber
+        arguments: ['@app.referral_tool_generator']
+        tags:
+            - { name: jms_serializer.event_subscriber }
+
+    api.transaction_repository:
+        class: ApiBundle\Repository\TransactionRepository
+        lazy: true
+        arguments: [ "@doctrine.orm.entity_manager", "DbBundle\\Entity\\Transaction" ]
+
+    api.product_repository:
+        class: ApiBundle\Repository\ProductRepository
+        lazy: true
+        arguments: [ "@doctrine.orm.entity_manager", "DbBundle\\Entity\\Product" ]
+
+    api.product_repository:
+        class: ApiBundle\Repository\ProductRepository
+        lazy: true
+        arguments: [ "@doctrine.orm.entity_manager", "DbBundle\\Entity\\Product" ]
+
+    api.transaction_manager:
+        class: ApiBundle\Manager\TransactionManager
+        lazy: true
+        parent: app.base_manager
+
+    api.customer_transformer:
+        class: ApiBundle\Form\DataTransformer\CustomerTransformer
+        arguments: [ '@doctrine' ]
+
+    api.customer_product_transformer:
+        class: ApiBundle\Form\DataTransformer\CustomerProductTransformer
+        arguments: [ '@doctrine' ]
+
+    api.payment_option_transformer:
+        class: ApiBundle\Form\DataTransformer\PaymentOptionTransformer
+        arguments: [ '@doctrine' ]
+
+    api.transaction_type:
+        class: ApiBundle\Form\Transaction\TransactionType
+        arguments: [ '@api.customer_transformer', '@api.payment_option_transformer' ]
+        tags:
+            - { name: form.type }
+
+    api.sub_transaction_type:
+        class: ApiBundle\Form\Transaction\SubTransactionType
+        arguments: [ '@api.customer_product_transformer' ]
+        tags:
+            - { name: form.type }
+
+    api.customer.event_subscriber:
+        class: ApiBundle\Subscriber\CustomerSubscriber
+        arguments: ["%asianconnect_url%", "%asianconnect09_domain%"]
+        tags:
+            - { name: kernel.event_subscriber }
+        calls:
+            - [ setContainer, ['@service_container'] ]
+
+    api.transfer_type:
+        class: ApiBundle\Form\Transfer\TransferType
+        arguments: [ '@api.customer_transformer', '@api.customer_product_transformer' ]
+        tags:
+            - { name: form.type }
+
+    api.transfer_sub_transaction_type:
+        class: ApiBundle\Form\Transfer\SubTransactionType
+        arguments: [ '@api.customer_product_transformer' ]
+        tags:
+            - { name: form.type }
+
+    api.customer_product_manager:
+            class: ApiBundle\Manager\CustomerProductManager
+            parent: app.base_manager
+
+    api.transaction.event_subscriber:
+        class: ApiBundle\Subscriber\TransactionSubscriber
+        tags:
+            - { name: kernel.event_subscriber }
+
+    api.same_product_constraint_validator:
+        class: ApiBundle\Validator\SameProductConstraintValidator
+        arguments: ['@doctrine.orm.entity_manager']
+        tags:
+            - { name: validator.constraint_validator }
+
+    api.transaction_password_constraint:
+        class: ApiBundle\Validator\TransactionPasswordConstraintValidator
+        arguments: ["@=service('security.token_storage').getToken().getUser()", '@security.encoder_factory']
+        tags:
+            - { name: validator.constraint_validator }
+
+    api.same_currency_constraint:
+        class: ApiBundle\Validator\SameCurrencyConstraintValidator
+        arguments: ["@=service('security.token_storage').getToken().getUser()"]
+        tags:
+            - { name: validator.constraint_validator }
+
+    api.unique_member_product.validator:
+        class: ApiBundle\Validator\Constraints\UniqueMemberProductValidator
+        arguments:
+            - '@=service("doctrine").getRepository("DbBundle\\Entity\\CustomerProduct")'
+            - '@security.token_storage'
+        tags:
+          - { name: validator.constraint_validator }
+
+    api.bitcoin_transaction_validator:
+        class: ApiBundle\Validator\Bitcoin\BitcoinTransactionConstraintValidator
+        arguments: ["@api.transaction_repository"]
+        calls:
+            - ['setMaxBitcoinDeposit', ['@=service("app.setting_manager").getSetting("bitcoin.setting.configuration.maximumAllowedDeposit")']]
+            - ['setMinBitcoinDeposit', ['@=service("app.setting_manager").getSetting("bitcoin.setting.configuration.minimumAllowedDeposit")']]
+        tags:
+            - { name: validator.constraint_validator }

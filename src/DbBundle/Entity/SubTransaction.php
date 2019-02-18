@@ -356,6 +356,11 @@ class SubTransaction extends Entity implements AuditInterface
     public function getCategory()
     {
         $parent = $this->getParent();
+        
+        // zimi
+        if ($parent === null) {
+            return AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_DEPOSIT;
+        }
 
         if ($parent->isDeposit()) {
             $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_DEPOSIT;
@@ -399,6 +404,11 @@ class SubTransaction extends Entity implements AuditInterface
 
     public function getLabel()
     {
+        // zimi
+        if ($this->getParent() === null) {
+            return '';
+        }
+
         return sprintf('%s (%s)', $this->getParent()->getNumber(), $this->getCustomerProduct()->getUserName());
     }
 

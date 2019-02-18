@@ -56,6 +56,12 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
             $this->validateRequest($httpRequest);
         } catch (\RuntimeException $ex) {
             $this->logWithHttpRequest(LogLevel::ERROR, 'Invalid Request', $httpRequest);
+            
+            // zimi-debug
+            // $data = ['confirm' => 0, 'status' => 'requested'];
+            // $data = ['confirm' => 0, 'status' => 'pending'];            
+            // $topic = 'mwa.topic.deposit.bitcoin';                    
+            // $this->publisher->publish($topic, json_encode($data));
 
             throw $this->createOkResponse();
         }
@@ -165,8 +171,10 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
             $response = new HttpResponse('');
         }
 
-        $this->publishTransactionStatus($transaction);
-
+        // zimi-comment
+        // $this->publishTransactionStatus($transaction);
+        $this->publishNoneUsingWampTransactionStatus($transaction);
+        
         throw $response;
     }
 
@@ -231,15 +239,46 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
         return $httpRequest;
     }
 
+    // zimi
+    
+    private function publishNoneUsingWampTransactionStatus(Transaction $transaction): void
+    {
+        try {            
+            // $publishData = [
+            //     'transaction_id' => $transaction->getId(),
+            //     'member_id' => $transaction->getCustomer()->getId(),
+            //     'confirmation_count' => $transaction->getBitcoinConfirmation(),
+            //     'status' => $transaction->getBitcoinStatus(),
+            // ]; 
+
+            $data = ['confirm' => $transaction->getBitcoinConfirmation(),'status' => $transaction->getBitcoinStatus()];           
+            
+            // zimi-debug
+            // pending_confirmation
+            // confirmed
+            // $data = ['confirm' => 0, 'status' => 'requested'];
+            // $data = ['confirm' => 0, 'status' => 'pending'];            
+
+            $topic = 'mwa.topic.deposit.bitcoin';                    
+            $this->publisher->publish($topic, json_encode($data));
+
+        } catch (Throwable $ex) {
+            /* Do nothing must, even the publishing has an error it must still procceed as success */
+        } catch (\Exception $e) {
+            /* Do nothing must, even the publishing has an error it must still procceed as success */
+        }
+    }
+
     private function publishTransactionStatus(Transaction $transaction): void
     {
-        try {
+        try {            
             $publishData = [
                 'transaction_id' => $transaction->getId(),
                 'member_id' => $transaction->getCustomer()->getId(),
                 'confirmation_count' => $transaction->getBitcoinConfirmation(),
                 'status' => $transaction->getBitcoinStatus(),
-            ];
+            ];            
+
             $this->publisher->publishUsingWamp(self::PUBLISH_CHANNEL, $publishData);
             $this->publisher->publishUsingWamp(self::PUBLISH_CHANNEL . '.' . $transaction->getId(), $publishData);
         } catch (Throwable $ex) {

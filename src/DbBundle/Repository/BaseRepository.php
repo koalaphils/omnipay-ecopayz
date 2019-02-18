@@ -47,6 +47,18 @@ class BaseRepository extends EntityRepository
         return [];
     }
 
+    public function getAvailableFilters()
+    {
+        return [];
+    }
+
+    public function getMainId()
+    {
+        $main = $this->getAliases(true)['_main_'];
+
+        return $main . '.' . $this->getAliases()[$main]['i'];
+    }
+
     /**
      *
      * @param \Doctrine\ORM\QueryBuilder $qb
@@ -145,17 +157,5 @@ class BaseRepository extends EntityRepository
             ->getConnection()
             ->getWrappedConnection()
             ->setAttribute(\PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
-    }
-
-    public function getAvailableFilters()
-    {
-        return [];   
-    }
-
-    public function getMainId()
-    {
-        $main = $this->getAliases(true)['_main_'];
-        
-        return $main . '.' . $this->getAliases()[$main]['i'];
-    }
+    }   
 }

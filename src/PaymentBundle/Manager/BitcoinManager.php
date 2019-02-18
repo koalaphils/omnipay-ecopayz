@@ -58,7 +58,7 @@ class BitcoinManager extends AbstractManager
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
-            $bitcoinConfiguration[SettingModel::BITCOIN_CONFIGURATION] = [
+            $bitcoinConfiguration[SettingModel::BITCOIN_DEPOSIT_CONFIGURATION] = [
                 'autoDecline' => $data->getAutoDecline(),
                 'minutesInterval' => $data->getMinutesInterval(),
                 'minimumAllowedDeposit' => $data->getMinimumAllowedDeposit(),
@@ -67,6 +67,10 @@ class BitcoinManager extends AbstractManager
             $bitcoinConfiguration[SettingModel::BITCOIN_LOCK_PERIOD_SETTING] = [
                 'autoLock' => $data->getAutoLock(),
                 'minutesLockDownInterval' => $data->getMinutesLockDownInterval(),
+            ];
+            $bitcoinConfiguration[SettingModel::BITCOIN_WITHDRAWAL_CONFIGURATION] = [
+                'minimumAllowedWithdrawal' => $data->getMinimumAllowedWithdrawal(),
+                'maximumAllowedWithdrawal' => $data->getMaximumAllowedWithdrawal(),
             ];
             $this->saveBitcoinSetting($bitcoinConfiguration);
 
@@ -80,7 +84,7 @@ class BitcoinManager extends AbstractManager
     {
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->saveRateSettings($dto);
+            $this->saveRateSettings($dto, Transaction::TRANSACTION_TYPE_DEPOSIT);
 
             return $dto;
         }
@@ -88,10 +92,31 @@ class BitcoinManager extends AbstractManager
         throw new FormValidationException($form);
     }
 
+    public function handleCreateBitcoinWithdrawalRateForm(Form $form, Request $request, BitcoinRateSettingsDTO $dto)
+    {
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->saveRateSettings($dto, Transaction::TRANSACTION_TYPE_WITHDRAW);
+
+            return $dto;
+        }
+
+        throw new FormValidationException($form);
+    }
+
+    public function getBitcoinConfigurations(): array
+    {        
+        $bitcoinConfigurations = $this->getBitcoinConfiguration();
+        $bitcoinConfigurations = array_merge($bitcoinConfigurations, $this->getBitcoinLockDownRateSetting());
+        $bitcoinConfigurations = array_merge($bitcoinConfigurations, $this->getBitcoinWithdrawalConfiguration());
+        
+        return $bitcoinConfigurations;
+    }
+
     public function getBitcoinConfiguration(): array
     {
         $bitcoinSettings = $this->getBitcoinSettings();
-        $configurations = $this->settingManager->getSetting('bitcoin.' . SettingModel::BITCOIN_SETTING . '.' . SettingModel::BITCOIN_CONFIGURATION);
+        $configurations = $this->settingManager->getSetting('bitcoin.' . SettingModel::BITCOIN_SETTING . '.' . SettingModel::BITCOIN_DEPOSIT_CONFIGURATION);
 
         return $configurations;
     }
@@ -102,6 +127,14 @@ class BitcoinManager extends AbstractManager
         $lockDownSetting = $this->settingManager->getSetting('bitcoin.' . SettingModel::BITCOIN_SETTING . '.' . SettingModel::BITCOIN_LOCK_PERIOD_SETTING);
 
         return $lockDownSetting;
+    }
+
+    public function getBitcoinWithdrawalConfiguration(): array
+    {
+        $bitcoinSettings = $this->getBitcoinSettings();
+        $withdrawalConfigurations = $this->settingManager->getSetting('bitcoin.' . SettingModel::BITCOIN_SETTING . '.' . SettingModel::BITCOIN_WITHDRAWAL_CONFIGURATION);
+
+        return $withdrawalConfigurations;
     }
 
     public function getBitcoinSettings(): array
@@ -123,20 +156,31 @@ class BitcoinManager extends AbstractManager
         return $bitcoinLockConfiguration['autoLock'];
     }
 
-    public function prepareBitcoinSetting(array $bitcoinSetting = [], array $lockDownSetting): SettingModel
+    public function prepareBitcoinSetting(array $bitcoinSetting = []): SettingModel
     {
         $bitcoinSettingModel = new SettingModel();
         $bitcoinSettingModel->setAutoDecline($bitcoinSetting['autoDecline']);
         $bitcoinSettingModel->setMinutesInterval($bitcoinSetting['minutesInterval']);
         $bitcoinSettingModel->setMinimumAllowedDeposit($bitcoinSetting['minimumAllowedDeposit']);
         $bitcoinSettingModel->setMaximumAllowedDeposit($bitcoinSetting['maximumAllowedDeposit']);
-        $bitcoinSettingModel->setAutoLock($lockDownSetting['autoLock']);
-        $bitcoinSettingModel->setMinutesLockDownInterval($lockDownSetting['minutesLockDownInterval']);
-
+        // zimi-fix
+        if (array_key_exists('autoLock', $bitcoinSetting)) {
+            $bitcoinSettingModel->setAutoLock($bitcoinSetting['autoLock']);
+        }
+        if (array_key_exists('minutesLockDownInterval', $bitcoinSetting)) {
+            $bitcoinSettingModel->setMinutesLockDownInterval($bitcoinSetting['minutesLockDownInterval']);
+        } 
+        if (array_key_exists('maximumAllowedWithdrawal', $bitcoinSetting)) {
+            $bitcoinSettingModel->setMinutesLockDownInterval($bitcoinSetting['maximumAllowedWithdrawal']);
+        } 
+        if (array_key_exists('minimumAllowedWithdrawal', $bitcoinSetting)) {
+            $bitcoinSettingModel->setMinutesLockDownInterval($bitcoinSetting['minimumAllowedWithdrawal']);
+        }        
+        
         return $bitcoinSettingModel;
     }
 
-    public function createBitcoinAdjustment(string $currency): BitcoinAdjustment
+    public function createBitcoinAdjustment(string $currency, int $type = Transaction::TRANSACTION_TYPE_DEPOSIT): BitcoinAdjustment
     {
         $cache = new FilesystemAdapter();
         $cacheItem = $cache->getItem('bitcoin.rate_data');
@@ -144,14 +188,14 @@ class BitcoinManager extends AbstractManager
         $rateComponent = $this->getBlockchain()->getRate();
         $rate = $rateComponent->fromBTC($currency, '1');
 
-        $config = $this->getBitcoinConfiguration($this->getBitcoinSettings());
-        
-        $bitcoinAdjustment = $this->getBitcoinAdjustmentComponent()->getAdjustment();
+        $config = $this->getBitcoinConfigurations();
+
+        $bitcoinAdjustment = $this->getBitcoinAdjustmentComponent()->getAdjustment($type);
         $bitcoinAdjustment->setLatestBaseRate($rate);
         $bitcoinAdjustment->setBitcoinConfig($config);
 
         // Override cache whenever a new value is generated.
-        $cacheItem->set($bitcoinAdjustment->createWebsocketPayload());
+        $cacheItem->set($bitcoinAdjustment->createWebsocketPayload($type));
         $cache->save($cacheItem);
 
         return $bitcoinAdjustment;
@@ -203,30 +247,42 @@ class BitcoinManager extends AbstractManager
         return $this->settingManager;
     }
 
-    public function getDefaultRateSetting(): BitcoinRateSetting
+    public function getDefaultRateSetting(int $type = Transaction::TRANSACTION_TYPE_DEPOSIT): BitcoinRateSetting
     {
-        $defaultRateSetting = $this->em->getRepository(BitcoinRateSetting::class)->findDefaultSetting();
+        $defaultRateSetting = $this->em->getRepository(BitcoinRateSetting::class)->findDefaultSetting($type);
 
         if ($defaultRateSetting === null) {
             $defaultRateSetting = new BitcoinRateSetting();
             $defaultRateSetting->setIsDefault(true);
+            $defaultRateSetting->setType($type);
         }
 
         $this->setLastTouchedDetails($defaultRateSetting);
 
         return $defaultRateSetting;
     }
-
-    public function getNonDefaultRateSettings(): array
+    
+    public function getDefaultWithdrawalRateSetting(): BitcoinRateSetting
     {
-        $rateSettings = $this->em->getRepository(BitcoinRateSetting::class)->findNonDefaultRateSettings();
+        return $this->getDefaultRateSetting(Transaction::TRANSACTION_TYPE_WITHDRAW);
+    }
+
+    public function getNonDefaultRateSettings(int $type = Transaction::TRANSACTION_TYPE_DEPOSIT): array
+    {
+        $rateSettings = $this->em->getRepository(BitcoinRateSetting::class)->findNonDefaultRateSettings($type);
 
         // If $rateSettings is currently empty. Then create a logical first rate setting.
         if (empty($rateSettings)) {
             $rateSetting = new BitcoinRateSetting();
-            $config = $this->getBitcoinConfiguration($this->getBitcoinSettings());
-            $rateSetting->setRangeFrom($config['minimumAllowedDeposit']);
-            $rateSetting->setRangeTo($config['maximumAllowedDeposit']);
+            $config = $this->getBitcoinConfigurations();
+            if ($type === Transaction::TRANSACTION_TYPE_DEPOSIT) {
+                $rateSetting->setRangeFrom($config['minimumAllowedDeposit']);
+                $rateSetting->setRangeTo($config['maximumAllowedDeposit']);
+            } elseif ($type === Transaction::TRANSACTION_TYPE_WITHDRAW) {
+                $rateSetting->setRangeFrom($config['minimumAllowedWithdrawal']);
+                $rateSetting->setRangeTo($config['maximumAllowedWithdrawal']);
+            }
+            $rateSetting->setType($type);
             $rateSettings[] = $rateSetting;
         }
 
@@ -235,6 +291,11 @@ class BitcoinManager extends AbstractManager
         }
 
         return $rateSettings;
+    }
+
+    public function getNonDefaultWithdrawalRateSettings(): array
+    {
+        return $this->getNonDefaultRateSettings(Transaction::TRANSACTION_TYPE_WITHDRAW);
     }
 
     protected function setLastTouchedDetails(BitcoinRAteSetting $setting): void
@@ -258,6 +319,16 @@ class BitcoinManager extends AbstractManager
         return $dto;
     }
 
+    public function createWithdrawalRateSettingsDTO(): BitcoinRateSettingsDTO
+    {
+        $defaultRateSetting = $this->getDefaultRateSetting(Transaction::TRANSACTION_TYPE_WITHDRAW);
+        $dto = new BitcoinRateSettingsDTO($defaultRateSetting);
+        $withdrawalRateSettings = $this->getNonDefaultWithdrawalRateSettings();
+        $dto->setBitcoinRateSettings($withdrawalRateSettings);
+
+        return $dto;
+    }
+
     public function prepareRateSettingForm(Form $form): void
     {
         $dto = $this->createRateSettingsDTO();
@@ -267,11 +338,25 @@ class BitcoinManager extends AbstractManager
         }
     }
 
-    public function saveRateSettings(BitcoinRateSettingsDTO $dto): void
+    public function prepareWithdrawalRateSettingForm(Form $form): void
+    {
+        $dto = $this->createWithdrawalRateSettingsDTO();
+
+        if (!$form->isSubmitted()) {
+            $form->setData($dto);
+        }
+    }
+
+    public function saveRateSettings(BitcoinRateSettingsDTO $dto, int $transactionType): void
     {
         $this->em->persist($dto->getDefaultRateSetting());
 
         foreach ($dto->getBitcoinRateSettings() as $setting) {
+            if ($transactionType == Transaction::TRANSACTION_TYPE_DEPOSIT) {
+                $setting->setDefaultType();
+            } else {
+                $setting->setWithdrawalType();
+            }
             $this->em->persist($setting);
         }
 
@@ -279,9 +364,10 @@ class BitcoinManager extends AbstractManager
         foreach ($removedItems as $item) {
             $this->em->remove($item);
         }
+        
+        $bitcoinAdjustment = $this->createBitcoinAdjustment(Rate::RATE_EUR, $transactionType);
 
-        $bitcoinAdjustment = $this->createBitcoinAdjustment(Rate::RATE_EUR);
-        $this->dispatcher->dispatch(BitcoinRateSettingSaveEvent::NAME, new BitcoinRateSettingSaveEvent($bitcoinAdjustment));
+        $this->dispatcher->dispatch(BitcoinRateSettingSaveEvent::NAME, new BitcoinRateSettingSaveEvent($bitcoinAdjustment, $transactionType));
 
         $this->em->flush();
     }
@@ -306,9 +392,9 @@ class BitcoinManager extends AbstractManager
         $this->blockchain = $blockchain;
     }
 
-    public function findActiveBitcoinTransaction($customer): ?Transaction
+    public function findUserUnacknowledgedDepositBitcoinTransaction($customer): ?Transaction
     {
-        $transaction = $this->transactionRepository->findActiveBitcoinTransaction($customer);
+        $transaction = $this->transactionRepository->findUserUnacknowledgedDepositBitcoinTransaction($customer);
     
         if ($transaction === null) {
             return null;

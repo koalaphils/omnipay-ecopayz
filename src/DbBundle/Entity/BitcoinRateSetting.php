@@ -6,6 +6,7 @@ use DbBundle\Entity\Interfaces\ActionInterface;
 use DbBundle\Entity\Interfaces\AuditInterface;
 use DbBundle\Entity\Interfaces\TimestampInterface;
 use DbBundle\Entity\AuditRevisionLog;
+use DbBundle\Entity\Transaction;
 
 class BitcoinRateSetting extends Entity implements ActionInterface, TimestampInterface, AuditInterface
 {
@@ -17,6 +18,7 @@ class BitcoinRateSetting extends Entity implements ActionInterface, TimestampInt
     private $fixedAdjustment;
     private $percentageAdjustment;
     private $isDefault;
+    private $type;
 
     private $lastTouchedBy;
 
@@ -83,6 +85,37 @@ class BitcoinRateSetting extends Entity implements ActionInterface, TimestampInt
     public function getIsDefault(): ?bool
     {
         return $this->isDefault;
+    }
+
+    public function setType(int $type): BitcoinRateSetting
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    public function setWithdrawalType()
+    {
+        $this->setType(Transaction::TRANSACTION_TYPE_WITHDRAW);
+
+        return $this;
+    }
+
+    public function setDefaultType()
+    {
+        $this->setType(Transaction::TRANSACTION_TYPE_DEPOSIT);
+
+        return $this;
+    }
+
+    public function getType(): int
+    {
+        return $this->type ?? Transaction::TRANSACTION_TYPE_DEPOSIT;
+    }
+
+    public function isWithdrawalType(): bool
+    {
+        return $this->getType() == Transaction::TRANSACTION_TYPE_WITHDRAW;
     }
 
     public function isDefault(): bool

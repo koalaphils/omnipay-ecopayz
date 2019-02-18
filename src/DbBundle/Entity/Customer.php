@@ -5,6 +5,7 @@ namespace DbBundle\Entity;
 use DbBundle\Entity\Interfaces\AuditAssociationInterface;
 use DbBundle\Entity\Interfaces\AuditInterface;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use AppBundle\ValueObject\Number;
 
 class Customer extends Entity implements AuditInterface, AuditAssociationInterface
@@ -312,7 +313,8 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
      */
     public function setBalance($balance = 0)
     {
-        $this->balance = $balance;
+        // zimi - 1544522191
+        $this->balance = $this->balance + $balance;
 
         return $this;
     }
@@ -1135,6 +1137,122 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this->getCurrency()->getCode();
     }
 
+	public function getUsername(): string
+    {
+        return $this->getUser()->getUsername();
+    }
+    /**
+     * @var string
+     */
+    private $pinUserCode;
+
+    /**
+     * @var string
+     */
+    private $pinLoginId;
+
+
+    /**
+     * Set pinUserCode
+     *
+     * @param string $pinUserCode
+     *
+     * @return Customer
+     */
+    public function setPinUserCode($pinUserCode)
+    {
+        $this->pinUserCode = $pinUserCode;
+
+        return $this;
+    }
+
+    /**
+     * Get pinUserCode
+     *
+     * @return string
+     */
+    public function getPinUserCode()
+    {
+        return $this->pinUserCode;
+    }
+
+    /**
+     * Set pinLoginId
+     *
+     * @param string $pinLoginId
+     *
+     * @return Customer
+     */
+    public function setPinLoginId($pinLoginId)
+    {
+        $this->pinLoginId = $pinLoginId;
+
+        return $this;
+    }
+
+    /**
+     * Get pinLoginId
+     *
+     * @return string
+     */
+    public function getPinLoginId()
+    {
+        return $this->pinLoginId;
+    }
+
+    /**
+     * Add referral
+     *
+     * @param \DbBundle\Entity\Customer $referral
+     *
+     * @return Customer
+     */
+    public function addReferral(\DbBundle\Entity\Customer $referral)
+    {
+        $this->referrals[] = $referral;
+
+        return $this;
+    }
+
+    /**
+     * Remove referral
+     *
+     * @param \DbBundle\Entity\Customer $referral
+     */
+    public function removeReferral(\DbBundle\Entity\Customer $referral)
+    {
+        $this->referrals->removeElement($referral);
+    }
+    /**
+     * @var string
+     */
+    private $phoneNumber;
+
+
+    /**
+     * Set phoneNumber
+     *
+     * @param string $phoneNumber
+     *
+     * @return Customer
+     */
+    public function setPhoneNumber($phoneNumber)
+    {
+        $this->phoneNumber = $phoneNumber;
+
+        return $this;
+    }
+
+    /**
+     * Get phoneNumber
+     *
+     * @return string
+     */
+    public function getPhoneNumber()
+    {
+        return $this->phoneNumber;
+    }
+
     public function getReferrerCode(): ?string
     {
         return $this->getUser()->getPreference('affiliateCode');
@@ -1143,11 +1261,6 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     public function linkReferrer(Customer $referrer): void
     {
         $this->setReferrer($referrer);
-    }
-
-    public function getUsername(): ?string
-    {
-        return $this->getUser()->getUsername();
     }
 
     public function getCurrentReferrerDetails(): array

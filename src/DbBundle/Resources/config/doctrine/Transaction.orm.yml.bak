@@ -1,0 +1,231 @@
+DbBundle\Entity\Transaction:
+    type: entity
+    table: transaction
+    repositoryClass: DbBundle\Repository\TransactionRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: transaction_id
+            options:
+                unsigned: true
+    indexes:
+        number_index:
+            columns: [transaction_number]
+        type_index:
+            columns: [transaction_type]
+        date_index:
+            columns: [transaction_date]
+        status:
+            columns: [transaction_status]
+        isVoided_index:
+            columns: [transaction_is_voided]
+        createdAt_index:
+            columns: [transaction_created_at]
+        updatedAt_index:
+            columns: [transaction_updated_at]
+        toCustomer_index:
+            columns: [transaction_to_customer]
+        dwlId_index:
+            columns: [dwl_id]
+        customer_index:
+            columns: [transaction_customer_id]
+        bet_id_index:
+            columns: [transaction_bet_id]
+        bet_event_id_index:
+            columns: [transaction_bet_event_id]
+        commission_computed_original_index:
+            columns: [transaction_commission_computed_original]
+        virtual_bitcoin_transaction_hash_index:
+            columns: [transaction_virtual_bitcoin_transaction_hash]
+        bitcoin_confirmation_count_index:
+            columns: [transaction_bitcoin_confirmation_count]
+        # virtual_bitcoin_sender_address_index:
+        #    columns: [transaction_virtual_bitcoin_sender_address]
+        bitcoin_confirmation:
+            columns: [transaction_bitcoin_confirmation]
+    fields:
+        number:
+            type: string
+            length: 255
+            unique: true
+            column: transaction_number
+        amount:
+            type: decimal
+            precision: 65
+            scale: 10
+            options:
+                default: 0
+            column: transaction_amount
+            nullable: false
+        fees:
+            type: json
+            column: transaction_fees
+        type:
+            type: smallint
+            column: transaction_type
+        date:
+            type: datetime
+            column: transaction_date
+        status:
+            type: smallint
+            column: transaction_status
+            options:
+                unsigned: true
+        isVoided:
+            type: boolean
+            column: transaction_is_voided
+            options:
+                default: false
+        details:
+            type: json
+            nullable: true
+            column: transaction_other_details
+        createdBy:
+            type: bigint
+            nullable: true
+            column: transaction_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: transaction_created_at
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: transaction_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            column: transaction_updated_at
+            nullable: true
+            version: true
+        deletedAt:
+            type: datetime
+            nullable: true
+            column: transaction_deleted_at
+        toCustomer:
+            type: bigint
+            options:
+                generate: transaction_other_details->"$.toCustomer"
+                readOnly: true
+            column: transaction_to_customer
+            nullable: true
+        dwlId:
+            type: bigint
+            options:
+                generate: transaction_other_details->"$.dwl.id"
+                readOnly: true
+            column: dwl_id
+            nullable: true
+        betId:
+            type: bigint
+            options:
+                generate: transaction_other_details->"$.bet_id"
+                readOnly: true
+            column: transaction_bet_id
+            nullable: true
+        betEventId:
+            type: bigint
+            options:
+                generate: transaction_other_details->"$.event_id"
+                readOnly: true
+            column: transaction_bet_event_id
+            nullable: true
+        commissionComputedOriginal:
+            type: decimal
+            precision: 65
+            scale: 10
+            options:
+                generate: transaction_other_details->"$.commission.computed.original"
+                readOnly: true
+            column: transaction_commission_computed_original
+            nullable: true
+        virtualBitcoinTransactionHash:
+            type: string
+            nullable: true
+            options:
+                generate: transaction_other_details->>"$.bitcoin.transaction.hash"
+                readOnly: true
+            column: transaction_virtual_bitcoin_transaction_hash
+        bitcoinConfirmationCount:
+            type: integer
+            nullable: true
+            options:
+                generate: transaction_other_details->>"$.bitcoin.confirmation_count"
+                readOnly: true
+            column: transaction_bitcoin_confirmation_count
+        virtualBitcoinSenderAddress:
+            type: json
+            nullable: true
+            options:
+                generate: transaction_other_details->>"$.bitcoin.transaction.sender_address"
+                readOnly: true
+            column: transaction_virtual_bitcoin_sender_address
+        virtualBitcoinReceiverUniqueAddress:
+            type: string
+            nullable: true
+            options:
+                generate: transaction_other_details->>"$.bitcoin.transaction.receiver_unique_address"
+                readOnly: true
+            column: transaction_virtual_bitcoin_receiver_unique_address
+        bitcoinConfirmation:
+            type: integer
+            options:
+                generate: transaction_other_details->"$.bitcoin.confirmation_count"
+                readOnly: true
+            column: transaction_bitcoin_confirmation
+            nullable: true
+    manyToOne:
+        customer:
+            targetEntity: DbBundle\Entity\Customer
+            inversedBy: transactions
+            joinColumn:
+                name: transaction_customer_id
+                referencedColumnName: customer_id
+        gateway:
+            targetEntity: DbBundle\Entity\Gateway
+            joinColumn:
+                name: transaction_gateway_id
+                referencedColumnName: gateway_id
+        currency:
+            targetEntity: DbBundle\Entity\Currency
+            joinColumn:
+                nullable: false
+                name: transaction_currency_id
+                referencedColumnName: currency_id
+        paymentOption:
+            targetEntity: DbBundle\Entity\CustomerPaymentOption
+            joinColumn:
+                name: transaction_payment_option_id
+                referencedColumnName: customer_payment_option_id
+        paymentOptionOnTransaction:
+            targetEntity: DbBundle\Entity\CustomerPaymentOption
+            joinColumn:
+                nullable: true
+                name: transaction_payment_option_on_transaction_id
+                referencedColumnName: customer_payment_option_id
+        paymentOptionType:
+            targetEntity: DbBundle\Entity\PaymentOption
+            joinColumn:
+                name: transaction_payment_option_type
+                referencedColumnName: payment_option_code
+        # creator attribute was created as a workaround
+        # until all entity's createdBy is converted to a proper entityAssociation
+        creator:
+            targetEntity: DbBundle\Entity\User
+            joinColumn:
+                nullable: true
+                name: transaction_created_by
+                referencedColumnName: user_id
+    oneToMany:
+        subTransactions:
+            targetEntity: DbBundle\Entity\SubTransaction
+            mappedBy: parent
+            cascade: ['persist']
+            orderBy:
+                type: DESC
+    lifecycleCallbacks: {  }

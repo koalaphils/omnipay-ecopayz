@@ -108,7 +108,11 @@ class TransactionOldManager extends AbstractManager
         $totalCustomerFee = new Number(0);
         $totalCompanyFee = new Number(0);
         $currencies = [];
-        $currencies[$transaction->getCustomer()->getCurrency()->getId()] = $transaction->getCustomer()->getCurrency();
+
+        // zimi-check !== null
+        if ($transaction->getCustomer()->getCurrency() !== null) {
+            $currencies[$transaction->getCustomer()->getCurrency()->getId()] = $transaction->getCustomer()->getCurrency();
+        }        
 
         foreach ($transaction->getSubTransactions() as $subTransaction) {
             /* @var $subTransaction SubTransaction */
@@ -212,36 +216,111 @@ class TransactionOldManager extends AbstractManager
         $subTransactions = $transaction->getSubTransactions();
         $customerProducts = [];
         $customers = [];
-        /* @var $subTransaction SubTransaction */
-        foreach ($subTransactions as $subTransaction) {
-            $customerProduct = array_get($customerProducts, $subTransaction->getCustomerProduct()->getId(), $subTransaction->getCustomerProduct());
-            $customerBalance = new Number(array_get($customers, $customerProduct->getCustomerID(), 0));
+                
+        // zimi - call API pinnacle        
+        $transactionStatus = $transaction->getStatus();        
+        $id = $transaction->getId();
+        $query = 'select * from transaction where transaction_id = ' . $id;        
+        $em = $this->getDoctrine()->getManager();
+        $qu = $em->getConnection()->prepare($query);
+        $qu->execute();
+        $res = $qu->fetchAll()[0];
+        $amount = $res['transaction_amount'];        
+        $customer_id = $res['transaction_customer_id'];
+        $query = 'select user_username as userCode from user u join customer c on c.customer_user_id = u.user_id where c.customer_id = ' . $customer_id;
+        $qu = $em->getConnection()->prepare($query);
+        $qu->execute();
+        $res = $qu->fetchAll()[0];
+        $userCode = $res['userCode'];
+        
+        // Amount value should be two decimal places
+        $amount = number_format((float)$amount, 2, '.', '');                
+                
+        // zimi - withdraw transaction
+        $pin_url = '';        
+        if ($transaction->isDeposit()){
+            $pin_url = 'http://47.254.197.223:9000/api/pinnacle/deposit';              
+        }
 
-            if ($subTransaction->isDeposit() || $subTransaction->isDWL()) {
-                $customerProductBalance = new Number($customerProduct->getBalance());
-                $customerProductBalance = $customerProductBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
-                $customerProduct->setBalance($customerProductBalance . '');
-                $customerBalance = $customerBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount())) . '';
-            } elseif ($subTransaction->isWithdrawal()) {
-                $customerProductBalance = new Number($customerProduct->getBalance());
-                $customerProductBalance = $customerProductBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
-                $customerProduct->setBalance($customerProductBalance . '');
-                $customerBalance = $customerBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount())) . '';
+        if ($transaction->isWithdrawal()){
+            $pin_url = 'http://47.254.197.223:9000/api/pinnacle/withdraw';                   
+        }
+
+        if ($transactionStatus == Transaction::TRANSACTION_STATUS_END) {
+            $headers = [
+                'Content-type: application/json'
+            ];            
+            
+            $pdata = json_encode(array('userCode' => $userCode, 'amount'=> $amount));
+            $curl = curl_init();            
+            curl_setopt_array($curl, array(
+            CURLOPT_HTTPHEADER => $headers,
+               CURLOPT_RETURNTRANSFER => 1,
+               CURLOPT_SSL_VERIFYPEER => 0,
+               CURLOPT_URL => $pin_url,
+               CURLOPT_POST => 1,
+               CURLOPT_POSTFIELDS => $pdata 
+            ));
+                    
+            $response = curl_exec($curl);            
+            $res = json_decode($response);            
+            $res = json_decode($res);            
+
+
+            // {\\\"code\\\":\\\"309\\\",\\\"message\\\":\\\"Your balance is not enough.\\\"} 
+            if (array_key_exists('code', $res)) {
+                $res_code = $res->code;
+                $res_message = $res->message;   
+                $transaction->setStatus(Transaction::TRANSACTION_STATUS_ACKNOWLEDGE);
+                                
+                return json_encode($res);
+                
             }
 
-            array_set($customerProducts, $customerProduct->getId(), $customerProduct);
-            array_set($customers, $customerProduct->getCustomerID(), $customerBalance);
+            // echo json_encode([$userCode, $amount, $res]);exit();            
+            // {"amount":1,"loginId":"PS7110009E","userCode":"PS7110009E","availableBalance":13}             
         }
+        
+        /* @var $subTransaction SubTransaction */        
+        // foreach ($subTransactions as $subTransaction) {
+        //     // zimi-comment
+        //     // $customerProduct = array_get($customerProducts, $subTransaction->getCustomerProduct()->getId(), $subTransaction->getCustomerProduct());
+        //     $customerBalance = new Number(array_get($customers, $customer_id, 0));
 
-        foreach ($customerProducts as $customerProductId => $customerProduct) {
-            $this->getRepository()->save($customerProduct);
+        //     if ($subTransaction->isDeposit() || $subTransaction->isDWL()) {
+        //         $customerProductBalance = new Number(0);
+        //         $customerProductBalance = $customerProductBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
+                
+        //         // zimi-comment
+        //         // $customerProduct->setBalance($customerProductBalance . '');                
+                
+        //         $customerBalance = $customerBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount())) . '';
+        //     } elseif ($subTransaction->isWithdrawal()) {
+        //         $customerProductBalance = new Number($customerProduct->getBalance());
+        //         $customerProductBalance = $customerProductBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
+        //         $customerProduct->setBalance($customerProductBalance . '');
+        //         $customerBalance = $customerBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount())) . '';
+        //     }
+
+        //     // zimi-comment
+        //     // array_set($customerProducts, $customerProduct->getId(), $customerProduct);
+        //     // array_set($customers, $customerProduct->getCustomerID(), $customerBalance);
+        // }
+
+        // foreach ($customerProducts as $customerProductId => $customerProduct) {
+        //     $this->getRepository()->save($customerProduct);
+        // }
+
+        if ($transaction->isDeposit()) {            
+            $transaction->getCustomer()->setEnabled();            
+            // DbBundle\Entity\Customer
+            $cus = $transaction->getCustomer();
+            $cus->setBalance($amount);            
+            
+            // zimi#006b4669            
+            $this->getRepository()->save($cus);
         }
-
-        if ($transaction->isDeposit()) {
-            $transaction->getCustomer()->setEnabled();
-            $this->getRepository()->save($transaction->getCustomer());
-        }
-
+        
         if ($transaction->isDeposit() || $transaction->isWithdrawal() || $transaction->isBonus()) {
             if ($transaction->getGateway()) {
                 $this->processPaymentGatewayBalance($transaction);

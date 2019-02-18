@@ -1,16 +1,17 @@
 ApiBundle\Model\Transaction:
     properties:
         subTransactions:
-            - Count:
-                min: 1
-                minMessage: "You must add one product"
+            # zimi
+            # - Count:
+            #    min: 1
+            #    minMessage: "You must add one product"
         email:
-            - NotNull:
-                message: "Email cannot be empty"
-                groups: [withEmail]
-            - Email:
-                message: "Invalid Email"
-                groups: [withEmail]
+            # - NotNull:
+            #     message: "Email cannot be empty"
+            #     groups: [withEmail]
+            # - Email:
+            #     message: "Invalid Email"
+            #     groups: [withEmail]
             - AppBundle\Validator\Constraints\Unique:
                 entityClass: DbBundle\Entity\CustomerPaymentOption
                 valuePath: value
@@ -24,16 +25,22 @@ ApiBundle\Model\Transaction:
                 message: "Email is already used."
                 groups: ['withUniqueEmail']
         transactionPassword:
-            - NotNull: 
+            - NotNull:
                 message: "Transaction password should not be empty"
                 groups: [withdraw, p2p]
             - ApiBundle\Validator\TransactionPasswordConstraint:
                 groups: [withdraw, p2p]
+        file:
+            - File:
+                maxSize: 2M
+                mimeTypes: ['image/png', 'image/jpeg', 'image/jpg']
+                mimeTypesMessage: 'Please upload a valid file.'
+                groups: ['deposit']
 
 ApiBundle\Model\SubTransaction:
     properties:
         product:
-            - NotNull: 
+            - NotNull:
                 message: "Product cannot be empty."
             - Type:
                 type: DbBundle\Entity\CustomerProduct
@@ -51,7 +58,7 @@ ApiBundle\Model\SubTransaction:
                 expression: "value !== null && value.getCustomer().getId() == this.getTransaction().getCustomer().getId()"
                 message: "You can only tranfer to your own product"
                 groups: [transfer]
-            - ApiBundle\Validator\SameProductConstraint: 
+            - ApiBundle\Validator\SameProductConstraint:
                 groups: [p2p]
         username:
             - Expression:
@@ -59,7 +66,7 @@ ApiBundle\Model\SubTransaction:
                 message: "You can't transfer to your own product"
                 groups: [p2p]
         amount:
-            - NotNull: 
+            - NotNull:
                 message: "Amount cannot be empty."
             - NotEqualTo:
                 value: 0
@@ -93,11 +100,11 @@ ApiBundle\Model\Transfer:
                 expressionParams:
                     customer: object.getCustomer().getId()
                 ignoreNull: true
-            - NotNull: 
+            - NotNull:
                 message: "Product should not be empty"
             #- Expression:
             #    expression: "value !== null && this.getTotalAmount() <= value.getBalance()"
-            #    message: "Not enough balance"  
+            #    message: "Not enough balance"
             - Expression:
                 expression: "not this.isMultipleToCustomer()"
                 message: "Unable to transfer to mulitple customer"
@@ -110,9 +117,9 @@ ApiBundle\Model\Transfer:
                 groups: [p2p]
             - ApiBundle\Validator\SameCurrencyConstraint:
                 groups: [p2p]
-        
+
         transactionPassword:
-            - NotNull: 
+            - NotNull:
                 message: "Transaction password should not be empty"
                 groups: [withdraw, p2p]
             - ApiBundle\Validator\TransactionPasswordConstraint:
@@ -158,9 +165,25 @@ ApiBundle\Model\AccountActivation:
                 maxMessage: "Transaction password should not exceed 50 characters."
 
 ApiBundle\Model\Register:
+    constraints:
+        - AppBundle\Validator\Constraints\Unique:
+            entityClass: DbBundle\Entity\User
+            joins:
+              uc: e.customer
+              ucc: uc.country
+            expression: "e.phoneNumber = :phoneNumber AND ucc.phoneCode = :phoneCode"
+            expressionParams:
+              phoneNumber: object.getPhoneNumber()
+              phoneCode: object.getCountryPhoneCode()
+            validator: composite_unique
+            errorPath: username
+            violationValues:
+              --phoneNumber: object.getPhoneNumber()
+              --phoneCode: object.getCountryPhoneCode()
+            message: "User with --phoneNumber and country phone code --phoneCode is already exists."
     properties:
         email:
-            - NotBlank: ~
+#            - NotBlank: ~
             - Email: ~
             - AppBundle\Validator\Constraints\Unique:
                 entityClass: DbBundle\Entity\User
@@ -242,9 +265,9 @@ ApiBundle\Model\Register:
                 match:   true
                 message: Promo code is invalid 
         bookies:
-            - Count:
-                min: 1
-                minMessage: "You must add one bookie"
+            #- Count:
+            #    min: 1
+            #    minMessage: "You must add one bookie"
             #- AppBundle\Validator\Constraints\Unique:
             #    entityClass: DbBundle\Entity\CustomerProduct
             #    isJoinTable: true

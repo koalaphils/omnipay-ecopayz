@@ -8,6 +8,7 @@ use Symfony\Component\Form\Extension\Core\Type;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use ApiBundle\Form\DataTransformer\CustomerTransformer;
+use Symfony\Component\Validator\Constraints\Valid;
 
 class TransactionType extends AbstractType
 {
@@ -23,7 +24,7 @@ class TransactionType extends AbstractType
         $builder->add('subTransactions', Type\CollectionType::class, [
             'entry_type' => SubTransactionType::class,
             'allow_add' => true,
-            'constraints' => [new \Symfony\Component\Validator\Constraints\Valid()],
+            'constraints' => [new Valid()],
             'entry_options' => [
                 'hasFee' => $options['hasFee'],
             ],
@@ -41,6 +42,14 @@ class TransactionType extends AbstractType
         if ($options['hasEmail']) {
             $builder->add('email', Type\TextType::class);
         }
+
+        if ($options['hasAccountId']) {
+            $builder->add('accountId', Type\TextType::class);
+	}
+
+        $builder->add('file', Type\FileType::class, [
+            'required' => false,
+        ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -48,10 +57,11 @@ class TransactionType extends AbstractType
         $resolver->setDefaults([
             'data_class' => \ApiBundle\Model\Transaction::class,
             'csrf_protection' => false,
-            'constraints' => [new \Symfony\Component\Validator\Constraints\Valid()],
+            'constraints' => [new Valid()],
             'hasFee' => false,
             'hasEmail' => false,
             'hasTransactionPassword' => false,
+            'hasAccountId' => false,
         ]);
     }
 

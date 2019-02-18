@@ -43,6 +43,7 @@ class ReceivePayment extends BlockchainComponent
         ];
 
         $response = $this->apiGet(self::GAPCHECK_PATH, $query);
+        // pending: waiting supplied access token api
         $content = \GuzzleHttp\json_decode($response->getBody(), true);
 
         return (int) $content['gap'];

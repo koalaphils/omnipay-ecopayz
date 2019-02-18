@@ -115,15 +115,22 @@ DbBundle\Entity\Customer:
             nullable: false
             options:
                 default: ''
+        pinUserCode:
+            type: string
+            column: customer_pin_user_code
+        pinLoginId:
+            type: string
+            column: customer_pin_login_id
     manyToOne:
         currency:
             targetEntity: DbBundle\Entity\Currency
             joinColumn:
-                nullable: false
+                nullable: true
                 name: customer_currency_id
                 referencedColumnName: currency_id
         country:
             targetEntity: DbBundle\Entity\Country
+            nullable: true
             joinColumn:
                 nullable: true
                 name: customer_country_id

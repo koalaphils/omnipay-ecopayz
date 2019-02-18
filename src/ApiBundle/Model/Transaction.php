@@ -7,8 +7,10 @@
 
 namespace ApiBundle\Model;
 
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use DbBundle\Entity\Customer;
+use DbBundle\Entity\Transaction as EntityTransaction;
 use DbBundle\Entity\CustomerPaymentOption as MemberPaymentOption;
 use DbBundle\Entity\PaymentOption as Payment;
 
@@ -29,10 +31,17 @@ class Transaction
     private $customerFee;
     private $paymentDetails;
     private $bankDetails;
+    #zimi
+    private $amount;
+    
+    private $accountId;
+    private $file;
+    private $type;
 
-    public function __construct()
+    public function __construct(int $type =  EntityTransaction::TRANSACTION_TYPE_DEPOSIT)
     {
         $this->setSubTransactions([]);
+        $this->type = $type;
     }
 
     public function getSubTransactions(): \Doctrine\Common\Collections\ArrayCollection
@@ -106,6 +115,18 @@ class Transaction
         return $this->email;
     }
 
+    public function setAccountId(string $accountId): self
+    {
+        $this->accountId = $accountId;
+
+        return $this;
+    }
+
+    public function getAccountId(): ?string
+    {
+        return $this->accountId;
+    }
+    
     public function setTransactionPassword(string $transactionPassword): self
     {
         $this->transactionPassword = $transactionPassword;
@@ -160,5 +181,46 @@ class Transaction
     public function getBankDetails(): ?string
     {
         return $this->bankDetails;
+    }
+
+    // zimi
+    /**
+     * Set amount.
+     *
+     * @param string $amount
+     *
+     * @return Transaction
+     */
+    public function setAmount($amount = 0)
+    {
+        $this->amount = $amount;
+
+        return $this;
+    }
+
+    /**
+     * Get amount.     
+     *
+     * @return string
+     */
+    public function getAmount()
+    {
+        return $this->amount;
+    }
+
+    public function getFile(): ?UploadedFile
+    {
+        return $this->file;
+    }
+
+    public function setFile(UploadedFile $file): self
+    {
+        $this->file = $file;
+
+        return $this;
+    }
+
+    public function getType(): int {
+        return $this->type;
     }
 }

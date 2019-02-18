@@ -14,10 +14,19 @@ use DbBundle\Entity\Transaction;
 
 class TransactionManager extends AbstractManager
 {
+    private $mediaManager;
+
+    public function __construct(MediaManager $mediaManager)
+    {
+        $this->mediaManager = $mediaManager;
+    }
+
     public function handleDeposit(TransactionModel $transactionModel)
     {
         $transaction = new Transaction();
-        $transaction->setCustomer($transactionModel->getCustomer());
+        // zimi
+        $customer = $transactionModel->getCustomer();        
+        $transaction->setCustomer($customer);
         $transaction->setPaymentOption($transactionModel->getPaymentOption());
         $transaction->setType(Transaction::TRANSACTION_TYPE_DEPOSIT);
         $transaction->setNumber(date('Ymd-His-') . $this->getTransactionManager()->getType('deposit'));
@@ -25,15 +34,13 @@ class TransactionManager extends AbstractManager
         $transaction->setFee('customer_fee', $transactionModel->getCustomerFee());
         $transaction->setFee('company_fee', 0);
         $transaction->setDetail('email', $transactionModel->getEmail());
-        
-        if ($transactionModel->hasPaymentDetails()) {
-            foreach ($transactionModel->getPaymentDetails()->toArray() as $key => $value) {
-                $transaction->setDetail($key, $value);
-            }
-        }
-        
+        // zimi        
+        $transaction->setAmount($transactionModel->getAmount());
+        // $transaction->setAmount(40000);
+
         $transaction->autoSetPaymentOptionType();
 
+        // zimi-comment
         foreach ($transactionModel->getSubTransactions() as $subTransactionModel) {
             $subTransaction = new SubTransaction();
             $subTransaction->setCustomerProduct($subTransactionModel->getProduct());
@@ -47,13 +54,26 @@ class TransactionManager extends AbstractManager
 
             $transaction->addSubTransaction($subTransaction);
         }
+
         $transaction->setPaymentOptionOnTransaction($this->createPaymentOptionOnTransaction($transactionModel));
         $transaction->retainImmutableData();
+
+        if ($file = $transactionModel->getFile()) {
+            $filename = $transaction->getNumber() . '.' . $file->getClientOriginalExtension();
+            $transaction->setFilename($filename);
+            $transaction->setFileFolder(Transaction::FILE_FOLDER_DIR);
+        }
 
         $this->beginTransaction();
         try {
             $action = ['label' => 'Save', 'status' => Transaction::TRANSACTION_STATUS_START];
+
             $this->getTransactionManager()->processTransaction($transaction, $action, true);
+
+            if ($file) {
+                $this->uploadFile($file, $transaction);
+            }
+
             $this->commit();
 
             $event = new TransactionCreatedEvent($transaction);
@@ -78,6 +98,14 @@ class TransactionManager extends AbstractManager
         $transaction->setFee('customer_fee', $transactionModel->getCustomerFee());
         $transaction->setDetail('notes', $transactionModel->getBankDetails());
         $transaction->autoSetPaymentOptionType();
+        // zimi        
+        $transaction->setAmount($transactionModel->getAmount());
+        if ($transaction->isTransactionPaymentBitcoin() && $transactionModel->hasPaymentDetails()) {
+            $transaction->setBitcoinAddress($transactionModel->getAccountId());
+            foreach ($transactionModel->getPaymentDetails()->toArray() as $key => $value) {
+                $transaction->setDetail($key, $value);
+            }
+        }
 
         foreach ($transactionModel->getSubTransactions() as $subTransactionModel) {
             $subTransaction = new SubTransaction();
@@ -86,6 +114,11 @@ class TransactionManager extends AbstractManager
             $subTransaction->setType(Transaction::TRANSACTION_TYPE_WITHDRAW);
             $subTransaction->setDetail('hasFee', $subTransactionModel->getForFee());
 
+            if ($subTransactionModel->hasPaymentDetails()) {
+                foreach ($subTransactionModel->getPaymentDetails()->toArray() as $key => $value) {
+                    $subTransaction->setDetail($key, $value);
+                }
+            }
             $transaction->addSubTransaction($subTransaction);
         }
         $transaction->setPaymentOptionOnTransaction($this->createPaymentOptionOnTransaction($transactionModel));
@@ -186,7 +219,12 @@ class TransactionManager extends AbstractManager
         $this->getEntityManager()->flush($customerPaymentOption);
     }
 
-    public function addCustomerPaymentOption(\DbBundle\Entity\Customer $customer, string $paymentOptionType, array $transaction = []):? \DbBundle\Entity\CustomerPaymentOption
+    public function addCustomerPaymentOption(
+        \DbBundle\Entity\Customer $customer, 
+        string $paymentOptionType, 
+        array $transaction = [],
+        int $transactionType = Transaction::TRANSACTION_TYPE_DEPOSIT
+        ):? \DbBundle\Entity\CustomerPaymentOption 
     {
         $paymentOption = $this->getPaymentOptionRepository()->find($paymentOptionType);
         $memberDetails = $customer->getDetails();
@@ -196,8 +234,14 @@ class TransactionManager extends AbstractManager
         $customerPaymentOption->setCustomer($customer);
         if ($paymentOption->isPaymentEcopayz()) {
             $customerPaymentOption->addField('account_id', empty($transaction['email']) ? '' : $transaction['email']);
+        } elseif ($paymentOption->isPaymentBitcoin() && $transactionType === Transaction::TRANSACTION_TYPE_WITHDRAW) {
+            $customerPaymentOption->addField('account_id', '');
+            $customerPaymentOption->addField('is_withdrawal', 1);
+        } elseif ($paymentOption->isPaymentBitcoin() && $transactionType === Transaction::TRANSACTION_TYPE_DEPOSIT) {
+            $customerPaymentOption->addField('account_id', '');
+            $customerPaymentOption->addField('is_withdrawal', 0);
         } else {
-            $customerPaymentOption->addField('account_id', null);
+            $customerPaymentOption->addField('account_id', '');
         }
         $customerPaymentOption->addField('email', empty($transaction['email']) ? '' : $transaction['email']);
         $this->getEntityManager()->persist($customerPaymentOption);
@@ -208,11 +252,13 @@ class TransactionManager extends AbstractManager
 
     public function updateMemberPaymentOptionAccountId(\DbBundle\Entity\CustomerPaymentOption $memberPaymentOption, string $accountId): \DbBundle\Entity\CustomerPaymentOption
     {
-        $memberPaymentOption->setAccountId($accountId);
-        
-        $this->getEntityManager()->persist($memberPaymentOption);
-        $this->getEntityManager()->flush($memberPaymentOption);
-        
+        if ($memberPaymentOption->getBitcoinField() != $accountId) {
+            $memberPaymentOption->setAccountId($accountId);
+
+            $this->getEntityManager()->persist($memberPaymentOption);
+            $this->getEntityManager()->flush($memberPaymentOption);
+        }
+
         return $memberPaymentOption;
     }
     
@@ -269,6 +315,11 @@ class TransactionManager extends AbstractManager
         return $this->getContainer()->get('api.transaction_repository');
     }
 
+    private function uploadFile(UploadedFile $file, Transaction $transaction): void
+    {
+        $this->getMediaManager()->compressUploadFile($file, $transaction->getFileFolder(), $transaction->getFilename());
+    }
+
     private function getCustomerPaymentOptionRepository(): \DbBundle\Repository\CustomerPaymentOptionRepository
     {
         return $this->getDoctrine()->getRepository('DbBundle:CustomerPaymentOption');
@@ -282,5 +333,10 @@ class TransactionManager extends AbstractManager
     private function getPaymentOptionRepository(): \DbBundle\Repository\PaymentOptionRepository
     {
         return $this->getDoctrine()->getRepository('DbBundle:PaymentOption');
+    }
+
+    private function getMediaManager(): MediaManager
+    {
+        return $this->mediaManager;
     }
 }

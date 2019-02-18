@@ -30,15 +30,18 @@ class BitcoinController extends AbstractController
         $token->setDetails(['memberId' => base64_decode($hash)]);
         $token->setGatewayName('bitcoin');
 
-        $gateway = $this->getPayum()->getGateway('bitcoin');
-        $gateway->execute(new Notify($token));
+        // $detail = $token->getDetails();
+        // return new JsonResponse([600, $detail]);
 
+        $gateway = $this->getPayum()->getGateway('bitcoin');
+        $notify = new Notify($token);        
+        $gateway->execute($notify);
         return new Response('', 204);
     }
 
     public function cycleFundNotifyAction(): Response
     {
-        return new Response('*ok*');
+        return new Response('*okk*');
     }
 
     public function saveBitcoinSettingAction(Request $request): Response

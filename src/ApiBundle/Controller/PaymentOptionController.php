@@ -2,6 +2,7 @@
 
 namespace ApiBundle\Controller;
 
+use DbBundle\Entity\Transaction;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -50,7 +51,7 @@ class PaymentOptionController extends AbstractController
 
      /**
      * @ApiDoc(
-     *  description="Get Bitcoin Adjustment from Cache",
+     *  description="Get Bitcoin Adjustment from Cache (Deposit)",
      * )
      */
     public function getCachedBitcoinAdjustmentAction()
@@ -58,7 +59,20 @@ class PaymentOptionController extends AbstractController
         $bitcoinManager = $this->get('payment.bitcoin_manager');
         $bitcoinAdjustment = $bitcoinManager->createBitcoinAdjustment(Rate::RATE_EUR);
 
-        return new JsonResponse($bitcoinAdjustment->toArray());
+        return new JsonResponse($bitcoinAdjustment->toArray(Transaction::TRANSACTION_TYPE_DEPOSIT));
+    }
+
+    /**
+     * @ApiDoc(
+     *  description="Get Bitcoin Adjustment from Cache (Withdrawal)",
+     * )
+     */
+    public function getCachedBitcoinWithdrawalAdjustmentAction()
+    {
+        $bitcoinManager = $this->get('payment.bitcoin_manager');
+        $bitcoinWithdrawalAdjustment = $bitcoinManager->createBitcoinAdjustment(Rate::RATE_EUR, Transaction::TRANSACTION_TYPE_WITHDRAW);
+
+        return new JsonResponse($bitcoinWithdrawalAdjustment->toArray(Transaction::TRANSACTION_TYPE_WITHDRAW));
     }
     
     protected function getPaymentOptionRepository(): \DbBundle\Repository\PaymentOptionRepository

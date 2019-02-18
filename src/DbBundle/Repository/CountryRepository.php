@@ -91,4 +91,12 @@ class CountryRepository extends BaseRepository
 
         return $qb->getQuery()->getSingleResult($hydrationMode);
     }
+
+    public function findByPhoneCode($code, $hydrationMode = \Doctrine\ORM\Query::HYDRATE_OBJECT)
+    {
+        $qb = $this->createQueryBuilder('c');
+        $qb->select('PARTIAL c.{id, name, phoneCode, code}');
+        $qb->where('c.phoneCode = :phone_code')->setParameter('phone_code', $code);        
+        return $qb->getQuery()->getOneOrNullResult($hydrationMode);
+    }
 }
