@@ -17,6 +17,7 @@ $router->get('/', function () use ($router) {
 // users
 $router->post('/api/users', 'UserController@create');
 $router->post('/api/users/login', 'UserController@login');
+$router->post('/api/users/logout', 'UserController@logout');
 $router->post('/api/users/refresh', 'UserController@refresh');
 $router->post('/api/users/forgot-password', 'UserController@forgotPassword');
 $router->post('/api/users/update-password', 'UserController@updatePassword');
