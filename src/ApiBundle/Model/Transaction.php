@@ -33,6 +33,7 @@ class Transaction
     private $bankDetails;
     #zimi
     private $amount;
+    private $bitcoinRate;
     
     private $accountId;
     private $file;
@@ -206,6 +207,30 @@ class Transaction
     public function getAmount()
     {
         return $this->amount;
+    }
+
+    /**
+     * Set bitcoin rate
+     *
+     * @param string $bitcoinRate
+     *
+     * @return string
+     */
+    public function setBitcoinRate($rate = '')
+    {
+        $this->bitcoinRate = $rate;
+
+        return $this;
+    }
+
+    /**
+     * Get bitcoin Rate     
+     *
+     * @return string
+     */
+    public function getBitcoinRate()
+    {
+        return $this->bitcoinRate;
     }
 
     public function getFile(): ?UploadedFile

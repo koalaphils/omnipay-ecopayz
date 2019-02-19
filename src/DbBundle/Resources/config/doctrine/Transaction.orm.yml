@@ -185,6 +185,9 @@ DbBundle\Entity\Transaction:
                 readOnly: true
             column: transaction_bitcoin_confirmation
             nullable: true
+        bitcoinRateUsed:
+            type: string
+            column: transaction_bitcoin_rate_used
     manyToOne:
         customer:
             targetEntity: DbBundle\Entity\Customer

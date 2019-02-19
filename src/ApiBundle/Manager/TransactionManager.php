@@ -12,6 +12,7 @@ use DbBundle\Entity\CustomerPaymentOption;
 use DbBundle\Entity\SubTransaction;
 use DbBundle\Entity\Transaction;
 use MediaBundle\Manager\MediaManager;
+
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class TransactionManager extends AbstractManager
@@ -35,14 +36,13 @@ class TransactionManager extends AbstractManager
         $transaction->setDate(new \DateTime());
         $transaction->setFee('customer_fee', $transactionModel->getCustomerFee());
         $transaction->setFee('company_fee', 0);
-        $transaction->setDetail('email', $transactionModel->getEmail());
+        $transaction->setDetail('email', $transactionModel->getEmail());        
         // zimi        
         $transaction->setAmount($transactionModel->getAmount());
-        // $transaction->setAmount(40000);
-
+        $transaction->setDetail('bitcoinRate', $transactionModel->getBitcoinRate());        
         $transaction->autoSetPaymentOptionType();
 
-        // zimi-comment
+        // zimi
         foreach ($transactionModel->getSubTransactions() as $subTransactionModel) {
             $subTransaction = new SubTransaction();
             $subTransaction->setCustomerProduct($subTransactionModel->getProduct());

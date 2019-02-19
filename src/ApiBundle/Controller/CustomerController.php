@@ -415,18 +415,19 @@ class CustomerController extends AbstractController
         $qu = $em->getConnection()->prepare($query);
         $qu->execute();
         $res = $qu->fetchAll();
+        
         // zimi-bypass
-        // if (count($res) > 0) {
-        //     $res = $res[0];           
-        // } else {
-        //     echo json_encode(['error' => true, 'status'=> 400, 'message' => 'SMS Code is invalid']);exit();
-        // }
+        if (count($res) > 0) {
+            $res = $res[0];           
+        } else {
+            echo json_encode(['error' => true, 'status'=> 400, 'message' => 'SMS Code is invalid']);exit();
+        }
 
-        // $sms_code_registerd = $registeredCustomer['smsCode'];
-        // $sms_code = $res['sms_code_value'];
-        // if ($sms_code_registerd != $sms_code ) {
-        //     echo json_encode(['error' => true, 'status'=> 400, 'message' => 'SMS Code is invalid']);exit();
-        // }
+        $sms_code_registerd = $registeredCustomer['smsCode'];
+        $sms_code = $res['sms_code_value'];
+        if ($sms_code_registerd != $sms_code ) {
+            echo json_encode(['error' => true, 'status'=> 400, 'message' => 'SMS Code is invalid']);exit();
+        }
         
         $originUrl = $request->headers->get('Origin');
         $referrerUrl = $request->headers->get('Referrer');

@@ -124,37 +124,7 @@ class TransactionController extends AbstractController
     /**
      * @ApiDoc(
      *  description="Get specific transaction"
-     * )
-     * dwl_id: "10631"
-     * transaction_amount: "82.4500000000"
-     * transaction_bet_event_id: null
-     * transaction_bet_id: null
-     * transaction_bitcoin_confirmation: null
-     * transaction_bitcoin_confirmation_count: null
-     * transaction_commission_computed_original: null
-     * transaction_created_at: "2018-05-10 09:30:03"
-     * transaction_created_by: "15"
-     * transaction_currency_id: "1"
-     * transaction_customer_id: "21256"
-     * transaction_date: "2018-05-10 09:30:02"
-     * transaction_deleted_at: null
-     * transaction_fees: "{"total_company_fee": "0.00000000000000000000", "total_customer_fee": "0.00000000000000000000"}"
-     * transaction_gateway_id: null
-     * transaction_id: "1356238"
-     * transaction_is_voided: "0"
-     * transaction_number: "20180510-093002-6-10631-51791"
-     * transaction_other_details: "{"dwl": {"id": "10631"}, "summary": {"company_fee": 0, "customer_fee": 0, "sum_products": "82.45000000000000000000", "total_amount": "82.45000000000000000000", "customer_amount": "82.45000000000000000000", "total_company_fee": "0.00000000000000000000", "total_customer_fee": "0.00000000000000000000", "sum_deposit_products": "82.45000000000000000000", "sum_withdraw_products": "0.00000000000000000000"}, "customer": {"groups": [{"id": 1, "name": "Group ALL"}]}}"
-     * transaction_payment_option_id: null
-     * transaction_payment_option_on_transaction_id: null
-     * transaction_payment_option_type: null
-     * transaction_status: "2"
-     * transaction_to_customer: null
-     * transaction_type: "6"
-     * transaction_updated_at: "2018-05-10 09:30:03"
-     * transaction_updated_by: null
-     * transaction_virtual_bitcoin_receiver_unique_address: null
-     * transaction_virtual_bitcoin_sender_address: null
-     * transaction_virtual_bitcoin_transaction_hash: null
+     * )     
      */
     public function customerTransactionAction($id, $cid=null)
     {        
@@ -187,6 +157,12 @@ class TransactionController extends AbstractController
         $customerRepository = $this->getDoctrine()->getManager()->getRepository(Customer::class);
         $transactionTemp = $transaction = $request->request->get('transaction', []);        
         $amount = $transactionTemp['amount'];
+        $paymentOptionType = $transaction['paymentOptionType'];
+
+        $bitcoinRate = '';
+        if ($paymentOptionType == 'bitcoin') {   
+            $bitcoinRate = $transaction['currentRate'];            
+        }        
         
         // zimi - check $customer is null
         if ($customer === null) {
@@ -195,7 +171,7 @@ class TransactionController extends AbstractController
             $customer->setIsCustomer(true);        
         }
         
-        $paymentOptionType = $transaction['paymentOptionType'];
+        
         $defaultGroup = ['Default', 'deposit', ''];
         $memberPaymentOptionId = !empty($transaction['paymentOption']) ? $transaction['paymentOption'] : null;
         unset($transaction['paymentOptionType']);
@@ -233,6 +209,7 @@ class TransactionController extends AbstractController
             $transactionModel->setCustomer($customer);
             // zimi
             $transactionModel->setAmount($amount);
+            $transactionModel->setBitcoinRate($bitcoinRate);
 
             try {                
                 $transaction = $this->getTransactionManager()->handleDeposit($transactionModel);
@@ -647,8 +624,7 @@ class TransactionController extends AbstractController
 
     // zimi    
     public function getBitcoinRateAdjustmentAction()
-    {        
-        return new JsonResponse([6000]);        
+    {                
         try {
             $service = $this->getTransactionBitcoinLockRateService();
             $service->lockBitcoinTransaction($transaction);
