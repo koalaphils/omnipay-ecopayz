@@ -469,8 +469,8 @@ class CustomerManager extends AbstractManager
                 
                 // get configs
                 // array
-                $piwi247Session = $this->getSettingManager()->getSetting('piwi247.session', []);
-                
+                $configs = $this->getSettingRepository()->getSettingByCodes(array("piwi247.session", "transaction.validate"));
+//                $piwi247Session = $this->getSettingManager()->getSetting('piwi247.session', []);
                 if ($checkPassword) {
                     return [
                         'error' => 'false',
@@ -482,7 +482,7 @@ class CustomerManager extends AbstractManager
                             'isVerified' => $customer->isVerified(),
                             'customerId' => $customer_id,
                             'paymentOptions' => $customerPaymentOptions,
-                            'configs' => $piwi247Session
+                            'configs' => $configs
                         ],
                         'message' => ''
                     ];
@@ -767,5 +767,10 @@ class CustomerManager extends AbstractManager
     private function getSettingManager(): \AppBundle\Manager\SettingManager
     {
         return $this->getContainer()->get('app.setting_manager');
+    }
+    
+    private function getSettingRepository(): \DbBundle\Repository\SettingRepository
+    {
+        return $this->getDoctrine()->getRepository('DbBundle:Setting');
     }
 }
