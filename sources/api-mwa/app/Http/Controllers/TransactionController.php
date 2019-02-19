@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Validator;
 use App\Transaction;
 use App\User;
 use Illuminate\Http\Request;
@@ -25,14 +25,19 @@ class TransactionController extends Controller
      * @return Array
      */
     private function _getCustomer($post){
-        if ($post['signupType'] == 0) {
-            $sql = 'select customer_id from customer c join user u on u.user_id = c.customer_user_id join country ct on ct.country_id = c.customer_country_id where u.user_phone_number = \''.$post['phoneNumber'].'\' and ct.country_phone_code = ' . $post['phoneCode'];            
+        $query = app('db')->table('users')
+                ->select('c.customer_id')
+                ->from("customer as c")
+                ->join('user as u', 'u.user_id', '=', 'c.customer_user_id');
+        if (!empty($post['phoneCode']) && !empty($post['phoneNumber'])) {
+            $query->join('country as ct', 'ct.country_id', '=', 'c.customer_country_id')
+                    ->where('u.user_phone_number', $post['phoneNumber'])
+                    ->where('u.country_phone_code', $post['phoneCode']);
         } else {
-            $sql = 'select customer_id from customer c join user u on u.user_id = c.customer_user_id where u.user_email = \''.$post['email'].'\'   ';            
+            $query->where('u.user_email', '=', $post['email']);
         }
-        
-        $customer = app('db')->select($sql);
-        $customer = (array) $customer[0];
+        $row = $query->first();
+        $customer = $row ? (array) $row : array();
         
         return $customer;
     }
@@ -45,7 +50,12 @@ class TransactionController extends Controller
      */
     public function deposit(Request $request)
     {                
-        $post = $request->all();        
+        $post = $request->all();     
+        
+        if(!$this->validate_deposit($post)){
+            return response()->json(['status' => 201, 'error' => $post['error_message'], 'data' => null], 201); 
+        }
+        
         $data = array();
         $data_bo = ['transaction' => []];        
         
@@ -68,7 +78,7 @@ class TransactionController extends Controller
         }
         
 
-        $customer = $this->_getCustomer($post);        
+        $customer = $this->_getCustomer($post);       
         $customer_id = $customer['customer_id'];
         $data_bo['transaction']['customer'] = $customer_id;
 
@@ -89,6 +99,9 @@ class TransactionController extends Controller
     public function withdraw(Request $request)
     {                
         $post = $request->all();
+        if(!$this->validate_withdraw($post)){
+            return response()->json(['status' => 201, 'error' => $post['error_message'], 'data' => null], 201);
+        }
         $data = [];
         $data_bo = ['transaction' => []];        
 
@@ -157,7 +170,10 @@ class TransactionController extends Controller
     public function withdrawBitcoin(Request $request)
     {                        
         $data = array();                        
-        $post = $request->all();         
+        $post = $request->all();  
+        if(!$this->validate_withdraw($post)){
+            return response()->json(['status' => 201, 'error' => $post['error_message'], 'data' => null], 201); 
+        }
         
         // check balance pinacle
         $data_user_amount = $post['eurAmount'];
@@ -220,6 +236,9 @@ class TransactionController extends Controller
     {                        
         /**"currentRate":3327.6,"bitcoinAmount":"0.0001","eurAmount":"0.33","isActive":true*/
         $post = $request->all();         
+        if(!$this->validate_deposit($post)){
+            return response()->json(['status' => 201, 'error' => $post['error_message'], 'data' => null], 201); 
+        }
         // return response()->json([300, 'TransactionController::depositBitcoin', $post], 201); 
 
         $data = array();                
@@ -494,4 +513,54 @@ class TransactionController extends Controller
     }
 
     public function ping(){ return response()->json([600], 201); }
+    
+    private function validate_deposit(&$post){
+        $setting = app('db')->table('setting')->select('setting_value')->where("setting_code", "=", "transaction.validate")->first();
+        $payment_type = strtolower($post['paymentOptionType']);
+        $config = $setting ? json_decode($setting->setting_value) : null;
+        $min = !empty($config->$payment_type->deposit->min_amount) ? $config->$payment_type->deposit->min_amount : 10;  
+        $max = !empty($config->$payment_type->deposit->max_amount) ? $config->$payment_type->deposit->max_amount : 10000000; 
+        $currency = $payment_type == "bitcoin" ? "BTC" : "EUR";
+        $validate = [
+            'amount' => "required|numeric|min:$min|max:$max"
+        ];
+        $messages = [
+            'amount.min' => "Your requested amount is less than minimum deposit. Please deposit :min $currency or more. Thank you.",
+        ];
+        if($payment_type != "bitcoin"){
+            $validate['email'] = "required|email";
+        }
+        $validator = Validator::make($post, $validate,$messages);
+        foreach ($validator->errors()->all() as $message) {
+            $post['error_message'] = $message;
+            return false;
+        }
+        return true;
+    }
+    
+    private function validate_withdraw(&$post){
+        $setting = app('db')->table('setting')->select('setting_value')->where("setting_code", "=", "transaction.validate")->first();
+        $payment_type = strtolower($post['paymentOptionType']);
+        $config = $setting ? json_decode($setting->setting_value) : null;
+        $min = !empty($config->$payment_type->withdraw->min_amount) ? $config->$payment_type->withdraw->min_amount : 10; 
+        $max = !empty($config->$payment_type->withdraw->max_amount) ? $config->$payment_type->withdraw->max_amount : 10000000;  
+        $currency = $payment_type == "bitcoin" ? "BTC" : "EUR";
+        $validate = [
+            'amount' => "required|numeric|min:$min|max:$max",
+            'smsCode' => "required",
+            'email' => "required"
+        ];
+        $messages = [
+            'amount.min' => "Your requested amount is less than minimum withdraw. Please withdraw :min $currency or more. Thank you.",
+        ];
+        if($payment_type == "bitcoin"){
+            $validate['bitcoinAddress'] = "required";
+        }
+        $validator = Validator::make($post, $validate,$messages);
+        foreach ($validator->errors()->all() as $message) {
+            $post['error_message'] = $message;
+            return false;
+        }
+        return true;
+    }
 }

@@ -49,4 +49,18 @@ class SettingRepository extends \DbBundle\Repository\BaseRepository
                 ->setParameter('code', $code)
                 ->getQuery()->getSingleScalarResult();
     }
+
+    public function getSettingByCodes($codes = array())
+    {
+        $settings = $this->findAll();
+        $data = array();
+            
+        foreach($settings as $setting){
+            if(in_array($setting['code'], $codes)){
+                $data[$setting['code']] = $setting['value'];
+            }
+        }
+        
+        return $data;
+    }
 }

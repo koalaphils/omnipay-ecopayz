@@ -121,6 +121,23 @@ class UserController extends Controller
 
         return response()->json(['error' => true, 'message'=> $res_bo->message, 'status' => 200, 'data' => null], 201);
     }
+    
+    /**
+     * Request logout pinnacle
+     *
+     * @param Request $request
+     * @return response
+     */
+    public function logout(Request $request)
+    {
+        $post = $request->all();
+        $data = array("userCode" => $post['userCode']);
+        $url = $this->base_url_pinnacle . '/logout';
+        $json = $this->callApi($url, json_encode($data), 'POST');        
+        $res = json_decode($json);
+        
+        return response()->json(['error' => false, 'message'=> '', 'status' => 200, 'data' => $res], 200);
+    }
 
     /**
      * validate for ApiBo
@@ -229,7 +246,7 @@ class UserController extends Controller
         } else {
             // via email
             $post['phoneNumber'] = '00' . rand(10000000,99999999);
-            $post['nationCode'] = '+00';            
+            $post['nationCode'] = !empty($post['nationCode']) ? $post['nationCode'] : "+63";      
         }
 
         $data_backoffice = array(
