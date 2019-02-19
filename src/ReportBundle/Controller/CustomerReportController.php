@@ -260,8 +260,12 @@ class CustomerReportController extends AbstractController
             $totalFilters['currencies'] = [$filters['currency']];
         }
 
+        $productId = $filters['products'][0] ?? null;
         if (array_has($filters, 'products')) {
             $totalFilters['products'] = $filters['products'];
+            $product = $this->getEntityManager()->getRepository(Product::class)->findOneById($productId);
+            $filters['isForSkypeBetting'] =  $product->isSkypeBetting();
+            $filters['limit'] = $request->get('limit', 20);
         }
 
         if (array_has($filters, 'search')) {
@@ -269,8 +273,14 @@ class CustomerReportController extends AbstractController
         }
 
         $report = $this->getManager()->getCustomerProductList($filters, $request->get('limit', 20), $request->get('page', 1));
-        $product = $filters['products'][0] ?? null;
-        $reportSummary = $this->getManager()->getMemberProductsReportSummary($product, $filters['currency'],$reportStartDate , $reportEndDate, $filters['search']);
+        $reportSummary = $this->getManager()->getMemberProductsReportSummary(
+            $productId,
+            $filters['currency'],
+            $reportStartDate,
+            $reportEndDate,
+            $filters['search'],
+            $filters['hideZeroValueRecords'] ?? false
+        );
 
         $report['totalSummary']['turnover'] = $reportSummary['turnOverTotal'];
         $report['totalSummary']['gross_commission'] = $reportSummary['grossCommissionTotal'];
@@ -287,14 +297,14 @@ class CustomerReportController extends AbstractController
     {
         $filters = $request->get('filters', []);
         $currencyEntity = $this->getEntityManager()->getRepository(Currency::class)->findOneByid($filters['currency']);
+        $reportIsZeroValue = array_get($filters, 'hideZeroValueRecords', false);
         $reportStartDate =  new \DateTimeImmutable($filters['from']);
         $reportEndDate = new \DateTimeImmutable($filters['to']);
         $memberProductUsernameQueryString = array_get($filters, 'search', null);
 
         $product = $this->getProductRepository()->find($filters['products'][0]);
-
-        $response = new StreamedResponse(function () use ($product, $currencyEntity, $reportStartDate, $reportEndDate, $memberProductUsernameQueryString) {
-            $this->getManager()->printMemberProductsCsvReport($product, $currencyEntity, $reportStartDate, $reportEndDate, $memberProductUsernameQueryString);
+        $response = new StreamedResponse(function () use ($product, $currencyEntity, $reportStartDate, $reportEndDate, $memberProductUsernameQueryString, $reportIsZeroValue) {
+                    $this->getManager()->printMemberProductsCsvReport($product, $currencyEntity, $reportStartDate, $reportEndDate, $memberProductUsernameQueryString, $reportIsZeroValue);
         });
         $filename =  $this->getMemberProductsReportFilename($product, $currencyEntity, $reportStartDate, $reportEndDate);
         $this->setResponseTypeAsCSVFile($response, $filename);

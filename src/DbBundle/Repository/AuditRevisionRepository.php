@@ -64,12 +64,22 @@ class AuditRevisionRepository extends BaseRepository
             }
 
             if (!empty($groupFilters['search'])) {
-                $queryBuilder->innerJoin("ar", "user", "u", "ar.audit_revision_user_id = u.user_id");
                 $exp = $queryBuilder->expr()->orX();
                 $queryBuilder->andWhere($exp->addMultiple([
-                    "u.user_username LIKE :search",
+                    "(
+                      SELECT COUNT(u.user_id) from user u
+                      WHERE u.user_id = ar.audit_revision_user_id
+                      AND u.user_username LIKE :search
+                    ) > 0",
                     "ar.audit_revision_client_ip LIKE :search",
-                    "(SELECT COUNT(arl3.audit_revision_log_id) FROM audit_revision_log AS arl3 WHERE ar.audit_revision_id = arl3.audit_revision_log_audit_revision_id AND JSON_EXTRACT(arl3.audit_revision_log_details, '$.label') LIKE :search ) > 0"
+                    "(
+                        SELECT COUNT(arl3.audit_revision_log_id) FROM audit_revision_log AS arl3 
+                        WHERE ar.audit_revision_id = arl3.audit_revision_log_audit_revision_id 
+                        AND (
+                          arl3.audit_revision_log_label LIKE :search
+                          OR IFNULL(JSON_SEARCH(arl3.audit_revision_log_details, 'all', :search), '0') <> '0'  
+                        )
+                     ) > 0"
                 ]));
                 $queryBuilder->setParameter('search', '%' . $groupFilters['search'] . '%');
             }

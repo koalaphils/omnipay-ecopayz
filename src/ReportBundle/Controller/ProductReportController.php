@@ -97,10 +97,11 @@ class ProductReportController extends AbstractController
         $reportStartAt = \DateTime::createFromFormat('m/d/Y', ($filters['from'] ?? date('Y-m-d')));
         $reportEndAt = \DateTime::createFromFormat('m/d/Y', ($filters['to'] ?? date('Y-m-d')));
         $productSearchString = $filters['search'] ??  null;
+        $activeProducts = array_get($filters, 'activeProducts', 1);
 
         $currencyEntity = $this->getManager()->getCurrencyByCode($currency);
-        $response = new StreamedResponse(function () use ($currencyEntity, $reportStartAt, $reportEndAt, $productSearchString) {
-            $this->getManager()->printProductsCsvReport($currencyEntity, $reportStartAt, $reportEndAt, $productSearchString);
+        $response = new StreamedResponse(function () use ($currencyEntity, $reportStartAt, $reportEndAt, $productSearchString, $activeProducts) {
+            $this->getManager()->printProductsCsvReport($currencyEntity, $reportStartAt, $reportEndAt, $productSearchString, $activeProducts);
         });
 
         $filename = 'Products_'. $currency .'_'. $reportStartAt->format('Ymd') . '_'. $reportEndAt->format('Ymd') .'.csv';

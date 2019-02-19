@@ -10,6 +10,12 @@ payment.bitcoin_rate_save:
         _controller: PaymentBundle:Bitcoin:saveBitcoinRate
     methods: [POST]
 
+payment.bitcoin_withdrawal_rate_save:
+    path: /withdrawal-rate/save
+    defaults:
+        _controller: PaymentBundle:Bitcoin:saveBitcoinWithdrawalRate
+    methods: [POST]
+
 payment.bitcoin_confirmations_save:
     path: /payment/bitcoin/confirmations
     defaults:

@@ -14,6 +14,9 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\Response;
+use Imagick;
+use ImagickException;
 
 /**
  * Description of MediaManager.
@@ -180,12 +183,14 @@ class MediaManager extends AbstractManager
     /**
      * @param UploadedFile $file
      * @param string       $folder
+     * @param string       $filename
      *
      * @return array
      */
-    public function uploadFile($file, $folder = '')
+    public function uploadFile($file, $folder = '', string $filename = '')
     {
-        $origName = $file->getClientOriginalName();
+        $fileExtension = $file->getClientOriginalExtension();
+        $origName = empty($filename) ? $file->getClientOriginalName() : $filename;
         $i = 1;
         $fs = new Filesystem();
         $status = [];
@@ -193,13 +198,13 @@ class MediaManager extends AbstractManager
             $loop = true;
             try {
                 if ($fs->exists($this->path . $folder . '/' . $origName)) {
-                    $len = strlen($file->getClientOriginalName()) - strlen($file->getClientOriginalExtension()) - 1;
-                    $origName = substr($file->getClientOriginalName(), 0, $len) . "($i)." . $file->getClientOriginalExtension();
+                    $len = strlen($origName) - strlen($fileExtension) - 1;
+                    $origName = substr($origName, 0, $len) . "($i)." . $fileExtension;
                     ++$i;
                 } else {
                     $loop = false;
                     $file->move($this->path . $folder, $origName);
-                    $status = ['success' => true, 'filename' => $origName, 'folder' => $folder, 'code' => 200];
+                    $status = ['success' => true, 'filename' => $origName, 'folder' => $folder, 'code' => Response::HTTP_OK];
                 }
             } catch (\Exception $e) {
                 $loop = false;
@@ -208,6 +213,27 @@ class MediaManager extends AbstractManager
         } while ($loop);
 
         return $status;
+    }
+
+    public function compressUploadFile(UploadedFile $file, string $folder, string $filename): void
+    {
+        try {
+            $uploadedFile = new Imagick($file->getRealPath());
+            $fileProfiles = $uploadedFile->getImageProfiles('icc', true);
+            $uploadedFile->stripImage();
+
+            if (!empty($fileProfiles)) {
+                $uploadedFile->profileImage('icc', $fileProfiles['icc']);
+            }
+
+            $uploadedFile->setImageCompression(Imagick::COMPRESSION_JPEG);
+            $uploadedFile->setCompressionQuality(85);
+            $uploadedFile->writeImage(sprintf('%s%s/%s', $this->path, $folder, $filename));
+            $uploadedFile->clear();
+            $uploadedFile->destroy();
+        } catch (ImagickException $e) {
+            throw new ImagickException($e->getMessage(), $e->getCode());
+        }
     }
 
     public function deleteFile($file, $base = false)

@@ -8,6 +8,7 @@ use DbBundle\Entity\Customer as Member;
 use DbBundle\Repository\CustomerRepository as MemberRepository;
 use PaymentBundle\Form\BitcoinConfirmationType;
 use PaymentBundle\Form\BitcoinRateSettingsDTOType;
+use PaymentBundle\Form\BitcoinWithdrawalRateSettingsDTOType;
 use PaymentBundle\Form\BitcoinSettingType;
 use PaymentBundle\Manager\BitcoinManager;
 use PaymentBundle\Model\Bitcoin\BitcoinConfirmation;
@@ -30,27 +31,23 @@ class BitcoinController extends AbstractController
         $token->setDetails(['memberId' => base64_decode($hash)]);
         $token->setGatewayName('bitcoin');
 
-        // $detail = $token->getDetails();
-        // return new JsonResponse([600, $detail]);
-
         $gateway = $this->getPayum()->getGateway('bitcoin');
-        $notify = new Notify($token);        
-        $gateway->execute($notify);
+        $gateway->execute(new Notify($token));
+
         return new Response('', 204);
     }
 
     public function cycleFundNotifyAction(): Response
     {
-        return new Response('*okk*');
+        return new Response('*ok*');
     }
 
     public function saveBitcoinSettingAction(Request $request): Response
     {
         $bitcoinManager = $this->getBitcoinManager();
         $validationGroups = ['default', 'bitcoinSetting'];
-        $bitcoinConfiguration = $bitcoinManager->getBitcoinConfiguration();
-        $bitcoinLockDownSetting = $bitcoinManager->getBitcoinLockDownRateSetting();
-        $bitcoinSettingModel = $bitcoinManager->prepareBitcoinSetting($bitcoinConfiguration, $bitcoinLockDownSetting);
+        $bitcoinConfigurations = $bitcoinManager->getBitcoinConfigurations();
+        $bitcoinSettingModel = $bitcoinManager->prepareBitcoinSetting($bitcoinConfigurations);
         $formBitcoinSetting = $this->createForm(BitcoinSettingType::class, $bitcoinSettingModel, [
             'validation_groups' => $validationGroups,
         ]);
@@ -77,6 +74,24 @@ class BitcoinController extends AbstractController
             $bitcoinRates = $bitcoinManager->handleCreateBitcoinRateForm($bitcoinRateSettingForm, $request, $dto);
             $response['success'] = true;
             $response['data'] = $bitcoinRates;
+        } catch (FormValidationException $e) {
+            $response['errors'] = $e->getErrors();
+        }
+
+        return $this->response($request, $response, ['groups' => ['Default', '_link']]);
+    }
+
+    public function saveBitcoinWithdrawalRateAction(Request $request): Response
+    {
+        $bitcoinManager = $this->getBitcoinManager();
+        $dto = $bitcoinManager->createWithdrawalRateSettingsDTO();
+        $dto->preserveOriginal();
+        $bitcoinWithdrawalRateSettingForm = $this->createForm(BitcoinWithdrawalRateSettingsDTOType::class, $dto);
+        $response = ['success' => false];
+        try {
+            $bitcoinWithdrawalRates = $bitcoinManager->handleCreateBitcoinWithdrawalRateForm($bitcoinWithdrawalRateSettingForm, $request, $dto);
+            $response['success'] = true;
+            $response['data'] = $bitcoinWithdrawalRates;
         } catch (FormValidationException $e) {
             $response['errors'] = $e->getErrors();
         }

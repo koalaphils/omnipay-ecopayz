@@ -14,7 +14,6 @@ class ReportProductManager extends AbstractManager
         $filters['currency'] = $currency->getId();
 
         $reports = $this->getRepository()->report($filters);
-
         return $reports;
     }
 
@@ -29,6 +28,7 @@ class ReportProductManager extends AbstractManager
             ['cp.cproduct_id'],
             ['cp.cproduct_id', 'cp.cproduct_username', 'cp.cproduct_product_id product_id', 'c.customer_currency_id currency_id', 'cu.currency_code', 'cp.cproduct_balance current_balance']
         );
+
         //$report = $this->getRepository()->getCustomerProductReport($filters, $limit, $offset);
         $customerProductIds = array_map(
             function ($customerProduct) {
@@ -162,15 +162,15 @@ class ReportProductManager extends AbstractManager
         return $this->getDoctrine()->getRepository(Currency::class)->findOneByCode($currencyCode);
     }
 
-    public function printProductsCsvReport(Currency $currency,\DateTimeInterface $reportStartAt, \DateTimeInterface $reportEndAt, String $productSearchString = null)
+    public function printProductsCsvReport(Currency $currency,\DateTimeInterface $reportStartAt, \DateTimeInterface $reportEndAt, ?string $productSearch, int $activeProducts = 1): void
     {
         // filters
         echo "From: ". $reportStartAt->format('Y-m-d') ."\n";
         echo "To: ". $reportEndAt->format('Y-m-d') ."\n";
         echo "Currency: ". $currency->getCode() ."\n";
 
-        if ($productSearchString !== null && $productSearchString !== '') {
-            echo "Product Search: ". $productSearchString ." \n";
+        if ($productSearch !== null && $productSearch !== '') {
+            echo "Product Search: ". $productSearch ." \n";
         }
         echo "\n";
 
@@ -188,7 +188,7 @@ class ReportProductManager extends AbstractManager
         echo "\n";
 
 
-        $filters = $this->generateTemporaryFilters( $currency, $reportStartAt,  $reportEndAt,  $productSearchString);
+        $filters = $this->generateTemporaryFilters( $currency, $reportStartAt,  $reportEndAt,  $productSearch, $activeProducts);
         $reports = $this->getReportProductList($filters);
 
         $totalSignups = 0;
@@ -247,15 +247,16 @@ class ReportProductManager extends AbstractManager
      *      'search' => String
      * ]
      */
-    private function generateTemporaryFilters(Currency $currency,\DateTimeInterface $reportStartAt, \DateTimeInterface $reportEndAt, String $productSearchString = null): Array
+    private function generateTemporaryFilters(Currency $currency,\DateTimeInterface $reportStartAt, \DateTimeInterface $reportEndAt, ?string $productSearch, int $activeProducts = 1): array
     {
         $filters = [];
         $filters['from'] = $reportStartAt->format('Y-m-d');
         $filters['to'] = $reportEndAt->format('Y-m-d');
         $filters['currency'] = $currency->getCode();
-        if ($productSearchString !== null) {
-            $filters['search'] = $productSearchString;
+        if ($productSearch !== null) {
+            $filters['search'] = $productSearch;
         }
+        $filters['activeProducts'] = $activeProducts;
 
         return $filters;
     }

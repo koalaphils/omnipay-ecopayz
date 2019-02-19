@@ -97,15 +97,19 @@ class AppBundle extends Bundle
                 ],
             ],
             'bitcoin.setting' => [
-                'configuration' => [
+                SettingModel::BITCOIN_DEPOSIT_CONFIGURATION => [
                     'autoDecline' => SettingModel::BITCOIN_ENABLE_AUTO_DECLINE,
                     'minutesInterval' => SettingModel::BITCOIN_DEFAULT_MIN,
                     'minimumAllowedDeposit' => SettingModel::BITCOIN_MINIMUM_ALLOWED_DEPOSIT,
                     'maximumAllowedDeposit' => SettingModel::BITCOIN_MAXIMUM_ALLOWED_DEPOSIT,
                 ],
-                'lockRatePeriodSetting' => [
+                SettingModel::BITCOIN_LOCK_PERIOD_SETTING => [
                     'autoLock' => Setting::ENABLE_AUTO_LOCK,
                     'minutesLockDownInterval' => Setting::LOCKDOWN_PERIOD_MIN,
+                ],
+                SettingModel::BITCOIN_WITHDRAWAL_CONFIGURATION => [
+                    'minimumAllowedWithdrawal' => SettingModel::BITCOIN_MINIMUM_ALLOWED_WITHDRAWAL,
+                    'maximumAllowedWithdrawal' => SettingModel::BITCOIN_MAXIMUM_ALLOWED_WITHDRAWAL,
                 ],
             ],
             'maintenance.enabled' => 0,
@@ -129,7 +133,7 @@ class AppBundle extends Bundle
                 ],
             ],
             'dateFormat' => 'm/d/Y',
-            'dateTimeFormat' => 'm/d/Y H:i:s',
+            'dateTimeFormat' => 'm/d/Y g:i:s A',
             'dashboard.default_widgets' => [
                 "dwlSearch_20180129120953" => [
                     "type" => "dwlSearch",

@@ -515,8 +515,8 @@ parameters:
                 to: 'gateway.1'
             paymentOption:
                 label: Payment Option
-                from: 'paymentOption.0'
-                to: 'paymentOption.1'
+                from: 'details.0.paymentOption.accountId'
+                to: 'details.1.paymentOption.accountId'
             customerProduct:
                 label: Product
                 from: 'customerProduct.0'

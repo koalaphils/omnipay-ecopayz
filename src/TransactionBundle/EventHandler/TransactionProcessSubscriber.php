@@ -50,10 +50,11 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
 
             if (!$transaction->getCurrency()) {
                 $transaction->setCurrency($transaction->getCustomer()->getCurrency());
-            }            
-            $this->getTransactionManager()->processTransactionSummary($transaction);            
-            if ($transitionName === 'customer-new' && $event->fromCustomer() && $transaction->isDeposit()) {                
-                $this->getPaymentManager()->processPaymentOption($transaction);       
+            }
+
+            $this->getTransactionManager()->processTransactionSummary($transaction);
+            if ($transitionName === 'customer-new' && $event->fromCustomer() && $transaction->isDeposit()) {
+                $this->getPaymentManager()->processPaymentOption($transaction);
             }
             
             $paymentOptionMode = \DbBundle\Entity\PaymentOption::PAYMENT_MODE_OFFLINE;

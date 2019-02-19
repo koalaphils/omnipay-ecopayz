@@ -7,11 +7,14 @@ class SettingModel
     const BITCOIN_ENABLE_AUTO_DECLINE = false;
     const BITCOIN_DEFAULT_MIN = 20;
     const BITCOIN_SETTING = 'setting';
-    const BITCOIN_CONFIGURATION = 'configuration';
+    const BITCOIN_DEPOSIT_CONFIGURATION = 'configuration';
+    const BITCOIN_WITHDRAWAL_CONFIGURATION = 'withdrawalConfiguration';
     const BITCOIN_TIME_DURATION_NAME = 'minutes';
     const BITCOIN_MINIMUM_ALLOWED_DEPOSIT = '0.0000000001';
     const BITCOIN_MAXIMUM_ALLOWED_DEPOSIT = 9;
     const BITCOIN_LOCK_PERIOD_SETTING = 'lockRatePeriodSetting';
+    const BITCOIN_MINIMUM_ALLOWED_WITHDRAWAL = '0.0000000001';
+    const BITCOIN_MAXIMUM_ALLOWED_WITHDRAWAL = 3000;
     
     protected $autoDecline;
     protected $minutesInterval;
@@ -19,6 +22,8 @@ class SettingModel
     protected $maximumAllowedDeposit;
     protected $autoLock;
     protected $minutesLockDownInterval;
+    protected $minimumAllowedWithdrawal;
+    protected $maximumAllowedWithdrawal;
 
     public function getAutoDecline(): bool
     {
@@ -67,6 +72,31 @@ class SettingModel
 
         return $this;
     }
+
+    public function getMinimumAllowedWithdrawal(): ?string
+    {
+        return $this->minimumAllowedWithdrawal;
+    }
+
+    public function setMinimumAllowedWithdrawal(string $minimumAllowedWithdrawal): self
+    {
+        $this->minimumAllowedWithdrawal = $minimumAllowedWithdrawal;
+
+        return $this;
+    }
+
+    public function getMaximumAllowedWithdrawal(): ?string
+    {
+        return $this->maximumAllowedWithdrawal;
+    }
+
+    public function setMaximumAllowedWithdrawal(string $maximumAllowedWithdrawal): self
+    {
+        $this->maximumAllowedWithdrawal = $maximumAllowedWithdrawal;
+
+        return $this;
+    }
+
     public function getAutoLock(): bool
     {
         return $this->autoLock ?? false;

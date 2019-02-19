@@ -67,10 +67,10 @@ services:
         lazy: true
         arguments: [ "@doctrine.orm.entity_manager", "DbBundle\\Entity\\Product" ]
 
-    api.product_repository:
-        class: ApiBundle\Repository\ProductRepository
-        lazy: true
-        arguments: [ "@doctrine.orm.entity_manager", "DbBundle\\Entity\\Product" ]
+    #api.product_repository:
+    #    class: ApiBundle\Repository\ProductRepository
+    #    lazy: true
+    #    arguments: [ "@doctrine.orm.entity_manager", "DbBundle\\Entity\\Product" ]
 
     api.transaction_manager:
         class: ApiBundle\Manager\TransactionManager

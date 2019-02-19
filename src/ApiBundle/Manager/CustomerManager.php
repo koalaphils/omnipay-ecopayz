@@ -212,18 +212,22 @@ class CustomerManager extends AbstractManager
             'preferredPaymentGateway' => $registerModel->getPreferredPaymentGateway(),
         ];
 
+        $tempPassword = $registerModel->getTempPassword();
+
         if (array_key_exists('registrationDetails', $registrationDetails)) {
             $preferences['registrationDetails'] = $registrationDetails['registrationDetails'];
         }
         $user->setPreferences($preferences);
         $user->setActivationCode($this->getUserManager()->encodeActivationCode($user));
         $user->setActivationSentTimestamp(new \DateTime('now'));
+        $user->setActivationTimestamp(new \DateTime('now'));
         $user->setPassword(
             $this->getUserManager()->encodePassword(
                 $user,
-                $this->getContainer()->getParameter('customer_temp_password')
+                $tempPassword
             )
         );
+        $user->setPlainPassword($tempPassword);
 
         $customer = new Customer();
         $customer->setUser($user);
@@ -381,7 +385,7 @@ class CustomerManager extends AbstractManager
                             $user->getEmail(),
                             'activated.html.twig',
                             [
-                                'firstName' => $customer->getFName(),
+                                'fullName' => $customer->getFullName(),
                                 'customerProducts' => implode(', ', array_column($customer->getCustomerProductNames(), 'productName')),
                             ]
                         );

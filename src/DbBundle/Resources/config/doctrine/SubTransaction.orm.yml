@@ -20,6 +20,8 @@ DbBundle\Entity\SubTransaction:
             columns: [subtransaction_dwl_turnover]
         dwl_winloss_index:
             columns: [subtransaction_dwl_winloss]
+        immutable_username_index:
+            columns: [virtual_immutable_username]
     fields:
         type:
             type: smallint
@@ -64,6 +66,13 @@ DbBundle\Entity\SubTransaction:
                 generate: subtransaction_details->"$.dwl.winLoss"
                 readOnly: true
             column: subtransaction_dwl_winloss
+            nullable: true
+        immutableUsername:
+            type: string
+            options:
+                generate: subtransaction_details->"$.immutableCustomerProductData.username"
+                readOnly: true
+            column: subtransaction_virtual_immutable_username
             nullable: true
     manyToOne:
         parent:

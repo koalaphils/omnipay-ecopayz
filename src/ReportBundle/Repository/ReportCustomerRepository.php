@@ -7,7 +7,6 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\ORM\Query;
-
 /**
  * Description of ReportCustomerRepository
  *
@@ -86,8 +85,12 @@ class ReportCustomerRepository
             '',
             'st.subtransaction_customer_product_id = cp.cproduct_id'
         );
-
         $queryBuilder->groupBy((empty($groups) ? 'cp.cproduct_id' : $groups));
+
+        if (array_get($filters, 'hideZeroValueRecords', true) && array_get($filters, 'isForSkypeBetting', false) == false) {
+            $queryBuilder->having('SUM(IFNULL(CAST(JSON_EXTRACT(st.subtransaction_details, "$.dwl.turnover") AS DECIMAL(65, 10)), 0)) <> 0 OR cp.cproduct_balance >= 1');
+        }
+
         if (empty($orders)) {
             $queryBuilder->orderBy('cp.cproduct_id');
         } else {
@@ -106,7 +109,6 @@ class ReportCustomerRepository
         $queryBuilder->setParameter('dwlCompleted', \DbBundle\Entity\DWL::DWL_STATUS_COMPLETED);
 
         $results = $queryBuilder->execute()->fetchAll(\PDO::FETCH_ASSOC);
-
 
         return $results;
     }

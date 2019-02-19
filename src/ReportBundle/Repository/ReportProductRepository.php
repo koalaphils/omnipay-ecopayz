@@ -15,7 +15,7 @@ class ReportProductRepository
         $this->doctrine = $doctrine;
     }
 
-    public function report($filters = [])
+    public function report($filters = []): array
     {
         $currency = array_get($filters, 'currency', '');
         $from = array_get($filters, 'from', '');
@@ -23,16 +23,17 @@ class ReportProductRepository
         $products = array_get($filters, 'products', []);
         $search = array_get($filters, 'search', '');
         $apiUserIds = $this->getApiUserIds();
+        $activeProducts = array_get($filters, 'activeProducts', 1);
         $apiUserIds = array_map(function ($userId) {
             return $userId['user_id'];
         }, $apiUserIds);
 
-        $signUps = $this->getSignUps($currency, $from, $to, $apiUserIds, $products, $search);
+        $signUps = $this->getSignUps($currency, $from, $to, $apiUserIds, $products, $search, $activeProducts);
 
         return $signUps;
     }
 
-    public function getSignUps(string $currency, string $from, string $to, array $apiUserIds, array $products, $search)
+    public function getSignUps(string $currency, string $from, string $to, array $apiUserIds, array $products, string $search, int $activeProducts = 1): array
     {
         $queryBuilder = $this->createQueryBuilder();
         $queryBuilder->select(
@@ -130,6 +131,11 @@ class ReportProductRepository
             , ''
         );
 
+        if ($activeProducts >= 0){
+            $queryBuilder->andWhere('product.product_is_active = :isActive');
+            $queryBuilder->setParameter('isActive', $activeProducts);
+        }
+        $queryBuilder->andWhere('ISNULL(product.product_deleted_at)');
         $queryBuilder->setParameter('fromDWL', $from);
         $queryBuilder->setParameter('toDWL', $to);
         $queryBuilder->groupBy('product.product_id');

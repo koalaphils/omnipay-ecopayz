@@ -4,8 +4,10 @@ namespace PaymentOptionBundle\Controller;
 
 use AppBundle\Controller\AbstractController;
 use AppBundle\Exceptions\FormValidationException;
+use DbBundle\Entity\Transaction;
 use PaymentOptionBundle\Form\PaymentOptionType;
 use PaymentBundle\Form\BitcoinRateSettingsDTOType;
+use PaymentBundle\Form\BitcoinWithdrawalRateSettingsDTOType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use PaymentBundle\Manager\BitcoinManager;
@@ -84,7 +86,16 @@ class PaymentOptionController extends AbstractController
             ]);
             
             $bitcoinManager->prepareRateSettingForm($bitcoinRateSettingForm);
-            $bitcoinAdjustment = $bitcoinManager->createBitcoinAdjustment(Rate::RATE_EUR);
+            $bitcoinDepositAdjustment = $bitcoinManager->createBitcoinAdjustment(Rate::RATE_EUR, Transaction::TRANSACTION_TYPE_DEPOSIT);
+            
+            $withdrawalRateDto = $bitcoinManager->createWithdrawalRateSettingsDTO();
+            $withdrawalRateDto->preserveOriginal();
+            $bitcoinWithdrawalRateSettingForm = $this->createForm(BitcoinWithdrawalRateSettingsDTOType::class, $withdrawalRateDto, [
+                'action' => $this->generateUrl('payment.bitcoin_withdrawal_rate_save'),
+                'method' => 'POST',
+            ]);
+            $bitcoinManager->prepareWithdrawalRateSettingForm($bitcoinWithdrawalRateSettingForm);
+            $bitcoinWithdrawalAdjustment = $bitcoinManager->createBitcoinAdjustment(Rate::RATE_EUR, Transaction::TRANSACTION_TYPE_WITHDRAW);
 
             $choiceStatuses = [];
             foreach ($this->getSettingManager()->getSetting('transaction.status') as $statusKey => $status) {
@@ -114,10 +125,12 @@ class PaymentOptionController extends AbstractController
                 'formProfile' => $formProfile->createView(),
                 'formBitcoinConfiguration' => $formBitcoinSetting->createView(),
                 'formRateSetting' => $bitcoinRateSettingForm->createView(),
+                'formWithdrawalRateSetting' => $bitcoinWithdrawalRateSettingForm->createView(),
                 'withBitcoinConfigurations' => $isPaymentBitcoin,
                 'activeTab' => $activeTab,
-                'bitcoinAdjustment' => $bitcoinAdjustment,
-                'bitcoinConfiguration' => $bitcoinManager->getBitcoinConfiguration(),
+                'bitcoinAdjustment' => $bitcoinDepositAdjustment,
+                'bitcoinWithdrawalAdjustment' => $bitcoinWithdrawalAdjustment,
+                'bitcoinConfiguration' => $bitcoinManager->getBitcoinConfigurations(),
                 'formBitcoinConfirmation' => $formBitcoinConfirmations->createView(),
             ]);
         } else {

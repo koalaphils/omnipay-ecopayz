@@ -577,8 +577,10 @@ class CustomerController extends AbstractController
             ]);
 
             $member = $this->getCustomerManager()->handleRegisterV2($memberRegistrationModel, $registrationDetails);
+            $view = $this->view($member);
+            $view->getContext()->setGroups(['credentials']);
 
-            return $this->view($member);
+            return $view;
         }
 
         return $this->view($form, Response::HTTP_UNPROCESSABLE_ENTITY);

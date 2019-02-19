@@ -59,7 +59,7 @@ class SettingModel
         $this->minimumAllowedDeposit = $minimumAllowedDeposit;
 
         return $this;
-    }  
+    }
 
     public function getMaximumAllowedDeposit(): ?string
     {

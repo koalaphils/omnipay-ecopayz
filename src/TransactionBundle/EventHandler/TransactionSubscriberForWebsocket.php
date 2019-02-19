@@ -80,9 +80,8 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
                 $customer = $event->getTransaction()->getCustomer();
                 $channel = $customer->getWebsocketDetails()['channel_id'];
 
-                $this->createNotification($customer, $payload['message']);
-                // zimi
-                // $this->publishWebsocketTopic($channel, $payload);
+                $this->createNotification($customer, $payload['message']);                
+                $this->publishWebsocketTopic($channel, $payload);
             }
         }
     }

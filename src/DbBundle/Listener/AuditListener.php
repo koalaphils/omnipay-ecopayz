@@ -4,6 +4,7 @@ namespace DbBundle\Listener;
 
 use AppBundle\Helper\ArrayHelper;
 use AuditBundle\Manager\AuditManager;
+use DbBundle\Entity\Entity;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
@@ -137,6 +138,9 @@ class AuditListener
                 if (isset($changedPropertiesData[$associationField])) {
                     $oldValue = $changedPropertiesData[$associationField][0];
                     $newValue = $changedPropertiesData[$associationField][1];
+                    if ($newValue instanceof Entity && !is_null($newValue->getId())){
+                        $this->em->refresh($newValue);
+                    }
 
                     if ($oldValue instanceof AuditAssociationInterface) {
                         $changedPropertiesData[$associationField][0] = $oldValue->getAssociationFieldName();

@@ -39,7 +39,7 @@ class PaymentManager
     {
         if ($transaction->getDetail('payment.status', false) === false) {
             $paymentOption = $transaction->getPaymentOptionType();
-            $currency = $transaction->getCustomer()->getCurrency();            
+            $currency = $transaction->getCustomer()->getCurrency();
 
             /* @var  $gateway \DbBundle\Entity\Gateway */
             $gateway = $this->getGatewayRepository()->findOneBy([
@@ -77,14 +77,17 @@ class PaymentManager
             }
 
             $storage->update($payment);
+
             $captureToken = $this->payum->getTokenFactory()->createCaptureToken(
                 $gateway->getGatewayName(),
                 $payment,
                 'payment_done'
             );
 
-            $gatewayPayum = $this->payum->getGateway($captureToken->getGatewayName());            
+            $gatewayPayum = $this->payum->getGateway($captureToken->getGatewayName());
+
             $gatewayPayum->execute(new \Payum\Core\Request\Capture($captureToken));
+
             if ($gateway->getFactoryName('offline') === 'offline') {
                 $storage->delete($payment);
             }

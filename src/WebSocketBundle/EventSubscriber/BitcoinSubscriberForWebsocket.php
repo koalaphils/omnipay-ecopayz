@@ -27,6 +27,7 @@ class BitcoinSubscriberForWebsocket implements EventSubscriberInterface
     public function onBitcoinRateSettingSaved(BitcoinRateSettingSaveEvent  $event)
     {
         $bitcoinAdjustment = $event->getBitcoinAdjustment();
-        $this->publisher->publish(Topics::TOPIC_BTC_EXCHANGE_RATE, $bitcoinAdjustment->createWebsocketPayload());
+        $transactionType = $event->getTransactionType();
+        $this->publisher->publish(Topics::TOPIC_BTC_EXCHANGE_RATE, $bitcoinAdjustment->createWebsocketPayload($transactionType));
     }
 }

@@ -10,7 +10,7 @@ PaymentBundle\Model\Bitcoin\SettingModel:
                 groups: [bitcoinSetting]
         minimumAllowedDeposit:
             - NotNull: 
-                message: "Minumum allowed deposit cannot be empty."
+                message: "Minimum allowed deposit cannot be empty."
                 groups: [bitcoinSetting]
             - Type:
                 type: numeric
@@ -39,6 +39,42 @@ PaymentBundle\Model\Bitcoin\SettingModel:
             - NotEqualTo:
                 value: 0
                 message: "Minimum deposit should not be 0."
+                groups: [bitcoinSetting]
+            - Regex:
+                pattern: '/^\s*(?=.*[1-9])\d*(?:\.\d{0,10})?\s*$/'
+                message: Only positive numbers and maximum of 10 decimal places are allowed.
+                groups: [bitcoinSetting]
+        minimumAllowedWithdrawal:
+            - NotNull: 
+                message: "Minimum allowed withdrawal cannot be empty."
+                groups: [bitcoinSetting]
+            - Type:
+                type: numeric
+                message: "Minimum withdrawal should be number format"
+                groups: [bitcoinSetting]
+            - NotEqualTo:
+                value: 0
+                message: "Minimum allowed withdrawal should not be 0."
+                groups: [bitcoinSetting]
+            - Expression:
+                expression: "this.getMinimumAllowedWithdrawal() < this.getMaximumAllowedWithdrawal()"
+                message: "Minimum allowed withdrawal should be less than maximum allowed withdrawal"
+                groups: [bitcoinSetting]
+            - Regex:
+                pattern: '/^(?:\d+|\d*\.\d{1,10}+)$/'
+                message: Max of 10 decimal places
+                groups: [bitcoinSetting]
+        maximumAllowedWithdrawal:
+            - NotNull: 
+                message: "Maximum allowed withdrawal cannot be empty."
+                groups: [bitcoinSetting]
+            - Type:
+                type: numeric
+                message: "Minimum withdrawal should be number format"
+                groups: [bitcoinSetting]
+            - NotEqualTo:
+                value: 0
+                message: "Minimum withdrawal should not be 0."
                 groups: [bitcoinSetting]
             - Regex:
                 pattern: '/^\s*(?=.*[1-9])\d*(?:\.\d{0,10})?\s*$/'

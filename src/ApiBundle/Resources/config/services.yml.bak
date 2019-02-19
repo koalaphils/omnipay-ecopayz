@@ -76,6 +76,8 @@ services:
         class: ApiBundle\Manager\TransactionManager
         lazy: true
         parent: app.base_manager
+        arguments:
+            - '@media.manager'
 
     api.customer_transformer:
         class: ApiBundle\Form\DataTransformer\CustomerTransformer

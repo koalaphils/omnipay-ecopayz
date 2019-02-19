@@ -56,6 +56,22 @@ class BitcoinSettingType extends AbstractType
                 'required' => true,
                 'translation_domain' => 'AppBundle',
             ])
+            ->add('minimumAllowedWithdrawal', Type\TextType::class, [
+                'label' => 'settings.bitcoin.fields.minimumWithdrawal',
+                'required' => true,
+                'translation_domain' => 'AppBundle',
+                'attr' => [
+                    'autocomplete' => 'off',
+                ],
+            ])
+            ->add('maximumAllowedWithdrawal', Type\TextType::class, [
+                'label' => 'settings.bitcoin.fields.maximumWithdrawal',
+                'required' => true,
+                'translation_domain' => 'AppBundle',
+                'attr' => [
+                    'autocomplete' => 'off',
+                ],
+            ])
             ->add('saveConfigurationButton', Type\SubmitType::class, [
                 'label' => 'form.save',
                 'translation_domain' => 'AppBundle',

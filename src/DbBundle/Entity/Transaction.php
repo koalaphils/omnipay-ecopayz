@@ -5,6 +5,8 @@ namespace DbBundle\Entity;
 use AppBundle\ValueObject\Money;
 use AppBundle\ValueObject\Number;
 use DateTime;
+use DateTimeImmutable;
+use DateTimeInterface;
 use DbBundle\Entity\Interfaces\ActionInterface;
 use DbBundle\Entity\Interfaces\AuditInterface;
 use DbBundle\Entity\Interfaces\TimestampInterface;
@@ -50,6 +52,9 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     private const DETAIL_COMMISSION_COMPUTED = 'commission.computed';
     private const DETAIL_COMMISSION_CONVERTIONS = 'commission.convertions';
     private const DETAIL_DWL_ID = 'dwl.id';
+    private const DETAIL_FILE_NAME = 'file.name';
+    private const DETAIL_FILE_FOLDER = 'file.folder';
+    private const FILE_DAY_LIMIT = 10;
 
     const TRANSACTION_TYPE_DEPOSIT = 1;
     const TRANSACTION_TYPE_WITHDRAW = 2;
@@ -62,6 +67,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     const TRANSACTION_TYPE_ADJUSTMENT = 9;
     const TRANSACTION_TYPE_DEBIT_ADJUSTMENT = 10;
     const TRANSACTION_TYPE_CREDIT_ADJUSTMENT = 11;
+    const FILE_FOLDER_DIR = 'transaction';
 
     const TRANSACTION_STATUS_START = 1;
     const TRANSACTION_STATUS_END = 2;
@@ -91,6 +97,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     private $betEventId;
     private $commissionComputedOriginal;
     private $immutablePaymentOptionData;
+    private $finishedAt;
     private $virtualBitcoinTransactionHash;
     private $bitcoinConfirmationCount;
     private $virtualBitcoinSenderAddress;
@@ -531,6 +538,31 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         return 'datetime';
     }
 
+    public function getFinishedAt(): ?DateTimeImmutable
+    {
+        if ($this->finishedAt instanceof DateTime) {
+            $this->finishedAt = DateTimeImmutable::createFromMutable($this->finishedAt);
+        }
+
+        return $this->finishedAt;
+    }
+
+    public function setFinishedAt(DateTimeInterface $finishedAt): self
+    {
+        if ($finishedAt instanceof DateTimeImmutable) {
+            $this->finishedAt = $finishedAt;
+        } elseif ($finishedAt instanceof DateTime) {
+            $this->finishedAt = DateTimeImmutable::createFromMutable($finishedAt);
+        } else {
+            throw new UnexpectedValueException(sprintf(
+                'Finished At must be type of %s or %s only.',
+                DateTime::class,
+                DateTimeImmutable::class
+            ));
+        }
+
+        return $this;
+    }
 
     public function getPaymentOption(): ?CustomerPaymentOption
     {
@@ -874,10 +906,10 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     public function getTypeAsTexts(): array
     {
         return [
-            self::TRANSACTION_TYPE_DEPOSIT => 'deposit',
-            self::TRANSACTION_TYPE_WITHDRAW => 'withdraw',
-            self::TRANSACTION_TYPE_TRANSFER => 'transfer',
-            self::TRANSACTION_TYPE_P2P_TRANSFER => 'p2p transfer',
+            self::TRANSACTION_TYPE_DEPOSIT => 'Deposit',
+            self::TRANSACTION_TYPE_WITHDRAW => 'Withdraw',
+            self::TRANSACTION_TYPE_TRANSFER => 'Transfer',
+            self::TRANSACTION_TYPE_P2P_TRANSFER => 'P2P Transfer',
             self::TRANSACTION_TYPE_BET => 'bet',
             self::TRANSACTION_TYPE_DWL => 'dwl',
             self::TRANSACTION_TYPE_BONUS => 'bonus',
@@ -928,7 +960,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public function getIgnoreFields()
     {
-        return ['createdBy', 'createdAt', 'updatedBy', 'updatedAt', 'paymentOptionType', 'creator'];
+        return ['createdBy', 'createdAt', 'updatedBy', 'updatedAt', 'creator'];
     }
 
     public function getAssociationFields()
@@ -1127,6 +1159,52 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         return $this->getDetail(self::DETAIL_COMMISSION_CONVERTIONS, []);
     }
 
+    public function setFilename(string $filename): void
+    {
+        $this->setDetail(self::DETAIL_FILE_NAME, $filename);
+    }
+
+    public function getFilename(): string
+    {
+        $filename = $this->getDetail(self::DETAIL_FILE_NAME);
+
+        return !empty($filename) ? $filename : '';
+    }
+
+    public function setFileFolder(string $folderName): void
+    {
+        $this->setDetail(self::DETAIL_FILE_FOLDER, $folderName);
+    }
+
+    public function getFileFolder(): string
+    {
+        return $this->getDetail(self::DETAIL_FILE_FOLDER);
+    }
+
+    public function hasFile(): bool
+    {
+        return !empty($this->getFilename()) ? true : false;
+    }
+
+    public function isFileViewable(): bool
+    {
+        if ($this->getFinishedAt()) {
+            $currentDate = new DateTime('now');
+            $interval = $this->getFinishedAt()->diff($currentDate);
+
+            return $interval->format('%d') > self::FILE_DAY_LIMIT ? false : true;
+        }
+
+        return true;
+    }
+
+    public function onFinish(): void
+    {
+        if (($this->isDeclined() || $this->isEnd()) && !$this->isVoided()) {
+            $this->setFinishedAt(new DateTime('now'));
+        }
+    }
+
     public function setBitcoinInfo(array $info): void
     {
         foreach ($info as $key => $value) {
@@ -1277,7 +1355,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public function isBitcoinRequestedOnConfirmation(): bool
     {
-        return $this->getBitcoinConfirmation() === null;
+        return $this->getBitcoinConfirmation() === null && $this->getStatus() === self::TRANSACTION_STATUS_START;
     }
 
     public function isBitcoinPendingOnConfirmation(): bool
@@ -1293,7 +1371,8 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public function isBitcoinConfirmedOnConfirmation(): bool
     {
-        return $this->getBitcoinConfirmation() >= 3;
+        return $this->getBitcoinConfirmation() >= 3
+            || $this->getStatus() == self::TRANSACTION_STATUS_ACKNOWLEDGE;
     }
 
     public function getBitcoinStatus(): string
@@ -1311,7 +1390,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public function hasBitcoinDepositAndNotConfirmed(): bool
     {
-        return $this->hasDepositUsingBitcoin() && $this->getBitcoinConfirmation() < 3;
+        return $this->hasDepositUsingBitcoin() && $this->getBitcoinConfirmation() < 3 && $this->getStatus() != self::TRANSACTION_STATUS_ACKNOWLEDGE;
     }
 
     public static function getOtherStatus(): array

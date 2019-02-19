@@ -722,8 +722,10 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     }
 
     public function getCustomerAmount()
-    {
-        return $this->getDetail('summary.customer_amount', $this->getDetail('summary.total_amount', 0));
+    {        
+        // zimi
+        // return $this->getDetail('summary.customer_amount', $this->getDetail('summary.total_amount', 0));
+        return $this->getAmount();
     }
 
     public function canAutoSetPaymentOptionType()
@@ -872,10 +874,10 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     public function getTypeAsTexts(): array
     {
         return [
-            self::TRANSACTION_TYPE_DEPOSIT => 'Deposit',
-            self::TRANSACTION_TYPE_WITHDRAW => 'Withdraw',
-            self::TRANSACTION_TYPE_TRANSFER => 'Transfer',
-            self::TRANSACTION_TYPE_P2P_TRANSFER => 'P2P Transfer',
+            self::TRANSACTION_TYPE_DEPOSIT => 'deposit',
+            self::TRANSACTION_TYPE_WITHDRAW => 'withdraw',
+            self::TRANSACTION_TYPE_TRANSFER => 'transfer',
+            self::TRANSACTION_TYPE_P2P_TRANSFER => 'p2p transfer',
             self::TRANSACTION_TYPE_BET => 'bet',
             self::TRANSACTION_TYPE_DWL => 'dwl',
             self::TRANSACTION_TYPE_BONUS => 'bonus',
@@ -926,7 +928,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public function getIgnoreFields()
     {
-        return ['createdBy', 'createdAt', 'updatedBy', 'updatedAt', 'creator'];
+        return ['createdBy', 'createdAt', 'updatedBy', 'updatedAt', 'paymentOptionType', 'creator'];
     }
 
     public function getAssociationFields()
@@ -1165,7 +1167,9 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public function getBitcoinRate(): string
     {
-        return $this->getDetail(self::DETAIL_BITCOIN_RATE, '');
+        // zimi
+        $res = $this->getDetail(self::DETAIL_BITCOIN_RATE, '');
+        return ($res === null ? 0 : $res);
     }
 
     public function getBitcoinTransactionHash(): string
@@ -1379,5 +1383,29 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         }
 
         return '';
+    }
+
+    // zimi
+    public function getStatusText()
+    {
+        return $this->getStatusList()[$this->getStatus()];
+    }
+
+    /**
+    const TRANSACTION_STATUS_START = 1;
+    const TRANSACTION_STATUS_END = 2;
+    const TRANSACTION_STATUS_DECLINE = 3;
+    const TRANSACTION_STATUS_ACKNOWLEDGE = 4;
+    const TRANSACTION_STATUS_VOIDED = 'voided';
+    **/
+    public function getStatusList(): array
+    {
+        return [
+            static::TRANSACTION_STATUS_START => 'requested',
+            static::TRANSACTION_STATUS_END => 'processed',
+            static::TRANSACTION_STATUS_DECLINE => 'declined',
+            static::TRANSACTION_STATUS_ACKNOWLEDGE => 'acknowledged',
+            static::TRANSACTION_STATUS_VOIDED => 'voided',            
+        ];
     }
 }

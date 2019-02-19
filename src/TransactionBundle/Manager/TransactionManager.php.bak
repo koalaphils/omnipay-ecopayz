@@ -345,8 +345,12 @@ class TransactionManager extends TransactionOldManager
         if ($transaction !== null && $transaction->getId()) {
             if ($action === 'void') {
                 $action = ['label' => 'Void', 'status' => 'void'];
-            } else if ($action === 'decline'){
+            } elseif ($action === 'decline') {
                 $action = ['label' => 'Decline', 'status' => Transaction::TRANSACTION_STATUS_DECLINE];
+            } elseif ($action === 'confirm') {
+                $action = ['label' => 'Confirm', 'status' => Transaction::TRANSACTION_STATUS_ACKNOWLEDGE];
+                $transaction->setBitcoinConfirmation(3);
+                $transaction->setBitcoinAcknowledgedByUser(true);
             } else {
                 $action = $this->getAction($transaction->getStatus(), $action, $transaction->getTypeText());
             }
@@ -377,7 +381,7 @@ class TransactionManager extends TransactionOldManager
 
             $this->getEventDispatcher()->dispatch('transaction.pre_save', $event);
             $this->getRepository()->reconnectToDatabase();
-            
+            $this->updateBitcoinPaymentOption($transaction);
             // zimi- DbBundle\Entity\Transaction            
             $eventTransaction = $event->getTransaction();            
             $eventTransaction->setAmount($amount);   
@@ -584,6 +588,7 @@ class TransactionManager extends TransactionOldManager
                 ];
         } else if (!$transaction->isDwl() && $transaction->isTransactionPaymentBitcoin() && !$transaction->isVoided() && $transaction->getStatus() == Transaction::TRANSACTION_STATUS_START && $transaction->isDeposit()) {
             $actions['decline'] = ['label' => 'Decline', 'class' => 'btn-danger', 'status' => Transaction::TRANSACTION_STATUS_DECLINE];
+            $actions['confirm'] = ['label' => 'Confirm', 'class' => 'btn-danger', 'status' => Transaction::TRANSACTION_STATUS_ACKNOWLEDGE];
             $isForVoidingOrDecline = true;
         } else {
             $actions = array_get($this->getStatus($transaction->getStatus()), 'actions', []);

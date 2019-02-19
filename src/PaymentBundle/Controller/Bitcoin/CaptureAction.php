@@ -71,6 +71,7 @@ class CaptureAction implements ActionInterface
         if (!$member->equalsToBitcoinCallback($callback)) {
             $payment = $request->getModel();
             $gateway = $payment['gateway'];
+            $xpub = $gateway->getConfig()['receiverXpub'];
 
             $gateway_configs = $gateway->getConfig();            
             // zimi-check null

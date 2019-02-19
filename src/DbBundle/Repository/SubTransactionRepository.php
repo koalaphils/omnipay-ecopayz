@@ -28,9 +28,9 @@ class SubTransactionRepository extends BaseRepository
 
         if (array_has($filters, 'search')) {
             $queryBuilder
-                ->orWhere("(JSON_EXTRACT(subtransaction.details, '$.immutableCustomerProductData.username') LIKE :search "
+                ->orWhere("(subtransaction.immutableUsername LIKE :search "
                     . "AND customerProduct.userName LIKE :search) OR "
-                    . "JSON_EXTRACT(subtransaction.details, '$.immutableCustomerProductData.username') LIKE :search")
+                    . "subtransaction.immutableUsername LIKE :search")
                 ->setParameter('search', '%' . $filters['search'] . '%')
             ;
 

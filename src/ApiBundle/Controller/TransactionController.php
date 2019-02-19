@@ -261,7 +261,7 @@ class TransactionController extends AbstractController
                         ;
 
                         $this->getCustomerPaymentOptionRepository()
-                            ->disableOldPaymentOption($memberPaymentOption->getId(), $transaction->getCustomer()->getId(), $paymentOptionType)
+                            ->disableOldPaymentOption($memberPaymentOption->getId(), $transaction->getCustomer()->getId(), $paymentOptionType, Transaction::TRANSACTION_TYPE_DEPOSIT)
                         ;
                     }
                 }
@@ -272,7 +272,7 @@ class TransactionController extends AbstractController
                     ;
 
                     $this->getCustomerPaymentOptionRepository()
-                        ->disableOldPaymentOption($transaction->getPaymentOptionOnTransaction()->getId(), $transaction->getCustomer()->getId(), $paymentOptionType)
+                        ->disableOldPaymentOption($transaction->getPaymentOptionOnTransaction()->getId(), $transaction->getCustomer()->getId(), $paymentOptionType, Transaction::TRANSACTION_TYPE_DEPOSIT)
                     ;
                 }
                 

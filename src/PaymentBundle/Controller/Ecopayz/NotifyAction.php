@@ -137,8 +137,9 @@ class NotifyAction implements ApiAwareInterface, ActionInterface
             ->disableOldPaymentOption(
                 $customerPaymentOption->getId(),
                 $customerPaymentOption->getCustomer()->getId(),
-                strtoupper(PaymentOption::PAYMENT_MODE_ECOPAYZ))
-            ;
+                strtoupper(PaymentOption::PAYMENT_MODE_ECOPAYZ),
+                Transaction::TRANSACTION_TYPE_DEPOSIT
+            );
 
         return $customerPaymentOption;
     }
@@ -163,8 +164,9 @@ class NotifyAction implements ApiAwareInterface, ActionInterface
             ->disableOldPaymentOption(
                 $customerPaymentOption->getId(),
                 $customerPaymentOption->getCustomer()->getId(),
-                strtoupper(PaymentOption::PAYMENT_MODE_ECOPAYZ))
-            ;
+                strtoupper(PaymentOption::PAYMENT_MODE_ECOPAYZ),
+                Transaction::TRANSACTION_TYPE_DEPOSIT
+            );
 
         return $customerPaymentOption;
     }

@@ -24,3 +24,6 @@ DbBundle\Entity\SubTransaction:
         brokerageReturn:
             expose: true
             exp: object.getDwlReturn()
+        immutableUsername:
+            expose: true
+            exp: object.getImmutableCustomerProductData()

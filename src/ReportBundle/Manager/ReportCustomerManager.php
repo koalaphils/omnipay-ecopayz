@@ -144,35 +144,46 @@ class ReportCustomerManager extends AbstractManager
             ['c.customer_id', 'cp.cproduct_id', 'cp.cproduct_username', 'cp.cproduct_product_id product_id', 'c.customer_currency_id currency_id', 'cu.currency_code', 'cp.cproduct_balance current_balance', 'p.product_deleted_at']
         );
 
-        $customerProductIds = array_map(
-            function ($customerProduct) {
-                return $customerProduct['cproduct_id'];
-            },
-            $report
+        $filteredCustomerProducts = $this->getRepository()->getCustomerProductReport(
+            $filters,
+            $limit = 0,
+            $offset,
+            ['cp.cproduct_id' => 'ASC'],
+            ['cp.cproduct_id'],
+            ['c.customer_id', 'cp.cproduct_id', 'cp.cproduct_username', 'cp.cproduct_product_id product_id', 'c.customer_currency_id currency_id', 'cu.currency_code', 'cp.cproduct_balance current_balance', 'p.product_deleted_at']
         );
 
-        $beforeDate = \DateTime::createFromFormat('Y-m-d', $filters['from'])->modify('-1 day')->format('Y-m-d');
-        $afterDate = \DateTime::createFromFormat('Y-m-d', $filters['to'])->modify('+1 day')->format('Y-m-d');
-        $reportEndDate = \DateTime::createFromFormat('Y-m-d', $filters['to']);
+        if (count($report) > 0){
+            $customerProductIds = array_map(
+                function ($customerProduct) {
+                    return $customerProduct['cproduct_id'];
+                },
+                array_get($filters, 'isForSkypeBetting', true) ? $filteredCustomerProducts : $report
+            );
 
-        $beforeTheFromDateReport = $this->reportModifyKeys($this->getRepository()->computeCustomerProductsTotalTransactions(['customerProductIds' => $customerProductIds], null, $beforeDate, ['st.subtransaction_customer_product_id'], [], ['st.subtransaction_customer_product_id AS cproduct_id']));
-        $afterTheToDateReport = $this->reportModifyKeys($this->getRepository()->computeCustomerProductsTotalTransactions(['customerProductIds' => $customerProductIds], $afterDate, null, ['st.subtransaction_customer_product_id'], [], ['st.subtransaction_customer_product_id AS cproduct_id']));
-        $rangeDateReport = $this->reportModifyKeys($this->getRepository()->computeCustomerProductsTotalTransactions(['customerProductIds' => $customerProductIds], $filters['from'], $filters['to'], ['st.subtransaction_customer_product_id'], [], ['st.subtransaction_customer_product_id AS cproduct_id']));
+            $beforeDate = \DateTime::createFromFormat('Y-m-d', $filters['from'])->modify('-1 day')->format('Y-m-d');
+            $afterDate = \DateTime::createFromFormat('Y-m-d', $filters['to'])->modify('+1 day')->format('Y-m-d');
+            $reportEndDate = \DateTime::createFromFormat('Y-m-d', $filters['to']);
 
+            $beforeTheFromDateReport = $this->reportModifyKeys($this->getRepository()->computeCustomerProductsTotalTransactions(['customerProductIds' => $customerProductIds], null, $beforeDate, ['st.subtransaction_customer_product_id'], [], ['st.subtransaction_customer_product_id AS cproduct_id']));
+            $afterTheToDateReport = $this->reportModifyKeys($this->getRepository()->computeCustomerProductsTotalTransactions(['customerProductIds' => $customerProductIds], $afterDate, null, ['st.subtransaction_customer_product_id'], [], ['st.subtransaction_customer_product_id AS cproduct_id']));
+            $rangeDateReport = $this->reportModifyKeys($this->getRepository()->computeCustomerProductsTotalTransactions(['customerProductIds' => $customerProductIds], $filters['from'], $filters['to'], ['st.subtransaction_customer_product_id'], [], ['st.subtransaction_customer_product_id AS cproduct_id']));
 
-        $report = $this->addReportData($report, $beforeTheFromDateReport, $afterTheToDateReport, $rangeDateReport, $reportEndDate);
+            if (array_get($filters, 'isForSkypeBetting', true) && array_get($filters, 'hideZeroValueRecords', true)) {
+                $skypeBettingData = $filteredCustomerProducts;
+                $reportDataAdded = $this->addReportData($skypeBettingData, $beforeTheFromDateReport, $afterTheToDateReport, $rangeDateReport, $reportEndDate);
+                $reportAlteredFromSkypeBetting = $this->alterReportsRelatedForSkypeBetting($reportDataAdded, $reportEndDate);
+                $report = array_slice($reportAlteredFromSkypeBetting, $offset, array_get($filters, 'limit', 10));
+            } else {
+                $report = $this->addReportData($report, $beforeTheFromDateReport, $afterTheToDateReport, $rangeDateReport, $reportEndDate);
+            }
+        }
 
         $currencies = $filters['currencies'] ?? [];
         if (array_has($filters, 'currency')) {
             $currencies[] = $filters['currency'];
         }
 
-        $totalFilteredCustomerProducts = $this->getCustomerProductRepository()->getCustomerProductListFilterCount([
-            'customerID' => $filters['customer'] ?? [],
-            'products' => $filters['products'] ?? [],
-            'currencies' => $currencies,
-            'search' => $filters['search'] ?? '',
-        ]);
         $totalCustomerProducts = $this->getCustomerProductRepository()->getCustomerProductListFilterCount([
             'customerID' => $filters['customer'] ?? [],
             'products' => $filters['products'] ?? [],
@@ -195,7 +206,7 @@ class ReportCustomerManager extends AbstractManager
                 },
                 $report
             ),
-            'recordsFiltered' => (int) $totalFilteredCustomerProducts,
+            'recordsFiltered' => (array_get($filters, 'isForSkypeBetting', true) && array_get($filters, 'hideZeroValueRecords', true)) ? count($reportAlteredFromSkypeBetting) : count($filteredCustomerProducts),
             'recordsTotal' => (int) $totalCustomerProducts,
             'limit' => $limit,
             'page' => $page,
@@ -235,9 +246,6 @@ class ReportCustomerManager extends AbstractManager
             },
             $report
         );
-
-        $report = $this->alterReportsRelatedForSkypeBetting($report, $reportEndDate);
-
         return $report;
     }
 
@@ -251,6 +259,9 @@ class ReportCustomerManager extends AbstractManager
                 $customerIdAtBetadmin = $report[$key]['customerIdAtBetAdmin'];
                 $report[$key]['current_balance'] = $skypeBettingData[$customerIdAtBetadmin]['current_balance'] ?? 0;
                 $report[$key]['end_of_report_date_balance'] = $skypeBettingData[$customerIdAtBetadmin]['end_of_day_balance'] ?? 0;
+            }
+            if ($report[$key]['current_balance'] < 1 AND $report[$key]['dwl_turnover'] == 0){
+                unset($report[$key]);
             }
             unset($report[$key]['customerIdAtBetAdmin']);
         }
@@ -294,12 +305,11 @@ class ReportCustomerManager extends AbstractManager
         return $this->getDoctrine()->getRepository(\DbBundle\Entity\CustomerProduct::class);
     }
 
-    public function printMemberProductsCsvReport(Product $product, Currency $currencyEntity, \DateTimeInterface $reportStartDate, \DateTimeInterface $reportEndDate, ?String $memberProductUsernameQueryString = null)
+    public function printMemberProductsCsvReport(Product $product, Currency $currencyEntity, \DateTimeInterface $reportStartDate, \DateTimeInterface $reportEndDate, ?String $memberProductUsernameQueryString = null, bool $reportIsZeroValue = false)
     {
         $this->doNotLoadSqlResultsInMemoryAllAtOnce();
-        $query = $this->getMemberProductReportQuery($product, $currencyEntity, $reportStartDate, $reportEndDate, $memberProductUsernameQueryString);
+        $query = $this->getMemberProductReportQuery($product, $currencyEntity, $reportStartDate, $reportEndDate, $memberProductUsernameQueryString, $reportIsZeroValue);
 
-        // filter details
         echo "From: ". $reportStartDate->format('Y-m-d') ."\n";
         echo "To: ". $reportEndDate->format('Y-m-d') ."\n";
         echo "Product: ". $product->getName() . "\n";
@@ -344,33 +354,60 @@ class ReportCustomerManager extends AbstractManager
         foreach ($iterableResult as $row) {
             $member = array_pop($row);
 
-
-
-            echo '"'.$member['memberProductName'] . '",';
-            echo ($member['turnover'] ?? 0 ). ',';
-            echo ($member['gross'] ?? 0) . ',';
-            echo ($member['win_loss'] ?? 0) . ',';
-            echo ($member['commission'] ?? 0) . ',';
-
-            if ($product->isSkypeBetting()) {
+            if ($product->isSkypeBetting() && $reportIsZeroValue) {
                 $customerIdAtBetadmin = $member['customerIdAtBetadmin'];
-                echo ($skypeBettingData[$customerIdAtBetadmin]['end_of_day_balance'] ?? 0) . ',';
-                echo ($skypeBettingData[$customerIdAtBetadmin]['current_balance'] ?? 0) . ',';
+
+                if (($skypeBettingData[$customerIdAtBetadmin]['current_balance'] ?? 0) < 1 AND ($member['turnover'] ?? 0) == 0) {
+                   unset($member);
+                } else {
+                    echo '"'.$member['memberProductName'] . '",';
+                    echo ($member['turnover'] ?? 0 ). ',';
+                    echo ($member['gross'] ?? 0) . ',';
+                    echo ($member['win_loss'] ?? 0) . ',';
+                    echo ($member['commission'] ?? 0) . ',';
+
+                    echo ($skypeBettingData[$customerIdAtBetadmin]['end_of_day_balance'] ?? 0) . ',';
+                    echo ($skypeBettingData[$customerIdAtBetadmin]['current_balance'] ?? 0) . ',';
+
+                    echo $member['isNotYetDeletedWithinReportDateRange'] ;
+
+                    $turnOverTotal += $member['turnover'];
+                    $grossCommissionTotal += $member['gross'];
+                    $winlossTotal += $member['win_loss'];
+                    $commissionTotal += $member['commission'];
+                    $availableBalaneAsOfReportEndDateTotal += $member['balanceAsOf'];
+                    $currentBalanceTotal += $member['totalCustomerProductBalance'];
+
+                    echo "\n";
+                }
+
             } else {
-                echo ($member['balanceAsOf'] ?? 0) . ',';
-                echo ($member['totalCustomerProductBalance'] ?? 0) . ',';
+                echo '"'.$member['memberProductName'] . '",';
+                echo ($member['turnover'] ?? 0 ). ',';
+                echo ($member['gross'] ?? 0) . ',';
+                echo ($member['win_loss'] ?? 0) . ',';
+                echo ($member['commission'] ?? 0) . ',';
+
+                if ($product->isSkypeBetting()) {
+                    $customerIdAtBetadmin = $member['customerIdAtBetadmin'];
+                    echo ($skypeBettingData[$customerIdAtBetadmin]['end_of_day_balance'] ?? 0) . ',';
+                    echo ($skypeBettingData[$customerIdAtBetadmin]['current_balance'] ?? 0) . ',';
+                } else {
+                    echo ($member['balanceAsOf'] ?? 0) . ',';
+                    echo ($member['totalCustomerProductBalance'] ?? 0) . ',';
+                }
+
+                echo $member['isNotYetDeletedWithinReportDateRange'] ;
+
+                $turnOverTotal += $member['turnover'];
+                $grossCommissionTotal += $member['gross'];
+                $winlossTotal += $member['win_loss'];
+                $commissionTotal += $member['commission'];
+                $availableBalaneAsOfReportEndDateTotal += $member['balanceAsOf'];
+                $currentBalanceTotal += $member['totalCustomerProductBalance'];
+
+                echo "\n";
             }
-            echo $member['isNotYetDeletedWithinReportDateRange'] ;
-
-            $turnOverTotal += $member['turnover'];
-            $grossCommissionTotal += $member['gross'];
-            $winlossTotal += $member['win_loss'];
-            $commissionTotal += $member['commission'];
-            $availableBalaneAsOfReportEndDateTotal += $member['balanceAsOf'];
-            $currentBalanceTotal += $member['totalCustomerProductBalance'];
-
-
-            echo "\n";
         }
 
         echo "Total,";
@@ -453,7 +490,7 @@ class ReportCustomerManager extends AbstractManager
         echo $currentBalanceTotal ."\n";
     }
 
-    public function getMemberProductsReportSummary(?int $productId, int $currencyId, \DateTimeInterface $reportStartDate, \DateTimeInterface $reportEndDate, ?String $memberProductUsernameQueryString = null): array
+    public function getMemberProductsReportSummary(?int $productId, int $currencyId, \DateTimeInterface $reportStartDate, \DateTimeInterface $reportEndDate, ?String $memberProductUsernameQueryString = null, bool $reportIsZeroValue = false): array
     {
         $currency = $this->getEntityManager()->getRepository(Currency::class)->findOneById($currencyId);
         $product = null;
@@ -462,7 +499,7 @@ class ReportCustomerManager extends AbstractManager
         }
         $this->doNotLoadSqlResultsInMemoryAllAtOnce();
 
-        $query = $this->getMemberProductReportQuery($product, $currency, $reportStartDate, $reportEndDate, $memberProductUsernameQueryString);
+        $query = $this->getMemberProductReportQuery($product, $currency, $reportStartDate, $reportEndDate, $memberProductUsernameQueryString, $reportIsZeroValue);
 
         $turnOverTotal = 0;
         $grossCommissionTotal = 0;
@@ -599,7 +636,7 @@ class ReportCustomerManager extends AbstractManager
         $pdo->setAttribute(\PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false);
     }
 
-    private function getMemberProductReportQuery(?Product $product, Currency $currency, \DateTimeInterface $reportStartDate, \DateTimeInterface $reportEndDate, $memberProductUsernameQueryString = null): AbstractQuery
+    private function getMemberProductReportQuery(?Product $product, Currency $currency, \DateTimeInterface $reportStartDate, \DateTimeInterface $reportEndDate, $memberProductUsernameQueryString = null, bool $reportIsZeroValue = false): AbstractQuery
     {
         $resultsMap = new ResultSetMapping();
         $resultsMap->addScalarResult('memberProductName','memberProductName');
@@ -621,6 +658,11 @@ class ReportCustomerManager extends AbstractManager
         $productSearchCondition = '';
         if ($product instanceof  Product) {
             $productSearchCondition = ' AND cproduct_product_id = :productId';
+        }
+
+        $reportIsZeroValueCondition = '';
+        if ($reportIsZeroValue && !$product->isSkypeBetting()) {
+            $reportIsZeroValueCondition = ' AND (turnover <> 0 OR totalCustomerProductBalance >= 1)';
         }
 
         $sql = '
@@ -668,6 +710,7 @@ class ReportCustomerManager extends AbstractManager
             WHERE customer_currency_id = :currencyId
             '. $productSearchCondition .'
             '. $memberProductUsernameSearchCondition .'
+            '. $reportIsZeroValueCondition .'
             ORDER BY cproduct_id ASC
         ';
 
@@ -712,9 +755,6 @@ class ReportCustomerManager extends AbstractManager
         if ($memberProductUsernameQueryString !== null && $memberProductUsernameQueryString !== ''){
             $memberProductUsernameSearchCondition = ' AND cproduct_username LIKE :memberProductUsernameQueryString';
         }
-
-
-
 
         $sql = '
             SELECT cproduct_username as memberProductName,

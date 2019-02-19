@@ -56,16 +56,18 @@ class CustomerPaymentOptionRepository extends \Doctrine\ORM\EntityRepository
         $qb->join('cpo.customer', 'c', 'WITH', 'c.id = :customerId')
             ->join('cpo.paymentOption', 'po', 'WITH', 'po.code = :paymentOptionCode')
             ->where("JSON_EXTRACT(cpo.fields, '$.account_id') = :account_id")
+            ->andWhere("IFNULL(JSON_UNQUOTE(JSON_EXTRACT(cpo.fields, '$.is_withdrawal')), 0) = :is_withdrawal")
             ->setParameter('customerId', $memberId)
             ->setParameter('paymentOptionCode', 'BITCOIN')
-            ->setParameter('account_id', $accountId);
+            ->setParameter('account_id', $accountId)
+            ->setParameter('is_withdrawal', $transactionType === Transaction::TRANSACTION_TYPE_WITHDRAW ? 1 : 0);
 
         $qb->setMaxResults(1);
 
         return $qb->getQuery()->getOneOrNullResult();
     }
 
-    public function disableOldPaymentOption($customerPaymentOptionId, $customerId, $paymentOptionCode)
+    public function disableOldPaymentOption($customerPaymentOptionId, $customerId, $paymentOptionCode, $transactionType)
     {
         $qb = $this->createQueryBuilder('cpo');
         $qb->update('DbBundle:CustomerPaymentOption', 'cpo')
@@ -78,6 +80,12 @@ class CustomerPaymentOptionRepository extends \Doctrine\ORM\EntityRepository
             ->andWhere($qb->expr()->neq('cpo.id', ':customerPaymentOptionId'))
             ->setParameter('customerPaymentOptionId', $customerPaymentOptionId)
         ;
+
+        if ($paymentOptionCode == strtoupper(Transaction::DETAIL_BITCOIN_INFO)){
+            $qb->andWhere("IFNULL(JSON_UNQUOTE(JSON_EXTRACT(cpo.fields, '$.is_withdrawal')), 0) = :is_withdrawal")
+               ->setParameter('is_withdrawal', $transactionType == Transaction::TRANSACTION_TYPE_WITHDRAW ? 1 : 0)
+               ;
+        }
 
         $qb->getQuery()->execute();
     }

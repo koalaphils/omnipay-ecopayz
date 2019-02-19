@@ -339,6 +339,19 @@ class TransactionManager extends TransactionOldManager
         return $this->getRepository()->getTotalTransactionPerStatuses($statusesConditions);
     }
 
+    public function updateBitcoinPaymentOption(Transaction $transaction): void {
+        if ($transaction->isPaymentBitcoin()) {
+            $paymentOption = $transaction->getPaymentOption();
+            if(!is_null($paymentOption)  && strcasecmp($paymentOption->getBitcoinField(), $transaction->getBitcoinAddress()) !== 0){
+
+                $paymentOption->setAccountId($transaction->getBitcoinAddress());
+
+                $this->getEntityManager()->persist($paymentOption);
+                $this->getEntityManager()->flush($paymentOption);
+            }
+        }
+    }
+
     public function processTransaction(Transaction &$transaction, $action, bool $fromCustomer = false)
     {        
         // zimi-check $transaction !== null        

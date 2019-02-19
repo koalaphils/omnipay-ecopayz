@@ -59,6 +59,8 @@ class SubTransaction extends Entity implements AuditInterface
 
     private $dwlWinLoss;
 
+    private $immutableUsername;
+
     public function __construct()
     {
         $this->fees = [];
@@ -277,11 +279,7 @@ class SubTransaction extends Entity implements AuditInterface
      */
     public function getImmutableCustomerProductData() : String
     {
-        $immutableCustomerProductData = '';
-        if (!empty($this->getDetail('immutableCustomerProductData.username'))) {
-            $immutableCustomerProductData = $this->getDetail('immutableCustomerProductData.username');
-        }
-        return $immutableCustomerProductData;
+        return $this->immutableUsername ?? '';
     }
 
     public function setImmutableCustomerProductData($customerProductUsername) : SubTransaction

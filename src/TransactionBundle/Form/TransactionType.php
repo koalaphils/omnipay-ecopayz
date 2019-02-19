@@ -507,11 +507,19 @@ class TransactionType extends AbstractType
     {
         $builder->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event) {
             $transaction = $event->getData();
+            $form = $event->getForm();
+            $reason = null;
             if ($transaction->isVoided() || $transaction->isDeclined()) {
-                $form = $event->getForm();
-                $form->add('reasonToVoidOrDecline', Type\TextAreaType::class, [
+                $reason = 'reasonToVoidOrDecline';
+            } elseif ($transaction->getVoidingReason()) {
+                $reason = 'confirmationReason';
+            }
+            if ($reason) {
+                $form->add($reason, Type\TextAreaType::class, [
                     'required' => false,
                     'property_path' => 'details[reasonToVoidOrDecline]',
+                    'data' => $transaction->getVoidingReason(),
+                    'mapped' => false
                 ]);
             }
         });
@@ -521,7 +529,7 @@ class TransactionType extends AbstractType
     {
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
             $transaction = $event->getData();
-            if ($transaction->isTransactionPaymentBitcoin() && !$transaction->isNew() && $transaction->isDeposit()) {
+            if ($transaction->isTransactionPaymentBitcoin() && !$transaction->isNew()) {
                 $form = $event->getForm();
                 $form->add('receiverAddress', Type\TextType::class, [
                     'translation_domain' => 'TransactionBundle',

@@ -6,6 +6,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use AppBundle\ValueObject\Number;
 
 use DbBundle\Entity\BitcoinRateSetting;
+use DbBundle\Entity\Transaction;
 
 class BitcoinAdjustment
 {
@@ -29,6 +30,7 @@ class BitcoinAdjustment
             $bitcoinRateSetting->setRangeTo($setting['range_end']);
             $bitcoinRateSetting->setFixedAdjustment($setting['fixed_adjustment']);
             $bitcoinRateSetting->setPercentageAdjustment($setting['percent_adjustment']);
+            $bitcoinRateSetting->setType($setting['type']);
 
             return $bitcoinRateSetting;
         }, $payload['conversion_table']);
@@ -60,7 +62,7 @@ class BitcoinAdjustment
         return $this->bitcoinConfig;
     }
 
-    public function getAdjustedRate(string $btc): string
+    public function getAdjustedRate(string $btc, int $type): string
     {
         if (count($this->bitcoinRateSettings) < 1) {
             return $this->getLatestBaseRate();
@@ -71,21 +73,31 @@ class BitcoinAdjustment
         }))[0];
 
         if ($bitcoinRateSetting->getFixedAdjustment() !== null) {
-            return Number::sub($this->getLatestBaseRate(), $bitcoinRateSetting->getFixedAdjustment());
+            if ($type === Transaction::TRANSACTION_TYPE_DEPOSIT) {
+                return Number::sub($this->getLatestBaseRate(), $bitcoinRateSetting->getFixedAdjustment());
+            }
+            if ($type === Transaction::TRANSACTION_TYPE_WITHDRAW) {
+                return Number::add($this->getLatestBaseRate(), $bitcoinRateSetting->getFixedAdjustment());
+            }
         } else {
             $adjustment  = Number::mul(Number::div($bitcoinRateSetting->getPercentageAdjustment(), 100), $this->getLatestBaseRate());
-
-            return Number::add($adjustment, $this->getLatestBaseRate());
+            if ($type === Transaction::TRANSACTION_TYPE_DEPOSIT) {
+                return Number::sub($adjustment, $this->getLatestBaseRate());
+            }
+            if ($type === Transaction::TRANSACTION_TYPE_WITHDRAW) {
+                return Number::add($adjustment, $this->getLatestBaseRate());
+            }
         }
 
         throw new \LogicException('Code should not go here.');
     }
 
-    public function toArray(): array
+    public function toArray(int $type): array
     {
         return [
             'latest_base_rate' => $this->getLatestBaseRate(),
-            'adjusted_base_rate' => $this->getAdjustedRate(1),
+            'adjusted_base_rate' => $this->getAdjustedRate(1, $type),
+            'type' => $type === Transaction::TRANSACTION_TYPE_DEPOSIT ? 'deposit' : 'withdrawal',
             'bitcoin_config' => $this->getBitcoinConfig(),
             'conversion_table' =>  array_map(function($setting) {
                 return [
@@ -94,13 +106,14 @@ class BitcoinAdjustment
                     'fixed_adjustment' => $setting->getFixedAdjustment(),
                     'percent_adjustment' => $setting->getPercentageAdjustment(),
                     'is_default' => $setting->getIsDefault(),
+                    'type' => $setting->getType(),
                 ];
             }, $this->bitcoinRateSettings),
         ];
     }
 
-    public function createWebsocketPayload(): string
+    public function createWebsocketPayload(int $type): string
     {
-        return json_encode($this->toArray());
+        return json_encode($this->toArray($type));
     }
 }

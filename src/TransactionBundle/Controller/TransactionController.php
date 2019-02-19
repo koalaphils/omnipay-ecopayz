@@ -115,7 +115,20 @@ class TransactionController extends AbstractController
         $this->getSession()->save();
         $this->getMenuManager()->setActive('transaction.list');
 
-        $transaction = $this->getRepository('DbBundle:Transaction')->findByIdAndType($id, $this->getManager()->getType($type));
+        $transaction = $this->getRepository('DbBundle:Transaction')->findByIdAndType($id, $this->getManager()->getType($type));        
+        // zimi
+        $customer = $transaction->getCustomer();        
+        $username = $customer->getUsername();
+        $user = $customer->getUser();
+                
+        // zimi# 1: email, 2: phone
+        $userType = $user->getType();
+        if ($userType == 1) {
+            $username = $user->getEmail();
+        } else {            
+            $username = $user->getPhoneNumber();
+        }
+
         $dwl = null;
         $memberRunningCommission = null;
         $commissionPeriod = null;
@@ -134,7 +147,7 @@ class TransactionController extends AbstractController
         } else {
             $toCustomer = null;
         }
-
+        
         return $this->render("TransactionBundle:Transaction/Type:$type.html.twig", [
             'form' => $form->createView(),
             'type' => $type,
@@ -144,6 +157,7 @@ class TransactionController extends AbstractController
             'dwl' => $dwl,
             'memberRunningCommission' => $memberRunningCommission,
             'commissionPeriod' => $commissionPeriod,
+            'memberUsername' => $username
         ]);
     }
 
@@ -349,7 +363,7 @@ class TransactionController extends AbstractController
         $transactionRequest = $request->request->all('Transaction');
         $buttonName = key($transactionRequest['Transaction']['actions']);
         $buttonName = str_replace('btn_',''  , $buttonName);
-        if ($buttonName == 'decline' || $buttonName == 'void') {
+        if ($buttonName == 'decline' || $buttonName == 'void' || $buttonName == 'confirm') {
             return true;
         }
         return false;

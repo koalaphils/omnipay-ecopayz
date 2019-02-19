@@ -26,6 +26,8 @@ DbBundle\Entity\Transaction:
             columns: [transaction_created_at]
         updatedAt_index:
             columns: [transaction_updated_at]
+        finishedAt_index:
+            columns: [transaction_finished_at]
         toCustomer_index:
             columns: [transaction_to_customer]
         dwlId_index:
@@ -144,6 +146,10 @@ DbBundle\Entity\Transaction:
                 readOnly: true
             column: transaction_commission_computed_original
             nullable: true
+        finishedAt:
+            type: datetime
+            column: transaction_finished_at
+            nullable: true
         virtualBitcoinTransactionHash:
             type: string
             nullable: true
@@ -230,4 +236,6 @@ DbBundle\Entity\Transaction:
             cascade: ['persist']
             orderBy:
                 type: DESC
-    lifecycleCallbacks: {  }
+    lifecycleCallbacks:
+        prePersist: [onFinish]
+        preUpdate: [onFinish]

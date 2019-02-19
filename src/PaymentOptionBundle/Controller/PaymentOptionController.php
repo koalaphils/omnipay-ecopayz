@@ -68,9 +68,8 @@ class PaymentOptionController extends AbstractController
         if ($isPaymentBitcoin) {
             $bitcoinManager = $this->getBitcoinManager();
             $validationGroups = ['default', 'bitcoinSetting'];
-            $bitcoinConfiguration = $bitcoinManager->getBitcoinConfiguration();
-            $bitcoinLockDownSetting = $bitcoinManager->getBitcoinLockDownRateSetting();
-            $bitcoinSettingModel = $bitcoinManager->prepareBitcoinSetting($bitcoinConfiguration, $bitcoinLockDownSetting);
+            $bitcoinConfigurations = $bitcoinManager->getBitcoinConfigurations();
+            $bitcoinSettingModel = $bitcoinManager->prepareBitcoinSetting($bitcoinConfigurations);
             $formBitcoinSetting = $this->createForm(BitcoinSettingType::class, $bitcoinSettingModel, [
                 'action' => $this->generateUrl('payment.bitcoin_save'),
                 'method' => 'POST',
@@ -79,12 +78,10 @@ class PaymentOptionController extends AbstractController
 
             $dto = $bitcoinManager->createRateSettingsDTO();
             $dto->preserveOriginal();
-
             $bitcoinRateSettingForm = $this->createForm(BitcoinRateSettingsDTOType::class, $dto, [
                 'action' => $this->generateUrl('payment.bitcoin_rate_save'),
                 'method' => 'POST',
             ]);
-            
             $bitcoinManager->prepareRateSettingForm($bitcoinRateSettingForm);
             $bitcoinDepositAdjustment = $bitcoinManager->createBitcoinAdjustment(Rate::RATE_EUR, Transaction::TRANSACTION_TYPE_DEPOSIT);
             

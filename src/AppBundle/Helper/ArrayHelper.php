@@ -17,12 +17,15 @@ class ArrayHelper
 
     public static function get($array, $key, $default = null)
     {
+        if (empty($array)){
+            return $default;
+        }
         if (is_null($key)) {
             return $array;
         }
 
         if (isset($array[$key])) {
-            return $array[$key];
+            return $array[$key] ?? $default;
         }
 
         foreach (explode('.', $key) as $segment) {
@@ -33,7 +36,7 @@ class ArrayHelper
             $array = $array[$segment];
         }
 
-        return $array;
+        return $array ?? $default;
     }
 
     public static function has($array, $key)

@@ -49,6 +49,13 @@ DbBundle\Entity\BitcoinRateSetting:
             column: bitcoin_rate_setting_is_default
             options:
                 default: false
+        type:
+            type: tinyint
+            column: bitcoin_rate_setting_type
+            nullable: false
+            options:
+                default: 1
+                unsigned: true
         createdBy:
             type: bigint
             nullable: true

@@ -11,6 +11,8 @@ use AppBundle\Manager\AbstractManager;
 use DbBundle\Entity\CustomerPaymentOption;
 use DbBundle\Entity\SubTransaction;
 use DbBundle\Entity\Transaction;
+use MediaBundle\Manager\MediaManager;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class TransactionManager extends AbstractManager
 {

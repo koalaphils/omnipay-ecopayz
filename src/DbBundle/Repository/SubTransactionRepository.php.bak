@@ -2,6 +2,7 @@
 
 namespace DbBundle\Repository;
 
+use DbBundle\Entity\CommissionPeriod;
 use DbBundle\Entity\Transaction;
 use Doctrine\ORM\Internal\Hydration\IterableResult;
 use Doctrine\ORM\Query\Expr\Join;

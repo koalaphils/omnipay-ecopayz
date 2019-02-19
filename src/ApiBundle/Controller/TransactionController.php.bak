@@ -12,7 +12,8 @@ use DbBundle\Entity\PaymentOption;
 use DbBundle\Entity\Transaction;
 use DbBundle\Entity\Customer;
 use Payum\Core\Reply\HttpRedirect;
-
+use ApiBundle\Model\Bitcoin\BitcoinPayment;
+use ApiBundle\Model\Bitcoin\BitcoinRateDetail;
 
 class TransactionController extends AbstractController
 {
@@ -195,7 +196,7 @@ class TransactionController extends AbstractController
         }
         
         $paymentOptionType = $transaction['paymentOptionType'];
-        $defaultGroup = ['Default', 'deposit'];
+        $defaultGroup = ['Default', 'deposit', ''];
         $memberPaymentOptionId = !empty($transaction['paymentOption']) ? $transaction['paymentOption'] : null;
         unset($transaction['paymentOptionType']);
         unset($transaction['paymentOption']);
@@ -350,9 +351,9 @@ class TransactionController extends AbstractController
             $amount = number_format((float)$amount, 2, '.', ''); 
             
             // zimi-bypass
-            // if ($this->verifySmsCode($transaction) == false){
-            //     return new JsonResponse(['error' => true, 'error_message' => 'your verification code is invalid']);
-            // }
+            if ($this->verifySmsCode($transaction) == false){
+                return new JsonResponse(['error' => true, 'error_message' => 'your verification code is invalid']);
+            }
 
             // if ($this->verifyBalance($amount, $availableBalance) == false){
             //     return new JsonResponse(['error' => true, 'error_message' => 'your balance is not enought']);
@@ -383,12 +384,36 @@ class TransactionController extends AbstractController
         if ($form->isSubmitted()) {
                         
             $transactionModel = $form->getData();
+            if ($paymentOption->isPaymentBitcoin()) {
+                $memberPaymentOptionRequestedByAccountId = $this->getCustomerPaymentOptionRepository()->findByMemberPaymentOptionAccountId($customer->getId(), $transactionModel->getAccountId(), Transaction::TRANSACTION_TYPE_WITHDRAW);
+                if ($memberPaymentOptionId === 0 && !is_null($memberPaymentOptionRequestedByAccountId)) {
+                    $memberPaymentOption = $memberPaymentOptionRequestedByAccountId;                    
+                } elseif ($memberPaymentOptionId !== 0) {
+                    $memberPaymentOption = $this->getCustomerPaymentOptionRepository()->find($memberPaymentOptionId);
+                } else {
+                    $memberPaymentOption = $this->getTransactionManager()->addCustomerPaymentOption($customer, $paymentOptionType, $transactionTemp, Transaction::TRANSACTION_TYPE_WITHDRAW);
+                }
+                $memberPaymentOption = $this->getTransactionManager()->updateMemberPaymentOptionAccountId($memberPaymentOption, $transactionModel->getAccountId());
+            } else {
+                $memberPaymentOption = $this->getCustomerPaymentOptionRepository()->find($memberPaymentOptionId);
+            }
             $transactionModel->setCustomer($customer);
             $transactionModel->setPaymentOption($memberPaymentOption);
             // zimi
             $transactionModel->setAmount($amount);
 
             $transaction = $this->getTransactionManager()->handleWithdraw($transactionModel);
+            
+            if ($paymentOption->isPaymentBitcoin()) {
+                $this->getTransactionManager()
+                    ->enableCustomerPaymentOption($transaction->getPaymentOptionOnTransaction()->getId())
+                ;
+
+                $this->getCustomerPaymentOptionRepository()
+                    ->disableOldPaymentOption($transaction->getPaymentOptionOnTransaction()->getId(), $customer->getId(), $paymentOptionType, Transaction::TRANSACTION_TYPE_WITHDRAW)
+                ;
+            }
+
             $transactionNumber = $transaction->getNumber();
             $response = [
                 'title' => 'Withdrawal Transaction',
@@ -489,7 +514,7 @@ class TransactionController extends AbstractController
     {
         $customer = $this->getUser()->getCustomer();
         $bitcoinManger = $this->get('payment.bitcoin_manager');
-        $transaction = $bitcoinManger->findActiveBitcoinTransaction($customer);
+        $transaction = $bitcoinManger->findUserUnacknowledgedDepositBitcoinTransaction($customer);
 
         if ($transaction === null) {
             return new JsonResponse([]);
@@ -511,7 +536,7 @@ class TransactionController extends AbstractController
     {
         $customer = $this->getUser()->getCustomer();
         $transactionRepository = $this->getTransactionRepository();
-        $transaction = $transactionRepository->findActiveBitcoinTransaction($customer);
+        $transaction = $transactionRepository->findUserUnacknowledgedDepositBitcoinTransaction($customer);
 
         if ($transaction === null) {
             return new Response('No active transaction to acknowledge.', Response::HTTP_BAD_REQUEST);
@@ -531,7 +556,7 @@ class TransactionController extends AbstractController
     {
         $customer = $this->getUser()->getCustomer();
         $transactionRepository = $this->getTransactionRepository();
-        $transaction = $transactionRepository->findActiveBitcoinTransaction($customer);
+        $transaction = $transactionRepository->findUserUnacknowledgedDepositBitcoinTransaction($customer);
 
         if ($transaction === null) {
             return new Response('No active transaction to decline.', Response::HTTP_BAD_REQUEST);
@@ -546,7 +571,7 @@ class TransactionController extends AbstractController
             return new Response($ex->getMessage(), Response::HTTP_BAD_REQUEST);
         }
     }
-    
+
     public function lockRateBitcoinTransactionAction(Request $request)
     {        
         $customer = $this->getUser()->getCustomer();
@@ -558,7 +583,7 @@ class TransactionController extends AbstractController
         }
         
         $transactionRepository = $this->getTransactionRepository();
-        $transaction = $transactionRepository->findActiveBitcoinTransaction($customer);
+        $transaction = $transactionRepository->findUserUnacknowledgedDepositBitcoinTransaction($customer);
 
         if ($transaction === null) {            
             return new Response('No active transaction to lock.', Response::HTTP_BAD_REQUEST);

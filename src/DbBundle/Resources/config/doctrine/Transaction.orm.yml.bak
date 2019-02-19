@@ -186,6 +186,8 @@ DbBundle\Entity\Transaction:
             joinColumn:
                 name: transaction_customer_id
                 referencedColumnName: customer_id
+            # zimi
+            cascade: ['persist']
         gateway:
             targetEntity: DbBundle\Entity\Gateway
             joinColumn:
