@@ -46,18 +46,17 @@ class CountryController extends Controller
      */
     public function selectCountry()
     {        
-        $sources = app('db')->select("select country_phone_code from country WHERE country_phone_code <> '' order by country_phone_code desc");        
+        $sources = app('db')->table("country")->select("country_phone_code")->where("country_phone_code", "<>", "")->orderBy("country_phone_code", "desc")->get();        
+        
         $ip = $this->getIP();
         $api = 'http://www.geoplugin.net/json.gp';
 
         $res = $this->callApi($api, array('ip'=>$ip), 'GET');
         $res = json_decode($res, true);
         $country_code = $res['geoplugin_countryCode'];        
-        $sql = "select country_phone_code from country where country_code = '". $country_code ."'";
        
-        $phone_code = app('db')->select($sql);
-        $phone_code = (array) $phone_code[0];
-        $phone_code = $phone_code['country_phone_code'];
+        $country_by_code = app('db')->table("country")->select("country_phone_code")->where("country_code", "=", $country_code)->first();
+        $phone_code = $country_by_code ? $country_by_code->country_phone_code : "";
 
         // convert
         $phone_codes = array();

@@ -246,7 +246,7 @@ class UserController extends Controller
         } else {
             // via email
             $post['phoneNumber'] = '00' . rand(10000000,99999999);
-            $post['nationCode'] = '+00';            
+            $post['nationCode'] = !empty($post['nationCode']) ? $post['nationCode'] : "+63";      
         }
 
         $data_backoffice = array(
