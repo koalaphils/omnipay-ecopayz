@@ -10,12 +10,15 @@ use App\Controller\DefaultController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use GuzzleHttp\Client;
+// logger
+use Psr\Log\LoggerInterface;
 
 class ApiPinnacleController extends DefaultController
 {
     private $client;    
     private $token;
     private $userCode;
+    private $log;
 
     public function __construct (){        
         $this->client = new CLient([
