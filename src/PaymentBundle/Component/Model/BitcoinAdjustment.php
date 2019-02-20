@@ -62,7 +62,7 @@ class BitcoinAdjustment
         return $this->bitcoinConfig;
     }
 
-    public function getAdjustedRate(string $btc, int $type): string
+    public function getAdjustedRate(string $btc, int $type = Transaction::TRANSACTION_TYPE_DEPOSIT): string
     {
         if (count($this->bitcoinRateSettings) < 1) {
             return $this->getLatestBaseRate();

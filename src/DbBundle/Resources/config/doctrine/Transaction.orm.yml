@@ -184,10 +184,7 @@ DbBundle\Entity\Transaction:
                 generate: transaction_other_details->"$.bitcoin.confirmation_count"
                 readOnly: true
             column: transaction_bitcoin_confirmation
-            nullable: true
-        bitcoinRateUsed:
-            type: string
-            column: transaction_bitcoin_rate_used
+            nullable: true        
     manyToOne:
         customer:
             targetEntity: DbBundle\Entity\Customer
