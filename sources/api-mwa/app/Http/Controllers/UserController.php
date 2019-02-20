@@ -383,6 +383,17 @@ class UserController extends Controller
                         
         return response()->json(['error' => false, 'message'=> '', 'status' => 200, 'data' => null], 201); 
     } 
+    
+    public function getConfig(){
+        $rows = app("db")->table("setting")
+                ->whereIn("setting_code", array("piwi247.session", "transaction.validate"))
+                ->get();
+        $data = array();
+        foreach($rows as $row){
+            $data[$row->setting_code] = json_decode($row->setting_value);
+        }
+        return response()->json(['error' => false, 'message'=> '', 'status' => 200, 'data' => $data], 200); 
+    }
 
 }
 
