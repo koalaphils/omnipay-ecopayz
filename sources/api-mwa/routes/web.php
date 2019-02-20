@@ -15,6 +15,7 @@ $router->get('/', function () use ($router) {
 });
 
 // users
+$router->get('/api/users/get-config', 'UserController@getConfig');
 $router->post('/api/users', 'UserController@create');
 $router->post('/api/users/login', 'UserController@login');
 $router->post('/api/users/logout', 'UserController@logout');
