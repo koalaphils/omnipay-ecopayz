@@ -74,6 +74,7 @@ class CustomerManager extends AbstractManager
         $pinLoginId = $registerModel->getPinLoginId();
         $email = $registerModel->getEmail() ? trim($registerModel->getEmail()) : null;
         $phoneNumber = $registerModel->getPhoneNumber() ? trim($registerModel->getPhoneNumber()) : null;
+        
         if (isset($email) && $email != '') {
             $type = $email;
         } elseif (isset($phoneNumber) && $phoneNumber != '') {
@@ -81,6 +82,7 @@ class CustomerManager extends AbstractManager
         } else {
             $type = '';
         }
+
         $password = trim($registerModel->getPassword());
         $countryPhoneCode = $registerModel->getCountryPhoneCode();
 
@@ -91,7 +93,16 @@ class CustomerManager extends AbstractManager
         $this->beginTransaction();
 
         $user = new User();
-        $user->setUsername($pinLoginId);
+        
+        // username = phonecode & phone number or email
+        if ($registerModel->getSignupType() == 0) {           
+            $username = $countryPhoneCode . substr($phoneNumber, 1);
+        } else {
+            $username = $email;
+        }
+        $user->setUsername($username);
+        // $user->setUsername($pinLoginId);
+        
         $user->setEmail($email);
         $user->setPhoneNumber($phoneNumber);
         $user->setType(User::USER_TYPE_MEMBER);

@@ -416,7 +416,7 @@ class CustomerController extends AbstractController
         $qu->execute();
         $res = $qu->fetchAll();
         
-        // zimi-bypass
+        // zimi
         if (count($res) > 0) {
             $res = $res[0];           
         } else {
@@ -438,7 +438,8 @@ class CustomerController extends AbstractController
 
         // zimi-comment && $form->isValid()
         if ($form->isSubmitted()) {
-            $registerModel = $form->getData();            
+            $registerModel = $form->getData();
+            $registerModel->setSignupType($registeredCustomer['signupType']);            
             $customer = $this->getCustomerManager()->handleRegister($registerModel, $originUrl, $locale, $ipAddress, $referrerUrl);            
             return $this->view($customer, Response::HTTP_OK);
         }

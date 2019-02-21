@@ -34,6 +34,7 @@ class Register
     private $pinUserCode;
     private $pinLoginId;
     private $countryPhoneCode;
+    private $signupType;
 
     public function __construct()
     {
@@ -304,4 +305,17 @@ class Register
                 ->addViolation();
         }
     }
+
+    public function setSignupType($signupType): self
+    {
+        $this->signupType = $signupType;
+
+        return $this;
+    }
+
+    public function getSignupType()
+    {
+        return $this->signupType;
+    }
+
 }

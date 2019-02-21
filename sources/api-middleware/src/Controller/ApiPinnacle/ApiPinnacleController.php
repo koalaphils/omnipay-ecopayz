@@ -10,17 +10,29 @@ use App\Controller\DefaultController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use GuzzleHttp\Client;
+
 // logger
 use Psr\Log\LoggerInterface;
+use Monolog\Logger as MonoLogger;
+use Monolog\Handler\StreamHandler;
+use Monolog\Handler\FirePHPHandler;
 
 class ApiPinnacleController extends DefaultController
 {
     private $client;    
     private $token;
     private $userCode;
-    private $log;
+    
+    /**
+     * @var \Monolog\Logger
+     */
+    private $logger;
 
     public function __construct (){        
+        $this->logger = new MonoLogger('ApiPinnacleLogger');
+        $this->logger->pushHandler(new StreamHandler(__DIR__.'/../../../var/log/debug_'.date('ymd').'.log', MonoLogger::DEBUG));
+        $this->logger->pushHandler(new FirePHPHandler()); 
+
         $this->client = new CLient([
             'base_uri' => 'https://paapistg.oreo88.com',
             'headers' => [
@@ -83,18 +95,22 @@ class ApiPinnacleController extends DefaultController
     }
        
     public function login(Request $request)
-    {   
+    {                   
         $response = new Response();
         
         $isPost = $request->isMethod('POST');
         if ($isPost) { 
             $data =  $request->getContent();
-            $data = json_decode($data);
-
+            $data = json_decode($data);        
             $pdata = array('userCode' => $data->userCode, 'locale' => 'en');                        
+            $this->logger->info('[login] $data:', [$pdata]);
+
             $url = 'https://paapistg.oreo88.com/b2b/player/login';
             $token = $this->generateToken();        
+            $this->logger->info('[login] $token:', [$token]);
+
             $res = $this->callApi($url, $token, $pdata, 'GET');
+            $this->logger->info('[login] pinnacle response:', [$res]);
 
             $response->setContent(json_encode($res));
         }

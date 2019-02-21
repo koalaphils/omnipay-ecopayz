@@ -59,6 +59,9 @@
     "guzzlehttp/psr7": {
         "version": "1.4.2"
     },
+    "monolog/monolog": {
+        "version": "1.24.0"
+    },
     "nikic/php-parser": {
         "version": "v4.1.0"
     },

@@ -114,7 +114,7 @@ class SmsCodeController extends Controller
         
         try {
             $sms->save(); 
-            $res_data['smsCode'] = $sms->sms_code_value;
+            // $res_data['smsCode'] = $sms->sms_code_value;
         } catch (Exception $e) {
             $error = true; 
             $error_message = $e;            

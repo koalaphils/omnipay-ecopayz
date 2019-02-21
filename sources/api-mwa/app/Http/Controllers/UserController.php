@@ -264,7 +264,7 @@ class UserController extends Controller
         
         $res_bo = $this->callApiBo($url,  json_encode($data_backoffice), 'POST', $headers); 
         $res_bo = json_decode($res_bo);
-
+        
         // validate sms code
         if (array_key_exists('status', $res_bo)) {
             if ($res_bo->status == 400) {
@@ -272,11 +272,8 @@ class UserController extends Controller
             }   
         }                         
         
-        // info        
-        // return response()->json([$res_bo], 201);
-        $validate = $this->validateApiBo($res_bo);
-        
-        
+        // info                
+        $validate = $this->validateApiBo($res_bo);        
         if ($validate['error'] == true) {
             $data['session'] = null;
         }else{
