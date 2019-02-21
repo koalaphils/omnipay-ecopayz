@@ -171,9 +171,9 @@ class TransactionController extends Controller
     {                        
         $data = array();                        
         $post = $request->all();  
-        if(!$this->validate_withdraw($post)){
-            return response()->json(['status' => 201, 'error' => $post['error_message'], 'data' => null], 201); 
-        }
+//        if(!$this->validate_withdraw($post)){
+//            return response()->json(['status' => 201, 'error' => $post['error_message'], 'data' => null], 201); 
+//        }
         
         // check balance pinacle
         $data_user_amount = $post['eurAmount'];
@@ -236,9 +236,9 @@ class TransactionController extends Controller
     {                        
         /**"currentRate":3327.6,"bitcoinAmount":"0.0001","eurAmount":"0.33","isActive":true*/
         $post = $request->all();         
-        if(!$this->validate_deposit($post)){
-            return response()->json(['status' => 201, 'error' => $post['error_message'], 'data' => null], 201); 
-        }
+//        if(!$this->validate_deposit($post)){
+//            return response()->json(['status' => 201, 'error' => $post['error_message'], 'data' => null], 201); 
+//        }
         // return response()->json([300, 'TransactionController::depositBitcoin', $post], 201); 
 
         $data = array();                
