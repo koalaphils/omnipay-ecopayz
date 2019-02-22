@@ -13,6 +13,9 @@ class DefaultController extends AbstractController
 {
     public function indexAction()
     {
+        // off this feature
+        return $this->redirectToRoute("app.dashboard_page");
+        
         $this->denyAccessUnlessGranted(['ROLE_CURRENCY_VIEW']);
         $form = $this->createForm(CurrencyType::class, null, [
             'action' => $this->getRouter()->generate('currency.save'),

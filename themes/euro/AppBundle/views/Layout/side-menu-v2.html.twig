@@ -14,7 +14,7 @@
 
                 {% if is_granted(['ROLE_CURRENCY_VIEW', 'ROLE_PRODUCT_VIEW', 'ROLE_GATEWAY_VIEW', 'ROLE_DWL_VIEW']) %}
 
-                <li class="has_sub" id="menu-finance">
+                {#<li class="has_sub" id="menu-finance">
                     <a class="waves-effect" href="javascript:void(0)">
                         <i class="ti-money"></i>
                         <span>Finance</span>
@@ -35,7 +35,7 @@
                         <li><a href="{{ path("dwl.list_page") }}">Daily Win/Loss</a></li>
                         {% endif %}
                     </ul>
-                </li>
+                </li>#}
                 {% endif %}
 
                 {% if is_granted(['ROLE_CUSTOMER_*']) %}
@@ -114,7 +114,7 @@
                 </li>
 
                 {% if is_granted('ROLE_REPORT_*') %}
-                <li class="has_sub" id="menu-reports">
+                {#<li class="has_sub" id="menu-reports">
                     <a class="waves-effect" href="javascript:void(0)">
                         <i class="ti-folder"></i>
                         <span>Reports</span>
@@ -132,7 +132,7 @@
                         <li><a href="{{ path("report.products") }}">Product Summary</a></li>
                         {% endif %}
                     </ul>
-                </li>
+                </li>#}
                 {% endif %}
 
                 {% if is_granted(['ROLE_USER_VIEW', 'ROLE_GROUP_VIEW', 'ROLE_COUNTRY_VIEW', 'ROLE_AUDIT_VIEW']) %}

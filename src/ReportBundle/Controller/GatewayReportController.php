@@ -18,6 +18,9 @@ class GatewayReportController extends AbstractController
 {
     public function indexAction()
     {
+        // off this feature
+        return $this->redirectToRoute("app.dashboard_page");
+        
         $this->denyAccessUnlessGranted(['ROLE_REPORT_GATEWAY_VIEW']);
         $this->getSession()->save();
         $currencies = $this->getCurrencyRepository()->getCurrencyList();

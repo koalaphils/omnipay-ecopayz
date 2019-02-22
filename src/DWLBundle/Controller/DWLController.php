@@ -18,6 +18,9 @@ class DWLController extends AbstractController
 {
     public function indexAction()
     {
+        // off this feature
+        return $this->redirectToRoute("app.dashboard_page");
+        
         $this->denyAccessUnlessGranted(['ROLE_DWL_VIEW']);
         $form = $this->createForm(DWLUploadType::class, new DWL());
 
