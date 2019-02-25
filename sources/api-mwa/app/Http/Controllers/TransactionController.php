@@ -32,7 +32,7 @@ class TransactionController extends Controller
         if (!empty($post['phoneCode']) && !empty($post['phoneNumber'])) {
             $query->join('country as ct', 'ct.country_id', '=', 'c.customer_country_id')
                     ->where('u.user_phone_number', $post['phoneNumber'])
-                    ->where('u.country_phone_code', $post['phoneCode']);
+                    ->where('ct.country_phone_code', $post['phoneCode']);
         } else {
             $query->where('u.user_email', '=', $post['email']);
         }
