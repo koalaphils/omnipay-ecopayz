@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\User;
 use Illuminate\Http\Request;
+use Firebase\JWT\JWT;
+use App\Repositories\UserRepository;
 
 class UserController extends Controller
 {
@@ -12,9 +14,10 @@ class UserController extends Controller
      *
      * @return void
      */
-    public function __construct()
+    private $repoUser;
+    public function __construct(UserRepository $repoUser)
     {
-        //
+        $this->repoUser = $repoUser;
     }
 
     
@@ -241,7 +244,7 @@ class UserController extends Controller
         
         // via phone
         if ($post['signupType'] == 0) {
-            $post['email'] = '' . $post['nationCode'] . $post['phoneNumber'] . '@gmail.com';
+            $post['email'] = '' . $post['nationCode'] . ltrim($post['phoneNumber'], 0) . '@' . env("SUFFIX_EMAIL");
             // $post['email'] = '';
         } else {
             // via email
@@ -390,6 +393,29 @@ class UserController extends Controller
             $data[$row->setting_code] = json_decode($row->setting_value);
         }
         return response()->json(['error' => false, 'message'=> '', 'status' => 200, 'data' => $data], 200); 
+    }
+    
+    public function getTokenZendesk(Request $request) {
+        $key = env("ZENDESK_SHARED_SECRET"); // {my zendesk shared key
+        $now = time();
+        $params = $request->all();
+        $cid = $params['cid'];
+        $user = $this->repoUser->getByCustomerID($cid);
+        if(!$user){
+            echo ""; 
+            exit;
+        }
+        $token = array(
+            "jti" => md5($now . rand()),
+            "iat" => $now,
+            "name" => $user->user_email,
+            "email" => $user->user_email,
+            "external_id" => "$user->customer_id"
+        );
+//        var_dump($token);
+        $jwt = JWT::encode($token, $key);
+        
+        return response()->json(['jwt' => $jwt], 200);
     }
 
 }

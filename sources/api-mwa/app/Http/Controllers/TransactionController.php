@@ -32,7 +32,7 @@ class TransactionController extends Controller
         if (!empty($post['phoneCode']) && !empty($post['phoneNumber'])) {
             $query->join('country as ct', 'ct.country_id', '=', 'c.customer_country_id')
                     ->where('u.user_phone_number', $post['phoneNumber'])
-                    ->where('u.country_phone_code', $post['phoneCode']);
+                    ->where('ct.country_phone_code', $post['phoneCode']);
         } else {
             $query->where('u.user_email', '=', $post['email']);
         }
@@ -171,9 +171,9 @@ class TransactionController extends Controller
     {                        
         $data = array();                        
         $post = $request->all();  
-        if(!$this->validate_withdraw($post)){
-            return response()->json(['status' => 201, 'error' => $post['error_message'], 'data' => null], 201); 
-        }
+//        if(!$this->validate_withdraw($post)){
+//            return response()->json(['status' => 201, 'error' => $post['error_message'], 'data' => null], 201); 
+//        }
         
         // check balance pinacle
         $data_user_amount = $post['eurAmount'];
@@ -236,9 +236,9 @@ class TransactionController extends Controller
     {                        
         /**"currentRate":3327.6,"bitcoinAmount":"0.0001","eurAmount":"0.33","isActive":true*/
         $post = $request->all();         
-        if(!$this->validate_deposit($post)){
-            return response()->json(['status' => 201, 'error' => $post['error_message'], 'data' => null], 201); 
-        }
+//        if(!$this->validate_deposit($post)){
+//            return response()->json(['status' => 201, 'error' => $post['error_message'], 'data' => null], 201); 
+//        }
         // return response()->json([300, 'TransactionController::depositBitcoin', $post], 201); 
 
         $data = array();                

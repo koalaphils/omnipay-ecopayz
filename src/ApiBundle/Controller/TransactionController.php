@@ -96,7 +96,7 @@ class TransactionController extends AbstractController
         $filters = ['customer' => $customer_id];
         $filters['limit'] = $request->get('limit', 1000);       
         $filters['offset'] = (((int) $page)-1) * $filters['limit'];        
-        $orders = [];
+        $orders = [["column" => "date", "dir" => "desc"]];
         
         if ($post['search'] != null) {
             $filters['search'] = $post['search'];
