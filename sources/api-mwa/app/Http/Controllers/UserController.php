@@ -412,8 +412,10 @@ class UserController extends Controller
             "email" => $user->user_email,
             "external_id" => "$user->customer_id"
         );
+//        var_dump($token);
         $jwt = JWT::encode($token, $key);
-        echo $jwt; exit;
+        
+        return response()->json(['jwt' => $jwt], 200);
     }
 
 }
