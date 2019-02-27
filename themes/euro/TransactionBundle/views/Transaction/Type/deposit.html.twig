@@ -233,7 +233,13 @@
                     <div class='col-sm-4 col-xs-4'><b>{{ "Current"|trans({}, "TransactionBundle") }}</b></div>
                     <div class='col-sm-3 col-xs-3'><b>{{ "After"|trans({}, "TransactionBundle") }}</b></div>
                 </div>
-                <xsl:for-each select="subtransactions/i">
+                <div class='row subtransaction'>
+                    <div class='col-sm-5 col-xs-5'>PINBET</div>
+                    <div class='col-sm-4 col-xs-4'>{{ currentBalance }}</div>
+                    <div class='col-sm-3 col-xs-3'>{{ afterBalance }}</div>                    
+                </div>
+
+                <!-- <xsl:for-each select="subtransactions/i">
                     <div class='row subtransaction'>
                         <xsl:attribute name='data-index'>
                             <xsl:value-of select='index' />
@@ -250,6 +256,7 @@
                         <div class='col-sm-3 col-xs-3'><span><xsl:value-of select="afterbalance"/></span></div>
                     </div>
                 </xsl:for-each>
+                -->
                 </xsl:when>
                 <xsl:otherwise>
                 <div class='row'>
@@ -283,7 +290,7 @@
                     <b>{{ "Member Fee"|trans({},"TransactionBundle") }}</b>
                 </div>
                 <div class='col-md-6 col-sm-6 col-xs-6 '>
-                    <span><xsl:value-of select="total_customer_fee"/></span>
+                    <span class=""><xsl:value-of select="total_customer_fee"/></span>
                 </div>
             </div>
             <div class='row'>
@@ -291,7 +298,7 @@
                     <b>{{ "Company Fee"|trans({},"TransactionBundle") }}</b>
                 </div>
                 <div class='col-md-6 col-sm-6 col-xs-6'>
-                    <span><xsl:value-of select="total_company_fee"/></span>
+                    <span class=""><xsl:value-of select="total_company_fee"/></span>
                 </div>
             </div>
         </div>
