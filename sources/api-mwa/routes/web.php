@@ -45,3 +45,5 @@ $router->post('/api/transaction/bitcoin-lock-rate', 'TransactionController@getBi
 
 $router->post('/api/transaction/tickets', 'TransactionController@getTicketList');
 $router->post('/api/transaction/tickets/conversation', 'TransactionController@getTicketConversation');
+
+$router->get('/api/user/chat/token', 'UserController@getTokenZendesk');
