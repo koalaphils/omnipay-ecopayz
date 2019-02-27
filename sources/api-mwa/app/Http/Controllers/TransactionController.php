@@ -71,7 +71,8 @@ class TransactionController extends Controller
         $data_bo['transaction']['phoneCode'] = '';
         $data_bo['transaction']['children'] = [];
         $data_bo['transaction']['email'] = $post['email'];
-        
+        $data_bo['transaction']['product'] = $post['product'];
+
         if ($post['signupType'] == 0) {            
             $data_bo['transaction']['phoneCode'] = $post['phoneCode'];
             $data_bo['transaction']['phoneNumber'] = $post['phoneNumber'];
@@ -257,6 +258,7 @@ class TransactionController extends Controller
         $data_bo['transaction']['phoneNumber'] = '';
         $data_bo['transaction']['phoneCode'] = '';
         $data_bo['transaction']['children'] = [];        
+        $data_bo['transaction']['product'] = $post['product'];
         
         if ($post['signupType'] == 0) {            
             $data_bo['transaction']['phoneCode'] = $post['phoneCode'];
