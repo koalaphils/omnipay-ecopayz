@@ -184,7 +184,12 @@ DbBundle\Entity\Transaction:
                 generate: transaction_other_details->"$.bitcoin.confirmation_count"
                 readOnly: true
             column: transaction_bitcoin_confirmation
-            nullable: true        
+            nullable: true
+        # zimi
+        email:
+            type: string
+            length: 255
+            column: transaction_email       
     manyToOne:
         customer:
             targetEntity: DbBundle\Entity\Customer
@@ -193,6 +198,14 @@ DbBundle\Entity\Transaction:
                 name: transaction_customer_id
                 referencedColumnName: customer_id
             # zimi
+            cascade: ['persist']
+        # zimi
+        product:
+            targetEntity: DbBundle\Entity\Product
+            inversedBy: transactions
+            joinColumn:
+                name: transaction_product_id
+                referencedColumnName: product_id            
             cascade: ['persist']
         gateway:
             targetEntity: DbBundle\Entity\Gateway

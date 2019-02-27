@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use MemberBundle\Manager\MemberManager;
 use Doctrine\DBAL\LockMode;
+use ApiBundle\Controller\TransactionController as ApiTransaction;
 
 class TransactionController extends AbstractController
 {
@@ -148,6 +149,26 @@ class TransactionController extends AbstractController
             $toCustomer = null;
         }
         
+        // zimi
+        $template = $this->get('twig');
+        $template->addGlobal('trans', $transaction);
+        $template->addGlobal('customer', $customer);
+        
+        $userCode = $customer->getPinUserCode();
+        $apiTran = new ApiTransaction();
+        $balance = $apiTran->getAvailableBalance($userCode); 
+
+        if ($transaction->isDeposit() == true) {
+            $afterBalance = (float)$balance + (float)$transaction->getAmount();    
+        }
+
+        if ($transaction->isWithdrawal() == true) {
+            $afterBalance = (float)$balance - (float)$transaction->getAmount();    
+        }           
+
+        $template->addGlobal('currentBalance', $balance);
+        $template->addGlobal('afterBalance', $afterBalance);
+
         return $this->render("TransactionBundle:Transaction/Type:$type.html.twig", [
             'form' => $form->createView(),
             'type' => $type,
@@ -157,7 +178,7 @@ class TransactionController extends AbstractController
             'dwl' => $dwl,
             'memberRunningCommission' => $memberRunningCommission,
             'commissionPeriod' => $commissionPeriod,
-            'memberUsername' => $username
+            'memberUsername' => $username,            
         ]);
     }
 

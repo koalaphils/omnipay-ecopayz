@@ -11,12 +11,28 @@ use Symfony\Component\HttpFoundation\Response;
 use DbBundle\Entity\PaymentOption;
 use DbBundle\Entity\Transaction;
 use DbBundle\Entity\Customer;
+use DbBundle\Entity\Product;
 use Payum\Core\Reply\HttpRedirect;
 use ApiBundle\Model\Bitcoin\BitcoinPayment;
 use ApiBundle\Model\Bitcoin\BitcoinRateDetail;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use GuzzleHttp\Client as GuzzleClient;
+use Http\Adapter\Guzzle6\Client as GuzzleAdapter;
+use Http\Client\Common\HttpMethodsClient;
+use Http\Message\MessageFactory\GuzzleMessageFactory;
 
 class TransactionController extends AbstractController
 {
+    public const USER_BALANCE_PINNACLE_API_URL = 'http://47.254.197.223:9000/api/pinnacle/users/balance';
+    private $requestMessageFactory;
+     
+    public function __construct()
+    {
+        $this->requestMessageFactory = new GuzzleMessageFactory();
+        $this->client = new HttpMethodsClient(new GuzzleAdapter(new GuzzleClient(['curl'=>[CURLOPT_SSL_VERIFYPEER => 0]])), $this->requestMessageFactory);    
+    }
+
     // 2ec7e87b
     // $transactions  DbBundle\Entity\Transaction
     private function filterTrans($transactions){
@@ -152,26 +168,31 @@ class TransactionController extends AbstractController
      * )
      */
     public function depositTransactionAction(Request $request)
-    {
+    {                
         $customer = $this->getUser()->getCustomer();
         $customerRepository = $this->getDoctrine()->getManager()->getRepository(Customer::class);
+        $productRepository = $this->getDoctrine()->getManager()->getRepository(Product::class);
+
         $transactionTemp = $transaction = $request->request->get('transaction', []);        
         $amount = $transactionTemp['amount'];
+
         $paymentOptionType = $transaction['paymentOptionType'];
+        $productCode = $transaction['product'];        
+        $product = $productRepository->findByCode($productCode);
+        $productName = $product[0]->getName();            
 
         $bitcoinRate = '';
         if ($paymentOptionType == 'bitcoin') {   
             $bitcoinRate = $transaction['currentRate'];            
         }        
-        
+
         // zimi - check $customer is null
         if ($customer === null) {
             $customer_id = $transactionTemp['customer'];
             $customer = $customerRepository->findOneBy(['id' => $customer_id]);            
             $customer->setIsCustomer(true);        
         }
-        
-        
+                
         $defaultGroup = ['Default', 'deposit', ''];
         $memberPaymentOptionId = !empty($transaction['paymentOption']) ? $transaction['paymentOption'] : null;
         unset($transaction['paymentOptionType']);
@@ -210,7 +231,8 @@ class TransactionController extends AbstractController
             // zimi
             $transactionModel->setAmount($amount);
             $transactionModel->setBitcoinRate($bitcoinRate);
-
+            $transactionModel->setProduct($product[0]);
+            
             try {                
                 $transaction = $this->getTransactionManager()->handleDeposit($transactionModel);
                 $transactionNumber = $transaction->getNumber();                
@@ -220,7 +242,7 @@ class TransactionController extends AbstractController
                     'otherDetails' => ['type' => $transaction->getTypeText(), 'id' => $transaction->getId()]
                 ];
 
-                if ($paymentOption->isPaymentBitcoin()) {
+                if ($paymentOption->isPaymentBitcoin()) {                    
                     $response['otherDetails']['address'] = $transaction->getBitcoinAddress();
                     if (is_null($memberPaymentOptionId)) {
                         $updatedMemberPaymentOption = $this->getTransactionManager()->updateMemberPaymentOptionAccountId($memberPaymentOption, $transaction->getBitcoinAddress());
@@ -633,5 +655,36 @@ class TransactionController extends AbstractController
         } catch(\DomainException $ex) {
             return new Response($ex->getMessage(), Response::HTTP_BAD_REQUEST);
         }  
+    }
+
+    // zimi
+    public function getAvailableBalance($userCode = '')
+    {            
+        try {
+            $url = self::USER_BALANCE_PINNACLE_API_URL;
+            $res = $this->post($url, ["userCode" => $userCode], ["Content-Type" => "application/json"]);
+
+            $res = $res->getBody()->getContents();
+            $res = json_decode($res);
+            $res = json_decode($res);
+
+            if (gettype($res) === 'object') {
+                return $res->availableBalance;
+            }
+
+            return null;
+
+        } catch(\DomainException $ex) {
+            return new Response($ex->getMessage(), Response::HTTP_BAD_REQUEST);
+        }  
+    }
+
+    // zimi
+    private function post(string $url, array $postData = [], array $headers = []): ResponseInterface
+    {
+        $request = $this->requestMessageFactory->createRequest('POST', $url, $headers, json_encode($postData));       
+        $res = $this->client->sendRequest($request);
+        
+        return $res;
     }
 }

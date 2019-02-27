@@ -410,10 +410,9 @@ class TransactionController extends Controller
         
         // $url = env('API_PIWI_BO_TRANSACTIONS');
         $url = 'http://47.254.197.223:9002/en/api/me/transactions/'.$post['tid'].'/'. $post['cid'];
-        $res_bo = $this->callApiBo($url, [], 'GET', $headers);        
+        $res_bo = $this->callApiBo($url, [], 'GET', $headers);                
         $res_bo = json_decode($res_bo);                
         // $trans = $res_bo->data;
-
         // if (array_key_exists('error', $res_bo)) {
         //     $error = [
         //         'code' => $res_bo->error->code,

@@ -11,6 +11,7 @@ use AppBundle\Manager\AbstractManager;
 use DbBundle\Entity\CustomerPaymentOption;
 use DbBundle\Entity\SubTransaction;
 use DbBundle\Entity\Transaction;
+use DbBundle\Entity\CustomerProduct;
 use MediaBundle\Manager\MediaManager;
 
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -42,6 +43,9 @@ class TransactionManager extends AbstractManager
         $transaction->setDetail('bitcoinRate', $transactionModel->getBitcoinRate());        
         $transaction->autoSetPaymentOptionType();
 
+        // adding product   
+        $transaction->setProduct($transactionModel->getProduct());     
+        
         // zimi
         foreach ($transactionModel->getSubTransactions() as $subTransactionModel) {
             $subTransaction = new SubTransaction();

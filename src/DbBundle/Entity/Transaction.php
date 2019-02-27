@@ -14,6 +14,7 @@ use DbBundle\Entity\Interfaces\VersionInterface;
 use DbBundle\Entity\Traits\ActionTrait;
 use DbBundle\Entity\Traits\SoftDeleteTrait;
 use DbBundle\Entity\Traits\TimestampTrait;
+use DbBundle\Entity\Product;
 use Doctrine\Common\Collections\ArrayCollection;
 use Exception;
 
@@ -102,6 +103,8 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     private $bitcoinConfirmationCount;
     private $virtualBitcoinSenderAddress;
     private $virtualBitcoinReceiverUniqueAddress;
+    private $product;
+    private $email;
 
     /**
      * @var null|int
@@ -1486,5 +1489,41 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
             static::TRANSACTION_STATUS_ACKNOWLEDGE => 'acknowledged',
             static::TRANSACTION_STATUS_VOIDED => 'voided',            
         ];
+    }
+
+    public function setProduct($product): self
+    {
+        $this->product = $product;
+
+        return $this;
+    }
+
+    public function getProduct(): ?Product
+    {
+        return $this->product;
+    }
+
+    /**
+     * Set email.
+     *
+     * @param string $email
+     *
+     * @return Transaction
+     */
+    public function setEmail($email)
+    {
+        $this->email = $email;
+
+        return $this;
+    }
+
+    /**
+     * Get email.
+     *
+     * @return string
+     */
+    public function getEmail()
+    {
+        return $this->email;
     }
 }

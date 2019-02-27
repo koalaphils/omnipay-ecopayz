@@ -337,3 +337,8 @@ api_customers.me_bitcoin_rate:
     defaults:
         _controller: ApiBundle:Transaction:getBitcoinRateAdjustment
     methods: [GET]
+api_customers.me_available_balance:
+    path: me/transactions/balance
+    defaults:
+        _controller: ApiBundle:Transaction:getAvailableBalance
+    methods: [GET]

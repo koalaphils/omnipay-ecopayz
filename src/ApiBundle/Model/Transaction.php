@@ -13,6 +13,7 @@ use DbBundle\Entity\Customer;
 use DbBundle\Entity\Transaction as EntityTransaction;
 use DbBundle\Entity\CustomerPaymentOption as MemberPaymentOption;
 use DbBundle\Entity\PaymentOption as Payment;
+use DbBundle\Entity\Product;
 
 /**
  * Description of Transaction
@@ -34,6 +35,7 @@ class Transaction
     #zimi
     private $amount;
     private $bitcoinRate;
+    private $product;
     
     private $accountId;
     private $file;
@@ -78,6 +80,18 @@ class Transaction
     public function getCustomer(): ?Customer
     {
         return $this->customer;
+    }
+
+    public function setProduct($product): self
+    {
+        $this->product = $product;
+
+        return $this;
+    }
+
+    public function getProduct(): ?Product
+    {
+        return $this->product;
     }
 
     public function setPaymentOption($memberPaymentOption): self

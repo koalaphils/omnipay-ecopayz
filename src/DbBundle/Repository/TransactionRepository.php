@@ -387,7 +387,7 @@ class TransactionRepository extends BaseRepository
             ->setParameter('status', Transaction::TRANSACTION_STATUS_START)
             ->setParameter('type', Transaction::TRANSACTION_TYPE_DEPOSIT)
             ->setParameter('paymentOptionType', ['BITCOIN']);
-                        
+                     
         return $queryBuilder->getQuery()->getArrayResult();
     }
 
