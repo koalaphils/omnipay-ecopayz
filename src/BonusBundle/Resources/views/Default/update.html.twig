@@ -1,0 +1,89 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% form_theme form _self %}
+
+{% block title %}{{ "page.title.update"|trans({"%subject%": bonus.subject},"BonusBundle") }}{% endblock %}
+
+{% block stylesheet_plugins %}
+    {{ form_assetcss(form) }}
+{% endblock %}
+
+{% block javascript_plugins %}
+    {{ form_assetjs(form) }}
+{% endblock %}
+
+{% block stylesheets %}
+    {{ form_stylesheet(form) }}
+{% endblock %}
+
+{% block content %}
+    <!-- Page-Title -->
+    <div class="row">
+        <div class="col-sm-12">
+            <h4 class="page-title">{{ "page.Update Bonus"|trans({},"BonusBundle") }}</h4>
+            <ol class="breadcrumb">
+                <li>
+                    <a href="{{ path("app.dashboard_page") }}">{{ "menus.Dashboard"|trans({},"AppBundle") }}</a>
+                </li>
+                <li>
+                    <a href="{{ path("bonus.list_page") }}">{{ "menus.Bonus"|trans({},"BonusBundle") }}</a>
+                </li>
+                <li>
+                    {{ bonus.subject }}
+                </li>
+            </ol>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card-box">
+                {{ form_start(form) }}
+                {{ form_widget(form) }}
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+    
+{% endblock %}
+
+{% block javascripts %}
+    {{ form_javascript(form) }}
+    <script type="text/javascript">
+        $(function() {
+           $('#{{ form.delete.vars.id }}').click(function(e) {
+               e.preventDefault();
+               
+               confirm2("You want to delete Bonus: {{ bonus.subject }}", "Are you sure?", {
+                    'type': 'warning',
+                    'showCancelButton': true,
+                    'closeOnConfirm': false,
+                    'showLoaderOnConfirm': true,
+                    'confirmButtonClass': 'btn-warning btn-md',
+                    'cancelButtonClass': 'btn-default btn-md',
+                    'confirmButtonText': "Yes, delete it!"
+                }, function(isConfirm) {
+                    if(isConfirm) {
+                        $.ajax({
+                            'url': "{{ path('bonus.delete', {'id':bonus.id}) }}",
+                            'globalAjaxComplete' : false,
+                            'success': function (data) {
+                                var notifications = data.__notifications || [];
+                                $.each(notifications, function(e) {
+                                    swal({
+                                        'type': this.type,
+                                        'title': this.title,
+                                        'text': this.message
+                                    }, function() {
+                                        window.location = "{{ path('bonus.list_page') }}";
+                                    });
+                                });
+                            }
+                        });
+                    } else {
+                        
+                    }
+                });
+           }); 
+        });
+    </script>
+{% endblock %}

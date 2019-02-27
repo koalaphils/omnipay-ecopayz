@@ -1,0 +1,167 @@
+{{ form_start(form) }}
+<div class="card-box profile-cls">
+    {%- if guestType == 'Customer' -%}
+        <h1>Customers Details</h1>
+    {%- elseif guestType == 'Affiliate' -%}
+        <h1>Affiliate Details</h1>
+    {% endif %}
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-md-4">
+                <p><small>*</small>Username</p>
+                <p class="password-cls"><small>*</small>Email</p>
+                <p class="switch-cls"><small>*</small>Status</p>
+            </div>
+            <div  class="col-md-8">{{form_widget(form.user)}}</div>
+            <div class="clearfix"></div>
+            
+            <div class="col-md-4">
+                <p><small>*</small>First Name</p>
+            </div>
+            <div  class="col-md-8">{{ form_row(form.fName) }}</div>
+            <div class="clearfix"></div>
+            
+            <div class="col-md-4">
+                <p><small>*</small>Middle Name</p>
+            </div>
+            <div  class="col-md-8">{{ form_row(form.mName) }}</div>
+            <div class="clearfix"></div>
+            
+            <div class="col-md-4">
+                <p><small>*</small>Last Name</p>
+            </div>
+            <div  class="col-md-8">{{ form_row(form.lName) }}</div>
+            <div class="clearfix"></div>
+
+            <div class="col-md-4">
+                <p><small>*</small>Birth Date</p>
+            </div>
+            <div  class="col-md-8">{{ form_row(form.birthDate) }}</div>
+
+        </div>
+    </div>     
+    <div class="col-md-6">
+        <div class="row">
+            {%- if guestType == 'Customer' -%}
+            <div class="col-md-4">
+                <p><small>*</small>Affiliate</p>
+            </div>
+            <div  class="col-md-8">                
+                {%- if guestType == 'Customer' -%}
+                {{ form_row(form.affiliate) }}
+                {%- if not form.vars.data -%}
+                    {{ form_row(form.isAffiliate) }}
+                {% endif %}
+            {%- elseif guestType == 'Affiliate' -%}
+                {%- if not form.vars.data -%}
+                    {{ form_row(form.isCustomer) }}
+                {% endif %}
+            {% endif %}</div>
+            {% endif %}
+
+            <div class="col-md-4">
+                <p><small>*</small>Country</p>
+            </div>
+            <div  class="col-md-8">{{ form_row(form.country) }}</div>
+
+            <div class="col-md-4">
+                <p><small>*</small>Currency</p>
+            </div>
+            <div  class="col-md-8">{{ form_row(form.currency) }}</div>
+            <div class="clearfix"></div>
+
+            <div class="col-md-4">
+                <p><small>*</small>Date Joined</p>
+            </div>
+            <div  class="col-md-8">{{ form_row(form.joinedAt) }}</div>
+            <div class="clearfix"></div>
+            
+            {%- if guestType == 'Customer' -%}
+            <div class="col-md-4">
+                <p><small>*</small>Customer Group</p>
+            </div>
+            <div  class="col-md-8">{%- if guestType == 'Customer' -%}
+                {{ form_row(form.groups) }}
+            {% endif %}</div>
+            <div class="clearfix"></div>
+            {% endif %}
+
+            <div class="col-md-4">
+                <p><small>*</small>Unallocated Balance</p>
+            </div>
+            <div  class="col-md-8">{{ form_row(form.balance) }}</div>
+            <div class="clearfix"></div>
+
+            <div class="col-md-4">
+                <div class="row">
+                    <div class="col-md-10">
+                        <p><small>*</small>Client IP</p>   
+                    </div>                 
+                </div>
+            </div>
+            <div  class="col-md-8">
+                <div class="row">
+                    <div class="col-md-11 col-sm-11 col-xs-11">     
+                        {%- if form.vars.data -%}
+                            {{ form_row(form.clientIP) }}
+                        {% endif %}
+                    </div>  
+                    <div class="col-md-1 col-sm-1 col-xs-1">
+                        <div class="IP-tooltip-wrap">
+                            <span class="field-tip IP-tooltip">
+                                <p>!</p>
+                                <span class="tip-content">
+                                  <ol>
+                                    <h1>Last Ten IPs</h1>
+                                    {% for key, value in topTenIps %}  
+                                        <li>{{value.clientIp}}</li>
+                                    {% endfor %}  
+                                  </ol>
+                                </span>
+                            </span>                        
+                        </div>
+                    </div>           
+                </div>
+
+            </div>
+            <div class="clearfix"></div>
+        </div>    
+        
+    </div>
+    <div class="clearfix"></div>
+</div>
+ <div class="card-box profile-cls">
+    <h1>Marketing Info</h1>
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-md-4">
+                <p>Affiliate Link</p>
+            </div>
+            <div  class="col-md-8">{{ form_row(form.affiliateCode) }}</div>
+            <div class="clearfix"></div>
+            <div class="col-md-4">
+                <p>Registration Site</p>
+            </div>
+            <div  class="col-md-8">{{ form_row(form.origin) }}</div>
+            <div class="clearfix"></div>
+        </div>
+    </div> 
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-md-4">
+                <p>Referrer Site</p>
+            </div>
+            <div  class="col-md-8">{{ form_row(form.referrer) }}</div>
+            <div class="clearfix"></div>
+
+            <div class="col-md-4">
+                <p>Promo Code</p>
+            </div>
+            <div  class="col-md-8">{{ form_row(form.promoCode) }}</div>
+            <div class="clearfix"></div>
+        </div>
+    </div> 
+    <div class="clearfix"></div>
+</div>
+{{form_row(form.btnGroup)}}  
+{{ form_end(form) }}

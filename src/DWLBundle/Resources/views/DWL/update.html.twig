@@ -1,0 +1,409 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title -%}{{ "page.title.tag.update"|trans({},"DWLBundle") }}{%- endblock title %}
+
+{% form_theme form _self %}
+
+{% block pageTitle -%}{{ "page.title.header.update"|trans({},"DWLBundle") }}{%- endblock pageTitle %}
+
+{% block pageHeaderExtra %}
+    <div class="pull-right">
+        {% if is_granted('ROLE_DWL_VIEW') %}
+        <a class="btn btn-inverse waves-effect waves-light pull-right m-b-10" href="{{ path("dwl.list_page") }}"><span><i class="ti-arrow-left m-r-5"></i></span> {{ "Back to DWL List"|trans({}, 'DWLBundle') }}</a>
+        {% endif %}
+        <ul class="list-inline quicklinks font-13 font-normal text-right">
+            <li>Quick Links:</li>
+            {% if is_granted('ROLE_CURRENCY_VIEW') %}
+            <li><a href="{{ path("currency.list_page") }}">Currency</a></li>|
+            {% endif %}
+            {% if is_granted('ROLE_PRODUCT_VIEW') %}
+            <li><a href="{{ path("product.list_page") }}">Product</a></li>|
+            {% endif %}
+            {% if is_granted('ROLE_GATEWAY_VIEW') %}
+            <li><a href="{{ path("gateway.list_page") }}">Gateway</a></li>
+            {% endif %}
+        </ul>
+    </div>
+{% endblock pageHeaderExtra %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.finance"|trans({},"AppBundle") }}</li>
+    <li>
+        <a href="{{ path("dwl.list_page") }}">{{ "page.title.header.list"|trans({},"DWLBundle") }}</a>
+    </li>
+    <li class="active">
+        {{ "menus.Update"|trans({},"DWLBundle") }}
+    </li>
+{%- endblock breadcrumb %}
+
+
+
+{% block page -%}
+    <div class="col-md-3 container-sm">
+        <div class="card-box status-info">
+            <div class="row m-t-10">
+                <div class="col-md-5 text-right text-muted"><p>Status</p></div>
+                <div class="col-md-7">
+                    <span class="label label-success dwl-status">
+                        {% if (dwl.isProcessing()) %}
+                            Uploading
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="row m-t-10">
+                <div class="col-md-5 text-right text-muted"><p>Date</p></div>
+                <div class="col-md-7">{{ dwl.date|date(setting('dateFormat')) }}</div>
+            </div>
+            <div class="row m-t-10">
+                <div class="col-md-5 text-right text-muted"><p>Product</p></div>
+                <div class="col-md-7">{{ dwl.product.name }}</div>
+            </div>
+            <div class="row m-t-10">
+                <div class="col-md-5 text-right text-muted text-danger"><p>Currency</p></div>
+                <div class="col-md-7">{{ dwl.currency.name }} ({{ dwl.currency.code }})</div>
+            </div>
+            <div class="row m-t-10">
+                <div class="col-md-5 text-right text-muted"><p>Version</p></div>
+                <div class="col-md-7">{{ dwl.version }}</div>
+            </div>
+            <div class="row">
+             {% if not isSkypeBettingProduct %}
+              {{ form_start(form) }}
+                <div class="col-md-12">
+                    <div class="form-group">
+                        {{ form_widget(form.file, {'attr': {'data-size': 'sm'}}) }}
+                    </div>
+                </div>
+                <div class="col-md-12 text-right">
+                    {{ form_row(form.save, {'attr': {'class': 'btn-sm btn-success'},'label': 'form.uploadNewVersion', 'translation_domain': 'DWLBundle'}) }}
+                </div>
+              {{ form_end(form) }}
+             {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div class="card-box" id="itemListContainer">
+            <div id="itemList">
+                <table id="datatable-responsive"
+                    class="datatable-colvis table table-striped dt-responsive nowrap" cellspacing="0"
+                    width="100%">
+                    <thead>
+                        <tr>
+                            <th>{{ "item.username"|trans([], "DWLBundle") }}</th>
+                            <th>{{ "item.turnover"|trans([], "DWLBundle") }}</th>
+                            <th>{{ "item.gross"|trans([], "DWLBundle") }}</th>
+                            <th>{{ "item.winloss"|trans([], "DWLBundle") }}</th>
+                            <th>{{ "item.commission"|trans([], "DWLBundle") }}</th>
+                            <th>{{ "item.total"|trans([], "DWLBundle") }}</th>
+                            <th>{{ "item.balance"|trans([], "DWLBundle") }}</th>
+                            <th>{{ "fields.action"|trans([], "DWLBundle") }}</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot>
+                        <tr>
+                            <th>{{ "Total"|trans([], 'DWLBundle') }}</th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <button class="btn btn-success" id="btnSubmit" type="button">{{ "Submit"|trans({},"DWLBundle")  }}</button>
+        </div>
+    </div>
+    {% include "DWLBundle:DWL:modal.html.twig" %}
+{%- endblock page %}
+
+{% block stylesheet_plugins %}
+    <link href="{{ asset('assets/plugins/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/buttons.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/responsive.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/dataTables.colVis.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/dataTables.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    {{ form_assetcss(form) }}
+{% endblock %}
+
+{% block stylesheets %}
+    <style type="text/css">
+        .has-tooltip {
+            cursor: pointer;
+        }
+        .tooltip.top > .tooltip-arrow {
+            border-top-color: #f05050;
+        }
+        .tooltip.bottom > .tooltip-arrow {
+            border-bottom-color: #f05050;
+        }
+        .tooltip.left > .tooltip-arrow {
+            border-left-color: #f05050;
+        }
+        .tooltip.right > .tooltip-arrow {
+            border-right-color: #f05050;
+        }
+        ul.ColVis_collection {
+            width: auto!important;
+            left: auto!important;
+            right: 45px;
+        }
+        div.ColVis {
+            float: right;
+            margin-right: 0px;
+            margin-left: 5px;
+        }
+        {% if isSkypeBettingProduct %}
+         #datatable-responsive td:last-child, #datatable-responsive th:last-child {
+            display: none;
+         }
+        {% endif %}
+    </style>
+{% endblock %}
+
+{% block javascript_plugins %}
+    <script src="{{ asset('bundles/app/js/ZTable.js') }}"></script>
+    {{ form_assetjs(form) }}
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('bundles/dwl/js/updatePage.js') }}" type="text/javascript"></script>
+    <script type="text/javascript" >
+        var versions = {{ dwl.details.versions|json_encode()|raw }};
+
+        function changeStatusText(status) {
+            var group = '';
+            for (var i in Global.dwl.status) {
+                if (Global.dwl.status[i].value == status) {
+                    group = Global.dwl.status[i].group;
+                    break;
+                }
+            }
+            if (group === 'uploaded') {
+                return '{{ 'status.uploaded'|trans({}, 'DWLBundle') }}';
+            } else if (group === 'uploading') {
+                return '{{ 'status.uploading'|trans({}, 'DWLBundle') }}';
+            } else if (group === 'submiting') {
+                return '{{ 'status.submiting'|trans({}, 'DWLBundle') }}';
+            } else {
+                return '{{ 'status.submited'|trans({}, 'DWLBundle') }}';
+            }
+        }
+
+        function hideExportButton()
+        {
+            $('button[name="btnExportCsv"]').hide();
+        }
+
+        function showExportButton()
+        {
+            $('button[name="btnExportCsv"]').show();
+        }
+
+
+        var url = {
+            'list': '{{ path("app.render_file", {"fileName": dwl.id ~ "_v_" ~ dwl.version ~ ".json", "folder": "dwl", '_v': lastUpdateEncoded })|raw('js') }}',
+            'cproducts': '{{ path("customerProduct.list_search", {"id": "all"}) }}',
+            'submitDWL': '{{ path('dwl.submit', {'id': dwl.id}) }}',
+            'exportDWL': '{{ path('dwl.export', {'id': dwl.id}) }}'
+        }
+
+        var lastCompletedVersion = '{{ dwl.getLastCompletedVersion()|default('none') }}';
+
+        $(function() {
+            $(document).on('onWebsocketOpen', function (e, session) {
+                session.subscribe('bo.topic.dwl_process', function(args) {
+                    var data = args[0];
+                    if (data.id == {{ dwl.id }}) {
+                        if(data.status == Global.dwl.status.processed.value) {
+                            $('#btnSubmit').removeClass('hide');
+                        } else {
+                            $('#btnSubmit').addClass('hide');
+                        }
+                        if (data.status == Global.dwl.status.processed.value || data.status == Global.dwl.status.completed.value) {
+                            loadItems(data.status, data.canBeExported, data.version, data._v);
+                            $('#{{ form._v.vars.id }}').val(data._v);
+                            $('.dwl-status').html(changeStatusText(data.status));
+
+                        } else if (data.status == Global.dwl.status.processing.value || data.status == Global.dwl.status.transacting.value) {
+                            $('.dwl-status').html(changeStatusText(data.status) + " (" + data.process + "/" + data.total + ")");
+                            $('#itemListContainer').addClass('hidden');
+                        } else {
+                            $('.dwl-status').html(changeStatusText(data.status));
+                        }
+                    }
+                });
+
+                $.ajax({
+                    'url': '{{ path('dwl.get_dwl', {"id": dwl.id}) }}',
+                    'success': function (data) {
+                        if (data.status == Global.dwl.status.processed.value || data.status == Global.dwl.status.completed.value) {
+                            loadItems(data.status, data.canBeExported, data.version, data.encodedUpdatedAt);
+                        }
+                    }
+                });
+            });
+            
+            $.ajax({
+                'url': '{{ path('dwl.get_dwl', {"id": dwl.id}) }}',
+                'success': function (data) {
+                    if (data.status == Global.dwl.status.processed.value || data.status == Global.dwl.status.completed.value) {
+                        loadItems(data.status, data.canBeExported, data.version, data.encodedUpdatedAt);
+                    }
+                }
+            });
+            
+            $('body').tooltip({
+                'selector': '.has-tooltip',
+                'container': 'body',
+                'template': '<div class="tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner bg-danger"></div></div>'
+            });
+
+            $('#dwlItemModal').on('hide.bs.modal', function (e) {
+                $(this).data('list', null);
+                $(this).data('item', null);
+                $(this).find('.data').html('');
+                function setValue(value, inputId, convert) {
+                    $('#' + inputId).val(value);
+                }
+                {% for child in itemForm.children -%}
+                    {% if child.vars.name != "_token" and child.vars.name != "_v" -%}
+                    setValue("", "{{ child.vars.id }}");
+                    {%- endif %}
+                {%- endfor %}
+            });
+
+            $('#dwlItemModal').on('show.bs.modal', function (e) {
+                var modal = this;
+                var path = "{{ path('dwl.item_save', {'id': dwl.id, 'version': '__version__', 'username': "__username__"}) }}";
+                var action = path.replace('__version__', {{ dwl.version }});
+                action = action.replace('__username__', $(modal).data('item')['username']);
+                $('#{{ itemForm.vars.id }}').attr('action', action);
+                $('.form-group').removeClass('has-error');
+                $('.form-group .help-block ul').html('');
+                $(this).find('.data').each(function () {
+                    var info = $(modal).data('item')[$(this).data('info')];
+                    $(this).html(info);
+                });
+                function setValue(value, inputId, convert) {
+                    if (!isNaN(value)) {
+                        $('#' + inputId).val((new Decimal(value)).toFixed(2));
+                    } else {
+                        $('#' + inputId).val(value);
+                    }
+                }
+                {% for child in itemForm.children -%}
+                    {% if child.vars.name != "_token" and child.vars.name != "_v" -%}
+                    setValue($(modal).data('item')["{{ child.vars.name }}"], "{{ child.vars.id }}");
+                    {%- endif %}
+                {%- endfor %}
+            });
+
+            $('#{{ itemForm.vars.id }}').submit(function (e) {
+                e.preventDefault();
+                var data = $(this).serializeArray();
+                var normData = {};
+                $.each(data, function (i, field) {
+                    normData[field.name] = field.value;
+                });
+
+                $.ajax({
+                    'url': $(this).attr('action'),
+                    'type': 'POST',
+                    'data': normData,
+                    'beforeSend': function() {
+                        $('#{{ itemForm.vars.id }}').find('.form-group').removeClass('has-error');
+                        $('#{{ itemForm.vars.id }}').find('.form-group .help-block ul').html('');
+                        $("#{{ itemForm.save.vars.id }}").attr('disabled', 'disabled');
+                    },
+                    'statusCode': {
+                        '422': function(jqXHR) {
+                            $(this).data('global-ajax-error', false);
+                            $.each(jqXHR.responseJSON.errors, function(i, e) {
+                                $('#' + i).closest('.form-group').addClass('has-error');
+                                $('#' + i).next().find('ul').append('<li><span class="glyphicon glyphicon-exclamation-sign"></span> '+ this +'</li>');
+                            });
+                        }
+                    },
+                    'error': function (xhr, options, message) {
+                        if (typeof message.message !== 'undefined') {
+                            if (message.message.substring(0, 10) === 'JSON.parse') {
+                                $(this).data('global-ajax-error', false);
+                            }
+                        }
+                    },
+                    'success': function (data) {
+                        $('#dwlItemModal').modal('hide');
+                        notification('Save', 'Item successfully saved', 'success');
+                        $('#itemList').data('ztable').dataTable.api().ajax.reload();
+                        $('#{{ form._v.vars.id }}').val(data._v);
+                    },
+                    'complete': function(jqXHR) {
+                        $("#{{ itemForm.save.vars.id }}").removeAttr('disabled');
+                    }
+                });
+            });
+        });
+        function checkStatus() {
+            $.ajax({
+                'url': "{{ path("app.render_file", {"fileName": "progress_" ~ dwl.id ~ "_v_" ~ dwl.version ~ ".json", "folder": "dwl" }) }}",
+                'dataType': 'json',
+                'cache': false,
+                'success': function (data) {
+                    if(data.status == 3) {
+                        $('#btnSubmit').removeClass('hide');
+                    } else {
+                        $('#btnSubmit').addClass('hide');
+                    }
+                    if (data.status == 3 || data.status == 6) {
+                        loadItems(data.status);
+                        $('#{{ form._v.vars.id }}').val(data._v);
+                        $('.dwl-status').html(changeStatusText(data.status));
+
+                    } else if (data.status == 2) {
+                        $('.dwl-status').html(changeStatusText(data.status) + " (" + data.process + "/" + data.total + ")");
+                        setTimeout(checkStatus, 500);
+                    } else {
+                        $('.dwl-status').html(changeStatusText(data.status));
+                        setTimeout(checkStatus, 500);
+                    }
+                },
+                'error': function (jqXHR, textStatus, errorThrown) {
+                    if (message.message.substring(0, 10) === 'JSON.parse') {
+                        $(this).data('global-ajax-error', false);
+                        setTimeout(checkStatus, 500);
+                    }
+                }
+            });
+        }
+
+        function loadItems(status, canBeExported = false, version, updateEncoded) {
+            var urlTemp = '{{ path("app.render_file", {"fileName":  dwl.id ~ "_v___version__.json", "folder": "dwl", '_v': '__update_encoded__' })|raw('js') }}';
+            urlTemp = urlTemp.replace('__version__', version);
+            urlTemp = urlTemp.replace('__update_encoded__', updateEncoded);
+            $('.dwl-status').html(changeStatusText(status));
+            $('#itemList').data('ztable').initialize();
+            $('#itemList').data('ztable').dataTable.api().ajax.url(urlTemp).load();
+            $('#itemListContainer').removeClass('hidden');
+            if(status == 3) {
+                $('#btnSubmit').removeClass('hide');
+            } else {
+                $('#btnSubmit').addClass('hide');
+            }
+
+            if (!canBeExported) {
+                hideExportButton();
+            } else {
+                showExportButton();
+            }
+
+            $('.form-upload').removeClass('hide');
+        }
+
+    </script>
+{% endblock %}

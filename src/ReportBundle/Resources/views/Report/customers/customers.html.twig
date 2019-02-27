@@ -1,0 +1,211 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}Reports | Members{% endblock %}
+
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+{% block pageTitle -%} Member Reports {%- endblock pageTitle %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.report"|trans({},"AppBundle") }}</li>
+    <li class="active">{{ "breadcrumb.memberSummary"|trans({},"AppBundle") }}</li>
+{%- endblock breadcrumb %}
+
+{% block pageHeaderExtra %}
+<div class="pull-right report">
+    <ul class="list-inline quicklinks font-13 font-normal text-right">
+        {% if is_granted(['ROLE_REPORT_PRODUCT_VIEW', 'ROLE_REPORT_GATEWAY_VIEW']) %}
+        <li>Quick Links:</li>
+        {% endif %}
+        {% if is_granted('ROLE_REPORT_PRODUCT_VIEW') %}
+        <li><a href="{{ path("report.products") }}"> {{ "menus.report.product"|trans({},"ReportBundle") }} </a></li>|
+        {% endif %}
+        {% if is_granted('ROLE_REPORT_GATEWAY_VIEW') %}
+        <li><a href="{{ path("report.gateways") }}"> Payment Gateway</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock pageHeaderExtra %}
+
+{% block page %}
+    <div class="col-sm-12 report-notes-wrap">
+        <div class="report-notes">
+            <p>{{ "notes.reportNotes"|trans({},"ReportBundle") }}</p>
+        </div>
+    </div>
+    <div class="col-md-12">
+        <div class="card-box">
+            <div class="form form-inline m-l-10 m-b-5" id="reportFilter">
+                <div class="form-group form-group-sm ft-date">
+                    <div class="m-t-10 xs-date">
+                        <div class="form-group form-group-sm m-r-10">
+                            <div class="input-group">
+                                <input class="form-control cls-date" name="from" id="dateFrom" type="input" placeholder="From" />
+                                <span class="input-group-addon bg-white text-default"><i class="fa fa-calendar"></i></span>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm m-r-10">
+                            <div class="input-group">
+                                <input class="form-control cls-date" name="to" id="dateTo" type="input" placeholder="To" />
+                                <span class="input-group-addon bg-white text-default"><i class="fa fa-calendar"></i></span>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm m-r-10">
+                            <select
+                                id="currency"
+                                class="form-control selectpicker"
+                                name="currencies"
+                                data-style="btn-white btn-sm"
+                                multiple="multiple"
+                                data-none-selected-text="Currency"
+                                data-width="auto"
+                                data-container="body">
+                                {% for currency  in currencies %}
+                                    <option value="{{ currency.code }}">{{ currency.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                {# AC66-1062 - hide this for now until confirmation is given whether to enable this or not#}
+                {#<div class="form-group form-group-sm m-r-10">#}
+                    {#<select#}
+                            {#id="hideEmptyRecords"#}
+                            {#class="form-control selectpicker"#}
+                            {#name="hideEmptyRecords"#}
+                            {#data-style="btn-white btn-sm"#}
+                            {#data-width="auto"#}
+                            {#data-container="body">#}
+                            {#<option value="1">Hide Members Inactive for past 6 months</option>#}
+                            {#<option value="0" selected="selected">Show All Records</option>#}
+                    {#</select>#}
+                {#</div>#}
+
+                <div class="form-group form-group-sm m-r-10">
+                    <select
+                            id="hideZeroValueRecords"
+                            class="form-control selectpicker"
+                            name="hideZeroValueRecords"
+                            data-style="btn-white btn-sm"
+                            data-width="auto"
+                            data-container="body">
+                        <option value="1" selected="selected">Hide members with 0 turnover and available balance</option>
+                        <option value="0">Show All Records</option>
+                    </select>
+                </div>
+
+                <button id="btnFilter" class="form-group btn btn-default btn-sm" type="button">
+                    Filter
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12">
+        {% for currency in currencies %}
+        <div class="reportContainer card-box hide" id="container{{ currency.code }}">
+            <h5 class="text-muted text-uppercase m-t-0 m-b-20"><b>Currency: {{ currency.name }}</b></h5>
+            <div class="report" id="report{{ currency.code }}">
+                <table
+                    class="table table-striped table-bordered dt-responsive nowrap"
+                    cellspacing="0"
+                    >
+                    <thead>
+                        <tr>
+                            <th data-priority="1">Member</th>
+                            <th>Turnover</th>
+                            <th>Gross Commission</th>
+                            <th>Win/Loss</th>
+                            <th>Commission</th>
+                            <th>Total</th>
+                            <th>Available Balance: <span class="available-balance-date"></span></th>
+                            <th>Current Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                    {#AC66-1143 hide this for now until the loading speed of the totals is fixed#}
+                    {#<tfoot>#}
+                        {#<th>Total</th>#}
+                        {#<th>0.00</th>#}
+                        {#<th>0.00</th>#}
+                        {#<th>0.00</th>#}
+                        {#<th>0.00</th>#}
+                        {#<th>0.00</th>#}
+                        {#<th>0.00</th>#}
+                        {#<th>0.00</th>#}
+                    {#</tfoot>#}
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% endblock page %}
+
+{% block javascripts %}
+    <script src="{{ asset('bundles/app/js/ZTable.js') }}"></script>
+    <script src="{{ asset('bundles/report/js/CustomerReport.js') }}"></script>
+    <script type="text/javascript">
+    </script>
+    <script type="text/javascript">
+        var reports = {};
+
+        $(function () {
+            $('#dateTo').datepicker();
+            $('#dateFrom').datepicker();
+        });
+
+        // Ztables
+        $(function () {
+            {% for currency in currencies -%}
+                reports['{{ currency.code }}'] = new CustomerReport(
+                    '#report{{ currency.code }}',
+                    '{{ currency.code }}',
+                    '{{ path('report.customers_currency', {'currencyCode': currency.code}) }}',
+                    '{{ path('report.customers_export', {'currency': currency.code}) }}'
+                );
+            {%- endfor %}
+
+            $('#btnFilter').click(function (e) {
+                var from = $('#dateFrom').val();
+                var to = $('#dateTo').val();
+                var currency = $('#currency').val();
+                $('.reportContainer').addClass('hide');
+                $.each($('#currency option:selected'), function () {
+                    $('#container' + $(this).val()).removeClass('hide');
+                    reports[$(this).val()].filter(from, to);
+                    {# AC66-1143 hide this for now until loading time issue is fixed #}
+                    {# displayReportSummaryAtFooter(currency, from, to) #}
+                });
+                $('.report-notes-wrap').fadeOut();
+
+                $('.selectpicker').selectpicker();
+            });
+        });
+
+        function displayReportSummaryAtFooter(currency, reportStart, reportEnd)
+        {
+            var path = '{{ path('report.customers_currency_summary', {'currency': '__CURRENCY__'}) }}';
+            path = path.replace("__CURRENCY__", currency);
+            postData = {'filters': {'from': reportStart, 'to': reportEnd}};
+            $.post(path, postData).done(function (results) {
+
+                var totalSummary = results.totalSummary;
+                var turnover = (new Decimal(totalSummary.dwl.turnover)).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,');
+                var gross = (new Decimal(totalSummary.dwl.gross)).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,');
+                var winLoss = (new Decimal(totalSummary.dwl.winLoss)).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,');
+                var commission = (new Decimal(totalSummary.dwl.commission)).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,');
+                var amount = (new Decimal(totalSummary.dwl.amount)).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,');
+                var totalBalanceUpToEndOfReportDateRange = (new Decimal(totalSummary.customer.totalBalanceUpToEndOfReportDateRange)).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,');
+                var totalBalances = (new Decimal(totalSummary.customer.totalBalances)).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,');
+
+                $('#report' + currency ).find('tfoot tr th:nth-child(2)').html(turnover);
+                $('#report' + currency ).find('tfoot tr th:nth-child(3)').html(gross);
+                $('#report' + currency ).find('tfoot tr th:nth-child(4)').html(winLoss);
+                $('#report' + currency ).find('tfoot tr th:nth-child(5)').html(commission);
+                $('#report' + currency ).find('tfoot tr th:nth-child(6)').html(amount);
+                $('#report' + currency ).find('tfoot tr th:nth-child(7)').html(totalBalanceUpToEndOfReportDateRange);
+                $('#report' + currency ).find('tfoot tr th:nth-child(7)').html(totalBalances);
+            });
+        }
+    </script>
+{% endblock javascripts %}

@@ -1,0 +1,266 @@
+{% block _Gateway_details_methods_widget -%}
+    <h4 class="m-t-0 header-title">
+        <b>Methods</b>
+        <div class="pull-right">
+            <a href="#methodHelp" data-toggle="modal" data-target="#methodHelp"><i class="fa fa-question-circle"></i></a>
+        </div>
+    </h4>
+    <div id="{{ form.vars.id }}" class="row">
+    </div>
+    {# Modal #}
+    <div id="methodHelp" class="modal fade" tabindex="-1" aria-labelledby="methodHelpLabel" style="display: none;" data-keyboard="false" data-backdrop="static">
+        <div class="modal-dialog modal-responsive modal-method">
+            <div class="modal-content p-0 b-0">
+                <div class="panel panel-color panel-inverse">
+                    <div class="panel-heading">
+                        <h4 class="panel-title" id="methodHelpLabel">{{ "Methods"|trans({},"GatewayBundle") }}</h4>
+                    </div>
+                    <div class="panel-body p-20">
+                        <p class="p-b-10">The Methods form is used to set how the system will compute for the new balance of the Payment Gateway after a transaction was processed.</p>
+                        <div class="col-md-6 col-sm-12">
+                            <h4>Equation</h4>
+                            <p>The Equation field is where you need to enter mathematical expressions that will be parse analyzed by the system to determine how the new balance will be calculated. The Equation is dependent on the mathematical operators and variables that you will use. The Equation follows the PEMDAS (Parentheses, Exponents, Multiplication or Division, Addition or Subtraction) rule.</p>
+                            <h5>Example</h5>
+                            <ul>
+                                <li>+x+1</li>
+                                <li>-x+y+c</li>
+                                <li>+2+3+4</li>
+                                <li>-x(y+2)^c</li>
+                            </ul>
+                            <p><b>Note:</b> The Equation must start with an operator (usually + or - ) so that the system can determine whether the equation will be added to (+) or deducted from (-) the balance of the Payment Gateway.
+                            If the first character is not an operator it will automaticaly multiply it with the balance.</p>
+                            <hr/>
+                            <h4>Operators</h4>
+                            <p>Here are the specific operators that the Equation only accepts.</p>
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Operator</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>+</td><td>Operator for addition</td>
+                                    </tr>
+                                    <tr>
+                                        <td>-</td><td>Operator for subraction</td>
+                                    </tr>
+                                    <tr>
+                                        <td>*</td><td>Operator for multiplication</td>
+                                    </tr>
+                                    <tr>
+                                        <td>/</td><td>Operator for division</td>
+                                    </tr>
+                                    <tr>
+                                        <td>%</td><td>Operator for Modulos (used for getting the remainder)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>^</td><td>Operator for exponent</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <hr/>
+                        </div>
+                        <div class="col-md-6 col-sm-12">
+                            <h4>Variables</h4>
+                            <p>Variables represent the letters of the mathematical expression used in the Equation field. The value of each variable depends on what you assign to it.</p>
+                            <h5>Example with equation: x+y+z</h5>
+                            <ul>
+                                <li>x = 1</li>
+                                <li>y = 2</li>
+                                <li>z = 3</li>
+                            </ul>
+                            <p>The system will analyze the equation as <b>1+2+3</b></p>
+                            <hr/>
+                            <h4>Predefined value for variable</h4>
+                            <p>Here are the predefined values for the variables that are recognized by the system.</p>
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Value</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>total_amount</td><td>The total amount of the transaction</td>
+                                    </tr>
+                                    <tr>
+                                        <td>customer_amount</td><td>The customer amount of the transaction</td>
+                                    </tr>
+                                    <tr>
+                                        <td>company_fee</td><td>The company fee of the transaction</td>
+                                    </tr>
+                                    <tr>
+                                        <td>customer_fee</td><td>The customer fee of the transaction</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <h5>Example</h5>
+                            <ul>
+                                <li>x = total_amount</li>
+                                <li>y = customer_amount</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="panel-footer text-right">
+                        <button type="button" class="btn btn-inverse waves-effect" data-dismiss="modal">Close</button>
+                     </div>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+{%- endblock %}
+
+{% block gateway_method_row -%}
+    <div id="{{ form.vars.id }}" class="col-md-12">
+        <div class="card-box">
+            {{- form_widget(form) -}}
+        </div>
+    </div>
+{%- endblock %}
+
+{% block gateway_method_widget -%}
+    <h4 class="m-t-0 header-title"><b>__name__</b></h4>
+    <hr />
+    <div class="row">
+    {{ form_widget(form.type, {"attr": {"class": "gateway-method-type"}}) }}
+    <div class="form-group">
+        {{ form_label(form.equation) }}
+        <div class="input-group">
+            <span class="input-group-addon">balance</span>
+            <span class="input-group-addon balance-op"></span>
+            {{ form_widget(form.equation, {"attr": {"class": "gateway-method-equation"}}) }}
+        </div>
+    </div>
+
+    {{ form_row(form.variables, {"attr": {"class": "gateway-method-vars"}}) }}
+    </div>
+{%- endblock %}
+
+{% block _Gateway_details_methods_entry_variables_row -%}
+    <div id="{{ form.vars.id }}" class="col-md-12">
+        <div>{{ form_label(form) }} | <button type="button" class="btn btn-icon btn-xs btn-success btn-add-var"><i class="fa fa-plus"></i></button></div>
+        <div class="variables">
+        </div>
+    </div>
+{% endblock %}
+
+{% block var_row -%}
+    <div id="{{ form.vars.name }}" class="row">
+    {{ form_widget(form) }}
+    </div>
+{%- endblock %}
+
+{% block var_widget -%}
+    <div class="col-md-12">
+        <div class="input-group input-group-sm m-t-10">
+            <span class="input-group-addon">var</span>
+            {{ form_widget(form.var, {'attr': {'class': 'gateway-method-vars-var'}}) }}
+            <span class="input-group-addon">=</span>
+            {{ form_widget(form.value, {'attr': {'class': 'gateway-method-vars-value'}}) }}
+            <span class="input-group-btn">
+                <button type="button" class="btn btn-danger btn-remove-var">
+                    <i class="fa fa-minus"></i>
+                </button>
+            </span>
+        </div>
+    </div>
+{%- endblock -%}
+
+{% block _Gateway_details_methods_javascript -%}
+    <script type="text/javascript">
+        var GatewayMethods = function(options) {
+            this.prototype = options.prototype;
+            this.items = {};
+        };
+        GatewayMethods.prototype = {
+            'add': function(method) {
+                this.items[method.type] = new GatewayMethod(this, method);
+                this.items[method.type].render();
+            }
+        };
+
+        var GatewayMethod = function (methods, infos) {
+            this.methods = methods;
+            this.view = null;
+            this.infos = infos;
+            this.varPrototype = "{{ form_row(form.vars.prototype.variables.vars.prototype)|e('js') }}";
+            this.vars = [];
+            this.varIndex = 0;
+            this.init();
+        };
+
+        GatewayMethod.prototype = {
+            "init": function() {
+                var prototype = this.methods.prototype;
+                prototype = prototype.replace(/{{ form.vars.prototype.vars.name }}/g,this.infos.type);
+                this.view = $(prototype);
+                this.view.find('.gateway-method-type').val(this.infos.type);
+                this.view.find('.gateway-method-equation').val(this.infos.equation);
+                this.view.find('.btn-add-var').on('click', {'method': this},function(e) {
+                    e.data.method.add('', '');
+                });
+                this.view.data(this);
+                for(var i in this.infos.variables) {
+                    this.add(this.infos.variables[i].var, this.infos.variables[i].value);
+                }
+            },
+            "add": function(v, val) {
+                var i = this.varIndex;
+                var prototype = this.varPrototype;
+                prototype = prototype.replace(/{{ form.vars.prototype.vars.name }}/g,this.infos.type);
+                prototype = prototype.replace(/{{ form.vars.prototype.variables.vars.prototype.vars.name }}/g,i);
+                this.vars[i] = $(prototype);
+                this.vars[i].find('.gateway-method-vars-value').val(val);
+                this.vars[i].find('.gateway-method-vars-var').val(v);
+                this.vars[i].find('.btn-remove-var').on('click', {'method': this, 'i': i},function(e) {
+                    e.data.method.vars[e.data.i].remove();
+                    delete e.data.method.vars[e.data.i];
+                });
+                this.view.find('.variables').append(this.vars[i]);
+                this.varIndex++;
+            },
+            "render": function() {
+                $('#{{ form.vars.id }}').append(this.view);
+            }
+        };
+
+        var gatewayMethods = new GatewayMethods({
+            'prototype': "{{- form_row(form.vars.prototype)|e('js') -}}",
+        });
+
+        gatewayMethods.add($.extend({
+            'type': 'deposit',
+            'equation': '+',
+            'variables': []
+        }, {{ form.vars.data.deposit|default([])|json_encode()|raw }}));
+
+        gatewayMethods.add($.extend({
+            'type': 'withdraw',
+            'equation': '-',
+            'variables': []
+        }, {{ form.vars.data.withdraw|default([])|json_encode()|raw }}));
+    </script>
+{%- endblock %}
+
+{% block _Gateway_paymentOption_javascript %}
+    <script type="text/javascript">
+        function showHidePaymentModeFields() {
+            var paymentMode = paymentOptionModes[$('#{{ form.vars.id }}').val()];
+            $('.payment-mode:not([data-mode="' + paymentMode + '"])').addClass('hide');
+            $('.payment-mode:not([data-mode="' + paymentMode + '"])').find('input').attr('disabled', 'disabled');
+            $('.payment-mode[data-mode="' + paymentMode + '"]').find('input').removeAttr('disabled');
+            $('.payment-mode[data-mode="' + paymentMode + '"]').removeClass('hide');
+        }
+
+        $(function () {
+            $('#{{ form.vars.id }}').change(function () {
+                showHidePaymentModeFields();
+            });
+
+            showHidePaymentModeFields();
+        });
+    </script>
+{% endblock _Gateway_paymentOption_javascript %}

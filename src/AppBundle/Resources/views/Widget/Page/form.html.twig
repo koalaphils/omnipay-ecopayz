@@ -1,0 +1,487 @@
+{% use "AppBundle:Widget:base.html.twig"  %}
+
+{% block formWidget_assetcss %}
+    {{ form_assetcss(form) }}
+{% endblock formWidget_assetcss %}
+
+{% block formWidget_stylesheet %}
+    {{ form_stylesheet(form) }}
+{% endblock formWidget_stylesheet %}
+
+{% block formWidget_container %}
+    <div class='{{ id }}'>
+        {{ form_start(form, {'widget': widget}) }}
+        {% if widget.property('useTab', true) %}
+            {% if widget.hasGroup('Default') %}
+            <div class="card-box">
+                <div class='row'>
+                {% for fieldName in widget.getGroup('Default') %}
+                {{ form_row(form[fieldName]) }}
+                {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if widget.getGroupsNotDefaultAndButton() is not empty %}
+            {{ block('formWidget_tabs') }}
+            {{ block('formWidget_tabcontents') }}
+            {% endif %}
+
+            {{ block('formWidget_buttons') }}
+        {% else %}
+            <div class="row">
+            {% for group,details in widget.property('groups') %}
+                {% with {'group': group, 'details': details} %}
+                    {{ block('formWidget_group') }}
+                {% endwith %}
+            {% endfor %}
+            </div>
+            {{ block('formWidget_buttons') }}
+        {% endif %}
+
+        {{ form_end(form) }}
+    </div>
+{% endblock formWidget_container %}
+
+{% block formWidget_group %}
+    <div class="col-md-{{ details.size|default(12) }}">
+        <div class="{{ details.class|default('') }}">
+            {% if details.label|default('') != '' %}
+            <h1>{{ details.label }}</h1>
+            {% endif %}
+            {% if widget.getGroup(group) is not empty %}
+            <div class='row'>
+            {% for fieldName in widget.getGroup(group) %}
+            {{ form_row(form[fieldName]) }}
+            {% endfor %}
+            </div>
+            {% endif %}
+            {% if details.groups|default([]) is not empty %}
+            <div class="row">
+                {% for groupChild,detailsChild in details.groups|default([])  %}
+                    {% with {'group': groupChild, 'details': detailsChild} %}
+                        {{ block('formWidget_group') }}
+                    {% endwith %}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock formWidget_group %}
+
+{% block formWidget_tabs %}
+    <ul class="nav nav-tabs">
+    {% for groupName,fields in widget.getGroups() %}
+        {% if groupName != 'Default' and groupName != 'Buttons' %}
+        <li class="{{ groupName == (widget.property('tabs.default')) ? 'active' : '' }}">
+            <a href="#{{ widget.getGroupId(groupName) }}" data-toggle="tab" aria-expanded="true">
+                {{ groupName }}
+            </a>
+        </li>
+        {% endif %}
+    {% endfor %}
+    </ul>
+{% endblock formWidget_tabs %}
+
+{% block formWidget_tabcontents %}
+    <div class="tab-content">
+    {% for groupName,fields in widget.getGroups() %}
+        {% if groupName != 'Default' and groupName != 'Buttons' %}
+            <div id="{{ widget.getGroupId(groupName) }}" class="tab-pane{{ groupName == (widget.property('tabs.default')) ? ' active' : '' }}">
+                <div class='row'>
+                {% for fieldName in fields %}
+                {{ form_row(form[fieldName]) }}
+                {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+    </div>
+{% endblock formWidget_tabcontents %}
+
+{% block formWidget_buttons %}
+    <div class='text-right' style='background: none; border: 0px;'>
+    {% for fieldName in widget.getGroup('Buttons') %}
+    {{ form_row(form[fieldName]) }}
+    {% endfor %}
+    </div>
+{% endblock formWidget_buttons %}
+
+{% block formWidget_assetjs %}
+    {{ form_assetjs(form) }}
+{% endblock formWidget_assetjs %}
+
+{% block formWidget_javascript %}
+    <script type='text/javascript' id='{{ block_id }}'>
+        function {{ id }}ExecPage() {
+            $('button.{{ id }}_button[data-redirect]').click(function () {
+                var path = $(this).data('redirect');
+                window.location = path;
+            });
+            $('#{{ form.vars.id }}').ajaxForm({
+                'type': '{{ properties.ajax.type|default('POST') }}',
+                'beforeSend': function () {
+                    $('#{{ form.vars.id }}').find('.form-group').removeClass('has-error');
+                    $('#{{ form.vars.id }}').find('.form-group .help-block ul li').remove();
+                },
+                'headers': {
+                    'X-WIDGET-DATA': '{{ id }}_data',
+                    'X-WIDGET-REQUEST': 'onSave',
+                    'X-WIDGET-PATH': '{{ widget_path }}',
+                    'X-WIDGET-ID': '{{ id }}'
+                },
+                'statusCode': {
+                    422: function (xhr, textStatus, errorThrown) {
+                        $(this).data('global-ajax-error', false);
+                        var errors = xhr.responseJSON.errors;
+                        for (var index in errors) {
+                            var error = errors[index];
+                            $('#' + error.formId)
+                                .closest('.form-group').addClass('has-error')
+                                .find('.help-block ul')
+                                .append('<li>' + error.message + '</li>');
+                        }
+                    }
+                },
+                'success':
+                    {% if properties.success is not defined %}
+                    function (data) {
+                        {% if properties.resettable is defined and properties.resettable == true %}
+                            $('#{{ form.vars.id }}').get(0).reset();
+                        {% endif %}
+
+                        $('#{{ form.vars.id }}').trigger('form.success', [data]);
+                        if (typeof data.redirect !== 'undefined') {
+                            window.location .replace(data.redirect);
+                        }
+                    }
+                    {% else %}
+                        {{ properties.success }}
+                    {% endif %}
+            });
+        }
+
+        page.addScript('{{ absolute_url(asset('assets/plugins/jquery-form/jquery.form.min.js')) }}');
+        page.addLoader({{ id }}ExecPage, ['{{ absolute_url(asset('assets/plugins/jquery-form/jquery.form.min.js')) }}']);
+    </script>
+    {{ form_javascript(form) }}
+{% endblock formWidget_javascript %}
+
+{% block group_widget %}
+    <div id="{{ id }}" class="row">
+        {% for child in form.children %}
+        {{ form_row(child) }}
+        {% endfor %}
+    </div>
+{% endblock group_widget %}
+
+{% block form_row -%}
+    <div class="col-sm-{{ form.vars.size }}">
+        <div class="form-group{% if (not compound or force_error|default(false)) and not valid %} has-error{% endif %}">
+            {{- form_label(form) -}}
+            <div class="{{ block('form_group_class') }}">
+                {{- form_widget(form) -}}
+                {{- form_errors(form) -}}
+            </div>
+        </div>
+    </div>
+{%- endblock form_row %}
+
+{% block choice_assetcss %}
+    {{ asset_render('css', 'default', [absolute_url(asset('assets/plugins/select2/css/select2.min.css'))]) }}
+    {{ asset_render('css', 'default', [absolute_url(asset('assets/plugins/bootstrap-select/css/bootstrap-select.min.css'))]) }}
+{% endblock %}
+
+{% block choice_assetjs %}
+    {{ asset_render('js', 'default', [absolute_url(asset('assets/plugins/select2/js/select2.min.js'))]) }}
+    {{ asset_render('js', 'default', [absolute_url(asset('assets/plugins/bootstrap-select/js/bootstrap-select.min.js'))]) }}
+{% endblock %}
+
+{% block choice_javascript %}
+    {% if form.vars.properties.isAjax|default(false) %}
+    <script type='text/javascript' id="{{ id }}_javascript">
+        $(function () {
+            var {{ id }}Value = {{ form.vars.data|json_encode()|raw('js') }};
+            var formatedValue = [];
+            var valueId = [];
+            for (var i in {{ id }}Value) {
+                formatedValue.push({"id": {{ id }}Value[i], "text": i})
+                valueId.push({{ id }}Value[i]);
+            }
+            $('#{{ id }}').select2({
+                'data': formatedValue,
+                'multiple': {{ form.vars.multiple ? 'true' : 'false' }},
+                'allowClear': true,
+                'placeholder': {
+                    id: "",
+                    placeholder: ""
+                },
+                {% if form.vars.properties.minimumInputLength is defined %}
+                'minimumInputLength': {{ form.vars.properties.minimumInputLength }},
+                {% endif %}
+                'ajax': {
+                    {% if form.vars.properties.ajax.delay is defined %}
+                    'delay': {{ form.vars.properties.ajax.delay }},
+                    {% endif %}
+                    {% if form.vars.properties.ajax.url is defined %}
+                    'url': '{{ path(form.vars.properties.ajax.url.route, (form.vars.properties.ajax.url.params|default([]))) }}',
+                    {% endif  %}
+                    {% if form.vars.properties.ajax.request is defined %}
+                    'headers': {
+                        'X-WIDGET-REQUEST': '{{ form.vars.properties.ajax.request|default('getOptions') }}',
+                        'X-WIDGET-PATH': '{{ pageWidget.getPath() }}',
+                        'X-WIDGET-ID': '{{ pageWidget.getFullId() }}'
+                    },
+                    {% endif %}
+                    'type': '{{ form.vars.properties.ajax.type|default('GET') }}',
+                    'data': function(params) {
+                        var page = params.page || 1;
+                        var length = 20;
+                        var start = (page - 1) * length;
+                        {% if form.vars.properties.ajax.data_function is not defined %}
+
+                        return {
+                            data: {
+                                'search': params.term,
+                                'length': length,
+                                'start': start
+                            }
+                        };
+                        {% else %}
+                        return {{ form.vars.properties.ajax.data_function }}(params, page, length, start);
+                        {% endif %}
+                    },
+                    'processResults': function(data, params) {
+                        var page = params.page || 1;
+                        var options = {
+                            'results': data.items,
+                            'pagination': {
+                                'more': false
+                            }
+                        };
+
+                        if (data.items.length > 0) {
+                            options['pagination'] = { 'more': (page * 20) < data.total }
+                        }
+
+                        return options;
+                    }
+                },
+                'escapeMarkup': function(markup) {
+                    return markup;
+                }
+                {% if form.vars.properties.templateResult is defined %}
+                ,'templateResult': {{ form.vars.properties.templateResult }}
+                {% endif %}
+                {% if form.vars.properties.templateSelection is defined %}
+                ,'templateSelection': {{ form.vars.properties.templateSelection }}
+                {% endif %}
+            });
+
+            $('#{{ id }}').val(valueId).trigger('change');
+        });
+    </script>
+    {% else %}
+    <script type='text/javascript'>
+        $(function() {
+            $('#{{ id }}').selectpicker({
+                'size': 10,
+                'actionBox': true
+            });
+        });
+    </script>
+    {% endif %}
+{% endblock choice_javascript %}
+
+
+{% block select2_assetcss %}
+    {{ asset_render('css', 'default', [absolute_url(asset('bundles/app/css/select2.css'))]) }}
+{% endblock %}
+
+{% block select2_javascript %}
+    {% if form.vars.properties.isAjax|default(false) %}
+    <script type='text/javascript'>
+        $(function () {
+            var {{ id }}Value = {{ form.vars.data|json_encode()|raw('js') }};
+            var formatedValue = [];
+            var valueId = [];
+            for (var i in {{ id }}Value) {
+                formatedValue.push({"id": {{ id }}Value[i], "text": i})
+                valueId.push({{ id }}Value[i]);
+            }
+            $('#{{ id }}').select2({
+                'data': formatedValue,
+                'placeholder': '{{ form.vars.properties.placeholder|default('Select ' ~ form.vars.label) }}',
+                'multiple': {{ form.vars.multiple ? 'true' : 'false' }},
+                'allowClear': true,
+                'placeholder': {
+                    id: "",
+                    placeholder: ""
+                },
+                {% if form.vars.properties.ajax.minimumInputLength is defined %}
+                'minimumInputLength': {{ form.vars.properties.ajax.minimumInputLength }},
+                {% endif %}
+                'ajax': {
+                    {% if form.vars.properties.ajax.delay is defined %}
+                    'delay': {{ form.vars.properties.ajax.delay }},
+                    {% endif %}
+                    {% if form.vars.properties.ajax.url is defined %}
+                    'url': '{{ path(form.vars.properties.ajax.url.route, (form.vars.properties.ajax.url.params|default([]))) }}',
+                    {% endif  %}
+                    {% if form.vars.properties.ajax.request is defined %}
+                    'headers': {
+                        'X-WIDGET-REQUEST': '{{ form.vars.properties.ajax.request|default('getOptions') }}',
+                        'X-WIDGET-PATH': '{{ pageWidget.getPath() }}',
+                        'X-WIDGET-ID': '{{ pageWidget.getFullId() }}'
+                    },
+                    {% endif %}
+                    'type': '{{ form.vars.properties.ajax.type|default('GET') }}',
+                    'data': function(params) {
+                        var page = params.page || 1;
+                        var length = 20;
+                        var start = (page - 1) * length;
+                        {% if form.vars.properties.ajax.data_function is not defined %}
+
+                        return {
+                            data: {
+                                'search': params.term,
+                                'length': length,
+                                'start': start
+                            }
+                        };
+                        {% else %}
+                        return {{ form.vars.properties.ajax.data_function }}(params, page, length, start);
+                        {% endif %}
+                    },
+                    'processResults': function(data, params) {
+                        var page = params.page || 1;
+                        var options = {
+                            'results': data.items,
+                            'pagination': {
+                                'more': false
+                            }
+                        };
+
+                        if (data.items.length > 0) {
+                            options['pagination'] = { 'more': (page * 20) < data.total }
+                        }
+
+                        return options;
+                    }
+                },
+                'escapeMarkup': function(markup) {
+                    return markup;
+                }
+                {% if form.vars.properties.templateResult is defined %}
+                ,'templateResult': {{ form.vars.properties.templateResult }}
+                {% endif %}
+                {% if form.vars.properties.templateSelection is defined %}
+                ,'templateSelection': {{ form.vars.properties.templateSelection }}
+                {% endif %}
+            });
+
+            $('#{{ id }}').val(valueId).trigger('change');
+        });
+    </script>
+    {% else %}
+    <script type='text/javascript'>
+        $(function() {
+            $('#{{ id }}').selectpicker({
+                'size': 10,
+                'actionBox': true
+            });
+        });
+    </script>
+    {% endif %}
+{% endblock select2_javascript %}
+
+{%- block repeatable_javascript -%}
+    {% for child in form -%}
+        {{- form_javascript(child) -}}
+    {%- endfor %}
+    <script type="text/javascript" id="{{ id }}_javascript">
+        $(function () {
+            var {{ id }}_prototype = "{{ form_row(form.vars.prototype)|escape('js') }}";
+            var {{ id }}_index = 0;
+            if (!isNaN(parseInt($('#{{ id }} .record:last').data('index')))) {
+                var {{ id }}_index = parseInt($('#{{ id }} .record:last').data('index')) + 1;
+            }
+
+            $('#{{ id }}').on('click', '.btn-remove', function () {
+                var target = $(this).data('target');
+                $(target).remove();
+            });
+
+            $('#{{ id }}').data('initialState', $('#{{ id }}').html());
+
+            $('#btn{{ id }}Add').click(function () {
+                var prototype = {{ id }}_prototype;
+                prototype = prototype.replace(/{{ form.vars.prototype.vars.name }}/g, {{ id }}_index,);
+                var elem = $(prototype);
+                $('#{{ id }}').append(elem);
+                {{ id }}_index += 1;
+            });
+        });
+    </script>
+{% endblock repeatable_javascript %}
+
+{%- block repeatable_stylesheet -%}
+    {% for child in form -%}
+        {{- form_stylesheet(child) -}}
+    {%- endfor %}
+{% endblock repeatable_stylesheet %}
+
+{%- block repeatable_assetcss -%}
+    {% for child in form -%}
+        {{- form_assetcss(child) -}}
+    {%- endfor %}
+    {{ asset_render('css','form.asset') }}
+{% endblock repeatable_assetcss %}
+
+{%- block repeatable_assetjs -%}
+    {% for child in form -%}
+        {{- form_assetjs(child) -}}
+    {%- endfor %}
+    {{ asset_render('js','form.asset') }}
+{% endblock repeatable_assetjs %}
+
+{% block repeatable_row -%}
+    <div id="{{ id }}" class="col-sm-{{ form.vars.size }} repeatable-field">
+        {{- form_widget(form) -}}
+        {{- form_errors(form) -}}
+    </div>
+    <div class="col-md-12">
+        <button class="btn btn-primary btn-custom" id="btn{{ id }}Add" type="button">
+            <i class="fa fa-plus"></i>
+            {% if form.vars.properties.addLabel|default('') != '' %}
+                {{ form.vars.properties.addLabel }}
+            {% endif %}
+        </button>
+    </div>
+{%- endblock repeatable_row %}
+
+{% block repeatable_widget -%}
+    {% for recordChild in form %}
+        {{ form_row(recordChild) }}
+    {% endfor %}
+{%- endblock repeatable_widget %}
+
+{% block repeatable_rest -%}
+    {{ block('form_rest') }}
+{%- endblock repeatable_rest %}
+
+{% block repeatable_errors -%}
+    {{ block('form_errors') }}
+{%- endblock repeatable_errors %}
+
+{% block repeatableRecord_row %}
+    <div class="row record" id="{{ id }}" data-index="{{ name }}">
+        <div class="repeatable-actions p-b-10">
+            <button class="btn btn-danger btn-xs pull-right btn-remove" data-target="#{{ id }}" type="button"><i class="fa fa-close"></i></button>
+            <div class="clearfix"></div>
+        </div>
+        {% for fieldChild in form %}
+            {{ form_row(fieldChild) }}
+        {% endfor %}
+    </div>
+{% endblock repeatableRecord_row %}

@@ -1,0 +1,96 @@
+{% block _paymentOption_fields_label %}
+    <h4 class="m-t-0 header-title">Fields | <button class="btn btn-icon btn-success btn-xs btn-add-field" type="button" data-action="{{ form.vars.id }}"><i class="fa fa-plus"></i></button></h4>
+{% endblock %}
+
+{% block _paymentOption_fields_row %}
+    <div class="col-md-12">
+        {{ form_label(form) }}
+        <div class="fields">
+            <div class="row m-b-20">
+                <div class="col-md-2 col-sm-2 col-xs-9">
+                    <b>Field Code</b>
+                </div>
+                <div class="col-md-2 col-sm-2 col-xs-2">
+                    <b>Field Name</b>
+                </div>
+                <div class="col-md-2 col-sm-2 col-xs-2">
+                    <b>Field Type</b>
+                </div>
+                <div class="col-md-1 col-sm-2 col-xs-2">
+                    <b>Required</b>
+                </div>
+                <div class="col-md-1 col-sm-2 col-xs-2">
+                    <b>Unique</b>
+                </div>
+                <div class="col-md-1 col-sm-2 col-xs-2">
+                    <b>Action</b>
+                </div>
+            </div>
+
+            {% for key,child in form %}
+                {{- form_row(child) -}}
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block paymentOptionField_row %}
+    {{ form_widget(form) }}
+{% endblock %}
+
+{% block _paymentOption_fields_javascript %}
+    <script type="text/javascript">
+        $(function () {
+            function recalculateOrder()
+            {
+                var i = 1;
+                $('.field-order').each(function () {
+                    $(this).val(i);
+                    ++i;
+                });
+            }
+
+            $('.btn-sort-asc').click(function () {
+                var order = $(this).parent().find('.field-order').val();
+                $(this).closest('.field').insertBefore($(this).closest('.field').prev('.field'));
+                recalculateOrder();
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block paymentOptionField_widget %}
+    <div class="row field" id="{{ form.vars.id }}">
+        <div class="col-md-2 col-sm-2 col-xs-9">
+            <div class="form-group">
+                {{ form_widget(form.code) }}
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-2 col-xs-2">
+            <div class="form-group">
+                {{ form_widget(form.label) }}
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-2 col-xs-2">
+            <div class="form-group">
+                {{ form_widget(form.type) }}
+            </div>
+        </div>
+        <div class="col-md-1 col-sm-2 col-xs-2">
+            <div class="form-group">
+                {{ form_widget(form.isRequired) }}
+            </div>
+        </div>
+        <div class="col-md-1 col-sm-2 col-xs-2">
+            <div class="form-group">
+                {{ form_widget(form.isUnique) }}
+            </div>
+        </div>
+        <div class="col-md-1 col-sm-2 col-xs-2">
+            {{ form_widget(form.order, {'attr': {'class': 'hidden field-order'}}) }}
+            <button class="btn btn-danger btn-remove-field" type="button"><i class="fa fa-close"></i></button>
+            <button class="btn btn-white btn-sort-asc" type="button"><i class="fa fa-sort-asc"></i></button>
+            <button class="btn btn-white btn-sort-desc" type="button"><i class="fa fa-sort-desc"></i></button>
+        </div>
+    </div>
+{% endblock %}

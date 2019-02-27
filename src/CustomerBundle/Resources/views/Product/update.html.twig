@@ -1,0 +1,94 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}{{ "page.title.update"|trans({'%name%':customer.fName ~ ' ' ~ customer.lname},"CustomerBundle") }}{% endblock %}
+
+{% block stylesheets %}
+{% endblock %}
+
+{% block content %}
+    <!-- Page-Title -->
+    <div class="row">
+        <div class="col-sm-12">
+            <h4 class="page-title">{{ "page.Update Customer"|trans({},"CustomerBundle") }}</h4>
+            <ol class="breadcrumb">
+                <li>
+                    <a href="{{ path("app.dashboard_page") }}">{{ "menus.Dashboard"|trans({},"AppBundle") }}</a>
+                </li>
+                <li>
+                    <a href="{{ path("customer.list_page") }}">{{ "menus.Customer"|trans({},"CustomerBundle") }}</a>
+                </li>
+                <li>
+                    <a href="{{ path("customer.update_page", {"id":customer.id}) }}">{{ "menus.Update"|trans({},"AppBundle") }}</a>
+                </li>
+            </ol>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="tabs-vertical-env">
+                <ul class="nav navtab-bg tabs-vertical">
+                    <li class="{% if app.request.attributes.get('_route') == 'customer.update_page' %}active{% endif %}">
+                        <a href="
+                            {%- if app.request.attributes.get('_route') == 'customer.update_page' -%}
+                                #profile
+                            {%- else -%}
+                            {{- path('customer.update_page', {'id': customer.id}) -}}
+                            {%- endif -%}
+                            " data-toggle="tab" aria-expanded="true">
+                            <span class="visible-xs">
+                                <i class="ti-user"></i>
+                            </span>
+                            <span class="hidden-xs">
+                                <i class="ti-user"></i>
+                                {{ "page.tab.profile"|trans({},"CustomerBundle") }}
+                            </span>
+                        </a>
+                    </li>
+                    <li class="">
+                        <a href="#product" data-toggle="tab" aria-expanded="true">
+                            <span class="visible-xs">
+                                <i class="icon-handbag"></i>
+                            </span>
+                            <span class="hidden-xs">
+                                <i class="icon-handbag"></i>
+                                {{ "page.tab.product"|trans({},"CustomerBundle") }}
+                            </span>
+                        </a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    {% if app.request.attributes.get('_route') == 'customer.update_page' %}
+                    <div class="tab-pane active" id="profile">
+                        {% include "CustomerBundle:Form:customer-form.html.twig" %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+{% endblock %}
+
+{% block javascripts %}
+    {{ form_javascript(form) }}
+    <script type="text/javascript">
+        $(function(){
+            function changePassword(elem) {
+                if(!$(elem).is(':checked')) {
+                    $('#{{ form.user.password.first.vars.id }}').attr('disabled','disabled');
+                    $('#{{ form.user.password.second.vars.id }}').attr('disabled','disabled');
+                } else {
+                    $('#{{ form.user.password.first.vars.id }}').removeAttr('disabled');
+                    $('#{{ form.user.password.second.vars.id }}').removeAttr('disabled');
+                }
+            }
+            
+            
+            $('#{{ form.user.changePassword.vars.id }}').change(function() {
+                changePassword(this);
+            });
+            
+            changePassword($('#{{ form.user.changePassword.vars.id }}'));
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,24 @@
+{{ form_start(form) }}
+    <div class="card-box">
+        <div class="row">
+            <div class="col-md-6 cls-custom-padding">
+                {{ form_widget(form.user) }}
+                {{ form_row(form.fName) }}
+                {{ form_row(form.mName) }}
+                {{ form_row(form.lName) }}
+            </div>
+            <div class="col-md-6 cls-custom-padding">
+                {% if not (form.vars.data and form.vars.data.id) %}
+                    {{ form_row(form.isCustomer) }}
+                {% endif %}
+                {{ form_row(form.birthDate) }}
+                {{ form_row(form.country) }}
+                {{ form_row(form.currency) }}
+                {{ form_row(form.lName) }}
+                {{ form_row(form.joinedAt) }}
+                {{ form_row(form.balance) }}
+            </div>
+        </div>    
+    </div>
+    {{form_row(form.btnGroup)}}
+{{ form_end(form) }}

@@ -1,0 +1,57 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% form_theme form 'UserBundle:Form:form-theme.html.twig' %}
+
+{% block title %}{{ "page.title.create"|trans({},"UserBundle") }}{% endblock %}
+
+{% block stylesheet_plugins %}
+    {{ form_assetcss(form) }}
+{% endblock %}
+
+{% block javascript_plugins %}
+    {{ form_assetjs(form) }}
+{% endblock %}
+
+{% block pageTitle -%} {{- "page.Create User"|trans({},"UserBundle") -}} {%- endblock pageTitle %}
+
+{% block breadcrumb %}
+    <li>{{ "breadcrumb.admin"|trans({},"AppBundle") }}</li>
+    <li>
+        <a href="{{ path("user.list_page") }}">{{ "breadcrumb.list"|trans({},"UserBundle") }}</a>
+    </li>
+    <li class='active'>{{ "menus.Create"|trans({},"UserBundle") }}</li>
+{%  endblock breadcrumb %}
+
+{% block pageHeaderExtra %}
+    <div class="pull-right">
+        {% if is_granted('ROLE_USER_VIEW') %}
+        <a class="btn btn-inverse waves-effect waves-light pull-right m-b-10" href="{{ path("user.list_page") }}"> <span><i class="ti-arrow-left m-r-5"></i></span> {{ "Back to User List"|trans({}, 'UserBundle') }}</a>
+        {% endif %}
+        <ul class="list-inline quicklinks font-13 font-normal text-right">
+            {% if is_granted(['ROLE_COUNTRY_VIEW' , 'ROLE_TRANSACTION_VIEW' , 'ROLE_ADD_USER_GROUP']) %}
+            <li>{{ "quickLinks.name"|trans({}, 'UserBundle') }}:</li>
+            {% endif %}
+            {% if is_granted('ROLE_COUNTRY_VIEW') %}
+            <li><a href="{{ path("country.list_page", {'type': 'withdraw'}) }}">{{ "quickLinks.country"|trans({}, 'UserBundle') }}</a></li>|
+            {% endif %}
+            {% if is_granted('ROLE_TRANSACTION_VIEW') %}
+            <li><a href="{{ path("transaction.list_page") }}">{{ "quickLinks.transHistory"|trans({}, 'UserBundle') }}</a></li>|
+            {% endif %}
+            {% if is_granted('ROLE_ADD_USER_GROUP') %}
+            <li><a href="{{ path("group.list_page") }}">{{ "quickLinks.userGroup"|trans({}, 'UserBundle') }}</a></li>
+            {% endif %}
+        </ul>
+    </div>
+{% endblock pageHeaderExtra %}
+
+{% block page %}
+    <div class="col-sm-12">
+        <div class="card-box">
+            {% include "UserBundle:Form:user-form.html.twig" %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ form_javascript(form) }}
+{% endblock %}

@@ -1,0 +1,388 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}{{ "page.title.list"|trans({},"CurrencyBundle") }}{% endblock %}
+
+{% block stylesheets %}
+    <!-- DataTables -->
+    <link href="{{ asset('assets/plugins/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/buttons.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/responsive.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/dataTables.colVis.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/dataTables.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+
+    <link href="{{ asset("assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.min.css") }}" rel="stylesheet"/>
+	<link href="{{ asset("assets/plugins/bootstrap-daterangepicker/daterangepicker.css") }}" rel="stylesheet"/>
+
+	<link href="{{ asset("assets/plugins/custombox/css/custombox.css") }}" rel="stylesheet">
+{% endblock %}
+
+{% block stylesheet_plugins %}
+    {{ form_assetcss(form) }}
+{% endblock %}
+
+{% block pageTitle -%}{{ "menus.Currency"|trans({},"CurrencyBundle") }}{%- endblock pageTitle %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.finance"|trans({},"AppBundle") }}</li>
+    <li>{{ "page.Currency List"|trans({},"CurrencyBundle") }}</li>
+{%- endblock %}
+
+{% block pageHeaderExtra %}
+<div class="pull-right">
+    {% if is_granted('ROLE_CURRENCY_CREATE') %}
+    <a class="btn btn-primary waves-effect waves-light pull-right m-b-10" id="btnCreate" title = "Add Currency">
+        <i class="ti-plus"></i> {{ "Add Currency"|trans({}, 'CurrencyBundle') }}
+    </a>
+    {% endif %}
+    <ul class="list-inline quicklinks font-13 font-normal text-right">
+        <li>Quick Links:</li>
+        {% if is_granted('ROLE_CURRENCY_VIEW') %}
+        <li><a href="{{ path("currency.list_page") }}">Currency</a></li>|
+        {% endif %}
+        {% if is_granted('ROLE_GATEWAY_VIEW') %}
+        <li><a href="{{ path("gateway.list_page") }}">Gateway</a></li>|
+        {% endif %}
+        {% if is_granted('ROLE_DWL_VIEW') %}
+        <li><a href="{{ path("dwl.list_page") }}">Daily Win/Loss</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock pageHeaderExtra %}
+
+{% block page %}
+        <div class="col-sm-12">
+            <div class="card-box">
+                <div id="currencyList">
+                    <table id="datatable-responsive"
+                        class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0"
+                        width="100%">
+                        <thead>
+                            <tr>
+                                <th>{{ "fields.id"|trans({}, "CurrencyBundle") }}</th>
+                                <th>{{ "fields.code"|trans({}, "CurrencyBundle") }}</th>
+                                <th>{{ "fields.name"|trans({}, "CurrencyBundle") }}</th>
+                                <th>{{ "fields.euroPerUnit"|trans({}, "CurrencyBundle") }}</th>
+                                <th>{{ "fields.lastUpdated"|trans({}, "CurrencyBundle") }}</th>
+                                <th>{{ "fields.lastUpdatedBy"|trans({}, "CurrencyBundle") }}</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot></tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+{% endblock %}
+
+{% block modals -%}
+    <div id="formModal" class="modal fade" tabindex="-1" style="display: none;" data-keyboard="false" data-backdrop="static">
+        <div class="modal-dialog modal-responsive">
+            <div class="modal-conten p-0 b-0t">
+                <div class="panel panel-color panel-inverse">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">&nbsp;</h3>
+                    </div>
+                    {% include "CurrencyBundle:Form:group-form.html.twig" %}
+                </div>
+            </div>
+        </div>
+    </div>
+{%- endblock modals %}
+
+{% block javascript_plugins %}
+    {{ form_assetjs(form) }}
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('bundles/app/js/ZTable.js') }}"></script>
+    <script src="{{ asset('assets/plugins/jquery-form/jquery.form.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/dataTables.bootstrap.js') }}"></script>
+
+    <script src="{{ asset('assets/plugins/datatables/dataTables.buttons.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/buttons.bootstrap.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/vfs_fonts.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/buttons.html5.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/dataTables.responsive.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/responsive.bootstrap.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/dataTables.colVis.js') }}"></script>
+
+    <script src="{{ asset("assets/plugins/moment/moment.js") }}" type="text/javascript"></script>
+    <script src="{{ asset("assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.min.js") }}" type="text/javascript"></script>
+    <script src="{{ asset("assets/plugins/bootstrap-daterangepicker/daterangepicker.js") }}" type="text/javascript"></script>
+
+    <script src="{{ asset("assets/plugins/custombox/js/custombox.min.js") }}"></script>
+    <script src="{{ asset("assets/plugins/custombox/js/legacy.min.js") }}"></script>
+
+    <script type="text/javascript" >
+        var baseCurrency = {
+          'id': {{ baseCurrency.id }},
+          'code': '{{ baseCurrency.code }}',
+          'name': '{{ baseCurrency.name }}'
+        };
+        var userPreferences = {{ app.user.getPreference('ui.currency.list.column.visibility')|json_encode()|raw }};
+
+        $(function(){
+            var listTable = new ZTable('#currencyList',  {
+                'ajax': {
+                    'url': '{{ path("currency.list_search") }}',
+                    'data': function (data, dataTable) {
+                        return {
+                            'search': data.filters.search,
+                            'length': data.length,
+                            'start': dataTable.start,
+                            'datatable': true,
+                            'route': true,
+                            'draw': dataTable.draw,
+                            'order': data.order,
+                            'filter': data.filters
+                        };
+                    },
+                    'dataFilter': function (str) {
+                        return str;
+                    }
+                },
+                'attrs': {
+                    'colvisButton' : {
+                        'data-style': 'btn-primary'
+                    }
+                },
+                'colvis': {
+                    'hidden': function () {
+                        var hidden = [];
+                        for (var i in userPreferences) {
+                            if (userPreferences[i] == 'false') {
+                                hidden.push(eval(i));
+                            }
+                        }
+
+                        return hidden;
+                    },
+                    'exclude': ['currency.id', 'currency.code', 'currency.name']
+                },
+                'featuresDom': "<'form-inline'"
+                    + "<'form-group m-r-10 ft-date'<'xs-date'ft>>"
+                    + "ftdb"
+                    + "<'form-group' <'m-t-10'b>>>",
+                'features': {
+                    'from': {
+                        'dom': "<'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>",
+                        'type': 'date',
+                        'symbol': 'f',
+                        'attrs': {
+                            'placeholder': 'From'
+                        },
+                        'applyOnChanged': false
+                    },
+                    'to': {
+                        'dom': "<'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>",
+                        'type': 'date',
+                        'symbol': 't',
+                        'attrs': {
+                            'placeholder': 'To'
+                        },
+                        'applyOnChanged': false
+                    },
+                    'applyFilter': {
+                        'type': 'button',
+                        'label': 'Apply Filter',
+                        'symbol': 'd',
+                        'attrs': {
+                            'type': 'button',
+                            'class': 'btn btn-sm btn-default',
+                            'title': 'Apply Filter'
+                        },
+                        'initialized': function (feature) {
+                            $(feature.input).click(function () {
+                                feature.ztable.reloadTable();
+                            });
+                        }
+                    },
+                    'resetFilter': {
+                        'type': 'button',
+                        'label': 'Reset Filter',
+                        'symbol': 'b',
+                        'attrs': {
+                            'type': 'button',
+                            'class': 'btn btn-sm btn-inverse',
+                            'title': 'Reset Filter'
+                        },
+                        'initialized': function (feature) {
+                            $(feature.input).click(function () {
+                                $("select.ztable_length_input").val('10').change();
+                                feature.ztable.reset();
+                            });
+                        }
+                    }
+                },
+                'columns': [
+                    {
+                        'data': 'currency.id',
+                        'defaultContent': '',
+                        'name': 'c.id',
+                        'render': function (data, type, full) {
+                            return "<a href='"+full.routes.update+"'' class='update'>"+data+"</a>";
+                        }
+                    },
+                    {
+                        'data': 'currency.code', 
+                        'defaultContent': '', 
+                        'name': 'c.code',
+                        'render': function (data, type, full) {
+                            return "<a href='"+full.routes.update+"'' class='update'>"+data+"</a>";
+                        }
+                    },
+                    {   'data': 'currency.name',
+                        'defaultContent': '',
+                        'name': 'c.name'
+                    },
+                    {
+                        'data': 'currency.rate',
+                        'name': 'c.rate',
+                        'render': function (data) {
+                            var rate = eval(data);
+
+                            return rate + ' = 1 {{ baseCurrency.code }}';
+                        }
+                    },
+                    {
+                        'data': 'currency',
+                        'name': 'c.updatedAt',
+                        'render': function (data, type, full) {
+                            var lastUpdatedAt =  data.updatedAt !== null ? moment(data.updatedAt.date).format('MMM D, YYYY h:mm A') : moment(data.createdAt.date).format('MMM D, YYYY h:mm A');
+                            var currencyRatesHistory = full.ratesHistory;
+                            var toolTip = '';
+                            if (typeof(currencyRatesHistory) !== "undefined" && currencyRatesHistory.length > 0) {
+                                toolTip = '<div class="custom-tooltip-table">'
+                                    + '<i class="ti-info-alt m-l-5"></i>'
+                                    + '<div class="custom-tooltiptext-table">'
+                                ;
+                                $.each(currencyRatesHistory , function(key,val) {
+                                    toolTip += '<div class="history-log">' 
+                                            + '<div class="col-md-4">' + val.sourceCurrency.code + '&nbsp;' + eval(val.rate) + '</div>'
+                                            + '<div class="col-md-4">' + moment(val.createdAt.date).format('YYYY-MM-D h:mm A') + '</div>' 
+                                            + '<div class="col-md-4">' + val.creator.username + '</div>'
+                                            + '</div>'
+                                    ;
+                                    
+                                });
+                                toolTip += '</div></div>';
+                            }
+                            
+                            return lastUpdatedAt + '&nbsp;' + toolTip;
+                        }
+                    },
+                    {
+                        'data': 'currency.updater',
+                        'name': 'updater.username',
+                        'render': function (user,type, full) {
+                            var username = user !== null ? user.username : full.ratesHistory[0].creator.username;
+
+                            return username;
+                        }
+                    }
+                ],
+                'ordering': true,
+                'columnDefs': [
+                    {'targets': [0], 'visible': false}
+                ]
+            });
+
+            $('#currencyList').on('ztable.change.column.visible', function (e, colvis, ztable) {
+                saveUserPreferences({'ui.currency.list.column.visibility': ztable.getColumnVisibility()});
+            });
+
+            $('#formModal').on('hidden.bs.modal', function (e) {
+                $('#formModal').trigger('changeData', [null]);
+            });
+
+            $('#btnCreate').click(function (e) {
+                $('#formModal').trigger('changeData', [null]);
+                $('#formModal').modal('show');
+            });
+
+            $('#currencyList').on('click', 'tr td a.update', function (e) {
+                e.preventDefault();
+                var tr = $(e.target).closest('tr');
+                var data = listTable.dataTable.api().row(tr).data();
+                $('#formModal').trigger('changeData', [data]);
+                $('#formModal').modal('show');
+            });
+
+            $('#formModal').on('changeData', function (e, data) {
+                $(this).data('currency', data);
+
+                $('.rate-container').show();
+                $('.rate-container input').attr('required', true);
+                $('.rate-container input').attr('disabled', false);
+
+                if (data === null) {
+                    $(this).find('#{{ form.vars.id }}').attr('action', '{{ form.vars.action }}');
+                    $(this).find('#{{ form.code.vars.id }}').val('');
+                    $(this).find('#{{ form.name.vars.id }}').val('');
+                    $(this).find('#{{ form.rate.vars.id }}').val('');
+                    $(this).find('.panel-title').html('Create Currency');
+
+                    return;
+                } else {
+                    if (data.id == baseCurrency.id) {
+                        $('.rate-container').hide();
+                        $('.rate-container input').attr('required', false);
+                        $('.rate-container input').attr('disabled', true);
+                    }
+                }
+
+                $(this).find('.panel-title').html('Update Currency');
+                $(this).find('#{{ form.vars.id }}').attr('action', data.routes.save);
+                $(this).find('#{{ form.code.vars.id }}').val(data.code);
+                $(this).find('#{{ form.name.vars.id }}').val(data.name);
+                $(this).find('#{{ form.rate.vars.id }}').val(data.rate);
+
+                $(this).find('.form-group').removeClass('has-error');
+                $(this).find('.form-group .help-block ul li').remove();
+            });
+
+            $('#formModal').ajaxForm({
+                'beforeSend': function () {
+                    $('#formModal').find('.form-group').removeClass('has-error');
+                    $('#formModal').find('.form-group .help-block ul li').remove();
+                    $('#formModal').find('.btnModalClose, #{{ form.save.vars.id }}').attr('disabled', 'disabled');
+                },
+                'complete': function () {
+                    $('#formModal').find('.btnModalClose, #{{ form.save.vars.id }}').removeAttr('disabled');
+                },
+                'statusCode': {
+                    422: function (xhr, textStatus, errorThrown) {
+                        var data = xhr.responseJSON;
+                        $(this).data('global-ajax-error', false);
+                        for (var i in data.errors) {
+                            var error = data.errors[i];
+                            $('#' + error.formId)
+                                .closest('.form-group').addClass('has-error')
+                                .find('.help-block ul')
+                                .append('<li>' + error.message + '</li>');
+                        }
+                    },
+                    200: function (xhr) {
+                        var data = xhr.data;
+
+                        listTable.reloadTable();
+                        $('#formModal').modal('hide');
+
+                        if (data.id == baseCurrency.id) {
+                            baseCurrency = data;
+                            $('.base-currency-name').html(baseCurrency.name);
+                        }
+
+                        notification('Saved', 'You have successfully saved currency', 'success');
+                    },
+                    201: function () {
+                        listTable.reloadTable();
+                        $('#formModal').modal('hide');
+                        notification('Added', 'You have successfully added new currency', 'success');
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,25 @@
+<div id="dwlItemModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="dwlItemModal" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            {{ form_start(itemForm) }}
+            <div class="modal-header"> 
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button> 
+                <h4 class="modal-title">{{ "Edit Item"|trans({}, "DWLBundle") }}: <b class="data" data-info="username"></b></h4> 
+            </div> 
+            <div class="modal-body">
+                <div class="row">
+                {{ form_row(itemForm.turnover) }}
+                {{ form_row(itemForm.gross) }}
+                {{ form_row(itemForm.winLoss) }}
+                {{ form_row(itemForm.commission) }}
+                {{ form_row(itemForm.amount) }}
+                </div>
+            </div> 
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">Cancel</button>
+                {{ form_widget(itemForm.save) }}
+            </div>
+            {{ form_end(itemForm) }}
+        </div>
+    </div>
+</div>

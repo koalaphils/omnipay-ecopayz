@@ -1,0 +1,133 @@
+{% block roles_widget -%}
+    <div class="panel-group panel-group-joined" id="{{ id }}_accordion">
+        {% block role_superadmin %}
+            {% if is_granted('ROLE_SUPER_ADMIN') %}
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="checkbox">
+                        <input type="checkbox" id="{{ id }}_superAdmin" name="{{ full_name }}[ROLE_SUPER_ADMIN]" value="2" {% if value["ROLE_SUPER_ADMIN"] is defined and value["ROLE_SUPER_ADMIN"] == 2 %}checked="checked"{% endif %} {% if view is defined and view %}disabled="disabled"{% endif %}  />
+                        <label for="{{ id }}_superAdmin"><b>Super Admin</b></label>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endblock role_superadmin %}
+        {% set i = 0 %}
+        {% for key,group in groups %}
+            <div class="panel panel-default {{ id }}-group">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a class="collapsed" data-toggle="collapse" data-parent="#{{ id }}_accordion" href="#role_{{ id }}_{{ i }}_collapse" aria-expanded="false">
+                            {{ key }}
+                        </a>
+                    </h4>
+                </div>
+                <div id="role_{{ id }}_{{ i }}_collapse" class="panel-collapse collapse" aria-expanded="false">
+                    <div class="panel-body">
+                        {% for roleKey in group -%}
+                            {% set role = roles[roleKey] %}
+                            <div class="row role-container" data-role="{{ roleKey }}" id="{{ id }}_{{ roleKey }}" data-value="{{ value[roleKey] ?? 1 }}" data-granted="{{ is_granted(roleKey) ? 'true' : 'false' }}">
+                                <div class="col-md-3 col-sm-3 col-xs-3"><b>{{ role.label.text|trans({}, role.label.translation_domain) }}</b></div>
+                                <div class="col-md-3 col-sm-3 col-xs-3">
+                                    <div class="radio">
+                                        <input class="role_value" data-role="{{ roleKey }}" type="radio" id="{{ id }}_{{ roleKey }}_deny" value="0" name="{{ full_name }}[{{ roleKey }}]" {% if value[roleKey] is defined  and value[roleKey] == 0 %} checked="checked" {% endif %} {% if view is defined and view %}disabled="disabled"{% endif %} />
+                                        <label for="{{ id }}_{{ roleKey }}_deny">Deny</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-3 col-xs-3">
+                                    <div class="radio">
+                                        <input class="role_value" data-role="{{ roleKey }}" type="radio" id="{{ id }}_{{ roleKey }}_inherit" value="1" name="{{ full_name }}[{{ roleKey }}]" {% if value[roleKey] is defined  and value[roleKey] == 1 %} checked="checked" {% elseif value[roleKey] is not defined %} checked="checked" {% endif %} {% if view is defined and view %}disabled="disabled"{% endif %} />
+                                        <label for="{{ id }}_{{ roleKey }}_inherit">Inherit</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-3 col-xs-3">
+                                    <div class="radio">
+                                        <input class="role_value" data-role="{{ roleKey }}" type="radio" id="{{ id }}_{{ roleKey }}_allow" value="2" name="{{ full_name }}[{{ roleKey }}]" {% if value[roleKey] is defined  and value[roleKey] == 2 %} checked="checked" {% endif %} {% if view is defined and view %}disabled="disabled"{% endif %} />
+                                        <label for="{{ id }}_{{ roleKey }}_allow">Allow</label>
+                                    </div>
+                                </div>
+                            </div>
+                        {%- endfor %}
+                    </div>
+                </div>
+            </div>
+            {% set i = i+1 %}
+        {% endfor %}
+    </div>
+{%- endblock %}
+
+{% block roles_javascript %}
+    <script type="text/javascript">
+        var roles = {{ roles|json_encode()|raw('js') }};
+        var roleValues = ['deny', 'inherit', 'allow'];
+
+        function generateChildRoles() {
+            for (var roleCode in roles) {
+                var role = roles[roleCode];
+                if (role.requirements.length > 0) {
+                    for (var requiredRoleIndex in roles[roleCode].requirements) {
+                        if (typeof roles[roles[roleCode].requirements[requiredRoleIndex]].children === 'undefined') {
+                            roles[roles[roleCode].requirements[requiredRoleIndex]].children = [];
+                        }
+                        roles[roles[roleCode].requirements[requiredRoleIndex]].children.push(roleCode);
+                    }
+                }
+            }
+        }
+
+        function disableRole(roleName)
+        {
+            var role = roles[roleName];
+            if ($('#{{ id }}_' + roleName + '_deny').get(0).checked === false) {
+                $('#{{ id }}_' + roleName + '_deny').attr('disabled', 'disabled');
+            }
+            if ($('#{{ id }}_' + roleName + '_allow').get(0).checked === false) {
+                $('#{{ id }}_' + roleName + '_allow').attr('disabled', 'disabled');
+            }
+            if ($('#{{ id }}_' + roleName + '_inherit').get(0).checked === false) {
+                $('#{{ id }}_' + roleName + '_inherit').attr('disabled', 'disabled');
+            }
+            for (var roleCode in role.requirements) {
+                $('#{{ id }}_' + role.requirements[roleCode]).data('granted', 'false');
+                disableRole(role.requirements[roleCode]);
+            }
+        }
+
+        generateChildRoles();
+
+        $(function() {
+            {% if is_granted('ROLE_SUPER_ADMIN') %}
+            $('#{{ id }}_superAdmin').change(function(e) {
+                if(this.checked) {
+                    $('.{{ id }}-group').addClass('hide');
+                } else {
+                    $('.{{ id }}-group').removeClass('hide');
+                }
+            });
+            {% endif %}
+            $('.role-container[data-granted="false"]').each(function () {
+               disableRole($(this).data('role'));
+            });
+            $('.role_value').on('change', function () {
+                var value = $(this).val();
+                var role = roles[$(this).data('role')];
+                console.log(role);
+                $('#{{ id }}_' + $(this).data('role')).data('value', value);
+                for (var roleCode in role.requirements) {
+                    var roleRequimentValue = $('#{{ id }}_' + role.requirements[roleCode]).data('value');
+                    if (roleRequimentValue < value) {
+                        $('#{{ id }}_' + role.requirements[roleCode] + '_' + roleValues[value]).get(0).checked = true;
+                        $('#{{ id }}_' + role.requirements[roleCode] + '_' + roleValues[value]).trigger('change');
+                    }
+                }
+                for (var roleCode in role.children) {
+                    var roleChildrenValue = $('#{{ id }}_' + role.children[roleCode]).data('value');
+                    if (roleChildrenValue > value) {
+                        $('#{{ id }}_' + role.children[roleCode] + '_' + roleValues[value]).get(0).checked = true;
+                        $('#{{ id }}_' + role.children[roleCode] + '_' + roleValues[value]).trigger('change');
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

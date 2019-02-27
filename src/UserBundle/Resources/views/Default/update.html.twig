@@ -1,0 +1,83 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% form_theme form 'UserBundle:Form:form-theme.html.twig' %}
+
+{% block title %}{{ "page.title.update"|trans({'%username%':user.username},"UserBundle") }}{% endblock %}
+
+{% block stylesheet_plugins %}
+    {{ form_assetcss(form) }}
+{% endblock %}
+
+{% block javascript_plugins %}
+    {{ form_assetjs(form) }}
+{% endblock %}
+
+{% block pageTitle -%} {{- "page.Update User"|trans({},"UserBundle") -}} {%- endblock pageTitle %}
+
+{% block pageHeaderExtra %}
+    <div class="pull-right">
+        {% if is_granted('ROLE_USER_VIEW') %}
+        <a class="btn btn-inverse waves-effect waves-light pull-right m-b-10" href="{{ path("user.list_page") }}"> <span><i class="ti-arrow-left m-r-5"></i></span> {{ "Back to User List"|trans({}, 'UserBundle') }}</a>
+        {% endif %}
+        <ul class="list-inline quicklinks font-13 font-normal text-right">
+            {% if is_granted(['ROLE_USER_CREATE' , 'ROLE_USER_VIEW' , 'ROLE_TRANSACTION_VIEW']) %}
+            <li>{{ "quickLinks.name"|trans({}, 'UserBundle') }}:</li>
+            {% endif %}
+            {% if is_granted('ROLE_USER_CREATE') %}
+            <li><a href="{{ path("user.create_page") }}">{{ "quickLinks.addUser"|trans({}, 'UserBundle') }}</a></li>|
+            {% endif %}
+            {% if is_granted('ROLE_TRANSACTION_VIEW') %}
+            <li><a href="{{ path("transaction.list_page") }}">{{ "quickLinks.transHistory"|trans({}, 'UserBundle') }}</a></li>|
+            {% endif %}
+            {% if is_granted('ROLE_USER_VIEW') %}
+            <li><a href="{{ path("group.list_page") }}">{{ "quickLinks.userGroup"|trans({}, 'UserBundle') }}</a></li>
+            {% endif %}
+        </ul>
+    </div>
+{% endblock pageHeaderExtra %}
+
+{% block breadcrumb %}
+    <li>{{ "breadcrumb.admin"|trans({},"AppBundle") }}</li>
+    <li>
+        <a href="{{ path("user.list_page") }}">{{ "breadcrumb.list"|trans({},"UserBundle") }}</a>
+    </li>
+    <li class='active'>{{ "menus.Update"|trans({},"UserBundle") }}</li>
+{%  endblock breadcrumb %}
+
+{% block page %}
+    <div class="col-sm-12">
+        <div class="card-box">
+            {% include "UserBundle:Form:user-form.html.twig" %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ form_javascript(form) }}
+    <script type="text/javascript">
+        $(function(){
+            function changePassword(elem) {
+                if(!$(elem).is(':checked')) {
+                    $('#{{ form.password.first.vars.id }}').attr('disabled','disabled');
+                    $('#{{ form.password.second.vars.id }}').attr('disabled','disabled');
+                } else {
+                    $('#{{ form.password.first.vars.id }}').removeAttr('disabled');
+                    $('#{{ form.password.second.vars.id }}').removeAttr('disabled');
+                }
+            }
+            {% if is_granted('ROLE_SUPER_ADMIN') %}
+            if(document.getElementById('User_roles_superAdmin').checked) {
+                $('.User_roles-group').addClass('hide');
+            } else {
+                $('.User_roles-group').removeClass('hide');
+            }
+            {% endif %}
+
+            $('#{{ form.changePassword.vars.id }}').change(function() {
+                changePassword(this);
+            });
+
+            changePassword($('#{{ form.changePassword.vars.id }}'));
+        });
+    </script>
+{% endblock %}

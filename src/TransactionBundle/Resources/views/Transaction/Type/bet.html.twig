@@ -1,0 +1,188 @@
+{% extends 'TransactionBundle:Transaction:transaction.html.twig' %}
+
+{% form_theme form with ["TransactionBundle:Transaction/Theme:script.html.twig", "TransactionBundle:Transaction/Theme:style.html.twig", "TransactionBundle:Transaction/Theme:form.html.twig", _self] %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.transaction"|trans({},"AppBundle") }}</li>
+    <li>
+        <a href="{{ path("transaction.list_page") }}">{{ "breadcrumb.list"|trans({},"TransactionBundle") }}</a>
+    </li>
+    <li class="active">{{ "menus.Bet"|trans({},"TransactionBundle") }}</li>
+{%- endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script type="text/javascript">
+        var products = null;
+        function customerProductLoad(data) {
+            products.clear();
+            products.setProducts(data);
+            {% for child in form.subTransactions.children -%}
+            products.add({
+                'type': '{{ child.vars.data.type }}',
+                'customerProduct': '{{ child.vars.data.customerProduct.id|default(null) }}',
+                'immutableCustomerProductData': '{{ child.vars.data.immutableCustomerProductData|default(null) }}',
+                'showImmutableCustomerProductData': '{{  child.vars.value.parent.isClosedForFurtherProcessing  }}',
+                'amount': '{{ child.vars.data.amount }}',
+                'enabled': {% if child.vars.view -%} false {%- else -%} true {%- endif -%},
+                'errors': '{{ form_errors(child) }}'
+            });
+            {% else %}
+            products.add({
+                'type': 1,
+                'customerProduct': null,
+                'amount': 0,
+                'enabled': true
+            });
+            {%- endfor %}
+            
+            $('#gateway-container').addClass('hidden');
+            var betInfo = { 'id': {{ transaction.detail('bet_id') }}, 'details': '{{ (transaction.detail('bet_details'))|e("js") }}'};
+            addSummaryInfo('bet', betInfo);
+            addSummaryInfo('reason', "{{ transaction.isVoided == 1 ? transaction.detail('reason') : '' }}");
+            applySummary();
+        }
+        $(function() {
+            $('#{{ form.customer.vars.id }}').on('select2:select', function(event) {
+                products.clear();
+            });
+            
+            $('.btn-add-product, #Transaction_actions_btn_void').remove();
+            
+            products = new Products('deposit',{
+                'prototype': '{{ form_row(form.subTransactions.vars.prototype)|e('js') }}',
+                'elem': '#{{ form.subTransactions.vars.id }} .product-list'
+            });
+            
+            $('#{{ form.customer.vars.id }}').trigger('select2:select');
+        });
+    </script>
+    <style type="text/css">
+        .bet-details {white-space:pre-wrap;}
+        .bet-details br {display: inline;}
+    </style>
+{% endblock %}
+    
+{% block summary_template %}
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+    <xsl:output method="xml"/>
+    <xsl:template match="transaction">
+        <div class='card-box'>
+            <div class='card-box'>
+                <div class='row'>
+                    <div class='col-md-6'>
+                        <b>{{ "Status"|trans({},"TransactionBundle") }}</b>
+                    </div>
+                    <div class='col-md-6 '>
+                        <xsl:choose>
+                            <xsl:when test="statusinfo/id = 2 and voided = 1">
+                                <span class="label label-danger">{{ "Voided"|trans({}, "TransactionBundle") }}</span>
+                            </xsl:when>
+                            <xsl:when test="statusinfo/id = 3">
+                                <span class="label label-danger"><xsl:value-of select="statusinfo/label"/></span>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <span class="label label-success"><xsl:value-of select="statusinfo/label"/></span>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </div>
+                </div>
+                <div class='row'>
+                    <xsl:choose>
+                        <xsl:when test="voided = 1">
+                            <div class='col-md-6'>
+                                <b>Reason</b>
+                            </div>
+                            <div class='col-md-6'>
+                                <xsl:value-of select="reason"/>
+                            </div>
+                        </xsl:when>
+                    </xsl:choose>
+                    <div class='col-md-6'>
+                        <b>{{ "Transaction Number"|trans({},"TransactionBundle") }}</b>
+                    </div>
+                    <div class='col-md-6 '>
+                        <span><xsl:value-of select="number"/></span>
+                    </div>
+                </div>
+            </div>
+            <div class='card-box'>
+                <h4 class="header-title m-t-0">{{ "Products"|trans({}, "TransactionBundle") }}</h4>
+                <hr />
+                <xsl:choose>
+                    <xsl:when test='not ((status = 2) or (status = 3))'>
+                    <div class='row'>
+                        <div class='col-sm-4'><b>{{ "Product"|trans({}, "TransactionBundle") }}</b></div>
+                        <div class='col-sm-4'><b>{{ "Current"|trans({}, "TransactionBundle") }}</b></div>
+                        <div class='col-sm-4'><b>{{ "After"|trans({}, "TransactionBundle") }}</b></div>
+                    </div>
+                    <xsl:for-each select="subtransactions/i">
+                        <div class='row subtransaction'>
+                            <xsl:attribute name='data-index'>
+                                <xsl:value-of select='index' />
+                            </xsl:attribute>
+                            <div class='col-sm-4'><span><xsl:value-of select="customerproduct/username"/></span></div>
+                            <div class='col-sm-4'><span><xsl:value-of select="customerproduct/balance"/></span></div>
+                            <div class='col-sm-4'><span><xsl:value-of select="afterbalance"/></span></div>
+                        </div>
+                    </xsl:for-each>
+                    </xsl:when>
+                    <xsl:otherwise>
+                    <div class='row'>
+                        <div class='col-sm-4'><b>{{ "Product"|trans({}, "TransactionBundle") }}</b></div>
+                        <div class='col-sm-8'><b>{{ "Balance"|trans({}, "TransactionBundle") }}</b></div>
+                    </div>
+                    <xsl:for-each select="subtransactions/i">
+                        <div class='row subtransaction'>
+                            <xsl:attribute name='data-index'>
+                                <xsl:value-of select='index' />
+                            </xsl:attribute>
+                            <div class='col-sm-4'><span><xsl:value-of select="customerproduct/username"/></span></div>
+                            <div class='col-sm-8'><span><xsl:value-of select="customerproduct/balance"/></span></div>
+                        </div>
+                    </xsl:for-each>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </div> 
+            <div class='card-box'>
+                <div class='row'>
+                    <div class='col-md-6'>
+                        <b>{{ "Customer Amount"|trans({},"TransactionBundle") }}</b>
+                    </div>
+                    <div class='col-md-6 '>
+                        <span><xsl:value-of select="customer_amount"/></span>
+                    </div>
+                </div>
+                <div class='row'>
+                    <div class='col-md-6'>
+                        <b>{{ "Total Amount"|trans({},"TransactionBundle") }}</b>
+                    </div>
+                    <div class='col-md-6 '>
+                        <span><xsl:copy-of select="total_amount"/></span>
+                    </div>
+                </div>
+            </div>
+            <div class='card-box'>
+                <div class='row'>
+                    <div class='col-md-4'>
+                        <b>{{ "Bet Id"|trans({},"TransactionBundle") }}</b>
+                    </div>
+                    <div class='col-md-8'>
+                        <span><xsl:value-of select="bet_id"/></span>
+                    </div>
+                </div>
+                <div class='row'>
+                    <div class='col-md-12'>
+                        <b>{{ "Bet Details"|trans({},"TransactionBundle") }}</b>
+                    </div>
+                    <div class='col-md-12'>
+                        <span class="bet-details"><xsl:value-of select="bet_details"/></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </xsl:template>
+    
+</xsl:stylesheet>
+{% endblock summary_template %}

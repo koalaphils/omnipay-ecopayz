@@ -1,0 +1,158 @@
+{% block _CustomerBank_javascript %}
+    <script type="text/javascript">
+        function changeSwitcheryState(el,value){
+            if($(el).is(':checked') != value){
+                $(el).trigger("click");
+            }
+        }
+
+        $(function() {
+            var formTemp = new XslTemplate('{{ asset('bundles/customer/js/form.xsl') }}');
+            $('#{{ form.type.vars.id }}').on('changed.bs.select', function(e){
+                $('.paymentOptionFields').html('');
+                if(typeof paymentOptions[e.target.value] !== 'undefined') {
+                    var type = paymentOptions[e.target.value];
+                    var fields = [];
+                    var parsedAccount = 'Account';
+                    for(var code in type.fields) {
+                        var field = type.fields[code];
+                        field['@tag'] = field.type;
+                        field['id'] = "{{ form.vars.id }}_" + code;
+                        field['full_name'] = "{{ form.vars.full_name }}["+code+"]";
+                        field['@attributes'] = {
+                            'required': 'required'
+                        };
+                        if($('#{{ form.vars.id }}').data('payment-option') !== false) {
+                            var item = $('#{{ form.vars.id }}').data('payment-option');
+                            field['value'] = item.getFieldValue(code);
+                            if (type.code == 'ECOPAYZ' && field['label'] == parsedAccount) {
+                                field['label'] = parsedAccount + ' (Last Updated Date: ' + moment(type.updatedAt.date).format(Global.dateFormat) + ')';
+                            }
+                        } else {
+                            if (type.code == 'ECOPAYZ' && field['label'].includes(parsedAccount)) {
+                                field['label'] = parsedAccount;
+                            }
+                            field['value'] = '';
+                        }
+                        
+                        fields[fields.length] = field;
+                    }
+                    var xmlFields = json2Xml(fields,'fields');
+                    var temp = formTemp.apply(xmlFields);
+
+                    $('.paymentOptionFields').html(temp);
+                }
+            });
+
+            $('#customerPaymentOptionModal').on('show.bs.modal', function() {
+                $('#{{ form.type.vars.id }}').selectpicker('val', '');
+                $('#{{ form.type.vars.id }}').trigger('changed.bs.select');
+                if($('#{{ form.vars.id }}').data('payment-option') !== false) {
+                    var item = $('#{{ form.vars.id }}').data('payment-option');
+                    $('#{{ form.type.vars.id }}').selectpicker('val', item.type.code);
+                    $('#{{ form.type.vars.id }}').trigger('changed.bs.select');
+
+                    $(this).find('.switch').removeClass('hide');
+                    changeSwitcheryState({{ form.isActive.vars.id }}, item.item.is_active);
+                    $(this).find('.update').removeClass('hide');
+                    $(this).find('.new').addClass('hide');
+                } else {
+                    changeSwitcheryState({{ form.isActive.vars.id }}, true);
+                    $(this).find('.switch').addClass('hide');
+                    $(this).find('.new').removeClass('hide');
+                    $(this).find('.update').addClass('hide');
+                }
+            });
+            $('#customerPaymentOptionModal').on('hide.bs.modal', function() {
+                paymentOptionList.removeSelected();
+            });
+            $('#customerPaymentOptionModal').on('hiden.bs.modal', function() {
+                $('#{{ form.vars.id }}').data('payment-option', false);
+            });
+
+            $('#btn-add-payment').click(function(){
+                $('#{{ form.vars.id }}').data('payment-option', false);
+            });
+
+            $('#{{ form.vars.id }} .btn-delete').click(function(e) {
+                var form = $('#{{ form.vars.id }}');
+                var paymentOption = form.data('payment-option');
+                var _url = $(this).attr('action');
+                e.preventDefault();
+                $.ajax({
+                    url: _url,
+                    type: "POST",
+                    dataType: "JSON",
+                    data:  {
+                        'index': paymentOption.index
+                    },
+                    'beforeSend': function() {
+                        $('#{{ form.vars.id }}').find('.form-group').removeClass('has-error');
+                        $('#{{ form.vars.id }}').find('.form-group .help-block ul').html('');
+                        $("#{{ form.save.vars.id }}").attr('disabled', 'disabled');
+                    },
+                    'statusCode': {
+                        '422': function(jqXHR) {
+                            $(this).data('global-ajax-error', false);
+                            $.each(jqXHR.responseJSON.errors, function(i, e) {
+                                $('#{{ form.vars.id }} #' + i).closest('.form-group').addClass('has-error');
+                                $('#{{ form.vars.id }} #' + i).next().find('ul').append('<li><span class="glyphicon glyphicon-exclamation-sign"></span> '+ this +'</li>');
+                            });
+                        }
+                    },
+                    success: function(data){
+                        notification('Deleted', 'You have successfully deleted payment option', 'success');
+                        $('.paymentOptions .list').paymentOptionList('removeItem',data.index);
+                        $('#customerPaymentOptionModal').modal('hide');
+                    },
+                    'complete': function(jqXHR) {
+                        $("#{{ form.save.vars.id }}").removeAttr('disabled');
+                    }
+                });
+            });
+
+            $('#{{ form.vars.id }}').submit(function(e) {
+                e.preventDefault();
+                var form = $(this);
+                var paymentOption = $(this).data('payment-option');
+                var _url = url.paymentOption.saveNew;
+
+                if(paymentOption!==false) {
+                    _url = _url.replace('__index__',paymentOption.index);
+                } else {
+                    _url = _url.replace('__index__',"new");
+                }
+                $.ajax({
+                    url: _url,
+                    type: "POST",
+                    dataType: "json",
+                    data:  form.serialize(),
+                    'beforeSend': function() {
+                        $('#{{ form.vars.id }}').find('.form-group').removeClass('has-error');
+                        $('#{{ form.vars.id }}').find('.form-group .help-block ul').html('');
+                        $("#{{ form.save.vars.id }}").attr('disabled', 'disabled');
+                    },
+                    'statusCode': {
+                        '422': function(jqXHR) {
+                            $(this).data('global-ajax-error', false);
+                            $.each(jqXHR.responseJSON.errors, function(i, e) {
+                                $('#{{ form.vars.id }} #' + i).closest('.form-group').addClass('has-error');
+                                $('#{{ form.vars.id }} #' + i).next().find('ul').append('<li><span class="glyphicon glyphicon-exclamation-sign"></span> '+ this +'</li>');
+                            });
+                        }
+                    },
+                    success: function(data){
+                        if (data.success) {
+                            notification('Saved', 'You have successfully saved payment option', 'success');
+                            paymentOptionList.setItem(data.data, data.data.id);
+                            $('#customerPaymentOptionModal').modal('hide');
+                        }
+                    },
+                    'complete': function(jqXHR) {
+                        $("#{{ form.save.vars.id }}").removeAttr('disabled');
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock _CustomerBank_javascript %}

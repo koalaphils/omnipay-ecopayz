@@ -1,0 +1,45 @@
+{% extends 'AppBundle:Layout:base-v2.html.twig' %}
+
+{% block title %}{{ "page.title.create"|trans({},"MemberBundle") }}{% endblock %}
+
+{% block stylesheet_plugins %}
+    {{ widget_render_block(page.getWidget('createForm'), 'assetcss') }}
+{% endblock stylesheet_plugins %}
+
+{% block stylesheets %}
+    {{ widget_render_block(page.getWidget('createForm'), 'stylesheet') }}
+{% endblock %}
+
+{% block pageTitle -%}{{ "Create Member"|trans({},"MemberBundle") }}{%- endblock %}
+
+{% block pageHeaderExtra %}
+    <div class="pull-right">
+        <a class="btn btn-inverse waves-effect waves-light pull-right m-b-10" href="{{ path("member.list_page") }}">
+            <i class="ti-arrow-left m-r-10"></i>{{ "Back to Member List"|trans({}, 'MemberBundle') }}
+        </a>
+        <ul class="list-inline quicklinks font-13 font-normal text-right">
+            <li>Quick Links:</li>
+            <li><a href="{{ path("customer.group_list_page") }}"> {{ "Member Group"|trans({},"MemberBundle") }}</a></li>|
+            <li><a href="{{ path("transaction.list_page") }}"> {{ "Transaction List"|trans({},"MemberBundle") }}</a></li>
+        </ul>
+    </div>
+{% endblock pageHeaderExtra %}
+
+{% block breadcrumb -%}
+    <li>{{ "Member"|trans({},"MemberBundle") }}</li>
+    <li class="active">{{ "Member List"|trans({},"MemberBundle") }}</li>
+{%- endblock %}
+
+{% block page %}
+    <div class="col-sm-12">
+        {{ widget_render(page.getWidget('createForm')) }}
+    </div>
+{% endblock %}
+
+{% block javascript_plugins %}
+    {{ widget_render_block(page.getWidget('createForm'), 'assetjs') }}
+{% endblock javascript_plugins %}
+
+{% block javascripts %}
+    {{ widget_render_block(page.getWidget('createForm'), 'javascript') }}
+{% endblock javascripts %}

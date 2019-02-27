@@ -1,0 +1,200 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}{{ "page.title.list"|trans({},"CustomerGroupBundle") }}{% endblock title %}
+
+{% block stylesheets %}
+    <!-- DataTables -->
+    <link href="{{ asset('assets/plugins/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/buttons.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/responsive.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/dataTables.colVis.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/datatables/dataTables.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+{% endblock %}
+
+{% block pageTitle -%}{{ "page.title.list"|trans({},"CustomerGroupBundle") }}{%- endblock %}
+
+{% block pageHeaderExtra %}
+    <div class="pull-right">
+        <a class="btn btn-primary waves-effect waves-light pull-right m-b-10" href="{{ path("customer.group_create") }}">
+            {{ "menus.AddCustomerGroup"|trans({},"CustomerBundle") }}
+            <span><i class="ti-plus m-r-5 cls-icn-plus"></i></span>
+        </a>
+        <ul class="list-inline quicklinks font-13 font-normal text-right">
+            <li>Quick Links:</li>
+            {% if is_granted('ROLE_CUSTOMER_CREATE') %}
+            <li><a href="{{ path("member.create_page") }}"> {{ "quickLinks.addMember"|trans({},"MemberBundle") }}</a></li>|
+            {% endif %}
+            {% if is_granted('ROLE_CUSTOMER_VIEW') %}
+            <li><a href="{{ path("member.list_page") }}"> {{ "Member List"|trans({},"MemberBundle") }}</a></li>|
+            {% endif %}
+            {% if is_granted('ROLE_TRANSACTION_VIEW') %}
+            <li><a href="{{ path("transaction.list_page") }}"> {{ "quicklink.list"|trans({},"CustomerGroupBundle") }}</a></li>
+            {% endif %}
+        </ul>
+    </div>
+{% endblock pageHeaderExtra %}
+
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.member"|trans({},"AppBundle") }}</li>
+    <li class="active">{{ "breadcrumb.list"|trans({},"CustomerGroupBundle") }}</li>
+{%- endblock %}
+
+{% block page %}
+    <div class="col-sm-12">
+        <div class="card-box">
+            <div id="customerGroupList">
+                <table id="datatable-responsive"
+                    class="table table-bordered table-striped dt-responsive nowrap" cellspacing="0"
+                    width="100%">
+                    <thead>
+                        <tr>
+                            <th>{{ "fields.id"|trans({}, "CustomerGroupBundle") }}</th>
+                            <th>{{ "fields.name"|trans({}, "CustomerGroupBundle") }}</th>
+                            <th>{{ "fields.action"|trans({}, "AppBundle") }}</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot></tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('bundles/app/js/ZTable.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/dataTables.bootstrap.js') }}"></script>
+
+    <script src="{{ asset('assets/plugins/datatables/dataTables.buttons.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/buttons.bootstrap.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/vfs_fonts.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/buttons.html5.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/dataTables.responsive.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/responsive.bootstrap.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/dataTables.colVis.js') }}"></script>
+
+    <script type="text/javascript" >
+        var userPreferences = {{ app.user.getPreference('ui.customerGroup.list.column.visibility')|json_encode()|raw }};
+        $(function(){
+            var listTable = new ZTable('#customerGroupList',  {
+                'ajax': {
+                    'url': '{{- path("customer.group_list") -}}',
+                    'data': function (data, dataTable) {
+                        return {
+                            'search': data.filters.search,
+                            'length': data.length,
+                            'start': dataTable.start,
+                            'datatable': true,
+                            'route': true,
+                            'draw': dataTable.draw,
+                            'order': data.order,
+                            'filter' : data.filters
+                        };
+                    },
+                    'dataFilter': function (str) {
+                        return str;
+                    }
+                },
+                'colvis': {
+                    'hidden': function () {
+                        var hidden = ['id'];
+                        for (var i in userPreferences) {
+                            if (userPreferences[i] == 'false') {
+                                hidden.push(eval(i));
+                            }
+                        }
+
+                        return hidden;
+                    },
+                    'exclude': ['id', 'action']
+                },
+                'featuresDom': "<'form-inline'"
+                    + "<'form-group m-r-10 ft-date'<'xs-date'ft>>"
+                    + "ftdb"
+                    + "<'form-group' <'m-t-10'b>>>",
+                'features': {
+                    'from': {
+                        'dom': "<'form-group form-group-sm m-r-10 cst-date'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>",
+                        'type': 'date',
+                        'label': 'From',
+                        'symbol': 'f',
+                        'attrs': {
+                            'placeholder': 'From'
+                        },
+                        'applyOnChanged': false
+                    },
+                    'to': {
+                        'dom': "<'form-group form-group-sm m-r-10 cst-date'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>",
+                        'type': 'date',
+                        'label': 'To',
+                        'symbol': 't',
+                        'attrs': {
+                            'placeholder': 'To'
+                        },
+                        'applyOnChanged': false
+                    },
+                    'applyFilter': {
+                        'type': 'button',
+                        'label': 'Apply Filter',
+                        'symbol': 'd',
+                        'attrs': {
+                            'type': 'button',
+                            'class': 'btn btn-sm btn-default'
+                        },
+                        'initialized': function (feature) {
+                            $(feature.input).click(function () {
+                                feature.ztable.reloadTable();
+                            });
+                        }
+                    },
+                    'resetFilter': {
+                        'type': 'button',
+                        'label': 'Reset Filter',
+                        'symbol': 'b',
+                        'attrs': {
+                            'type': 'button',
+                            'class': 'btn btn-sm btn-inverse'
+                        },
+                        'initialized': function (feature) {
+                            $(feature.input).click(function () {
+                                $("select.ztable_length_input").val('10').change();
+                                feature.ztable.reset();
+                            });
+                        }
+                    }
+                },
+                'columns': [
+                    {
+                        'data': 'id',
+                        'name': 'id',
+                        'defaultContent': ''
+                    },
+                    {
+                        'data': 'name',
+                        'name': 'name',
+                        'defaultContent': ''
+                    },
+                    {
+                        'data': '',
+                        'name': 'action',
+                        'render': function(data, text, full) {
+                            var action = "<a href='" + full._ref + "' class='table-action-btn' data-toggle='tooltip' data-placement='bottom' title='Edit'><i class='md md-edit'></i></a>";
+                            return action;
+                        }
+                    }
+                ],
+                'ordering': true,
+                'columnDefs': [
+                    { "orderable": false, "targets": 2 }
+                ],
+            });
+
+            $('#customerGroupList').on('ztable.change.column.visible', function (e, colvis, ztable) {
+                saveUserPreferences({'ui.customerGroup.list.column.visibility': ztable.getColumnVisibility()});
+            });
+        });
+    </script>
+
+{% endblock %}

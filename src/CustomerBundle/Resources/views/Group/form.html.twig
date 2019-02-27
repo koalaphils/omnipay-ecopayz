@@ -1,0 +1,53 @@
+{% block _CustomerGroup_gateways_row %}
+    <div class="col-md-12">
+        {{ form_label(form) }}
+        <div id="{{ form.vars.id }}">
+        {{ form_widget(form) }}
+        </div>
+    </div>
+{% endblock _CustomerGroup_gateways_row %}
+
+{% block _CustomerGroup_gateways_label %}
+    <h4>
+        <div class="pull-right">
+            <a href="#helpModal" data-toggle="modal" data-target="#helpModal"><i class="fa fa-question-circle"></i></a>
+        </div>
+        {{ "Gateways"|trans([], "CustomerGroupBundle") }} |
+        <button class="btn btn-icon btn-success btn-xs btn-add-gateway" type="button">
+            <i class="fa fa-plus"></i>
+        </button>
+    </h4>
+{% endblock _CustomerGroup_gateways_label %}
+
+{% block _CustomerGroup_gateways_widget %}
+{% endblock _CustomerGroup_gateways_widget %}
+
+{% block PaymentGateway_row %}
+    <div class="customer-group-gateway form-horizontal" id="{{ form.vars.id }}">
+        <button type="button" class="btn btn-xs btn-danger btn-remove-gateway" data-gateway="#{{ form.vars.id }}"><i class="fa fa-close"></i></button>
+        {{ form_widget(form) }}
+    </div>
+{% endblock %}
+
+{% block PaymentGateway_widget %}
+    <div class="form-group">
+        <label class="col-md-1 control-label">
+            {{ form_label(form.gateway) }}
+        </label>
+        <div class="col-md-11">
+            {{ form_widget(form.gateway) }}
+            {{ form_errors(form.conditions) }}
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-1 control-label">
+            {{ form_label(form.conditions) }}
+        </label>
+        <div class="col-md-11">
+            {{ form_widget(form.conditions) }}
+            {{ form_errors(form.conditions) }}
+        </div>
+    </div>
+{% endblock PaymentGateway_widget %}
+
+{% block _CustomerGroup_gateways_entry_gateway_javascript %}{% endblock _CustomerGroup_gateways_entry_gateway_javascript %}

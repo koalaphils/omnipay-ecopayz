@@ -1,0 +1,62 @@
+<script type="text/javascript">
+    var audioNotification;
+    
+    function playAudio() {
+        if(!audioNotification) {
+          audioNotification = document.createElement('audio');
+          audioNotification.innerHTML = '<source src="' + '/assets/audio/sample.wav'+ '" type="audio/wav" />';
+        }
+        audioNotification.play();
+    }
+    
+    $(function () {
+        $(CrmWebsocket).on('opened', function (e, session, details) {
+            function counter(args) {
+                if (typeof args.status != 'undefined') {
+                    for (var i in args.status) {
+                        if (i == 1 && parseInt(args.status[i]) > 0) {
+                            $('#menu-transaction .menu-arrow').addClass('hide');
+                            $('#menu-transaction .menu-label').removeClass('hide');
+                            $('#menu-transaction .menu-label').html(args.status[i]);
+                        } else if (i == 1) {
+                            $('#menu-transaction .menu-label').addClass('hide');
+                            $('#menu-transaction .menu-arrow').removeClass('hide');
+                            $('#menu-transaction .menu-label').html(args.status[i]);
+                        }
+                        $('#statusProcess_' + i).html(args.status[i]);
+                    }
+                }
+            }
+            
+            session.subscribe('counter', function (args, kwArgs) {
+                counter(kwArgs);
+            });
+            
+            session.call('counter.get', []).then(counter);
+            
+            session.subscribe('notifications', function (details) {
+                var title = "Notification";
+                var message = "You have new notification";
+                var type = "custom";
+                if (typeof details != "object") {
+                    details = details[0];
+                }
+                
+                if (details.type == 'transaction') {
+                    if (details.status == 1) {
+                        title = "New Transaction";
+                        message = "New Transaction #" + details.number + " was requested";
+                        type = "success";
+                    } else {
+                        title = "Transaction was updated";
+                        message = "Transaction #" + details.number + " was updated";
+                        type = "success";
+                    }
+                }
+                
+                notification(title, message, type, "bottom right");
+                playAudio();
+            });
+        });
+    });
+</script>

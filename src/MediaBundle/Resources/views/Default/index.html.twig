@@ -1,0 +1,278 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title -%}{{ "page.title.media"|trans({}, "MediaBundle") }}{%- endblock %}
+
+{% block stylesheet_plugins -%}
+    <link rel="stylesheet" type="text/css" href="{{ asset("assets/plugins/dropzone/dropzone.css") }}" />
+    <link rel="stylesheet" type="text/css" href="{{ asset("assets/plugins/magnific-popup/css/magnific-popup.css") }}" />
+{%- endblock %}
+
+{% block stylesheets %}
+    <style type='text/css' rel='stylesheet'>
+        .gal-detail.thumb h4 {
+            word-wrap: break-word;
+        }
+        .gal-detail.thumb a {
+            height: 204px;
+            display: block;
+            overflow: hidden;
+            width: 100%;
+            text-align: center;
+            position: relative;
+        }
+        .gal-detail.thumb a img {
+            min-width: 100%;
+            min-height: 100%;
+            max-width: 200%;
+            max-height: 200%;
+            width: auto;
+            position: absolute;
+            left: 0px;
+        }
+        .btn-c-info, .btn-thumb {
+            padding-top: 10px;
+            text-align: right;
+        }
+        .filename {
+            position: absolute;
+        }
+    </style>
+{% endblock %}
+
+{% block pageTitle -%}{{ "page.media"|trans({}, "MediaBundle") }}{%- endblock %}
+
+{% block page -%}
+    <div class="col-md-12">
+        <button class="btn btn-info waves-effect waves-light" data-toggle="modal" data-target="#upload-modal">
+            <span class="btn-label"><i class="fa fa-upload"></i></span>
+            Upload
+        </button>
+        <button class="btn btn-inverse" onclick="loadgallery()">
+            <i class="fa fa-refresh"></i>
+        </button>
+        <div id="upload-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="Upload Modal" aria-hidden="true" style="display: none;">
+            <div class="modal-dialog modal-responsive">
+                <div class="modal-content p-0 b-0">
+                    <div class="panel panel-color panel-primary">
+                        <div class="panel-heading"> 
+                            <h3 class="panel-title">Upload</h3> 
+                        </div> 
+                        <div class="panel-body"> 
+                            <form method="post" action="{{ path('media.file_upload') }}" class="dropzone" id="fileUpload">
+                                <div class="fallback">
+                                  <input name="file" type="file" />
+                                </div>
+                            </form>
+                        </div>
+                        <div class="panel-footer text-right">
+                            <!--button class='btn btn-pink' type='button' id='btn-upload'>Upload</button-->
+                            <button type="button" class="btn btn-inverse" data-dismiss="modal" aria-hidden="true">Okay</button> 
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12">
+        <div class="portfolioContainer">
+        </div>
+    </div>
+{%- endblock %}
+
+{% block javascript_plugins -%}
+    <script type="text/javascript" src="{{ asset("assets/plugins/dropzone/dropzone.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("assets/plugins/isotope/js/isotope.pkgd.min.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("assets/plugins/magnific-popup/js/jquery.magnific-popup.min.js") }}"></script>
+{%- endblock %}
+
+{% block javascripts -%}
+    <script type="text/javascript">
+        Dropzone.options.fileUpload = {
+            'autoProcessQueue': true,
+            'addRemoveLinks': true,
+            'init': function() {
+                var fileUploadZone = this;
+                $('#upload-modal').on('hidden.bs.modal', function(e) {
+                    fileUploadZone.removeAllFiles();
+                    loadgallery();
+                });
+            }
+        };
+        $(window).load(function(){
+            var $container = $('.portfolioContainer');
+            $container.isotope({
+                filter: '*',
+                animationOptions: {
+                    duration: 750,
+                    easing: 'linear',
+                    queue: false
+                }
+            });
+            $('.portfolioFilter').on('click','a',function(){
+                $('.portfolioFilter .current').removeClass('current');
+                $(this).addClass('current');
+
+                var selector = $(this).attr('data-filter');
+                $container.isotope({
+                    filter: selector,
+                    animationOptions: {
+                        duration: 750,
+                        easing: 'linear',
+                        queue: false
+                    }
+                });
+                return false;
+            }); 
+            
+        });
+        
+        function loadgallery() {
+            var template = '<div class="col-sm-6 col-lg-3 col-md-4 webdesign illustrator media-file" id="m___id__">'
+                + '<div class="gal-detail thumb"><a href="__route__" class="__classpop__" title="__filename__"><input type="text" class="filename" value="__filename__"/>'
+                + '<img src="__thumb__" class="thumb-img" alt="work-thumbnail">'
+                + '</a><div class="btn-group btn-group-sm btn-c-info"><button class="btn btn-info btn-fileinfo" data-toggle="modal" data-target="#info-modal" ><i class="fa fa-copy"></i></button></div>'
+                + '<div class="btn-thumb btn-group btn-group-sm pull-right"><button class="btn btn-default btn-rename">_></button>'
+                + '<button class="btn btn-danger btn-delete"><i class="fa fa-trash"></i></button></div><div class="clearfix"></div></div></div>';
+            $.ajax({
+                'url': "{{ path('media.file_list') }}",
+                'success': function(data) {
+                    $('.portfolioContainer').html('');
+                    $.each(data, function(i,e) {
+                       var dom = template;
+                       dom = dom.replace(/__route__/g, this.route.render);
+                       dom = dom.replace(/__filename__/g, this.filename);
+                       dom = dom.replace(/__id__/g, i);
+                       if(this.ext == 'mp4') {
+                           dom = dom.replace(/__thumb__/g, '{{ asset('assets/images/mp4.png') }}');
+                           dom = dom.replace(/__classpop__/g, 'iframe-popup');
+                       }else {
+                           dom = dom.replace(/__thumb__/g, this.route.render);
+                           dom = dom.replace(/__classpop__/g, 'image-popup');
+                       }
+                       $('.portfolioContainer').append(dom);
+                       
+                       $.each(this, function(i,e) {
+                           $('.portfolioContainer .media-file').last().data(i, this);
+                       });
+                       
+                    });
+                    
+                    $('.image-popup').magnificPopup({
+                        type: 'image',
+                        closeOnContentClick: true,
+                        mainClass: 'mfp-fade',
+                        gallery: {
+                            enabled: true,
+                            navigateByImgClick: true,
+                            preload: [0,1] // Will preload 0 - before current, and 1 after the current image
+                        }
+                    });
+                    
+                    $('.iframe-popup').magnificPopup({
+                        type: 'iframe',
+                        closeOnContentClick: true,
+                        mainClass: 'mfp-fade',
+                        gallery: {
+                            enabled: true,
+                            navigateByImgClick: true,
+                            preload: [0,1] // Will preload 0 - before current, and 1 after the current image
+                        }
+                    });
+                    $('.btn-rename').click(function() {
+                        var data = $(this).closest('.media-file').data();
+                        var id = $(this).closest('.media-file').attr('id');
+                        swal({
+                            'title': 'Rename',
+                            'text': "Rename " + data.filename,
+                            'type': "input",
+                            'showCancelButton': true,
+                            'closeOnConfirm': false,
+                            'inputPlaceholder': "Write something",
+                            'inputValue': data.basename,
+                            'showLoaderOnConfirm': true,
+                            'confirmButtonText': 'Rename'
+                        }, function(inputValue) {
+                            if (inputValue === false) return false;
+                            if (inputValue === "") {
+                              swal.showInputError("You need to write something!");
+                              return false;
+                            }
+                            $.ajax({
+                                'url': "{{ path('media.file_rename') }}",
+                                'type': "POST",
+                                'globalAjaxError': false,
+                                'data': {'id': id, 'filename': data.filename, 'rename': inputValue},
+                                'success': function(_data) {
+                                    $.each(_data.file, function(i,e) {
+                                        $('#' + _data.id).data(i, this);
+                                    });
+                                    if(_data.file.ext != '.mp4') {
+                                        $('#'+ _data.id).find('img').attr('src', _data.file.route.render);
+                                    }
+                                    $('#' + _data.id).find('a').attr('href',_data.file.route.render);
+                                    $('#' + _data.id).find('a').attr('title', _data.file.filename);
+                                    $('#' + _data.id).find('input').val(_data.file.filename);
+                                    swal({
+                                        'type': 'success',
+                                        'title': _data.title,
+                                        'text': _data.message
+                                    }, function() {
+                                    });
+                                }
+                            });
+                        });
+                    });
+                    $('.btn-delete').click(function() {
+                        var data = $(this).closest('.media-file').data();
+                        var id = $(this).closest('.media-file').attr('id');
+                        confirm2('Delete ' + data.filename + '?', 'Delete', {
+                            'type': null,
+                            'showCancelButton': true,
+                            'closeOnConfirm': false,
+                            'showLoaderOnConfirm': true,
+                            'confirmButtonClass': 'btn-warning btn-md',
+                            'cancelButtonClass': 'btn-default btn-md',
+                            'confirmButtonText': "Yes, delete it!"
+                        },function(isConfirm) {
+                            if(isConfirm) {
+                                $.ajax({
+                                    'url': data.route.delete,
+                                    'globalAjaxError': false,
+                                    'globalAjaxComplete': false,
+                                    'type': 'POST',
+                                    'data': {'id': id},
+                                    'success': function(_data) {
+                                    },
+                                    'complete': function(xhr, status) {
+                                        if(xhr.responseJSON.__notifications) {
+                                            $.each(xhr.responseJSON.__notifications, function(i, e) {
+                                                swal({
+                                                    'type': this.type,
+                                                    'title': this.title,
+                                                    'text': this.message
+                                                }, function() {
+                                                    $('#'+xhr.responseJSON.id).remove();
+                                                });
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                        
+                    });
+                    $('.btn-fileinfo').click(function(e) {
+                        var field = $(this).closest('.media-file').find('input').get(0);
+                        field.focus();
+                        field.setSelectionRange(0, field.value.length);
+                        document.execCommand("copy");
+                    });
+                }
+            });
+        }
+        
+        $(function() {
+            loadgallery();
+        });
+    </script>
+{%- endblock %}

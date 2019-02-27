@@ -1,0 +1,89 @@
+<div class="row">
+    <div class="col-sm-8">
+        <div class="card-box">
+            {{ form_start(kyc) }}
+            {{ form_widget(kyc) }}
+            {{ form_end(kyc) }}
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-8 document-list">
+        <div class="upload-actions">
+            <button class="btn btn-info waves-effect waves-light" data-toggle="modal" data-target="#upload-modal">
+                <span class="btn-label"><i class="fa fa-upload"></i></span>
+                Upload
+            </button>
+            <button class="btn btn-inverse" onclick="loadgallery()">
+                <i class="fa fa-refresh"></i>
+            </button>
+        </div>
+        <div id='documentList'>
+        </div>
+    </div>
+    <div class="col-md-4 document-details-container">
+        <div class="document-file-none">
+            <i class="fa fa-file"></i>
+            <p>Nothing was selected</p>
+        </div>
+        <div class="document-file-selected hide">
+            <h3 class="document-selected-title">
+                <a data-info="title" data-type="text" data-placeholder="Enter Title" data-title="Title"></a>
+            </h3>
+            <div class="document-selected-thumb">
+                <div class="icon"><i></i></div>
+                <div class="img">
+                    <div class='img-c'>
+                        <div><img src="" /></div>
+                    </div>
+                </div>
+            </div>
+            <div class="document-selected-actions">
+                <button class="btn btn-sm btn-info" onclick="download()">
+                    <i class="fa fa-download"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="deleteFile()">
+                    <i class="fa fa-trash"></i>
+                </button>
+            </div>
+            <div class="document-selected-info">
+                <div class="row">
+                    <div class="col-md-4 document-selected-info-label text-muted">Type</div>
+                    <div class="col-md-8 document-selected-info-value" data-info="type"></div>
+                </div>
+            </div>
+            <div class="document-selected-info">
+                <div class="row">
+                    <div class="col-md-4 document-selected-info-label text-muted">Desctiption</div>
+                    <div class="col-md-8">
+                        <a class="document-selected-info-value" data-info="description" data-type="textarea" data-placeholder="Enter Description" data-title="Descripton"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+        
+<div id="upload-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="Upload Modal" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog modal-responsive">
+        <div class="modal-content create-product-content p-0 b-0">
+            <div class="panel panel-color panel-primary">
+                <div class="panel-heading"> 
+                    <h3 class="panel-title create-product-title">Upload</h3> 
+                </div> 
+                <div class="panel-body"> 
+                    <form method="post" action="{{ path('customer.document_upload', {'id':customer.id}) }}" class="dropzone" id="fileUpload">
+                        <div class="fallback">
+                          <input name="file" type="file" />
+                        </div>
+                        <input type='hidden' name='folder' value='customerDocuments' />
+                    </form>
+                </div>
+                <div class="panel-footer text-right">
+                    <!--button class='btn btn-pink' type='button' id='btn-upload'>Upload</button-->
+                    <button type="button" class="btn btn-inverse" data-dismiss="modal" aria-hidden="true">Okay</button> 
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

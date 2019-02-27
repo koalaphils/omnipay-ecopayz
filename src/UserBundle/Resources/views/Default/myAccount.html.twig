@@ -1,0 +1,63 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}{{ "page.title.myAccount"|trans({},"UserBundle") }}{% endblock %}
+
+{% block pageTitle -%}{{ "page.My Account"|trans({},"UserBundle") }}{%- endblock %}
+    
+{% block breadcrumb -%}
+    <li>
+        <a href="{{ path("app.dashboard_page") }}">{{ "menus.Dashboard"|trans({},"AppBundle") }}</a>
+    </li>
+    <li>
+        <a href="{{ path("user.list_page") }}">{{ "breadcrumb.list"|trans({},"UserBundle") }}</a>
+    </li>
+    <li class="active">
+        {{ "page.My Account"|trans({},"UserBundle") }}
+    </li>
+{%- endblock %}
+
+{% block pageHeaderExtra %}
+    <div class="pull-right">
+        {% if is_granted('ROLE_USER_VIEW') %}
+        <a class="btn btn-inverse waves-effect waves-light pull-right" href="{{ path("user.list_page") }}"><span class="m-r-5"><i class=" ti-arrow-left"></i></span> {{ "Back to User List"|trans({}, 'UserBundle') }}</a>
+        {% endif %}
+        <ul class="list-inline quicklinks font-13 font-normal text-right m-t-10">
+            {% if is_granted(['ROLE_USER_CREATE' , 'ROLE_COUNTRY_VIEW' , 'ROLE_TRANSACTION_VIEW']) %}
+            <li>Quick Links:</li>
+            {% endif %}
+            {% if is_granted('ROLE_USER_CREATE') %}
+            <li><a href="{{ path("user.create_page") }}">{{ "Add User"|trans({}, 'UserBundle') }}</a></li>|
+            {% endif %}
+            {% if is_granted('ROLE_COUNTRY_VIEW') %}
+            <li><a href="{{ path("country.list_page", {'type': 'withdraw'}) }}">{{ "Country"|trans({}, 'UserBundle') }}</a></li>|
+            {% endif %}
+            {% if is_granted('ROLE_TRANSACTION_VIEW') %}
+            <li><a href="{{ path("transaction.list_page") }}">{{ "Transaction History"|trans({}, 'UserBundle') }}</a></li>
+            {% endif %}
+        </ul>
+    </div>
+{% endblock pageHeaderExtra %}
+
+{% block page -%}
+    <div class="col-md-4 col-lg-3">
+        <div class="profile-detail card-box">
+            <div>
+                <img src="{{ asset("assets/images/users/telemarketer.png") }} " class="img-circle" alt="profile-image">
+                <hr/>
+                <h4 class="text-uppercase font-600">{{ "Account Info"|trans({}, 'UserBundle') }}</h4>
+                <span class="badge badge-info">{{ ("userType." ~ user.type)|trans({},"UserBundle") }}</span>
+                <div class="user-description text-left" style="margin-top: 20px">
+                    <p class="text-muted font-13"><strong>Username :</strong> <span class="m-l-15">{{ user.username }}</span></p>
+                    <p class="text-muted font-13"><strong>Email :</strong> <span class="m-l-15">{{ user.email }}</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8 col-lg-9">
+        <div class="card-box">
+            {{ form_start(securityForm) }}
+            {{ form_widget(securityForm) }}
+            {{ form_end(securityForm) }}
+        </div>
+    </div>
+{%- endblock %}

@@ -1,0 +1,249 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}Reports | Gateway | Transactions{% endblock %}
+
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+{% block pageTitle -%}
+    Gateway Transaction Report
+    - ( {{ (filters.from|default('')) == '' ? '' : '' ~ filters.from|date('M d, Y') ~ ' to ' }}{{ (filters.to|default('')) == '' ? 'Today' : filters.to|date('M d, Y')  }} )
+{%- endblock pageTitle %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.report"|trans({},"AppBundle") }}</li>
+    <li>
+        <a href="{{ path("report.gateways") }}">{{ "breadcrumb.paymentGateway"|trans({},"AppBundle") }}</a>
+    </li>
+    <li class="active">
+        {{ gateway.name }} ({{ gateway.currency.code }})
+    </li>
+{%- endblock breadcrumb %}
+
+{% block page %}
+    <div class="row m-auto">
+        <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+            <div class="card-box">
+                <div class="bar-widget">
+                    <div class="table-box">
+                        <div class="table-detail">
+                            <div class="iconbox bg-primary">
+                                <i class="md md-account-balance-wallet"></i>
+                            </div>
+                        </div>
+                        <div class="table-detail text-right">
+                            <h4 class="m-t-0 m-b-5">{{ gateway.currency.code }} {{ gateway.balance|number_format(2, '.', ',') }}</h4>
+                            <h5 class="text-muted m-b-0 m-t-0">Current Balance</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+            <div class="card-box">
+                <div class="bar-widget">
+                    <div class="table-box">
+                        <div class="table-detail">
+                            <div class="iconbox bg-success">
+                                <i class="fa fa-download"></i>
+                            </div>
+                        </div>
+                        <div class="table-detail text-right">
+                            <h4 class="m-t-0 m-b-5">{{ report.num_deposits|number_format(0, '.', ',') }}</h4>
+                            <h5 class="text-muted m-b-0 m-t-0">Number of Member Deposit</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+            <div class="card-box">
+                <div class="bar-widget">
+                    <div class="table-box">
+                        <div class="table-detail">
+                            <div class="iconbox bg-danger">
+                                <i class="fa fa-upload"></i>
+                            </div>
+                        </div>
+                        <div class="table-detail text-right">
+                            <h4 class="m-t-0 m-b-5">{{ report.num_withdraws|number_format(0, '.', ',') }}</h4>
+                            <h5 class="text-muted m-b-0 m-t-0">Number of Member Withdraw</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+            <div class="card-box">
+                <div class="bar-widget">
+                    <div class="table-box">
+                        <div class="table-detail">
+                            <div class="iconbox bg-pink">
+                                <i class="ti-exchange-vertical"></i>
+                            </div>
+                        </div>
+                        <div class="table-detail text-right">
+                            <h4 class="m-t-0 m-b-5">{{ (report.num_withdraws + report.num_deposits)|number_format(0, '.', ',') }}</h4>
+                            <h5 class="text-muted m-b-0 m-t-0">Total Member Transactions</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row m-auto">
+        <div class="col-md-12">
+            <div class="card-box">
+                <h5 class="text-muted text-uppercase m-t-0 m-b-20"><b>Members Transactions</b></h5>
+                <div id="report">
+                    <table
+                        class="table table-striped table-bordered dt-responsive nowrap"
+                        cellspacing="0"
+                        width="100%">
+                        <thead>
+                            <tr>
+                                <th>Number</th>
+                                <th>Date</th>
+                                <th>Member</th>
+                                <th>Currency</th>
+                                <th>Amount</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                        <tr>
+                            <th>Total</th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th>{{ number(report.sum_deposits).plus(report.sum_withdraws).__toString()|number_format(2, '.', ',') }}</th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock page %}
+
+{% block javascripts %}
+    <script src="{{ asset('bundles/app/js/ZTable.js') }}"></script>
+    <script type="text/javascript">
+        $(function(){
+            var listTable = new ZTable('#report', {
+                'featuresDom': "b",
+                'features': {
+                    'btnExportCsv': {
+                        'type': 'button',
+                        'label': 'Export to CSV',
+                        'symbol': 'b',
+                        'attrs': {
+                            'type': 'button',
+                            'class': 'btn btn-sm btn-inverse'
+                        },
+                        'initialized': function (feature) {
+                        },
+                        'rendered': function (feature) {
+                            $(feature.input).click(function () {
+                                var query = {
+                                    'filters': {
+                                        'from': '{{ filters.from }}',
+                                        'to': '{{ filters.to }}',
+                                        'gateways': [{{ gateway.id }}],
+                                        'types': ['deposit','withdraw'],
+                                        'voided': false,
+                                        'status': [{{ transactionCompletedStatusId }}],
+                                        'search': $('.ztable_search_input').val(),
+                                    }
+                                }
+                                window.open('{{ path("report.gateway_transactions_export", {'id': gateway.id}) }}?' + $.param(query) , '_blank');
+                            });
+                        }
+                    }
+                },
+                'ajax': {
+                    'url': '{{ path("transaction.list_search") }}',
+                    'data': function (data, dataTable) {
+                        data.filters.from = '{{ filters.from }}';
+                        data.filters.to = '{{ filters.to }}';
+                        data.filters.gateways = ['{{ gateway.id }}'];
+                        data.filters.types = ['deposit', 'withdraw'];
+                        data.filters.status = [2];
+                        data.filters.voided = false;
+
+                        return data;
+                    },
+                    'dataFilter': function (str) {
+                        var draw = this.draw;
+                        var json = $.parseJSON( str );
+
+                        return JSON.stringify({
+                            'draw': draw,
+                            'data': json.records,
+                            'recordsFiltered': json.recordsFiltered,
+                            'recordsTotal': json.recordsFiltered
+                        });
+                    }
+                },
+                'columns': [
+                    {
+                        'data': 'number',
+                        'defaultContent': '',
+                        'name': 'number',
+                        'responsivePriority': 1,
+                        'render': function (data, type, full) {
+                            var numberOutput = "<a href='" + full._link.page + "' target='_blank'>" + data + "</a>";
+                            if (full.was_created_from_ams === true) {
+                                numberOutput += "<span class='label label-inverse m-l-5'>AMS</span>";
+                            }
+
+                            return numberOutput;
+                        }
+                    },
+                    {
+                        'name': 'date',
+                        'data': 'date',
+                        'defaultContent': '',
+                        'render': function (data, type, full) {
+                            return moment(data).format('MMM D, YYYY h:mm A');
+                        }
+                    },
+                    {
+                        'name': 'customer.full_name',
+                        'data': 'customer.full_name',
+                        'defaultContent': ''
+                    },
+                    { 'data': 'currency.code', 'defaultContent': '' },
+                    {
+                        'name': 'amount',
+                        'data': 'amount',
+                        'defaultContent': '',
+                        'render': function (data) {
+                            return (new Decimal(data)).toFixed(2);
+                        }
+                    },
+                    {
+                        'data': 'type_text',
+                        'name': 'type',
+                        'defaultContent': '',
+                        'responsivePriority': 1,
+                        'render': function(data) {
+                            var typeText = {
+                                'deposit': "{{ "types.deposit"|trans({}, "TransactionBundle") }}",
+                                'withdraw': "{{ "types.withdraw"|trans({}, "TransactionBundle") }}",
+                                'transfer': "{{ "types.transfer"|trans({}, "TransactionBundle") }}",
+                                'bonus': "{{ "types.bonus"|trans({}, "TransactionBundle") }}",
+                                'p2p_transfer': "{{ "types.p2p_transfer"|trans({}, "TransactionBundle") }}",
+                                'dwl': "{{ "types.dwl"|trans({}, "TransactionBundle") }}",
+                                'bet': "{{ "types.bet"|trans({}, "TransactionBundle") }}"
+                            };
+                            return typeText[data];
+                        }
+                    }
+                ]
+            });
+        });
+    </script>
+{% endblock javascripts %}

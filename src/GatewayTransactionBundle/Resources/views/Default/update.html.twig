@@ -1,0 +1,51 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% form_theme form with ["GatewayTransactionBundle:Form/Theme:script.html.twig", _self] %}
+
+{% block title %}{{ "page.title.update"|trans({'%type%': type|title},"GatewayTransactionBundle") }}{% endblock %}
+
+{% block stylesheet_plugins %}
+    {{ form_assetcss(form) }}
+{% endblock %}
+
+{% block javascript_plugins %}
+    {{ form_assetjs(form) }}
+{% endblock %}
+
+{% block pageTitle -%}{{ "page.Update Gateway Transaction"|trans({'%type%': type|title},"GatewayTransactionBundle") }}{%- endblock pageTitle %}
+
+{% block pageHeaderExtra %}
+    <div class="pull-right">
+        <a class="btn btn-inverse waves-effect waves-light pull-right m-b-10" href="{{ path("gateway_transaction.list_page") }}">{{ "menus.BackToList"|trans({},"GatewayTransactionBundle") }}<span><i class="ti-arrow-left m-r-5 cls-icn-plus"></i></span></a>
+        <ul class="list-inline quicklinks font-13 font-normal text-right">
+            <li>{{ "quickLinks.name"|trans({},"GatewayTransactionBundle") }}:</li>
+            <li><a href="{{ path("gateway_transaction.create_page", {'type': 'deposit'}) }}"> {{ "quickLinks.addDeposit"|trans({},"GatewayTransactionBundle") }}</a></li>|
+            <li><a href="{{ path("gateway_transaction.create_page", {'type': 'withdraw'}) }}"> {{ "quickLinks.addWithdraw"|trans({},"GatewayTransactionBundle") }}</a></li>|
+            <li><a href="{{ path("gateway_transaction.create_page", {'type': 'transfer'}) }}"> {{ "quickLinks.addTransfer"|trans({},"GatewayTransactionBundle") }}</a></li>
+        </ul>
+    </div>
+{% endblock pageHeaderExtra %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.transaction"|trans({},"AppBundle") }}</li>
+    <li>
+        <a href="{{ path("gateway_transaction.list_page") }}">{{ "breadcrumb.list"|trans({},"GatewayTransactionBundle") }}</a>
+    </li>
+    <li class="active">
+        {{ "menus.Update"|trans({},"AppBundle") }}
+    </li>
+{%- endblock %}
+
+{% block page %}
+    <div class="col-sm-12">
+        <div class="card-box">
+            <div class="customerList">
+                {% include "GatewayTransactionBundle:Form:gatewayTransaction-form.html.twig" %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ form_javascript(form) }}
+{% endblock %}

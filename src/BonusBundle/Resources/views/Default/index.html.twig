@@ -1,0 +1,141 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}{{ "page.title.list"|trans({},"BonusBundle") }}{% endblock %} 
+
+{% block stylesheets %}
+    <!-- DataTables -->
+    {% stylesheets
+        'assets/plugins/datatables/jquery.dataTables.min.css'
+        'assets/plugins/datatables/buttons.bootstrap.min.css'
+        'assets/plugins/datatables/responsive.bootstrap.min.css'
+        'assets/plugins/datatables/dataTables.colVis.css'
+        'assets/plugins/datatables/dataTables.bootstrap.min.css'
+        filter='cssrewrite'
+    -%}
+    <link href="{{ asset_url }}" rel="stylesheet" type="text/css"/>
+    {%- endstylesheets %}
+{% endblock %}
+
+{% block content %}
+    <!-- Page-Title -->
+    <div class="row">
+        <div class="col-sm-12">
+            <h4 class="page-title">{{ "menus.Bonus"|trans({},"BonusBundle") }}</h4>
+            <ol class="breadcrumb">
+                <li>
+                    <a href="{{ path("app.dashboard_page") }}">{{ "menus.Dashboard"|trans({},"AppBundle") }}</a>
+                </li>
+                <li>
+                    <a href="{{ path("bonus.list_page") }}">{{ "menus.Bonus"|trans({},"BonusBundle") }}</a>
+                </li>
+                <li class="active">
+                    {{ "menus.List"|trans({},"AppBundle") }}
+                </li>
+            </ol>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card-box">
+                <div id="bonusList">
+                    <table id="datatable-responsive"
+                        class="table table-striped dt-responsive nowrap" cellspacing="0"
+                        width="100%">
+                        <thead>
+                            <tr>
+                                <th>{{ "fields.id"|trans({}, "BonusBundle") }}</th>
+                                <th>{{ "fields.subject"|trans({}, "BonusBundle") }}</th>
+                                <th>{{ "fields.startAt"|trans({}, "BonusBundle") }}</th>
+                                <th>{{ "fields.endAt"|trans({}, "BonusBundle") }}</th>
+                                <th>{{ "fields.action"|trans({}, "AppBundle") }}</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot></tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+{% endblock %}
+
+{% block javascripts %}
+    {% javascripts 
+        'assets/plugins/datatables/jquery.dataTables.min.js'
+        'assets/plugins/datatables/dataTables.bootstrap.js'
+        'assets/plugins/datatables/dataTables.buttons.min.js'
+        'assets/plugins/datatables/buttons.bootstrap.min.js'
+        'assets/plugins/datatables/vfs_fonts.js'
+        'assets/plugins/datatables/buttons.html5.min.js'
+        'assets/plugins/datatables/dataTables.responsive.min.js'
+        'assets/plugins/datatables/responsive.bootstrap.min.js'
+        'assets/plugins/datatables/dataTables.colVis.js'
+    %}
+    <script src="{{ asset_url }}" type="text/javascript" ></script>
+    {% endjavascripts %}
+    <script src="{{ asset('bundles/bonus/js/list.js') }}" type="text/javascript" ></script>
+    <script type="text/javascript" >
+
+        
+        
+        $(function(){
+            var columns = [];
+            columns[2] = {
+                'data': 'bonus.startAt',
+                'defaultContent': '',
+                'render': function(data) {
+                    return moment(data.date).format('MMM D, YYYY h:mm A');
+                }
+            };
+            columns[3] = {
+                'data': 'bonus.endAt',
+                'defaultContent': '',
+                'render': function(data) {
+                    return moment(data.date).format('MMM D, YYYY h:mm A');
+                }
+            };
+            $('#bonusList').list({
+                'url': {
+                    'list': '{{ path("bonus.list_search") }}'
+                },
+                'columns': columns
+            });            
+            
+            
+            $('#bonusList').on('click', '.btn-delete', function(e) {
+                e.preventDefault();
+                //var dataTable = null;
+                var dataTable = $('#bonusList').triggerHandler("datatable");
+                //console.log(a);
+                var tr = $(this).closest('tr');
+                var data = dataTable.row(tr).data();
+                confirm2("You want to delete Bonus: " + data.bonus.subject, "Are you sure?", {
+                    'type': 'warning',
+                    'showCancelButton': true,
+                    'closeOnConfirm': false,
+                    'showLoaderOnConfirm': true,
+                    'confirmButtonClass': 'btn-warning btn-md',
+                    'cancelButtonClass': 'btn-default btn-md',
+                    'confirmButtonText': "Yes, delete it!"
+                }, function(isConfirm) {
+                    if(isConfirm) {
+                        $.ajax({
+                            'url': data.routes.delete,
+                            'globalAjaxComplete' : false,
+                            'success': function (data) {
+                                var notifications = data.__notifications || [];
+                                $.each(notifications, function(e) {
+                                    $('#bonusList').trigger('refresh');
+                                    swal(this.title, this.message, this.type);
+                                });
+                            }
+                        });
+                    } else {
+                        
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

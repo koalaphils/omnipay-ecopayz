@@ -1,0 +1,167 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}{{ 'page.title.setting.paymentOption'|trans({},'AppBundle') }}{% endblock %}
+
+{% form_theme form _self %}
+
+
+{% block _PaymentOptions_paymentOptions_widget %}
+    <div id="{{ form.vars.id }}" style="margin-bottom: 10px" data-new-id="0">
+        {% for index,children in form.children %}
+            {{ form_row(children) }}
+        {% endfor %}
+    </div>
+{% endblock %}
+
+{% block paymentOption_row %}
+    {{ form_widget(form) }}
+{% endblock %}
+
+{% block paymentOption_widget %}
+    <div class="portlet paymentOption" id="{{ form.vars.id }}" data-id="{{ form.code.vars.value }}">
+        <div class="portlet-heading bg-custom">
+            <h3 class="portlet-title" style="text-transform: none">
+                {% if form.code.vars.value %}
+                <span class="code-text">{{ form.code.vars.value }}</span>
+                <input type="hidden" name="{{ form.code.vars.full_name }}" value="{{ form.code.vars.value }}"/>
+                {% else %}
+                    {{ form_widget(form.code) }}
+                {% endif %}
+            </h3>
+            <div class="portlet-widgets">
+                <a data-toggle="collapse" data-parent="#accordion1" href="#portlet-accordion-{{ form.vars.id}}"><i class="ion-minus-round"></i></a>
+                <span class="divider"></span>
+                <a href="#" data-toggle="remove"><i class="ion-close-round"></i></a>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+        <div id="portlet-accordion-{{ form.vars.id}}" class="panel-collapse collapse in">
+            <div class="portlet-body">
+                <div class="form-group">
+                    {{ form_widget(form.label) }}
+                </div>
+                <div class="form-group">
+                    {{ form_widget(form.template) }}
+                </div>
+                <div class="row">
+                    {{ form_row(form.fields) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block _PaymentOptions_paymentOptions_entry_fields_label %}
+    <h4 class="m-t-0 header-title">Fields | <button class="btn btn-icon btn-success btn-xs btn-add-field" type="button" data-action="{{ form.vars.id }}"><i class="fa fa-plus"></i></button></h4>
+{% endblock %}
+
+{% block _PaymentOptions_paymentOptions_entry_fields_row %}
+    <div class="col-md-12 paymentOption-fields" id="{{ form.vars.id }}">
+        {{ form_label(form) }}
+        <div class="fields" data-new-id="0">
+            {% for child in form %}
+                {{- form_row(child) -}}
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+{% block paymentOptionField_row %}
+    {{ form_widget(form) }}
+{% endblock %}
+{% block paymentOptionField_widget %}
+    <div class="row field" id="{{ form.vars.id }}">
+        <div class="col-md-3">
+            <div class="form-group">
+                {{ form_widget(form.code) }}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                {{ form_widget(form.label) }}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                {{ form_widget(form.type) }}
+            </div>
+        </div>
+        <div class="col-md-1">
+            <button class="btn btn-danger btn-remove-field" type="button"><i class="fa fa-close"></i></button>
+        </div>
+    </div>
+{% endblock %}
+
+
+
+{% block stylesheet_plugins %}
+    {{ form_assetcss(form) }}
+{% endblock %}
+
+{% block javascript_plugins %}
+    {{ form_assetjs(form) }}
+{% endblock %}
+
+
+{% block stylesheets %}
+{% endblock %}
+
+{% block pageTitle %}{{ "settings.paymentOption.label"|trans({},"AppBundle") }}{% endblock %}
+
+{% block breadcrumb %}
+    <li>
+        <a href="{{ path("app.dashboard_page") }}">{{ "menus.Dashboard"|trans({},"AppBundle") }}</a>
+    </li>
+    <li>
+        <a href="{{ path("transaction.setting.transaction_page") }}">{{ "menus.Setting"|trans({},"AppBundle") }}</a>
+    </li>
+    <li class="active">
+        {{ "settings.paymentOption.label"|trans({},"AppBundle") }}
+    </li>
+{% endblock %}
+
+{% block page %}
+    <div class="col-sm-12">
+        {{ form_start(form) }}
+        {{ form_widget(form.paymentOptions) }}
+        <div class="card-box text-right">
+            <button type="button" class="btn btn-info btn-add-option">Add Payment Option</button>
+            {{ form_widget(form.save) }}
+        </div>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ form_javascript(form) }}
+
+    <script type="text/javascript">
+        var optionPrototype = "{{- form_row(form.paymentOptions.vars.prototype)|e('js') -}}";
+        var fieldPrototype = "{{- form_row(form.paymentOptions.vars.prototype.fields.vars.prototype)|e('js') -}}";
+        $(function() {
+            $('.btn-add-option').click(function() {
+                var newoption = optionPrototype;
+                var newId = $('#{{ form.paymentOptions.vars.id }}').data('new-id');
+                newoption = $(newoption.replace(/{{ form.paymentOptions.vars.prototype.vars.name }}/g, newId));
+                newoption = $(newoption).attr('data-id', newId);
+                $('#{{ form.paymentOptions.vars.id }}').append(newoption);
+
+                $('#{{ form.paymentOptions.vars.id }}').data('new-id', newId+1);
+            });
+
+            $('#{{ form.vars.id }}').on('click', '.btn-add-field', function(e) {
+                var newField = fieldPrototype;
+                var paymentOptionId = $(this).closest('.paymentOption').data('id');
+                var parent = $(this).closest('.paymentOption-fields');
+                var newId = $(parent).find('.fields').data('new-id');
+                newField = newField.replace(/{{ form.paymentOptions.vars.prototype.vars.name }}/g, paymentOptionId);
+                newField = newField.replace(/{{ form.paymentOptions.vars.prototype.fields.vars.prototype.vars.name }}/g, newId);
+                $(parent).find('.fields').append(newField);
+                $(parent).find('.fields').data('new-id', newId+1);
+            });
+
+            $('#{{ form.vars.id }}').on('click','.btn-remove-field', function() {
+                $(this).closest('.field').remove();
+            });
+        });
+    </script>
+{% endblock %}

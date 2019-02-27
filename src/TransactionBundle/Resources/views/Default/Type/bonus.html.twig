@@ -1,0 +1,50 @@
+{% extends 'TransactionBundle:Default:transaction.html.twig' %}
+
+{% form_theme form _self %}
+
+{% block title -%}
+    {{ setActiveMenu('bonus.requested') }}
+    {{ "page.title.requested"|trans({},"BonusBundle") }}
+{%- endblock %}
+
+{% block _Transaction_details_row %}
+    {{ form_widget(form.bonus) }}
+    {{ form_widget(form.messages) }}
+{% endblock %}
+
+{% block pageTitle -%}
+    {{ "page.Requested"|trans({},"BonusBundle") }}
+{%- endblock %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.transaction"|trans({},"AppBundle") }}</li>
+    <li>
+        <a href="{{ path("bonus.list_page") }}">{{ "menus.Bonus"|trans({},"BonusBundle") }}</a>
+    </li>
+    <li>
+        <a href="{{ path("bonus.requested_list_page") }}">{{ "menus.Requested List"|trans({},"BonusBundle") }}</a>
+    </li>
+    {% if transaction.id|default(false) %}
+    <li class="active">
+        {{ transaction.number }}
+    </li>
+    {% endif %}
+{%- endblock %}
+
+{% block payment_gateway -%}
+{% endblock %}
+
+{% block form_widgets -%}
+    <div class="card-box">
+        {{ form_row(form.number) }}
+        {{ form_row(form.currency) }}
+        {{ form_row(form.date) }}
+        {{ form_row(form.subTransactions) }}
+        <div class="clearfix"></div>
+    </div>
+    <div class="card-box">
+        {{ form_row(form.details) }}
+        {{ form_row(form.actions) }}
+        <div class="clearfix"></div>
+    </div>
+{%- endblock %}

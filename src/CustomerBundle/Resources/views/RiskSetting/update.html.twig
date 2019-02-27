@@ -1,0 +1,90 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+{% block title %}{{ "page.title.riskSetting.create"|trans({},"CustomerBundle") }}{% endblock %}
+
+{% block stylesheet_plugins %}
+    {{ form_assetcss(form) }}
+{% endblock %}
+
+{% block javascript_plugins %}
+    {{ form_assetjs(form) }}
+{% endblock %}
+
+{% block pageTitle %}{{ "roles.customerRiskSettting.update"|trans({}, 'CustomerBundle') }}{% endblock pageTitle %}
+
+{% block pageHeaderExtra %}
+    <div class="pull-right">
+        <a class="btn btn-inverse waves-effect waves-light pull-right m-b-10" href="{{ path("customer.risk_setting") }}"> <span><i class="ti-arrow-left m-r-5"></i></span> {{ "Back to Risk Setting List"|trans({}, 'CustomerBundle') }}</a>
+        <ul class="list-inline quicklinks font-13 font-normal text-right">
+            <li>Quick Links:</li>
+            <li><a href="{{ path("customer.list_page") }}">{{ "Customer List"|trans({}, 'CustomerBundle') }}</a></li>|
+            <li><a href="{{ path("customer.risk_setting.create") }}">{{ "roles.customerRiskSettting.create"|trans({}, 'CustomerBundle') }}</a></li>
+        </ul>
+    </div>
+{% endblock pageHeaderExtra %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.setting"|trans({},"AppBundle") }}</li>
+    <li>
+        <a href="{{ path("customer.risk_setting") }}">Risk Setting</a>
+    </li>
+    <li class="active">{{ "roles.customerRiskSettting.update"|trans({}, 'CustomerBundle') }}</li>
+{%- endblock %}
+
+{% block page %}
+    {% include 'CustomerBundle:RiskSetting:_form.html.twig' with {'form': form} %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ form_javascript(form) }}
+     <script>
+        //console.log($);
+        $('#{{ form.vars.id }}').submit(function (e) {
+            e.preventDefault();
+            var form = this;
+            var data = $(form).serialize();
+            $.ajax({
+                'url': $(form).attr('action'),
+                'context': form,
+                'type': $(form).attr('method'),
+                'dataType': 'json',
+                'success': function (data) {
+                    if (data.success) {
+                        notification('Saved', 'You have successfully saved risk setting', 'success');
+                        setTimeout(function () {
+                            window.location = data.link;
+                        }, 2000);
+                    } else if (typeof data.errors !== 'undefined') {
+                        for (var i in data.errors) {
+                            var error = data.errors[i];
+                            var errorLi = document.createElement('li');
+                            errorLi.innerHTML = error.message;
+                            errorLi.style.color = 'red';
+
+                            $('#' + error.formId)
+                                .next()
+                                .addClass('has-error')
+                                .find('ul')[0]
+                                .append(errorLi);
+                        }
+                    }
+                },
+                'complete': function (xhr, textStatus) {
+                    $('#btnSave').removeAttr('disabled');
+                },
+                'statusCode': {
+
+                },
+                'data': data,
+                'beforeSend': function (xhr) {
+                    $('#{{ form.vars.id }}').find('.form-group').removeClass('has-error');
+                    $('#{{ form.vars.id }}').find('.help-block ul li').remove();
+                    $('#btnSave').attr('disabled', 'disabled');
+                }
+            });
+        });
+
+        $('#btnSave').click(function () {
+            $('#{{ form.vars.id }}').submit();
+        });
+    </script>
+{% endblock %}

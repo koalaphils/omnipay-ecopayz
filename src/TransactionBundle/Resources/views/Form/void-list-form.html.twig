@@ -1,0 +1,67 @@
+<div class="row p-20 void-transact">
+    <div class="col-md-6">
+        <dl class="dl-horizontal panel1 m-b-0">
+            &nbsp;
+        </dl>
+    </div>
+    <div class="col-md-6">
+        <dl class="dl-horizontal panel2 m-b-0">
+            &nbsp;
+        </dl>
+    </div>
+</div>
+
+<div class="row p-20">
+    <div class="col-md-12">
+        <table class="table table table-hover m-0">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Product</th>
+                    <th>Username</th>
+                    <th>Currency</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody class="subtrans">
+            </tbody>
+        </table>
+    </div>
+    <div class="col-md-12 m-t-20">
+        <div class="alert alert-info">
+            <strong>NOTE:</strong> Add a reason to <span class="void-or-decline">void</span> this transaction
+        </div>
+        <div class="form-group">
+            <label class="control-label" for="reasonForVoid">Reason for <span class="void-or-decline">void</span></label>
+            <template id="inputReason">
+                <input type="text" id="reasonForVoid" class="form-control"></input>   
+            </template>
+            <template id="textAreaReason">
+                <textarea id="reasonForVoid" class="form-control"></textarea>
+            </template>
+            <template id="selectReason">
+                <select id="reasonForVoid" class="form-control">
+                    <option value="" selected disabled hidden>Choose reason</option>
+                    <option value="Wrong Gateway">Wrong Gateway</option>
+                    <option value="Wrong Date">Wrong Date</option>
+                    <option value="Wrong Amount">Wrong Amount</option>
+                    <option value="Wrong company or member Fee">Wrong company or member Fee</option>
+                    <option value="Wrong Account">Wrong Account</option>
+                    <option value="Test">Test</option>
+                </select>
+            </template>
+
+            <div id="reasonContainer">
+            </div>
+
+            <span class="help-block">
+                <ul class="list-unstyled"></ul>
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-danger waves-effect btn-void-transaction">Void</button>
+    <button type="button" class="btn btn-inverse waves-effect waves-light" data-dismiss="modal">Cancel</button>
+</div>

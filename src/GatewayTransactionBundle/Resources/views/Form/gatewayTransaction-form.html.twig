@@ -1,0 +1,50 @@
+{{ form_start(form) }}
+<div class="row">
+    <div class="col-md-6">
+        <div class="col-sm-12">
+            <div class="form-group">
+                <label class="control-label">{{ "fields.status"|trans({}, "GatewayTransactionBundle") }}</label>
+                <div>
+                    <span class="form-control">{{ form.vars.value.translateStatus|default }}</span>
+                </div>
+            </div>
+        </div>
+
+        {{ form_row(form.number) }}
+        {{ form_row(form.type) }}
+        {{ form_row(form.date) }}
+        {{ form_row(form.paymentOption) }}
+        {{ form_row(form.currency) }}
+
+    </div>
+
+    <div class="col-md-6">
+        {{ form_row(form.gateway) }}
+        {{ form_row(form.amount) }}
+        {{ form_row(form.fees.fee) }}
+        {{ form_row(form.netAmount) }}
+
+        {% if form.gatewayTo is defined %}
+            {{ form_row(form.gatewayTo) }}
+        {% endif %}
+
+        {% if form.amountTo is defined %}
+            {{ form_row(form.amountTo) }}
+        {% endif %}
+
+        {% if form.fees.feeTo is defined %}
+            {{ form_row(form.fees.feeTo) }}
+        {% endif %}
+
+        {% if form.netAmountTo is defined %}
+            {{ form_row(form.netAmountTo) }}
+        {% endif %}
+
+        {{ form_widget(form.details) }}
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        {{ form_end(form) }}
+    </div>
+</div>

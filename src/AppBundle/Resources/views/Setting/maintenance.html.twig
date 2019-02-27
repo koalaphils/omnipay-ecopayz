@@ -1,0 +1,32 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}{{ 'page.title.setting.maintenance'|trans({},'AppBundle') }}{% endblock %}
+
+{% block stylesheet_plugins %}
+    {{ form_assetcss(form) }}
+{% endblock %}
+
+{% block javascript_plugins %}
+    {{ form_assetjs(form) }}
+{% endblock %}
+
+{% block pageTitle -%}{{ "settings.maintenance.label"|trans({},"AppBundle") }}{%- endblock pageTitle %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.setting"|trans({},"AppBundle") }}</li>
+    <li class="active">{{ "settings.maintenance.label"|trans({},"AppBundle") }}</li>
+{%- endblock %}
+
+{% block page %}
+    <div class="col-sm-12">
+        <div class="card-box">
+            {{ form_start(form) }}
+            {{ form_widget(form) }}
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ form_javascript(form) }}
+{% endblock %}

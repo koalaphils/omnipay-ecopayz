@@ -1,0 +1,101 @@
+{%- block form_start -%}
+    {% set method = method|upper %}
+    {%- if method in ["GET", "POST"] -%}
+        {% set form_method = method %}
+    {%- else -%}
+        {% set form_method = "POST" %}
+    {%- endif -%}
+    <form name="{{ name }}" id="{{ name }}" class="form-danger" method="{{ form_method|lower }}"{% if action != '' %} id="{{ id }}" action="{{ action }}"{% endif %}{% for attrname, attrvalue in attr %} {{ attrname }}="{{ attrvalue }}"{% endfor %}{% if multipart %} enctype="multipart/form-data"{% endif %}>
+    {%- if form_method != method -%}
+        <input type="hidden" name="_method" value="{{ method }}" />
+    {%- endif -%}
+{%- endblock form_start -%}
+
+{% block CustomerContacts_javascript -%}
+    {% set method = method|upper %}
+    {%- if method in ["GET", "POST"] -%}
+        {% set form_method = method %}
+    {%- else -%}
+        {% set form_method = "POST" %}
+    {%- endif -%}
+    <script type="text/javascript">
+        var contactXhr = null;
+        $('#{{id}}').submit(function(e) {
+            e.preventDefault();
+            if(contactXhr !== null)
+                contactXhr.abort();
+            contactXhr = $.ajax({
+                'url': '{{ action }}',
+                'type': '{{ form_method|lower }}',
+                'data': $(this).serialize(),
+                
+            });
+        });
+    </script>
+    {% for child in form -%}
+        {{- form_javascript(child) -}}
+    {%- endfor %}
+{%- endblock %}
+
+{% block _CustomerContacts_contacts_widget -%}
+    <div id="{{ form.vars.id }}" style="margin-bottom: 10px">
+        
+        {% for children in form.children %}
+            {{ form_row(children) }}
+        {% endfor %}
+        <div class="row">
+            <div class="col-md-12">
+                <button id="btn_{{ form.vars.id }}_add" type="button" style="width: 100%" class="btn btn-primary btn-custom btn-add-contact"><i class="fa fa-plus"></i> Add Contact</button>
+            </div>
+        </div>
+    </div>
+{%- endblock %}
+
+{% block contact_row %}
+    <div class="row contact" id="{{ form.vars.id }}" data-id="{{ form.vars.name }}">
+        <div class="col-md-4 col-sm-4 col-xs-4">
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-btn">
+                        <button class="btn btn-danger btn-contact-remove"><i class="fa fa-close"></i></button>
+                    </span>
+                    {{ form_widget(form.type) }}
+                </div>
+            </div>
+        </div>
+                
+        <div class="col-md-8 col-sm-8 col-xs-8">
+            <div class="form-group">
+            {{ form_widget(form.value) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block _CustomerContacts_contacts_javascript %}
+    <script type="text/javascript">
+        var contactPrototype = "{{- form_row(form.vars.prototype)|e('js') -}}";
+        $(function() {
+            $('#btn_{{ form.vars.id }}_add').click(function() {
+                var newContact = contactPrototype;
+                var newId ="{{ form.vars.prototype.type.vars.id }}".replace(/{{ form.vars.prototype.vars.name }}/g,getContactNewId());
+                newContact = $(newContact.replace(/{{ form.vars.prototype.vars.name }}/g,getContactNewId()));
+                $('#btn_{{ form.vars.id }}_add').closest('.row').before(newContact);
+                $('#' + newId).selectpicker();
+            });
+            
+            $('#{{ form.vars.id }}').on('click','.btn-contact-remove',function() {
+                $(this).closest('.contact').remove();
+            });
+            
+            $('#{{ form.vars.id }}').on('keydown', 'input[type="text"]', function(e) {
+                return e.which != 13;
+            });
+        });
+        
+        function getContactNewId() {
+            if($('.contact').size() == 0) return 0; 
+            return $('.contact').last().data('id') + 1;
+        }
+    </script>
+{% endblock %}
