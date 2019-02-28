@@ -6,6 +6,7 @@ use App\User;
 use Illuminate\Http\Request;
 use Firebase\JWT\JWT;
 use App\Repositories\UserRepository;
+use App\Library\Api\ApiZendesk;
 
 class UserController extends Controller
 {
@@ -386,7 +387,7 @@ class UserController extends Controller
     
     public function getConfig(){
         $rows = app("db")->table("setting")
-                ->whereIn("setting_code", array("piwi247.session", "transaction.validate"))
+                ->whereIn("setting_code", array("piwi247.session", "transaction.validate", "bitcoin.setting"))
                 ->get();
         $data = array();
         foreach($rows as $row){
@@ -416,6 +417,38 @@ class UserController extends Controller
         $jwt = JWT::encode($token, $key);
         
         return response()->json(['jwt' => $jwt], 200);
+    }
+    
+    public function getListTickets(Request $request){
+        print_r($request->all()); exit;
+        $list = array();
+        $cid = $request->get('cid');
+        
+        $user = ApiZendesk::getUser($cid);
+        if($user){
+            $tickets = ApiZendesk::getTickets($user->id);
+            foreach($tickets as $ticket){
+                $item = new \stdClass();
+                $item->id = $ticket->id;
+                $item->created_at = date("d/m/Y", strtotime($ticket->created_at));
+                $item->served_by = $this->getServedByInDescription($ticket->description);
+                $list[] = $item;
+            }
+        }
+        
+        return response()->json(['tickets' => $list], 200);
+    }
+    
+    private function getServedByInDescription($description) {
+        $served_by = "";
+        $desc_list = explode("\n", $description);
+        foreach ($desc_list as $desc) {
+            if (starts_with($desc, "Served by")) {
+                $served_by = substr($desc, 11);
+                break;
+            }
+        }
+        return $served_by;
     }
 
 }
