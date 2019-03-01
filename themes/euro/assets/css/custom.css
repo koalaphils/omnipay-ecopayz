@@ -31,9 +31,12 @@
 }
 
 .signin-form .card-box{
-  background-color: #b90d0d;
+  /*background-color: #b90d0d;*/
+  background: #162758;
   border-radius: 15px;
 }
+
+.account-pages{background:#2f3f71 !important}
 
 .divider-custom  {
   position: absolute;
