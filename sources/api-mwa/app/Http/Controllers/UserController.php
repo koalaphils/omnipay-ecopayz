@@ -429,7 +429,8 @@ class UserController extends Controller
             $tickets = ApiZendesk::getTickets($user->id);
             foreach($tickets as $ticket){
                 $item = new \stdClass();
-                $item->id = $ticket->id;
+                $item->ticket_id = $ticket->id;
+                $item->requester_id = $ticket->requester_id;
                 $item->created_at = date("d/m/Y", strtotime($ticket->created_at));
                 $item->status = $ticket->status;
 //                $item->served_by = $this->getServedByInDescription($ticket->description);
@@ -439,6 +440,19 @@ class UserController extends Controller
         }
         
         return response()->json(['tickets' => $list], 200);
+    }
+    
+    public function getListTicketComment(Request $request){
+        $ticket_id = $request->get('ticket_id');
+        $requester_id= $request->get('requester_id');
+//        echo $ticket_id; exit;
+        $comments = ApiZendesk::getTicketComments($ticket_id);
+        
+        echo "<pre>";
+        print_r($comments);
+        exit;
+        
+        
     }
     
     private function getServedByInDescription($description) {

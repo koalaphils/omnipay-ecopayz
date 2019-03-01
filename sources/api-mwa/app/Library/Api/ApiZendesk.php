@@ -19,18 +19,19 @@ class ApiZendesk {
 
     private static function getClient() {
         $client = new Client(array(
-            'base_uri' => "https://tieudat102.zendesk.com/api/v2/",
+            'base_uri' => "https://piwi247help.zendesk.com/api/v2/",
             'headers' => array(
-                'Content-Type' => "application/json"
+                'Content-Type' => "application/json",
+                'Authorization' => "Basic YWRtaW5AcGl3aTI0Ny5jb20vdG9rZW46OElWQ1MzN0JNNzAwcW4xTkFCS3RFYkxjQUpXV3Q5S0tGbFg1VktOdg=="
             ),
-            'auth' => array('tieu.dat102@gmail.com', '123456a@A')
+//            'auth' => array('tieu.dat102@gmail.com', '123456a@A')
         ));
         return $client;
     }
 
-    public static function getUser($external_id) {
+    public static function getUser($email) {
         $client = self::getClient();
-        $query = "type:user external_id:$external_id";
+        $query = "type:user email:$email";
         $response = $client->get("search.json?query=$query");
         $data = json_decode($response->getBody());
         return isset($data->results[0]) ? $data->results[0] : null;
@@ -40,6 +41,13 @@ class ApiZendesk {
         $client = self::getClient();
         $query = "type:ticket requester_id:$zendesk_user_id";
         $response = $client->get("search.json?query=$query");
+        $data = json_decode($response->getBody());
+        return isset($data->results) ? $data->results : array();
+    }
+    
+    public static function getTicketComments($ticket_id){
+        $client = self::getClient();
+        $response = $client->get("tickets/$ticket_id/comments.json");
         $data = json_decode($response->getBody());
         return isset($data->results) ? $data->results : array();
     }

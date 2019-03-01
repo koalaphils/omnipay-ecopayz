@@ -48,6 +48,7 @@ $router->post('/api/transaction/tickets/conversation', 'TransactionController@ge
 
 $router->get('/api/user/chat/token', 'UserController@getTokenZendesk');
 $router->get('/api/user/chat/tickets', 'UserController@getListTickets');
+$router->get('/api/user/chat/ticket/comments', 'UserController@getListTicketComment');
 
 
 
