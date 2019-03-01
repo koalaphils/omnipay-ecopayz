@@ -416,7 +416,7 @@ class UserController extends Controller
 //        var_dump($token);
         $jwt = JWT::encode($token, $key);
         
-        return response()->json(['jwt' => $jwt], 200);
+        return response()->json(['jwt' => $jwt, 'email' => $user->user_email], 200);
     }
     
     public function getListTickets(Request $request){
