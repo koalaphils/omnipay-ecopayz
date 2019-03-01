@@ -219,7 +219,7 @@ class TransactionController extends Controller
         $data_bo['transaction']['customer'] = $customer_id;
                 
         // $url = env('API_PIWI_BO_WITHDRAW');        
-        $url = 'http://47.254.197.223:9002/en/api/me/transactions/withdraw';                                
+        $url = $this->base_url_piwi_bo . '/me/transactions/withdraw';                                
         $res_bo = $this->callApiBo($url,  json_encode($data_bo), 'POST', $headers);         
         $res_bo = json_decode($res_bo);
         
@@ -272,7 +272,7 @@ class TransactionController extends Controller
         $data_bo['transaction']['customer'] = $customer_id;
                 
         // $url = env('API_PIWI_BO_DEPOSIT');        
-        $url = 'http://47.254.197.223:9002/en/api/me/transactions/deposit';                                
+        $url = $this->base_url_piwi_bo . '/me/transactions/deposit';                                
         $res_bo = $this->callApiBo($url,  json_encode($data_bo), 'POST', $headers);         
         $res_bo = json_decode($res_bo);
         
@@ -308,7 +308,7 @@ class TransactionController extends Controller
         $customer_id = $customer['customer_id'];
         
         // $url = env('API_PIWI_BO_TRANSACTIONS');
-        $url = 'http://47.254.197.223:9002/en/api/me/transactions';
+        $url = $this->base_url_piwi_bo . '/me/transactions';
         $data_bo = ['cid' => $customer_id, 'search' => $post['search'], 'filter' => $post['filter']];
         
         $res_bo = $this->callApiBo($url,  json_encode($data_bo), 'POST', $headers); 
@@ -411,7 +411,7 @@ class TransactionController extends Controller
         ];
         
         // $url = env('API_PIWI_BO_TRANSACTIONS');
-        $url = 'http://47.254.197.223:9002/en/api/me/transactions/'.$post['tid'].'/'. $post['cid'];
+        $url = $this->base_url_piwi_bo . '/me/transactions/'.$post['tid'].'/'. $post['cid'];
         $res_bo = $this->callApiBo($url, [], 'GET', $headers);                
         $res_bo = json_decode($res_bo);                
         // $trans = $res_bo->data;
@@ -468,7 +468,7 @@ class TransactionController extends Controller
             'Authorization: Bearer OTAyY2VmOTdkNGZmOTcxOTM3ZDY5ZjE5ZmMyMzliYzQwOWYzZDBhYjFkMTBlYTNiNjU5YTdlNmU2ODhiMzI1Mw'
         ];
 
-        $url = 'http://47.254.197.223:9002/en/api/paymentoptions/bitcoin-adjustment';        
+        $url = $this->base_url_piwi_bo . '/paymentoptions/bitcoin-adjustment';        
         $res = $this->callApiBo($url, [], 'GET', $headers);              
         $res = json_decode($res);
 
@@ -495,7 +495,7 @@ class TransactionController extends Controller
         $customer = $this->_getCustomer($post);                
         $data_bo = ['cid' => $customer['customer_id']];
 
-        $url = 'http://47.254.197.223:9002/en/api/me/transactions/lock-rate-bitcoin-transaction';        
+        $url = $this->base_url_piwi_bo . '/me/transactions/lock-rate-bitcoin-transaction';        
         $res = $this->callApiBo($url, json_encode($data_bo), 'POST', $headers); 
         // return response()->json([800, $post, $res], 201); 
         $res = json_decode($res);

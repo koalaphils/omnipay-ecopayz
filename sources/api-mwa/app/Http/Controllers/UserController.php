@@ -64,8 +64,7 @@ class UserController extends Controller
             'Content-type: application/json',
             'Authorization: Bearer OTAyY2VmOTdkNGZmOTcxOTM3ZDY5ZjE5ZmMyMzliYzQwOWYzZDBhYjFkMTBlYTNiNjU5YTdlNmU2ODhiMzI1Mw'
         ];
-        $url = 'http://47.254.197.223:9002/en/api/customer/credentials/check-if-exists';
-
+        $url = $this->base_url_piwi_bo . '/customer/credentials/check-if-exists';
         // phone
         if ($post['loginType'] == 0) {
             $post['countryPhoneCode'] = $post['nationCode'];            
@@ -178,7 +177,7 @@ class UserController extends Controller
             'Content-type: application/json',
             'Authorization: Bearer OTAyY2VmOTdkNGZmOTcxOTM3ZDY5ZjE5ZmMyMzliYzQwOWYzZDBhYjFkMTBlYTNiNjU5YTdlNmU2ODhiMzI1Mw'
         ];        
-        $url = 'http://47.254.197.223:9002/en/api/customer/email-phone/check-if-exists';
+        $url = $this->base_url_piwi_bo . '/customer/email-phone/check-if-exists';
         
         
         if (array_key_exists('phoneNumber', $data)) {
@@ -241,7 +240,7 @@ class UserController extends Controller
         $res_login_url = 'https://' . $res_pin_login->loginUrl; 
         
         
-        $url = 'http://47.254.197.223:9002/en/api/customers/register';
+        $url = $this->base_url_piwi_bo . '/customers/register';
         
         // via phone
         if ($post['signupType'] == 0) {
@@ -310,7 +309,7 @@ class UserController extends Controller
         $data = [];
         $data_bo = [];
         $validate = ['error'=>'', 'error_message'=>''];
-        $api_forgot_password = 'http://47.254.197.223:9002/en/api/customer/forgot-password';
+        $api_forgot_password = $this->base_url_piwi_bo . '/customer/forgot-password';
 
         $headers = [
             'Content-type: application/json',
@@ -364,7 +363,7 @@ class UserController extends Controller
         $data = [];
         $data_bo = [];
         $validate = ['error'=>'', 'error_message'=>''];
-        $api_update_password = 'http://47.254.197.223:9002/en/api/customer/update-password';
+        $api_update_password = $this->base_url_piwi_bo . '/customer/update-password';
 
         $headers = [
             'Content-type: application/json',
@@ -420,18 +419,21 @@ class UserController extends Controller
     }
     
     public function getListTickets(Request $request){
-        print_r($request->all()); exit;
         $list = array();
         $cid = $request->get('cid');
-        
-        $user = ApiZendesk::getUser($cid);
+        $user = $this->repoUser->getByCustomerID($cid);
+        $user = ApiZendesk::getUser($user->user_email);
+//        echo "<pre>";
+//        print_r($user); exit;
         if($user){
             $tickets = ApiZendesk::getTickets($user->id);
             foreach($tickets as $ticket){
                 $item = new \stdClass();
                 $item->id = $ticket->id;
                 $item->created_at = date("d/m/Y", strtotime($ticket->created_at));
-                $item->served_by = $this->getServedByInDescription($ticket->description);
+                $item->status = $ticket->status;
+//                $item->served_by = $this->getServedByInDescription($ticket->description);
+//                $item = $ticket;
                 $list[] = $item;
             }
         }
