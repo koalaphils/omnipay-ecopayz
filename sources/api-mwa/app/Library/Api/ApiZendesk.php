@@ -49,7 +49,7 @@ class ApiZendesk {
         $client = self::getClient();
         $response = $client->get("tickets/$ticket_id/comments.json");
         $data = json_decode($response->getBody());
-        return isset($data->results) ? $data->results : array();
+        return isset($data->comments) ? $data->comments : array();
     }
 
 }

@@ -9,6 +9,7 @@
         "firebase/php-jwt": "^5.0",
         "guzzlehttp/guzzle": "^6.3",
         "laravel/lumen-framework": "5.7.*",
+        "paquettg/php-html-parser": "^2.0",
         "phpmailer/phpmailer": "^6.0",
         "vlucas/phpdotenv": "~2.2"
     },

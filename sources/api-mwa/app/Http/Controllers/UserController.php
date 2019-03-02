@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Firebase\JWT\JWT;
 use App\Repositories\UserRepository;
 use App\Library\Api\ApiZendesk;
+use PHPHtmlParser\Dom;
 
 class UserController extends Controller
 {
@@ -423,8 +424,8 @@ class UserController extends Controller
         $cid = $request->get('cid');
         $user = $this->repoUser->getByCustomerID($cid);
         $user = ApiZendesk::getUser($user->user_email);
-//        echo "<pre>";
-//        print_r($user); exit;
+        
+        $count = array("open" => 0, "pending" => 0, "solved" => 0, "closed" => 0);
         if($user){
             $tickets = ApiZendesk::getTickets($user->id);
             foreach($tickets as $ticket){
@@ -433,26 +434,64 @@ class UserController extends Controller
                 $item->requester_id = $ticket->requester_id;
                 $item->created_at = date("d/m/Y", strtotime($ticket->created_at));
                 $item->status = $ticket->status;
-//                $item->served_by = $this->getServedByInDescription($ticket->description);
-//                $item = $ticket;
+                if(isset($count[$item->status])){
+                    $count[$item->status]++;
+                } 
                 $list[] = $item;
             }
         }
         
-        return response()->json(['tickets' => $list], 200);
+        return response()->json(['tickets' => $list, 'count' => $count], 200);
     }
     
     public function getListTicketComment(Request $request){
+        $comments = array();
         $ticket_id = $request->get('ticket_id');
         $requester_id= $request->get('requester_id');
-//        echo $ticket_id; exit;
-        $comments = ApiZendesk::getTicketComments($ticket_id);
+
+        $items = ApiZendesk::getTicketComments($ticket_id);
+        if(isset($items[1]->html_body)){
+            $comments = $this->parseHTMLToListComment($items[1]->html_body);
+        }
         
-        echo "<pre>";
-        print_r($comments);
-        exit;
-        
-        
+        return response()->json(['comments' => $comments], 200);
+    }
+    
+    private function parseHTMLToListComment($html_body){
+        $comments = array();
+        $html_body = $html_body;
+        $html_body = str_replace("<br>", "------", $html_body);
+        $html_body = preg_replace("/<a\s(.+?)>(.+?)<\/a>/is", "%CUSTOMER%", $html_body);
+
+        $dom = new Dom();
+        $dom->load($html_body);
+        $p = $dom->find(".zd-comment p");
+        if(isset($p[1])){
+            $html = $p[1]->text;
+            $html = explode("------", $html);
+
+            foreach($html as $text){
+                if(strpos($text, "AM) ") || strpos($text, "PM) ")){
+                    if(substr_count($text, "***") == 2){
+                        continue;
+                    }
+                    $msg = substr($text, 13);
+                    $pos = strpos($msg, ":");
+                    $created_at = date("h:i A",strtotime(substr($text, 1, 11)));
+                    
+                    $comment = new \stdClass();
+                    $comment->created_at = $created_at;
+                    $comment->is_customer = strpos($text, "%CUSTOMER%") !== false ? 1 : 0;
+                    $comment->name = substr($msg, 0, $pos);
+                    $comment->message = substr($msg, $pos + 1);
+                    
+                    $comments[] = $comment;
+                }
+            }
+//            echo "<pre>";
+//            print_r($comments);
+        }
+        return $comments;
     }
     
     private function getServedByInDescription($description) {
