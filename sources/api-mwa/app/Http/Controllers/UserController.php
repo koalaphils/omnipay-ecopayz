@@ -434,6 +434,7 @@ class UserController extends Controller
                 $item->requester_id = $ticket->requester_id;
                 $item->created_at = date("d/m/Y", strtotime($ticket->created_at));
                 $item->status = $ticket->status;
+                $item->chat_id = $this->getChatIDByDescription($ticket->description);
                 if(isset($count[$item->status])){
                     $count[$item->status]++;
                 } 
@@ -446,15 +447,27 @@ class UserController extends Controller
     
     public function getListTicketComment(Request $request){
         $comments = array();
-        $ticket_id = $request->get('ticket_id');
-        $requester_id= $request->get('requester_id');
+        $chat_id = $request->get('chat_id');
 
-        $items = ApiZendesk::getTicketComments($ticket_id);
-        if(isset($items[1]->html_body)){
-            $comments = $this->parseHTMLToListComment($items[1]->html_body);
+        $chat = ApiZendesk::getChat($chat_id);
+        foreach($chat->history as $history){
+            if($history->type == "chat.msg"){
+                $item = new \stdClass();
+                $item->name = $history->name;
+                $item->timestamp = date("H:i A", strtotime($history->timestamp));
+                $item->is_visitor = $history->sender_type == "Visitor" ? 1 : 0;
+                $item->msg = $history->msg;
+                $comments[] = $item;
+            }
         }
         
         return response()->json(['comments' => $comments], 200);
+    }
+    
+    public function getAuthorizationCode(Request $request){
+        echo "<pre>";
+        print_r($request->all());
+        exit;
     }
     
     private function parseHTMLToListComment($html_body){
@@ -488,10 +501,22 @@ class UserController extends Controller
                     $comments[] = $comment;
                 }
             }
-//            echo "<pre>";
-//            print_r($comments);
         }
+        
         return $comments;
+    }
+    
+    private function getChatIDByDescription($description) {
+        $chat_id = "0000";
+        $desc_list = explode("\n", $description);
+        foreach ($desc_list as $desc) {
+            if (strpos($desc, "Chat ID") !== false){
+                $list = explode(" ", $desc);
+                $chat_id = end($list);
+                break;
+            }
+        }
+        return $chat_id;
     }
     
     private function getServedByInDescription($description) {

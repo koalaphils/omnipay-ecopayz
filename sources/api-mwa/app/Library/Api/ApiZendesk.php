@@ -28,6 +28,19 @@ class ApiZendesk {
         ));
         return $client;
     }
+    
+    private static function getChatClient(){
+        $client = new Client(array(
+            'base_uri' => "https://www.zopim.com/api/v2/",
+            'headers' => array(
+                'Content-Type' => "application/json",
+                'Authorization' => "Bearer TM1dakYIlpdDn9L3YaA1RmxEurwM3WsBjna8YCKLJT8vqVh2oAJPeg3VCMTmdctW"
+            ),
+//            'auth' => array('tieu.dat102@gmail.com', '123456a@A')
+        ));
+        return $client;
+        
+    }
 
     public static function getUser($email) {
         $client = self::getClient();
@@ -50,6 +63,13 @@ class ApiZendesk {
         $response = $client->get("tickets/$ticket_id/comments.json");
         $data = json_decode($response->getBody());
         return isset($data->comments) ? $data->comments : array();
+    }
+    
+    public static function getChat($chat_id){
+        $client = self::getChatClient();
+        $response = $client->get("chats/$chat_id");
+        $data = json_decode($response->getBody());
+        return !empty($data) ? $data : null;
     }
 
 }
