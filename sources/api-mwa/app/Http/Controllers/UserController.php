@@ -431,9 +431,6 @@ class UserController extends Controller
             foreach($tickets as $ticket){
                 $item = new \stdClass();
                 $item->chat_id = $this->getChatIDByDescription($ticket->description);
-                if($item->chat_id == ""){
-                    continue;
-                }
                 $item->ticket_id = $ticket->id;
                 $item->requester_id = $ticket->requester_id;
                 $item->created_at = date("d/m/Y", strtotime($ticket->created_at));
@@ -449,22 +446,40 @@ class UserController extends Controller
     }
     
     public function getListTicketComment(Request $request){
-        $comments = array();
+        $list = array();
+        $ticket_id = $request->get('ticket_id');
         $chat_id = $request->get('chat_id');
-
-        $chat = ApiZendesk::getChat($chat_id);
-        foreach($chat->history as $history){
-            if($history->type == "chat.msg"){
+        
+        if($chat_id == "0"){
+            $comments = ApiZendesk::getTicketComments($ticket_id);
+            if($comments){
+                $first = $comments[0];
+                $name = isset($first->via->source->to->address) ? $first->via->source->to->address : "";
+            }
+            foreach($comments as $i => $comment){
                 $item = new \stdClass();
-                $item->name = $history->name;
-                $item->timestamp = date("H:i A", strtotime($history->timestamp));
-                $item->is_visitor = $history->sender_type == "Visitor" ? 1 : 0;
-                $item->msg = $history->msg;
-                $comments[] = $item;
+                $item->name = $name;
+                $item->timestamp = date("H:i A", strtotime($comment->created_at));
+                $item->is_visitor = $i == 0 ? 1 : 0;
+                $item->msg = $comment->plain_body;
+                $list[] = $item;
+            }
+        }
+        else{
+            $chat = ApiZendesk::getChat($chat_id);
+            foreach($chat->history as $history){
+                if($history->type == "chat.msg"){
+                    $item = new \stdClass();
+                    $item->name = $history->name;
+                    $item->timestamp = date("H:i A", strtotime($history->timestamp));
+                    $item->is_visitor = $history->sender_type == "Visitor" ? 1 : 0;
+                    $item->msg = $history->msg;
+                    $list[] = $item;
+                }
             }
         }
         
-        return response()->json(['comments' => $comments], 200);
+        return response()->json(['comments' => $list], 200);
     }
     
     public function getAuthorizationCode(Request $request){
@@ -510,7 +525,7 @@ class UserController extends Controller
     }
     
     private function getChatIDByDescription($description) {
-        $chat_id = "";
+        $chat_id = "0";
         $desc_list = explode("\n", $description);
         foreach ($desc_list as $desc) {
             if (strpos($desc, "Chat ID") !== false){
