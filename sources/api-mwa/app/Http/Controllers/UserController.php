@@ -430,11 +430,14 @@ class UserController extends Controller
             $tickets = ApiZendesk::getTickets($user->id);
             foreach($tickets as $ticket){
                 $item = new \stdClass();
+                $item->chat_id = $this->getChatIDByDescription($ticket->description);
+                if($item->chat_id == ""){
+                    continue;
+                }
                 $item->ticket_id = $ticket->id;
                 $item->requester_id = $ticket->requester_id;
                 $item->created_at = date("d/m/Y", strtotime($ticket->created_at));
                 $item->status = $ticket->status;
-                $item->chat_id = $this->getChatIDByDescription($ticket->description);
                 if(isset($count[$item->status])){
                     $count[$item->status]++;
                 } 
@@ -507,7 +510,7 @@ class UserController extends Controller
     }
     
     private function getChatIDByDescription($description) {
-        $chat_id = "0000";
+        $chat_id = "";
         $desc_list = explode("\n", $description);
         foreach ($desc_list as $desc) {
             if (strpos($desc, "Chat ID") !== false){
