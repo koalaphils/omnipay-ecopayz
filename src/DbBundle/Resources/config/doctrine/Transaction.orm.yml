@@ -189,7 +189,10 @@ DbBundle\Entity\Transaction:
         email:
             type: string
             length: 255
-            column: transaction_email       
+            column: transaction_email
+        productId:
+            type: integer            
+            column: transaction_product_id               
     manyToOne:
         customer:
             targetEntity: DbBundle\Entity\Customer

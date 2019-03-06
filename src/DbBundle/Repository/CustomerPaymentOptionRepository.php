@@ -2,6 +2,8 @@
 
 namespace DbBundle\Repository;
 
+use DbBundle\Entity\Transaction;
+
 /**
  * CustomerPaymentOptionRepository
  *

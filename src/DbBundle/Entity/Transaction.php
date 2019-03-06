@@ -104,6 +104,8 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     private $virtualBitcoinSenderAddress;
     private $virtualBitcoinReceiverUniqueAddress;
     private $product;
+    private $productId;
+    private $customerId;
     private $email;
 
     /**
@@ -627,8 +629,9 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
                 'id' => $this->getCustomer()->getAffiliate()->getId(),
                 'f_name' => $this->getCustomer()->getAffiliate()->getFName(),
                 'l_name' => $this->getCustomer()->getAffiliate()->getLName(),
-                'user' => ['username' => $this->getCustomer()->getAffiliate()->getUser()->getUsername(), 'product_username' => $this->getCustomer()->getPinUserCode()],
+                'user' => ['username' => $this->getCustomer()->getAffiliate()->getUser()->getUsername()],
                 'full_name' => $this->getCustomer()->getAffiliate()->getFullName(),                
+                'product_username' => $this->getCustomer()->getPinUserCode()
             ]);
         }
     }
@@ -1525,5 +1528,29 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     public function getEmail()
     {
         return $this->email;
+    }
+
+    /**
+     * Set product id.
+     *
+     * @param string $productId
+     *
+     * @return Transaction
+     */
+    public function setProductId($id)
+    {
+        $this->productId = $id;
+
+        return $this;
+    }
+
+    /**
+     * Get product.
+     *
+     * @return string
+     */
+    public function getProductId()
+    {
+        return $this->productId;
     }
 }

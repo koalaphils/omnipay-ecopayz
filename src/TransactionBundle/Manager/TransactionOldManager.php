@@ -227,7 +227,7 @@ class TransactionOldManager extends AbstractManager
         $res = $qu->fetchAll()[0];
         $amount = $res['transaction_amount'];        
         $customer_id = $res['transaction_customer_id'];
-        $query = 'select user_username as userCode from user u join customer c on c.customer_user_id = u.user_id where c.customer_id = ' . $customer_id;
+        $query = 'select c.customer_pin_user_code as userCode from user u join customer c on c.customer_user_id = u.user_id where c.customer_id = ' . $customer_id;
         $qu = $em->getConnection()->prepare($query);
         $qu->execute();
         $res = $qu->fetchAll()[0];
@@ -262,12 +262,15 @@ class TransactionOldManager extends AbstractManager
                CURLOPT_POSTFIELDS => $pdata 
             ));
                     
-            $response = curl_exec($curl);            
+            $response = curl_exec($curl);                        
             $res = json_decode($response);            
             $res = json_decode($res);            
+            
+            // pin response null
+            if (is_null($res)) {
+                return json_encode(['error' => true, 'error_code' => 500, 'message' => 'PIN response null']);
+            }
 
-
-            // {\\\"code\\\":\\\"309\\\",\\\"message\\\":\\\"Your balance is not enough.\\\"} 
             if (array_key_exists('code', $res)) {
                 $res_code = $res->code;
                 $res_message = $res->message;   
@@ -275,10 +278,7 @@ class TransactionOldManager extends AbstractManager
                                 
                 return json_encode($res);
                 
-            }
-
-            // echo json_encode([$userCode, $amount, $res]);exit();            
-            // {"amount":1,"loginId":"PS7110009E","userCode":"PS7110009E","availableBalance":13}             
+            }            
         }
         
         /* @var $subTransaction SubTransaction */        

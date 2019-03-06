@@ -80,14 +80,15 @@ class SmsCodeController extends Controller
                             
         // via phone
         if ($rdata['signupType'] == 0) {
-            $phoneNumber = $rdata['nationCode'] . ltrim($rdata['phoneNumber'], "0");
+            // $phoneNumber = $rdata['nationCode'] . ltrim($rdata['phoneNumber'], "0");
+            $phoneNumber = $rdata['nationCode'] . $rdata['phoneNumber'];
             $phoneMessage = 'Piwi verify code is: ' . $sms->sms_code_value;
             $res = $this->sendCode($phoneNumber, $phoneMessage);
 
             // return response()->json(['error' => true , 'status' => 400, 'data'=> $rdata, 'sms_res'=> $res], 201);
 
             $sms->sms_code_json = json_encode($res);
-            $sms->sms_code_customer_phone_number = $phoneNumber;                                
+            $sms->sms_code_customer_phone_number = ltrim($phoneNumber, "+");                              
             $sms->sms_code_provider_id = '1';
             $sms->sms_code_source_phone_number = '+972525436769';
         } else {            

@@ -199,7 +199,7 @@ class TransactionRepository
             ->andWhere("JSON_CONTAINS(transaction.details, 'false', '$.bitcoin.acknowledged_by_user') = true")
             ->setParameter('customer', $member)
             ->setParameter('paymentMode', PaymentOption::PAYMENT_MODE_BITCOIN)
-            ->setParameter('status', [Transaction::TRANSACTION_STATUS_END], Connection::PARAM_INT_ARRAY)
+            ->setParameter('status', [Transaction::TRANSACTION_STATUS_END, Transaction::TRANSACTION_STATUS_DECLINE], Connection::PARAM_INT_ARRAY)
         ;
 
         return $queryBuilder->getQuery()->getOneOrNullResult();

@@ -34,8 +34,9 @@ class Transaction
     private $bankDetails;
     #zimi
     private $amount;
-    private $bitcoinRate;
+    private $bitcoinRate;    
     private $product;
+    private $customerBitcoinAddress;
     
     private $accountId;
     private $file;
@@ -247,6 +248,30 @@ class Transaction
         return $this->bitcoinRate;
     }
 
+    /**
+     * Set Customer Bitcoin Address
+     *
+     * @param string $bitcoinRate
+     *
+     * @return string
+     */
+    public function setCustomerBitcoinAddress($address = '')
+    {
+        $this->customerBitcoinAddress = $address;
+
+        return $this;
+    }
+
+    /**
+     * Get Customer Bitcoin Address
+     *
+     * @return string
+     */
+    public function getCustomerBitcoinAddress()
+    {
+        return $this->customerBitcoinAddress;
+    }
+
     public function getFile(): ?UploadedFile
     {
         return $this->file;
@@ -263,3 +288,4 @@ class Transaction
         return $this->type;
     }
 }
+

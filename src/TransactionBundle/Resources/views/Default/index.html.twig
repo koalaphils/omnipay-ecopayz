@@ -65,7 +65,7 @@
                         <tr>
                             <th data-priority="1">{{ "fields.number"|trans({}, "TransactionBundle") }}</th>
                             <th>{{ "fields.date"|trans({}, "TransactionBundle") }}</th>
-                            <th>{{ "fields.member"|trans({}, "TransactionBundle") }}</th>
+                            <th>{{ "fields.username"|trans({}, "TransactionBundle") }}</th>
                             <th>{{ "fields.productUsername"|trans({}, "TransactionBundle") }}</th>
                             <th>{{ "fields.paymentOption"|trans({}, "TransactionBundle") }}</th>
                             <th>{{ "fields.currency"|trans({}, "TransactionBundle") }}</th>
@@ -465,9 +465,12 @@
                         'defaultContent': ''                        
                     },
                     {
-                        'data': 'customer.user.product_username',                        
+                        'data': 'customer',                        
                         'name': 'customer.user.product_username',
                         'defaultContent': '',                                                    
+                        'render': function (data, type, full) {
+                            console.log(data);
+                        }  
                     },
                     {
                         'data': 'immutable_payment_option_data',

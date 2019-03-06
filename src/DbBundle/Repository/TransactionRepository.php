@@ -119,7 +119,7 @@ class TransactionRepository extends BaseRepository
         $qb = $this->getListQb($filters);
         $qb->select(
             'PARTIAL t.{id,number, customer, currency, amount, type, date, status, isVoided, details, gateway}',
-            'PARTIAL c.{id, fName, mName, lName}',
+            'PARTIAL c.{id, fName, mName, lName, pinUserCode}',
             'PARTIAL cu.{id, code, name}'
         );
 
@@ -196,11 +196,14 @@ class TransactionRepository extends BaseRepository
         $queryBuilder->setMaxResults($limit);
         $queryBuilder->setFirstResult($offset);
         if (empty($select)) {
-            $queryBuilder->select('transaction');
+            $queryBuilder->leftJoin(CustomerProduct::class, 'cp','WITH','cp.customerID = transaction.customer and cp.productID = 29');                    
+            $queryBuilder->addSelect('cp'); 
+            $queryBuilder->select('transaction');                         
+            
         } else {
             $queryBuilder->select($select);
         }
-
+     
         foreach ($orders as $order) {
             $queryBuilder->addOrderBy($order['column'], $order['dir']);
         }

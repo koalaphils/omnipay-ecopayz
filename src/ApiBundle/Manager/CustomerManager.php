@@ -73,6 +73,7 @@ class CustomerManager extends AbstractManager
         $pinUserCode = $registerModel->getPinUserCode();
         $pinLoginId = $registerModel->getPinLoginId();
         $email = $registerModel->getEmail() ? trim($registerModel->getEmail()) : null;
+        $email = str_replace('+','', $email);
         $phoneNumber = $registerModel->getPhoneNumber() ? trim($registerModel->getPhoneNumber()) : null;
         
         // if (isset($email) && $email != '') {
@@ -95,12 +96,12 @@ class CustomerManager extends AbstractManager
         $user = new User();        
         $signupType = $registerModel->getSignupType();
         $user->setSignupType($signupType);
-        if ($signupType == 0) {           
-            $username = $countryPhoneCode . substr($phoneNumber, 1);
+        if ($signupType == 0) {                       
+            $username = str_replace('+','', $countryPhoneCode) . $phoneNumber;
         } else {
             $username = $email;
         }
-        
+
         $user->setUsername($username);        
         $user->setEmail($email);
         $user->setPhoneNumber($phoneNumber);
@@ -134,8 +135,7 @@ class CustomerManager extends AbstractManager
         $customer->setFName($fName);
         $customer->setMName($mName);
         $customer->setLName($lName);
-
-        $customer->setFullName("Customer" . " " . $pinLoginId);
+        $customer->setFullName('');
         $customer->setPinLoginId($pinLoginId);
         $customer->setPinUserCode($pinUserCode);
 //        $customer->setContacts([
@@ -163,8 +163,15 @@ class CustomerManager extends AbstractManager
 //            ],
 //            'enabled' => false,
 //        ]);
-        $customer->setBalance(0);
+        $customer->setBalance(0);        
         $customer->setJoinedAt(new \DateTime('now'));
+        $customerProduct = new CustomerProduct();
+        $productEntity = $this->getProductRepository()->findByCode('PINBET');
+        $customerProduct->setProduct($productEntity);
+        $customerProduct->setUsername($pinUserCode);
+        $customerProduct->setBalance('0.00');
+        $customerProduct->setIsActive(true);
+        $customer->addProduct($customerProduct);
 
 //        foreach ($bookies as $key => $id) {
 //            $userName = $id->getUsername();

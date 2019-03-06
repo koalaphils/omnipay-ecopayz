@@ -94,7 +94,14 @@ class UserController extends Controller
             $url = $this->base_url_pinnacle . '/login';
             $res_pin_login = $this->callApi($url, json_encode($data_login), 'POST');        
             $res_pin_login = json_decode($res_pin_login);
-            $res_pin = json_decode($res_pin_login);            
+            $res_pin = json_decode($res_pin_login);  
+
+            // validate pin response
+            $obj_type = gettype($res_pin);
+            if ($obj_type != 'object') {
+                return response()->json(['error' => true, 'message'=> 'Logging failure', 'status' => 200, 'data' => null], 200);
+            }
+            
             $res_login_url = 'https://' . $res_pin->loginUrl;
 
             $data['session'] = array();
@@ -282,9 +289,9 @@ class UserController extends Controller
             $data['session'] = null;
         }else{
             $data['session'] = [
-                'fullName' => $res_bo->full_name, 
-                'availableBalance' => $res_bo->full_name, 
-                'joinedAt' => $res_bo->joined_at,
+                'fullName' => '', 
+                'availableBalance' => '', 
+                'joinedAt' => '',
                 'signupType' => $post['signupType'],
                 'email' => $post['email'],
                 'phoneCode' => $post['nationCode'],

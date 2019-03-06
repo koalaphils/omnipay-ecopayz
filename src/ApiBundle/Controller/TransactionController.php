@@ -21,6 +21,7 @@ use GuzzleHttp\Client as GuzzleClient;
 use Http\Adapter\Guzzle6\Client as GuzzleAdapter;
 use Http\Client\Common\HttpMethodsClient;
 use Http\Message\MessageFactory\GuzzleMessageFactory;
+use DbBundle\Repository\CustomerPaymentOptionRepository;
 
 class TransactionController extends AbstractController
 {
@@ -232,7 +233,7 @@ class TransactionController extends AbstractController
             $transactionModel->setAmount($amount);
             $transactionModel->setBitcoinRate($bitcoinRate);
             $transactionModel->setProduct($product[0]);
-            
+
             try {                
                 $transaction = $this->getTransactionManager()->handleDeposit($transactionModel);
                 $transactionNumber = $transaction->getNumber();                
@@ -339,7 +340,7 @@ class TransactionController extends AbstractController
         // zimi - check $customer is null
         $amount = $transaction['amount'];
         $smsCode = $transaction['smsCode'];
-
+        
         $customerRepository = $this->getDoctrine()->getManager()->getRepository(Customer::class);
         if ($customer === null) {
             $customer_id = $transaction['customer'];
@@ -347,7 +348,7 @@ class TransactionController extends AbstractController
             $availableBalance = $customer->getBalance();
 
             $availableBalance = number_format((float)$availableBalance, 2, '.', ''); 
-            $amount = number_format((float)$amount, 2, '.', ''); 
+            $amount = number_format((float)$amount, 2, '.', '');            
             
             // zimi-bypass
             if ($this->verifySmsCode($transaction) == false){
@@ -363,6 +364,14 @@ class TransactionController extends AbstractController
 
         
         $memberPaymentOption = $this->getCustomerPaymentOptionRepository()->find($transaction['paymentOption']);
+        $paymentOptionType = $transaction['paymentOptionType'];
+        $memberPaymentOptionId = $transaction['paymentOption'] ?? 0;        
+        $paymentOption = $this->getPaymentOptionRepository()->find($paymentOptionType);        
+        $defaultGroup = ['Default', 'withdraw'];
+        if ($paymentOption->isPaymentBitcoin() && $paymentOption->hasRequiredField('account_id')) {
+            $hasAccountId = true;
+            $defaultGroup = array_merge($defaultGroup, ['withAccountId']);
+        }
 
         $tempTransactionModel = new \ApiBundle\Model\Transaction();
         $tempTransactionModel->setCustomer($customer);
@@ -370,6 +379,12 @@ class TransactionController extends AbstractController
 
         if (array_key_exists('bankDetails', $transaction)) {
             $tempTransactionModel->setBankDetails($transaction['bankDetails']);
+        }
+
+        // namdopin
+        $customerBitcoinAddress = '';
+        if (array_key_exists('bitcoinAddress', $transaction)) {            
+            $customerBitcoinAddress = $transaction['bitcoinAddress'];            
         }
 
         unset($transaction['paymentOption']);
@@ -381,10 +396,10 @@ class TransactionController extends AbstractController
         $form->submit($transaction);
         // && $form->isValid()
         if ($form->isSubmitted()) {
-                        
             $transactionModel = $form->getData();
-            if ($paymentOption->isPaymentBitcoin()) {
-                $memberPaymentOptionRequestedByAccountId = $this->getCustomerPaymentOptionRepository()->findByMemberPaymentOptionAccountId($customer->getId(), $transactionModel->getAccountId(), Transaction::TRANSACTION_TYPE_WITHDRAW);
+            if ($paymentOption->isPaymentBitcoin()) {                                
+                $accountId = $customerBitcoinAddress;
+                $memberPaymentOptionRequestedByAccountId = $this->getCustomerPaymentOptionRepository()->findByMemberPaymentOptionAccountId($customer->getId(), $accountId, Transaction::TRANSACTION_TYPE_WITHDRAW);
                 if ($memberPaymentOptionId === 0 && !is_null($memberPaymentOptionRequestedByAccountId)) {
                     $memberPaymentOption = $memberPaymentOptionRequestedByAccountId;                    
                 } elseif ($memberPaymentOptionId !== 0) {
@@ -392,14 +407,17 @@ class TransactionController extends AbstractController
                 } else {
                     $memberPaymentOption = $this->getTransactionManager()->addCustomerPaymentOption($customer, $paymentOptionType, $transactionTemp, Transaction::TRANSACTION_TYPE_WITHDRAW);
                 }
-                $memberPaymentOption = $this->getTransactionManager()->updateMemberPaymentOptionAccountId($memberPaymentOption, $transactionModel->getAccountId());
+                $memberPaymentOption = $this->getTransactionManager()->updateMemberPaymentOptionAccountId($memberPaymentOption, $accountId);
             } else {
                 $memberPaymentOption = $this->getCustomerPaymentOptionRepository()->find($memberPaymentOptionId);
             }
             $transactionModel->setCustomer($customer);
             $transactionModel->setPaymentOption($memberPaymentOption);
+
             // zimi
             $transactionModel->setAmount($amount);
+            $transactionModel->setCustomerBitcoinAddress($customerBitcoinAddress);
+            $transactionModel->setAccountId($customerBitcoinAddress);
 
             $transaction = $this->getTransactionManager()->handleWithdraw($transactionModel);
             
@@ -688,3 +706,4 @@ class TransactionController extends AbstractController
         return $res;
     }
 }
+
