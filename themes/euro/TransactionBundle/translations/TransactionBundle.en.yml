@@ -41,6 +41,7 @@ fields:
     status: Status
     amount: Amount
     member: Member
+    username: Username
     productUsername: Product (Username)
     paymentOption: Payment Option
     type: Type

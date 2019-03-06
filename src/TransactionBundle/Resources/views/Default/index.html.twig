@@ -177,8 +177,13 @@
                     },
                     'dataFilter': function (str) {
                         var draw = this.draw;
-                        var json = $.parseJSON( str );
-
+                        var json = $.parseJSON( str );                        
+                        var records = [];
+                        for (var i in json.records){
+                            records[i] = json.records[i][0];
+                            records[i]['username_product'] = json.records[i]['username_product'];
+                        }
+                        json.records = records;                        
                         return JSON.stringify({
                             'draw': draw,
                             'data': json.records,
@@ -465,12 +470,9 @@
                         'defaultContent': ''                        
                     },
                     {
-                        'data': 'customer',                        
-                        'name': 'customer.user.product_username',
-                        'defaultContent': '',                                                    
-                        'render': function (data, type, full) {
-                            console.log(data);
-                        }  
+                        'data': 'username_product',                        
+                        'name': 'username_product',
+                        'defaultContent': '',                                                                            
                     },
                     {
                         'data': 'immutable_payment_option_data',

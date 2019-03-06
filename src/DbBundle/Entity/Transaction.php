@@ -104,8 +104,8 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     private $virtualBitcoinSenderAddress;
     private $virtualBitcoinReceiverUniqueAddress;
     private $product;
-    private $productId;
-    private $customerId;
+    private $productID;
+    private $customerID;
     private $email;
 
     /**
@@ -1533,13 +1533,13 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     /**
      * Set product id.
      *
-     * @param string $productId
+     * @param string $productID
      *
      * @return Transaction
      */
-    public function setProductId($id)
+    public function setProductID($id)
     {
-        $this->productId = $id;
+        $this->productID = $id;
 
         return $this;
     }
@@ -1549,8 +1549,32 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
      *
      * @return string
      */
-    public function getProductId()
+    public function getProductID()
     {
-        return $this->productId;
+        return $this->productID;
+    }
+
+    /**
+     * Set customer id.
+     *
+     * @param string $customerID
+     *
+     * @return Transaction
+     */
+    public function setCustomerID($id)
+    {
+        $this->customerID = $id;
+
+        return $this;
+    }
+
+    /**
+     * Get product.
+     *
+     * @return string
+     */
+    public function getCustomerID()
+    {
+        return $this->customerID;
     }
 }

@@ -44,11 +44,10 @@ widgets:
                     label: Country
                     type: text
                     from: 'customer.country.name'
-                currency:
-                    label: Currency
-                    type: text
-                    from: customer.currency.code
-                    filterable: false
+                # currency:
+                #     label: Currency
+                #     type: text
+                #     from: customer.currency.code                                                    
                 kyc:
                     label: KYC
                     type: function
@@ -149,7 +148,7 @@ widgets:
                         title: Currency
                         multiple: multiple
                         data-width: auto
-                        data-size: 5
+                        data-size: 5                                                 
                     value: :currency
                     choicesFrom:
                         function: '@currency.manager::getCurrencyList'

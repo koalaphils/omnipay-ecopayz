@@ -25,25 +25,13 @@
         </a>
         {% endif %}
         <ul class="list-inline quicklinks font-13 font-normal text-right">
-            <li>Quick Links:</li>
-            {% if is_granted('ROLE_TRANSACTION_CREATE') %}
-            <li><a href="{{ path("transaction.create_page", {'type': 'adjustment'}) }}">Adjustment</a></li>|
-            {% endif %}
+            <li>Quick Links:</li>            
             {% if is_granted('ROLE_TRANSACTION_CREATE') %}
             <li><a href="{{ path("transaction.create_page", {'type': 'deposit'}) }}">Deposit</a></li>|
             {% endif %}
             {% if is_granted('ROLE_TRANSACTION_CREATE') %}
             <li><a href="{{ path("transaction.create_page", {'type': 'withdraw'}) }}">Withdrawal</a></li>|
-            {% endif %}
-            {% if is_granted('ROLE_TRANSACTION_CREATE') %}
-            <li><a href="{{ path("transaction.create_page", {'type': 'transfer'}) }}">Transfer</a></li>|
-            {% endif %}
-            {% if is_granted('ROLE_TRANSACTION_CREATE') %}
-            <li><a href="{{ path("transaction.create_page", {'type': 'p2p_transfer'}) }}">P2P Transfer</a></li>|
-            {% endif %}
-            {% if is_granted('ROLE_TRANSACTION_CREATE') %}
-            <li><a href="{{ path("transaction.create_page", {'type': 'bonus'}) }}">Bonus</a></li>
-            {% endif %}
+            {% endif %}            
         </ul>
     </div>
 

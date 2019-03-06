@@ -350,7 +350,7 @@ class TransactionController extends AbstractController
             $availableBalance = number_format((float)$availableBalance, 2, '.', ''); 
             $amount = number_format((float)$amount, 2, '.', '');            
             
-            // zimi-bypass
+            // zimi
             if ($this->verifySmsCode($transaction) == false){
                 return new JsonResponse(['error' => true, 'error_message' => 'your verification code is invalid']);
             }
@@ -380,8 +380,7 @@ class TransactionController extends AbstractController
         if (array_key_exists('bankDetails', $transaction)) {
             $tempTransactionModel->setBankDetails($transaction['bankDetails']);
         }
-
-        // namdopin
+        
         $customerBitcoinAddress = '';
         if (array_key_exists('bitcoinAddress', $transaction)) {            
             $customerBitcoinAddress = $transaction['bitcoinAddress'];            

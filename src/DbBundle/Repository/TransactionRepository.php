@@ -195,12 +195,11 @@ class TransactionRepository extends BaseRepository
         $queryBuilder = $this->createFilterQueryBuilder($filters);
         $queryBuilder->setMaxResults($limit);
         $queryBuilder->setFirstResult($offset);
-        if (empty($select)) {
-            $queryBuilder->leftJoin(CustomerProduct::class, 'cp','WITH','cp.customerID = transaction.customer and cp.productID = 29');                    
-            $queryBuilder->addSelect('cp'); 
-            $queryBuilder->select('transaction');                         
-            
-        } else {
+        if (empty($select)) {            
+            $queryBuilder->leftJoin(CustomerProduct::class, "cp", "WITH", "cp.productID = transaction.productID and cp.customerID = transaction.customerID")
+            ->select("transaction, cp.userName username_product");
+            // ->addSelect('cp.userName username_product');            
+        } else {            
             $queryBuilder->select($select);
         }
      

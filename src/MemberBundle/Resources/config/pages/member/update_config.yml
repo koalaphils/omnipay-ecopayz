@@ -66,6 +66,7 @@ widgets:
                 fullName:
                     options:
                         label: Full Name
+                        required: false
                     type: text
                     size: 12
                     size: 12
