@@ -307,9 +307,21 @@ class TransactionController extends Controller
         $customer = (array) $customer[0];
         $customer_id = $customer['customer_id'];
         
+        if(!empty($post['filter']['type'])){
+            $post['filter']['type'] = array($post['filter']['type']);
+        }
+        if(!empty($post['filter']['status'])){
+            $post['filter']['status'] = array($post['filter']['status']);
+        }
+        if(!empty($post['filter']['paymentOption'])){
+            $post['filter']['paymentOption'] = array($post['filter']['paymentOption']);
+        }
+        
+//        echo "<pre>";
+//        print_r($post); exit;
         // $url = env('API_PIWI_BO_TRANSACTIONS');
         $url = $this->base_url_piwi_bo . '/me/transactions';
-        $data_bo = ['cid' => $customer_id, 'search' => $post['search'], 'filter' => $post['filter']];
+        $data_bo = ['cid' => $customer_id, 'search' => $post['search'], 'filter' => $post['filter'], 'limit' => 50];
         
         $res_bo = $this->callApiBo($url,  json_encode($data_bo), 'POST', $headers); 
         $res_bo = json_decode($res_bo);        
