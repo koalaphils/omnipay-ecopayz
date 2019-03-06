@@ -47,6 +47,7 @@ class SmsCodeController extends Controller
         $from = '+972525436769';
 
         $url = 'https://api.twilio.com/2010-04-01/Accounts/'.$sid.'/Messages.json';
+        // U0szZjVlNDhkMWYyNjYzZTUzYjYwOTY0ZTc0NWJhYzJiZjp6OXhpWWg4dTdBSDBiZXBZcTJYQUF4Y3owSTlDcUpIUw==
         $api_key = $api_key_sid . ':' . $api_key_secret;
         $data = array(                
             'From' => $from,

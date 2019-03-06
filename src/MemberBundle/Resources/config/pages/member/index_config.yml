@@ -32,11 +32,14 @@ widgets:
                     activeTab: profile
             columns:
                 customer:
-                    label: Full Name
+                    label: Username
+                    type: text
+                    from: customer.user.username
+                product_username:
+                    label: ProductId
                     type: function
-                    function: listFullname
-                    attrs:
-                        data-priority: 1
+                    function: getProductUsername
+                    from: customer
                 country:
                     label: Country
                     type: text
@@ -45,6 +48,7 @@ widgets:
                     label: Currency
                     type: text
                     from: customer.currency.code
+                    filterable: false
                 kyc:
                     label: KYC
                     type: function

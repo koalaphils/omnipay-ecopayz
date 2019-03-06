@@ -403,7 +403,8 @@ class CustomerController extends AbstractController
         $registeredCustomer = $request->request->get('register');    
     
         // zimi                
-        $full_phone = $registeredCustomer['countryPhoneCode'] . substr($registeredCustomer['phoneNumber'], 1);
+        // $full_phone = $registeredCustomer['countryPhoneCode'] . substr($registeredCustomer['phoneNumber'], 1);
+        $full_phone = $registeredCustomer['countryPhoneCode'] . $registeredCustomer['phoneNumber'];
 
         if ($registeredCustomer['signupType'] == 0) {
             $query = 'SELECT sms_code_value FROM piwi_system_log_sms_code WHERE sms_code_customer_phone_number = \''.$full_phone.'\' order by sms_code_created_at desc limit 1';

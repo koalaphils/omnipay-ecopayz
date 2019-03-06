@@ -96,6 +96,7 @@ class User extends Entity implements ActionInterface, TimestampInterface, Advanc
     private $creator;
     private $auditRevision;
     private $restoreId;
+    private $signupType;
 
     public function __construct()
     {
@@ -210,6 +211,30 @@ class User extends Entity implements ActionInterface, TimestampInterface, Advanc
     public function getType()
     {
         return $this->type;
+    }
+
+    /**
+     * Set signup type
+     *
+     * @param int $signupType
+     *
+     * @return User
+     */
+    public function setSignupType($type)
+    {
+        $this->signupType = $type;
+
+        return $this;
+    }
+
+    /**
+     * Get signup type
+     *
+     * @return int
+     */
+    public function getSignupType()
+    {
+        return $this->signupType;
     }
 
     /**

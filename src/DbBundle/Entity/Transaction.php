@@ -627,8 +627,8 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
                 'id' => $this->getCustomer()->getAffiliate()->getId(),
                 'f_name' => $this->getCustomer()->getAffiliate()->getFName(),
                 'l_name' => $this->getCustomer()->getAffiliate()->getLName(),
-                'user' => ['username' => $this->getCustomer()->getAffiliate()->getUser()->getUsername()],
-                'full_name' => $this->getCustomer()->getAffiliate()->getFullName(),
+                'user' => ['username' => $this->getCustomer()->getAffiliate()->getUser()->getUsername(), 'product_username' => $this->getCustomer()->getPinUserCode()],
+                'full_name' => $this->getCustomer()->getAffiliate()->getFullName(),                
             ]);
         }
     }

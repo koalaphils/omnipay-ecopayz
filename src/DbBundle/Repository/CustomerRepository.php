@@ -198,7 +198,7 @@ class CustomerRepository extends BaseRepository
         $qb = $this->getCustomerListQb($filters);
         $qb
             ->select(
-                "PARTIAL c.{id, fName, mName, lName, fullName, country, currency, balance, socials, level, isAffiliate, isCustomer, details, verifiedAt, joinedAt, tags}, "
+                "PARTIAL c.{id, fName, mName, lName, fullName, country, currency, balance, socials, level, isAffiliate, isCustomer, details, verifiedAt, joinedAt, tags, pinUserCode}, "
                 . "PARTIAL u.{username, id, email, preferences, createdAt, isActive, activationTimestamp, creator}, "
                 . "PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}, "
                 . "PARTIAL a.{id},"
@@ -450,7 +450,7 @@ class CustomerRepository extends BaseRepository
         $status = true;
         $qb = $this->createFilterQueryBuilder($filters);
         $qb->select(
-            "PARTIAL c.{id, fName, mName, lName, fullName, country, currency, balance, socials, level, isAffiliate, isCustomer, details, verifiedAt, joinedAt, tags}, "
+            "PARTIAL c.{id, fName, mName, lName, fullName, country, currency, balance, socials, level, isAffiliate, isCustomer, details, verifiedAt, joinedAt, tags, pinUserCode}, "
             . "PARTIAL u.{username, id, email, preferences, createdAt, isActive,
                 activationTimestamp, creator}, "
             . "PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}, "

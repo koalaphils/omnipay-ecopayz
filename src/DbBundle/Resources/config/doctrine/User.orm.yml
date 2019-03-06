@@ -50,6 +50,12 @@ DbBundle\Entity\User:
             column: user_type
             options:
                 default: 1
+        signupType:
+            type: integer
+            length: 1
+            column: user_signup_type
+            options:
+                default: 0
         isActive:
             type: boolean
             options:

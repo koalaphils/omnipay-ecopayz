@@ -43,6 +43,9 @@ DbBundle\Entity\Customer:
         verifiedAt:
             expose: true
             type: DateTime<'Y-m-d H:i:s'>
+        pinUserCode:
+            expose: true
+            type: string
         paymentOptions:
             groups: ['paymentOptions']
         tags:

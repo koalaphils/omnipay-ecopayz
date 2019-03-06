@@ -159,7 +159,7 @@
 
                         return hidden;
                     },
-                    'exclude': ['number', 'customer.full_name']
+                    'exclude': ['number', 'customer.user.username']
                 },
                 'search': '{{ app.request.get("search", '') }}',
                 'featuresDom': "<'form-inline'"
@@ -460,44 +460,14 @@
                         }
                     },
                     {
-                        'name': 'customer.full_name',
-                        'data': 'customer.full_name',
-                        'defaultContent': ''
+                        'name': 'customer.user.username',
+                        'data': 'customer.user.username',
+                        'defaultContent': ''                        
                     },
                     {
-                        'data': 'sub_transactions',
-                        'defaultContent': '',
-                        'name': 'sub_transactions',
-                        'render': function (data, type, full) {
-
-                            if (data === null) {
-                                return '';
-                            }
-
-                            var productUsername = '';
-                            $.each(data , function(key,val) {
-                                var customerProductUserName = val.immutable_customer_product_data === '' ? val.customer_product.username : val.immutable_customer_product_data;
-                                productUsername  += '&nbsp;' + val.customer_product.product.name + '(' + customerProductUserName + '),';
-                            });
-
-                            productUsername = productUsername.replace(/,*$/, "");
-                            productUsername = productUsername.split(",");
-                            var moreThan = '';
-                            $i = 1;
-                            if (productUsername.length > 2) {
-
-                                $.each(productUsername , function(key,val) {
-                                    moreThan  += val + ',';
-                                    if ($i == 2) {
-                                        productUsername = moreThan;
-                                    }
-                                    $i++;
-                                });
-                                productUsername = productUsername.replace(/,*$/, "...");
-                            }
-
-                            return productUsername;
-                        }
+                        'data': 'customer.user.product_username',                        
+                        'name': 'customer.user.product_username',
+                        'defaultContent': '',                                                    
                     },
                     {
                         'data': 'immutable_payment_option_data',
@@ -646,7 +616,7 @@
                 var transactionNumber = data.number;
                 var tdDate = '<dt>Transaction Date</dt><dd>'+ moment(data.date).format('YYYY/MM/DD') + '</dd>';
                 var tdGateway = data.gateway != null ? '<dt>Payment Gateway</dt><dd>' + data.gateway.name + '</dd>' : '';
-                var tdCustomer = '<dt>Member</dt><dd>'+ data.customer.full_name + '</dd>';
+                var tdCustomer = '<dt>Member</dt><dd>'+ data.customer.user.username + '</dd>';
                 var tdCustomerFee = '<dt>Member Fee</dt><dd>'+ data.currency.code + '&nbsp;' + data.customer_fee + '</dd>';
                 var tdAmountDeposited = '<dt>Amount Deposited</dt><dd>'+ data.currency.code + '&nbsp;' + data.amount + '</dd>';
 
