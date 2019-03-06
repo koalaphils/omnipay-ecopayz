@@ -69,7 +69,7 @@ class ApiZendesk {
         $client = self::getChatClient();
         $response = $client->get("chats/$chat_id");
         $data = json_decode($response->getBody());
-        return !empty($data) ? $data : null;
+        return !empty($data) ? $data : array();
     }
 
 }
