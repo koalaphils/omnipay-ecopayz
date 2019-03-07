@@ -59,7 +59,6 @@ class CaptureAction implements ActionInterface
 
         /* @var $member \DbBundle\Entity\Customer */
         $member = $transaction->getCustomer();
-
         $notifyToken = $this->tokenFactory->createToken(
             $request->getToken()->getGatewayName(),
             $member,
@@ -71,8 +70,6 @@ class CaptureAction implements ActionInterface
         if (!$member->equalsToBitcoinCallback($callback)) {
             $payment = $request->getModel();
             $gateway = $payment['gateway'];
-            $xpub = $gateway->getConfig()['receiverXpub'];
-
             $gateway_configs = $gateway->getConfig();            
             // zimi-check null
             if (array_key_exists('receiverXpub', $gateway_configs)) {                
