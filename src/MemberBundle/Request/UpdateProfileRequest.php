@@ -120,7 +120,7 @@ class UpdateProfileRequest
         return $this->fullName;
     }
 
-    public function setFullName(string $fullName): void
+    public function setFullName(string $fullName = ''): void
     {
         $this->fullName = $fullName;
     }

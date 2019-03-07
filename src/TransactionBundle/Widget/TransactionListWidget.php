@@ -46,9 +46,9 @@ class TransactionListWidget extends AbstractWidget
     }
 
     public function onGetTransactions($data)
-    {
+    {        
         $limit = $this->property('limit', 0);
-        $page = $this->property('page', 1);
+        $page = $this->property('page', 1);        
         $offset = ($page - 1) * $limit;
         $status = $this->property('status');
 
@@ -65,10 +65,18 @@ class TransactionListWidget extends AbstractWidget
 
         $transactions = $this->getTransactionRepository()->findTransactions(
             ['status' => $status],
-            [],
+            [['column' => 'transaction.date', 'dir' => 'desc']],
             $limit,
             $offset
         );
+
+        $trans = [];
+        foreach($transactions as $key => $value){
+            $t = $value[0];            
+            array_push($trans, $t);
+        }
+
+        $transactions = $trans;
 
         if ($this->container->has('jms_serializer')) {
             $context = new \JMS\Serializer\SerializationContext();

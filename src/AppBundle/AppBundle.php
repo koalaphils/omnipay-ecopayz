@@ -187,7 +187,7 @@ class AppBundle extends Bundle
                     ],
                     "properties" => [
                         "size" => 6,
-                        "sort" => "transaction.date",
+                        "sort" => "",
                         "limit" => 0,
                         "title" => "Pending transactions",
                         "status" => [
@@ -203,7 +203,7 @@ class AppBundle extends Bundle
                     ],
                     "properties" => [
                         "size" => 6,
-                        "sort" => "transaction.date",
+                        "sort" => "",
                         "limit" => 5,
                         "title" => "Recent Transactions",
                         "status" => [

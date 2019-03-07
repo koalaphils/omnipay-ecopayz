@@ -250,8 +250,8 @@ class CustomerManager extends AbstractManager
         $customer->setUser($user);
         $customer->setBirthDate($registerModel->getBirthDate());
         $customer->setCountry($registerModel->getCountry());
-        $customer->setCurrency($registerModel->getCurrency());
-        $customer->setFullName($registerModel->getFullName());
+        $customer->setCurrency($registerModel->getCurrency());        
+        $customer->setFullName($registerModel->getFullName());     
         $customer->setFName('');
         $customer->setLName('');
         $customer->setGender(Customer::MEMBER_GENDER_NOT_SET);

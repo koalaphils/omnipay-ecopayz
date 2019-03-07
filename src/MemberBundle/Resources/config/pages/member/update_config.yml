@@ -511,11 +511,11 @@ widgets:
                     label: Date
                     type: date
                     format: M j, Y, g:i a
-                customer:
-                    label: Member
-                    type: text
-                    from: customer.full_name
-                    exclude: true
+                # customer:
+                #     label: Member
+                #     type: text
+                #     from: customer.full_name
+                #     exclude: true
                 product:
                     label: Product (Username)
                     type: function
