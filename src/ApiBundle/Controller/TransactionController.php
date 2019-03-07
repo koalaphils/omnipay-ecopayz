@@ -168,6 +168,7 @@ class TransactionController extends AbstractController
      *  }
      * )
      */
+    // namdopin
     public function depositTransactionAction(Request $request)
     {                
         $customer = $this->getUser()->getCustomer();
@@ -331,6 +332,7 @@ class TransactionController extends AbstractController
      *  }
      * )
      */
+    // namdopin
     public function withdrawTransactionAction(Request $request)
     {        
         $customer = $this->getUser()->getCustomer();        
@@ -365,6 +367,10 @@ class TransactionController extends AbstractController
         
         $memberPaymentOption = $this->getCustomerPaymentOptionRepository()->find($transaction['paymentOption']);
         $paymentOptionType = $transaction['paymentOptionType'];
+        $productCode = $transaction['product'];        
+        $product = $productRepository->findByCode($productCode);
+        $productName = $product[0]->getName(); 
+
         $memberPaymentOptionId = $transaction['paymentOption'] ?? 0;        
         $paymentOption = $this->getPaymentOptionRepository()->find($paymentOptionType);        
         $defaultGroup = ['Default', 'withdraw'];
@@ -416,7 +422,8 @@ class TransactionController extends AbstractController
             // zimi
             $transactionModel->setAmount($amount);
             $transactionModel->setCustomerBitcoinAddress($customerBitcoinAddress);
-            $transactionModel->setAccountId($customerBitcoinAddress);
+            $transactionModel->setAccountId($customerBitcoinAddress);            
+            $transactionModel->setProduct($product[0]);
 
             $transaction = $this->getTransactionManager()->handleWithdraw($transactionModel);
             

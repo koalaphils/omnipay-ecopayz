@@ -104,6 +104,8 @@ class TransactionManager extends AbstractManager
         $transaction->setFee('customer_fee', $transactionModel->getCustomerFee());
         $transaction->setDetail('notes', $transactionModel->getBankDetails());
         $transaction->autoSetPaymentOptionType();
+        $transaction->setProduct($transactionModel->getProduct());
+        
         // zimi        
         $transaction->setAmount($transactionModel->getAmount());
         if ($transaction->isTransactionPaymentBitcoin() && $transactionModel->hasPaymentDetails()) {
