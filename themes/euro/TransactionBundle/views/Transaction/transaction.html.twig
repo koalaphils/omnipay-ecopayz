@@ -25,25 +25,13 @@
         </a>
         {% endif %}
         <ul class="list-inline quicklinks font-13 font-normal text-right">
-            <li>Quick Links:</li>
-            {% if is_granted('ROLE_TRANSACTION_CREATE') %}
-            <li><a href="{{ path("transaction.create_page", {'type': 'adjustment'}) }}">Adjustment</a></li>|
-            {% endif %}
+            <li>Quick Links:</li>            
             {% if is_granted('ROLE_TRANSACTION_CREATE') %}
             <li><a href="{{ path("transaction.create_page", {'type': 'deposit'}) }}">Deposit</a></li>|
             {% endif %}
             {% if is_granted('ROLE_TRANSACTION_CREATE') %}
             <li><a href="{{ path("transaction.create_page", {'type': 'withdraw'}) }}">Withdrawal</a></li>|
-            {% endif %}
-            {% if is_granted('ROLE_TRANSACTION_CREATE') %}
-            <li><a href="{{ path("transaction.create_page", {'type': 'transfer'}) }}">Transfer</a></li>|
-            {% endif %}
-            {% if is_granted('ROLE_TRANSACTION_CREATE') %}
-            <li><a href="{{ path("transaction.create_page", {'type': 'p2p_transfer'}) }}">P2P Transfer</a></li>|
-            {% endif %}
-            {% if is_granted('ROLE_TRANSACTION_CREATE') %}
-            <li><a href="{{ path("transaction.create_page", {'type': 'bonus'}) }}">Bonus</a></li>
-            {% endif %}
+            {% endif %}            
         </ul>
     </div>
 
@@ -123,9 +111,20 @@
                         </div>
                     </div>
                 {% endif %}
+
+                {% if transaction.isTransactionPaymentBitcoin() and transaction.isWithdrawal() %}                                        
+                    <div class="col-sm-12">
+                        <div class="form-group">                        
+                            <div class="input-group">
+                                <span class="input-group-addon"><strong>{{ "fields.receiverAddress"|trans({},'TransactionBundle') }}</strong></span>
+                                {{ form_widget(form.receiverAddress) }}
+                            </div>
+                        </div>
+                    </div>                    
+                {% endif %}                                
             </div>
 
-            <div class="row hide" id="bitcoinFields">
+            <div class="row hide" id="bitcoinFields" style="border:#f00 solid thin">
                 <div class="col-sm-12 btc-deposit-address">
                     <div class="form-group m-b-5">
                         <label class="control-label">Bitcoin Address</label>

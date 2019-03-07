@@ -56,9 +56,16 @@ class TransactionListWidget extends AbstractWidget
             $limit = null;
         }
         
+        // $transactions = $this->getTransactionRepository()->findTransactions(
+        //     ['status' => $status],
+        //     [['column' => 'transaction.date', 'dir' => 'desc']],
+        //     $limit,
+        //     $offset
+        // );
+
         $transactions = $this->getTransactionRepository()->findTransactions(
             ['status' => $status],
-            [['column' => 'transaction.date', 'dir' => 'desc']],
+            [],
             $limit,
             $offset
         );

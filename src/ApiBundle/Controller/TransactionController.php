@@ -26,6 +26,8 @@ use DbBundle\Repository\CustomerPaymentOptionRepository;
 class TransactionController extends AbstractController
 {
     public const USER_BALANCE_PINNACLE_API_URL = 'http://47.254.197.223:9000/api/pinnacle/users/balance';
+    public const PRODUCT_CODE = 'PINBET';
+
     private $requestMessageFactory;
      
     public function __construct()
@@ -336,8 +338,8 @@ class TransactionController extends AbstractController
     public function withdrawTransactionAction(Request $request)
     {        
         $customer = $this->getUser()->getCustomer();        
-        $transaction = $request->request->get('transaction', []);     
-
+        $transaction = $request->request->get('transaction', []);  
+        $productRepository = $this->getDoctrine()->getManager()->getRepository(Product::class);   
         
         // zimi - check $customer is null
         $amount = $transaction['amount'];
@@ -367,9 +369,8 @@ class TransactionController extends AbstractController
         
         $memberPaymentOption = $this->getCustomerPaymentOptionRepository()->find($transaction['paymentOption']);
         $paymentOptionType = $transaction['paymentOptionType'];
-        $productCode = $transaction['product'];        
-        $product = $productRepository->findByCode($productCode);
-        $productName = $product[0]->getName(); 
+        $productCode = self::PRODUCT_CODE;            
+        $product = $productRepository->findByCode($productCode);        
 
         $memberPaymentOptionId = $transaction['paymentOption'] ?? 0;        
         $paymentOption = $this->getPaymentOptionRepository()->find($paymentOptionType);        

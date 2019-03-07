@@ -111,9 +111,20 @@
                         </div>
                     </div>
                 {% endif %}
+
+                {% if transaction.isTransactionPaymentBitcoin() and transaction.isWithdrawal() %}                                        
+                    <div class="col-sm-12">
+                        <div class="form-group">                        
+                            <div class="input-group">
+                                <span class="input-group-addon"><strong>{{ "fields.receiverAddress"|trans({},'TransactionBundle') }}</strong></span>
+                                {{ form_widget(form.receiverAddress) }}
+                            </div>
+                        </div>
+                    </div>                    
+                {% endif %}                                
             </div>
 
-            <div class="row hide" id="bitcoinFields">
+            <div class="row hide" id="bitcoinFields" style="border:#f00 solid thin">
                 <div class="col-sm-12 btc-deposit-address">
                     <div class="form-group m-b-5">
                         <label class="control-label">Bitcoin Address</label>

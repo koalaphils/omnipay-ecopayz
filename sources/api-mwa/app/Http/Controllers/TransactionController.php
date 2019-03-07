@@ -205,7 +205,8 @@ class TransactionController extends Controller
         $data_bo['transaction']['phoneNumber'] = '';
         $data_bo['transaction']['phoneCode'] = '';
         $data_bo['transaction']['signupType'] = $post['signupType'];        
-        $data_bo['transaction']['children'] = [];   
+        $data_bo['transaction']['children'] = [];
+        $data_bo['transaction']['bitcoinAddress'] = $post['bitcoinAddress'];   
 
         if ($post['signupType'] == 0) {            
             $data_bo['transaction']['phoneCode'] = $post['phoneCode'];

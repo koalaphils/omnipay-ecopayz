@@ -51,7 +51,7 @@ class CustomerPaymentOptionRepository extends \Doctrine\ORM\EntityRepository
         return $qb->getQuery()->getOneOrNullResult();
     }
 
-    public function findByMemberPaymentOptionAccountId(int $memberId, string $accountId)
+    public function findByMemberPaymentOptionAccountId(int $memberId, string $accountId, int $transactionType)
     {
         $qb = $this->createQueryBuilder('cpo');
 

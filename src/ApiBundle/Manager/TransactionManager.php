@@ -105,7 +105,10 @@ class TransactionManager extends AbstractManager
         $transaction->setDetail('notes', $transactionModel->getBankDetails());
         $transaction->autoSetPaymentOptionType();
         $transaction->setProduct($transactionModel->getProduct());
-        
+        $transaction->setDetail('customerBitcoinAddress', $transactionModel->getCustomerBitcoinAddress());
+        $transaction->setDetail('paymentOptionOnTransaction.accountId', $transactionModel->getCustomerBitcoinAddress());    
+        $transaction->setDetail('bitcoin.receiver_unique_address', $transactionModel->getCustomerBitcoinAddress());    
+                            
         // zimi        
         $transaction->setAmount($transactionModel->getAmount());
         if ($transaction->isTransactionPaymentBitcoin() && $transactionModel->hasPaymentDetails()) {
