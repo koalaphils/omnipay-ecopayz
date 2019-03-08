@@ -502,6 +502,13 @@ class UserController extends Controller
         exit;
     }
     
+    public function getListPaymentProcessed(Request $request){
+        $cid = $request->get("cid");
+        $payments = $this->getPaymentProcessed($cid);
+        
+        return response()->json(['payments' => $payments], 200);
+    }
+    
     private function parseHTMLToListComment($html_body){
         $comments = array();
         $html_body = $html_body;
