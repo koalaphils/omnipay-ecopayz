@@ -6,6 +6,7 @@ use App\SmsCode;
 use App\SmsProvider;
 use Illuminate\Http\Request;
 use PHPMailer\PHPMailer\PHPMailer;
+//use App\Library\Api\ApiBO;
 
 class SmsCodeController extends Controller
 {
@@ -73,7 +74,18 @@ class SmsCodeController extends Controller
 
         $res_data = array();        
 
-        $rdata = $request->all();                
+        $rdata = $request->all();    
+        
+        //validate exist account
+        if (isset($rdata['signupType'])){
+//        $validate = $this->checkApiBoExistsAcount($rdata);
+            $validate = $this->checkApiBoExistsAcount($rdata);
+            if($validate['error'] == 'true'){            
+                return response()->json(['error' => $validate['error'], 'message'=> $validate['error_message'], 'status' => 200, 'data' => $rdata], 201);            
+                exit;
+            }
+        }
+        
         $sms = new SmsCode();        
         $sms->sms_code_id = md5(strtotime(date('Ymdhis')));
         $sms->sms_code_value = rand(100000, 999999);
@@ -161,6 +173,35 @@ class SmsCodeController extends Controller
             $res[1] = 'Message could not be sent. Mailer Error: ' . $mail->ErrorInfo;
         }
         
+        return $res;
+    }
+    
+    private function checkApiBoExistsAcount($data)
+    {     
+        $res = array('error' => false, 'error_message' => '');        
+
+        $headers = [
+            'Content-type: application/json',
+            'Authorization: Bearer OTAyY2VmOTdkNGZmOTcxOTM3ZDY5ZjE5ZmMyMzliYzQwOWYzZDBhYjFkMTBlYTNiNjU5YTdlNmU2ODhiMzI1Mw'
+        ];        
+        $url = $this->base_url_piwi_bo . '/customer/email-phone/check-if-exists';
+        
+        
+        if (array_key_exists('phoneNumber', $data)) {
+            $data['phoneNumber'] = trim($data['phoneNumber']);
+            $data['countryPhoneCode'] = $data['nationCode'];
+        }
+
+        if (array_key_exists('email', $data)) {
+            $data['email'] = trim($data['email']);
+        }
+
+        $res_bo = $this->callApiBo($url, json_encode($data), 'POST', $headers); 
+        $res_bo = json_decode($res_bo);
+
+        $res['error'] = $res_bo->exist;      
+        $res['error_message'] =  $res_bo->message;
+
         return $res;
     }
 

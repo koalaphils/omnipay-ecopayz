@@ -6,6 +6,7 @@ use App\User;
 use Illuminate\Http\Request;
 use Firebase\JWT\JWT;
 use App\Repositories\UserRepository;
+use App\Repositories\TransactionRepository;
 use App\Library\Api\ApiZendesk;
 use PHPHtmlParser\Dom;
 
@@ -17,9 +18,12 @@ class UserController extends Controller
      * @return void
      */
     private $repoUser;
-    public function __construct(UserRepository $repoUser)
+    private $repoTransaction;
+    
+    public function __construct(UserRepository $repoUser, TransactionRepository $repoTransaction)
     {
         $this->repoUser = $repoUser;
+        $this->repoTransaction = $repoTransaction;
     }
 
     
@@ -112,6 +116,7 @@ class UserController extends Controller
             $data['session']['configs'] = $res_bo_data->configs;
             $data['session']['cid'] = $res_bo_data->customerId;
             $data['session']['paymentOptions'] = $res_bo_data->paymentOptions;
+            $data['session']['paymentProcessed'] = $this->getPaymentProcessed($res_bo_data->customerId);
 
             $data['session']['loginType'] = $post['loginType'];
             $data['session']['userLog'] = $res_pin->loginId;            
@@ -252,7 +257,7 @@ class UserController extends Controller
         
         // via phone
         if ($post['signupType'] == 0) {
-            $post['email'] = '' . $post['nationCode'] . ltrim($post['phoneNumber'], 0) . '@' . env("SUFFIX_EMAIL");
+            $post['email'] = ltrim($post['nationCode'], "+") . ltrim($post['phoneNumber'], 0) . '@' . env("SUFFIX_EMAIL");
             // $post['email'] = '';
         } else {
             // via email
@@ -298,7 +303,9 @@ class UserController extends Controller
                 'phoneNumber' => $post['phoneNumber'],
                 'userCode' => $res_pin['userCode'],
                 'userLog'=>$res_pin['loginId'],
-                'url'=> $res_login_url
+                'url'=> $res_login_url,
+                'cid' => $res_bo->id,
+                'paymentProcessed' => $this->getPaymentProcessed($res_bo->id)
             ];    
         }                    
         
@@ -554,6 +561,16 @@ class UserController extends Controller
             }
         }
         return $served_by;
+    }
+    
+    private function getPaymentProcessed($cid){
+        // payment processed 
+        $items = $this->repoTransaction->getListPaymentProcessed($cid);
+        $payments = [];
+        foreach($items as $item){
+            $payments[$item->transaction_payment_option_type] = true;
+        }
+        return $payments;
     }
 
 }
