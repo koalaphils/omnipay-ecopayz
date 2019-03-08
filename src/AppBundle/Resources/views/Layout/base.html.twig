@@ -463,12 +463,38 @@
                 generateStatusTree(1);
                 getCurrentTransactionCount();
                 getNotificationListCount();
+                // getBalanceInfo();
             });
+
+            var setInfo = function(id, value){
+                var element = document.getElementById(id);
+                if (element === null){
+                    return;
+                }
+
+                element.html(value);
+            };
+
+            var getBalanceInfo = function(){
+                $.ajax({
+                    'url': 'http://47.254.197.223:9000/api/pinnacle/users/balance',
+                    'type': 'POST',
+                    'data': {'userCode': 'PS711000AG'},
+                    'beforeSend': function ( xhr ) {                        
+                        setInfo('withdraw-current-balance', '<i class="fa fa-spinner fa-spin"></i>');
+                    },
+                    'success': function ( data ) {                        
+                        setInfo('withdraw-current-balance', data['availableBalance']);
+                    },
+                    'error': function( data ){                        
+                    }
+                });
+            }
 
             function getCurrentTransactionCount()
             {
                 $.ajax({
-                    'url': '{{ path('transaction.count_status') }}',
+                    'url': '{{ path('transaction.count_status') }}',                    
                     'beforeSend': function (xhr, ) {
                         for (var i in sortedStatuses) {
                             var status = statuses[sortedStatuses[i]];
@@ -487,7 +513,8 @@
                 });
             }
 
-            function generateStatus(id, label, counter) {
+            // namdopin
+            function generateStatus(id, label, counter) {                
                 var template = '<li class="status-counter"><a href="#" class="waves-effect waves-light">'
                     + '<span class="status-process" data-key="label"></span>:&nbsp;'
                     + '<strong class="status-process" data-key="counter">0</strong></a></li>';

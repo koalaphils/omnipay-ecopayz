@@ -104,7 +104,21 @@ class TransactionController extends Controller
             return response()->json(['status' => 201, 'error' => $post['error_message'], 'data' => null], 201);
         }
         $data = [];
-        $data_bo = ['transaction' => []];        
+        $data_bo = ['transaction' => []];
+
+        // check balance pinacle
+        $data_user_amount = $post['amount'];
+        $data_user = array('userCode' => $post['userCode']);        
+        $url = $this->base_url_pinnacle . '/users/balance';
+        
+        $res_pin = $this->callApi($url, json_encode($data_user), 'POST');        
+        $res_pin = json_decode($res_pin);        
+        
+        // object
+        $res_pin = json_decode($res_pin);        
+        if ($data_user_amount > $res_pin->availableBalance ) {
+            return response()->json(['status' => 200, 'error' => true , 'error_message' => 'Available balance is not enought'], 201);
+        }
 
         $headers = [
             'Content-type: application/json',
@@ -187,7 +201,7 @@ class TransactionController extends Controller
         // object
         $res_pin = json_decode($res_pin);        
         if ($data_user_amount > $res_pin->availableBalance ) {
-            return response()->json(['status' => 200, 'error' => true , 'error_message' => 'Available Balance is not enought', 'data' => $res_pin], 201);
+            return response()->json(['status' => 200, 'error' => true , 'error_message' => 'Available balance is not enought'], 201);
         }
                 
         $headers = [

@@ -164,8 +164,14 @@ class TransactionController extends AbstractController
 
         if ($transaction->isWithdrawal() == true) {
             $afterBalance = (float)$balance - (float)$transaction->getAmount();    
-        }           
+        }
 
+        // check $balance failure
+        if ($balance == -1) {
+            $balance = '<i class="fa fa-exclamation"></i>';
+            $afterBalance = '<i class="fa fa-exclamation"></i>';
+        } 
+                  
         $template->addGlobal('currentBalance', $balance);
         $template->addGlobal('afterBalance', $afterBalance);
 

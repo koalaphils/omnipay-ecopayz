@@ -117,7 +117,7 @@
 
     Decimal.set({ precision: 65, rounding: Decimal.ROUND_DOWN });
 
-    var TransactionCounter = new function () {
+    var TransactionCounter = new function () {        
         var statuses = {{ setting('transaction.status', true)|raw('js') }};
         var sortedStatuses = [];
 
@@ -144,6 +144,7 @@
             return tree;
         }
 
+        /*namdopin*/
         function getCurrentTransactionCount()
         {
             $.ajax({
@@ -281,6 +282,7 @@
 
         TransactionCounter.init();
         Notification.getNotificationListCount();
+        TransactionBalance.getBalanceInfo();
 
         $('#read-notification').on('click', function () {
             $.ajax({

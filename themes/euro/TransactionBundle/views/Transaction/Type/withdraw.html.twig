@@ -222,8 +222,8 @@
                 </div>
                 <div class='row subtransaction'>
                     <div class='col-sm-5 col-xs-5'>PINBET</div>
-                    <div class='col-sm-4 col-xs-4'>{{ currentBalance }}</div>
-                    <div class='col-sm-3 col-xs-3'>{{ afterBalance }}</div>                    
+                    <div class='col-sm-4 col-xs-4' id="withdraw-current-balance">{{ currentBalance | raw }}</div>
+                    <div class='col-sm-3 col-xs-3' id="withdraw-after-balance">{{ afterBalance | raw }}</div>                    
                 </div>
                 </xsl:when>
                 <xsl:otherwise>

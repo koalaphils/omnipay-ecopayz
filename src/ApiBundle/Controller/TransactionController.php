@@ -697,10 +697,11 @@ class TransactionController extends AbstractController
                 return $res->availableBalance;
             }
 
-            return null;
+            return -1;
 
         } catch(\DomainException $ex) {
-            return new Response($ex->getMessage(), Response::HTTP_BAD_REQUEST);
+             return -1;
+            // return new Response($ex->getMessage(), Response::HTTP_BAD_REQUEST);
         }  
     }
 
