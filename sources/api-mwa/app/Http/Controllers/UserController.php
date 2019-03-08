@@ -257,7 +257,7 @@ class UserController extends Controller
         
         // via phone
         if ($post['signupType'] == 0) {
-            $post['email'] = '' . $post['nationCode'] . ltrim($post['phoneNumber'], 0) . '@' . env("SUFFIX_EMAIL");
+            $post['email'] = ltrim($post['nationCode'], "+") . ltrim($post['phoneNumber'], 0) . '@' . env("SUFFIX_EMAIL");
             // $post['email'] = '';
         } else {
             // via email
