@@ -6,7 +6,7 @@
         <meta name="description" content="A fully featured admin theme which can be used to build CRM, CMS, etc." />
         <meta name="author" content="Coderthemes" />
 
-        <link rel="shortcut icon" href="{{ asset("assets/images/ac66bo-fav-icon.png") }}" />
+        <link rel="shortcut icon" href="{{ asset("assets/images/piwi-bo-favicon.ico") }}" />
 
         <title>{{ 'page.title.main'|trans({},'AppBundle') }} | {% block title %}{% endblock %}</title>
 
@@ -55,8 +55,8 @@
                 <div class="topbar-left">
                     <div class="text-center">
                         <a href="{{ path('app.dashboard_page') }}" class="logo">
-                            <i class="icon-c-logo"><img src="{{ asset("assets/images/ac66bo-fav-icon.png") }}" height="20"/> </i>
-                            <span><img src="{{ asset("assets/images/acc66_logo.png") }}" height="42"/></span>
+                            <i class="icon-c-logo"><img src="{{ asset("assets/images/piwi-bo-favicon.ico") }}" height="20"/> </i>
+                            <span><img src="{{ asset("assets/images/acc66_logo.png") }}" height="25"/></span>
                         </a>
                     </div>
                 </div>
@@ -102,13 +102,9 @@
         <div class="float-sm">
           <div class="fl-fl float-widgets">
             <i class="widgets-holder fa fa-money"></i>
-              <ul>
-                <a href="{{ path("transaction.create_page", {'type': 'adjustment'}) }}"><li>Adjustment</li></a>
+              <ul>                
                 <a href="{{ path("transaction.create_page", {'type': 'deposit'}) }}"><li>Deposit</li></a>
-                <a href="{{ path("transaction.create_page", {'type': 'withdraw'}) }}"><li>Withdrawal</li></a>
-                <a href="{{ path("transaction.create_page", {'type': 'transfer'}) }}"><li>Transfer</li></a>
-                <a href="{{ path("transaction.create_page", {'type': 'p2p_transfer'}) }}"><li>P2P Transfer</li></a>
-                <a href="{{ path("transaction.create_page", {'type': 'bonus'}) }}"><li>Bonus</li> </a>
+                <a href="{{ path("transaction.create_page", {'type': 'withdraw'}) }}"><li>Withdrawal</li></a>                
               </ul>
           </div>
         </div>

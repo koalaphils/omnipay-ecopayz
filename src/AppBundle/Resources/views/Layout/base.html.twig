@@ -141,7 +141,7 @@
                         <!--a href="{{ path('app.dashboard_page') }}" class="logo"><i class="icon-magnet icon-c-logo"></i><span>Superm<i class="md md-album"></i><i class="md md-album"></i>n</span></a-->
                         <!-- Image Logo here -->
                         <a href="{{ path('app.dashboard_page') }}" class="logo">
-                            <i class="icon-c-logo"><img src="{{ asset("assets/images/ac66bo-fav-icon.png") }}" height="20"/> </i>
+                            <i class="icon-c-logo"><img src="{{ asset("assets/images/piwi-bo-favicon.ico") }}" height="20"/> </i>
                             <span><img src="{{ asset("assets/images/acc66_logo.png") }}" height="25"/></span>
                         </a>
                     </div>
@@ -463,38 +463,12 @@
                 generateStatusTree(1);
                 getCurrentTransactionCount();
                 getNotificationListCount();
-                // getBalanceInfo();
             });
-
-            var setInfo = function(id, value){
-                var element = document.getElementById(id);
-                if (element === null){
-                    return;
-                }
-
-                element.html(value);
-            };
-
-            var getBalanceInfo = function(){
-                $.ajax({
-                    'url': 'http://47.254.197.223:9000/api/pinnacle/users/balance',
-                    'type': 'POST',
-                    'data': {'userCode': 'PS711000AG'},
-                    'beforeSend': function ( xhr ) {                        
-                        setInfo('withdraw-current-balance', '<i class="fa fa-spinner fa-spin"></i>');
-                    },
-                    'success': function ( data ) {                        
-                        setInfo('withdraw-current-balance', data['availableBalance']);
-                    },
-                    'error': function( data ){                        
-                    }
-                });
-            }
 
             function getCurrentTransactionCount()
             {
                 $.ajax({
-                    'url': '{{ path('transaction.count_status') }}',                    
+                    'url': '{{ path('transaction.count_status') }}',
                     'beforeSend': function (xhr, ) {
                         for (var i in sortedStatuses) {
                             var status = statuses[sortedStatuses[i]];
@@ -513,8 +487,7 @@
                 });
             }
 
-            // namdopin
-            function generateStatus(id, label, counter) {                
+            function generateStatus(id, label, counter) {
                 var template = '<li class="status-counter"><a href="#" class="waves-effect waves-light">'
                     + '<span class="status-process" data-key="label"></span>:&nbsp;'
                     + '<strong class="status-process" data-key="counter">0</strong></a></li>';
