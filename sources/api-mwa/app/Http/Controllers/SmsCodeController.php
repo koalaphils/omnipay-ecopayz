@@ -77,7 +77,7 @@ class SmsCodeController extends Controller
         $rdata = $request->all();    
         
         //validate exist account
-        if (isset($rdata['signupType'])){
+        if (isset($rdata['isSignup'])){
 //        $validate = $this->checkApiBoExistsAcount($rdata);
             $validate = $this->checkApiBoExistsAcount($rdata);
             if($validate['error'] == 'true'){            
