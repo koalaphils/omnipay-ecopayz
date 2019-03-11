@@ -386,6 +386,7 @@ class UserController extends Controller
         ];
                           
         $data_bo = $post; 
+        $data_bo['phoneCode'] = $post['nationCode'];
         $res_bo = $this->callApiBo($api_update_password,  json_encode($data_bo), 'POST', $headers);                        
         $res_bo = json_decode($res_bo);        
 
