@@ -404,7 +404,7 @@ class CustomerController extends AbstractController
     
         // zimi                
         // $full_phone = $registeredCustomer['countryPhoneCode'] . substr($registeredCustomer['phoneNumber'], 1);
-        $full_phone = $registeredCustomer['countryPhoneCode'] . $registeredCustomer['phoneNumber'];
+        $full_phone = ltrim($registeredCustomer['countryPhoneCode'], "+") . $registeredCustomer['phoneNumber'];
 
         if ($registeredCustomer['signupType'] == 0) {
             $query = 'SELECT sms_code_value FROM piwi_system_log_sms_code WHERE sms_code_customer_phone_number = \''.$full_phone.'\' order by sms_code_created_at desc limit 1';
@@ -441,7 +441,7 @@ class CustomerController extends AbstractController
         if ($form->isSubmitted()) {
             $registerModel = $form->getData();
             $registerModel->setSignupType($registeredCustomer['signupType']);            
-            $customer = $this->getCustomerManager()->handleRegister($registerModel, $originUrl, $locale, $ipAddress, $referrerUrl);            
+            $customer = $this->getCustomerManager()->handleRegister($registerModel, $originUrl, $locale, $ipAddress, $referrerUrl);                  
             return $this->view($customer, Response::HTTP_OK);
         }
 
@@ -456,7 +456,7 @@ class CustomerController extends AbstractController
     public function forgotPasswordAction(Request $request)
     {                
         $post = $request->request->all();                    
-        $full_phone = $post['phoneCode'] . substr($post['phoneNumber'], 1); 
+        $full_phone = ltrim($post['phoneCode'], "+") . substr($post['phoneNumber'], 1); 
 
         // via phone - zimi
         if ($post['viaType'] == 0) {
@@ -501,7 +501,7 @@ class CustomerController extends AbstractController
     public function updatePasswordAction(Request $request)
     {                
         $post = $request->request->all();         
-        $full_phone = $post['nationCode'] . substr($post['phoneNumber'], 1); 
+        $full_phone = ltrim($post['nationCode'], "+") . substr($post['phoneNumber'], 1); 
         $user_repo = $this->getUserRepository();
 
         // via phone - zimi
