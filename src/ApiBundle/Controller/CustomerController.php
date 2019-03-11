@@ -507,7 +507,7 @@ class CustomerController extends AbstractController
         // via phone - zimi
         if ($post['signupType'] == 0) {
             $query = 'SELECT sms_code_value FROM piwi_system_log_sms_code WHERE sms_code_customer_phone_number = \''.$full_phone.'\' order by sms_code_created_at desc limit 1';
-            $user = $user_repo->findUserByPhoneNumber($post['phoneNumber'], $post['phoneCode']);
+            $user = $user_repo->findUserByPhoneNumber($post['phoneNumber'], $post['nationCode']);
         } else {
             $query = 'SELECT sms_code_value FROM piwi_system_log_sms_code WHERE sms_code_customer_email = \'' . $post['email'] . '\' order by sms_code_created_at desc limit 1';
             $user = $user_repo->findUserByEmail($post['email']);
