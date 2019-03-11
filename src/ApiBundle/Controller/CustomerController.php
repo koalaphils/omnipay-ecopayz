@@ -456,7 +456,7 @@ class CustomerController extends AbstractController
     public function forgotPasswordAction(Request $request)
     {                
         $post = $request->request->all();                    
-        $full_phone = ltrim($post['phoneCode'], "+") . substr($post['phoneNumber'], 1); 
+        $full_phone = ltrim($post['phoneCode'], "+") . $post['phoneNumber']; 
 
         // via phone - zimi
         if ($post['viaType'] == 0) {
@@ -501,7 +501,7 @@ class CustomerController extends AbstractController
     public function updatePasswordAction(Request $request)
     {                
         $post = $request->request->all();         
-        $full_phone = ltrim($post['nationCode'], "+") . substr($post['phoneNumber'], 1); 
+        $full_phone = ltrim($post['nationCode'], "+") . $post['phoneNumber']; 
         $user_repo = $this->getUserRepository();
 
         // via phone - zimi
