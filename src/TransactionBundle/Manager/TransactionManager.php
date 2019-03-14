@@ -9,6 +9,9 @@ use DbBundle\Entity\CustomerGroup;
 use DbBundle\Entity\CustomerGroupGateway;
 use DbBundle\Entity\SubTransaction;
 use DbBundle\Entity\Transaction;
+use DbBundle\Entity\TransactionLog;
+use DbBundle\Entity\Notification;
+use DbBundle\Entity\User;
 use DbBundle\Repository\CommissionPeriodRepository;
 use DbBundle\Repository\MemberRunningCommissionRepository;
 use Doctrine\ORM\Query;
@@ -20,6 +23,7 @@ use Symfony\Component\HttpFoundation\Request;
 use TransactionBundle\Event\TransactionProcessEvent;
 use TransactionBundle\Exceptions\TransactionNotExistsException;
 use TransactionBundle\Form\TransactionType;
+use AppBundle\Helper\WampHelper;
 
 class TransactionManager extends TransactionOldManager
 {
@@ -314,6 +318,43 @@ class TransactionManager extends TransactionOldManager
         }
 
         throw new FormValidationException($form);
+    }
+    
+    public function insertTransactionLog($transaction, $old_status, $created_by){
+        $log = new TransactionLog();
+        $log->setTransactionId($transaction->getId());
+        $log->setOldStatus($old_status);
+        $log->setNewStatus($transaction->getStatus());
+        $log->setIsVoided($transaction->getIsVoided());
+        $log->setCreatedBy($created_by);
+        $log->setCreatedAt(new \Datetime());
+        
+        $this->getTransactionLogRepository()->save($log);
+    }
+    
+    public function insertNotificationByTransaction($transaction){
+        $type_text = $transaction->getTypeText();
+        $status_text = $transaction->getIsVoided() ? "Voided" : ucfirst($transaction->getStatusText());
+        $style = $this->getNotificationRepository()->getStyleText($transaction->getStatus());
+        $number = $transaction->getNumber();
+        if($transaction->getIsVoided()){
+            $status_text = "Voided";
+            $style = "red";
+        }
+        $message = "<b>Transaction $number</b> $type_text has been <b>$status_text</b>";
+        
+        $user = $this->getUserRepository()->findByCustomerID($transaction->getCustomerId());
+        if($user){
+            $item = new Notification();
+            $item->setUserID($user->getId());
+            $item->setMessage($message);
+            $item->setStyle($style);
+            $item->setCreatedAt(new \Datetime());
+            $this->save($item);  
+        }
+        
+        $url = "notification_" . $transaction->getCustomerId();
+        WampHelper::publish($url, ['msg' => $message]);
     }
 
     public function getCountPerStatus(): array
@@ -794,6 +835,16 @@ class TransactionManager extends TransactionOldManager
     private function getSubtransactionRepository(): \DbBundle\Repository\SubTransactionRepository
     {
         return $this->getDoctrine()->getRepository(SubTransaction::class);
+    }
+
+    private function getNotificationRepository(): \DbBundle\Repository\NotificationRepository
+    {
+        return $this->getDoctrine()->getRepository(Notification::class);
+    }
+
+    private function getUserRepository(): \DbBundle\Repository\UserRepository
+    {
+        return $this->getDoctrine()->getRepository(User::class);
     }
 
     private function isAmountFieldEditable(Transaction $transaction) : bool

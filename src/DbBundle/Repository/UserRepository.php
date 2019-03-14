@@ -324,4 +324,12 @@ class UserRepository extends BaseRepository implements \Symfony\Bridge\Doctrine\
 
         return $qb->getQuery()->execute();
     }
+    
+    public function findByCustomerID($customer_id){
+        $qb = $this->createQueryBuilder('u');
+        $qb->join('u.customer', 'c');
+        $qb->where('c.id = :id')->setParameter('id', $customer_id);
+
+        return $qb->getQuery()->getSingleResult(\Doctrine\ORM\Query::HYDRATE_OBJECT);
+    }
 }
