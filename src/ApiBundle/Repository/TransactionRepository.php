@@ -195,10 +195,11 @@ class TransactionRepository
             ->andWhere('transaction.type = 1')
             ->andWhere('transaction.status NOT IN (:status)')
             ->andWhere('transaction.isVoided != true')
-            ->andWhere('paymentOptionType.paymentMode = :paymentMode')            
+            ->andWhere('paymentOptionType.paymentMode = :paymentMode')
+            ->andWhere('transaction.popup = 0 and transaction.status = 3')            
             ->setParameter('customer', $member)
             ->setParameter('paymentMode', PaymentOption::PAYMENT_MODE_BITCOIN)
-            ->setParameter('status', [Transaction::TRANSACTION_STATUS_END, Transaction::TRANSACTION_STATUS_DECLINE], Connection::PARAM_INT_ARRAY)
+            ->setParameter('status', [Transaction::TRANSACTION_STATUS_END], Connection::PARAM_INT_ARRAY)
         ;
 
         return $queryBuilder->getQuery()->getOneOrNullResult();

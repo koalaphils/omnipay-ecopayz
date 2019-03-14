@@ -107,6 +107,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     private $productID;
     private $customerID;
     private $email;
+    private $popup;
 
     /**
      * @var null|int

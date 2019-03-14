@@ -713,5 +713,21 @@ class TransactionController extends AbstractController
         
         return $res;
     }
+    
+    public function updateLockRatePopupAction(Request $request)
+    {                
+        $post = $request->request->all();
+        $tid = $post['tid'];
+        if ($tid == '' || $tid == null) {
+            return new JsonResponse(['error' => true, 'error_message' => 'tid not found', 'data' => null]);            
+        }
+
+        $query = 'update transaction set transaction_popup = 1 where transaction_id = ' . $tid;
+        $em = $this->getDoctrine()->getManager();
+        $qu = $em->getConnection()->prepare($query);
+        $qu->execute();
+
+        return new JsonResponse(['error' => false, 'status' => 200, 'error_message' => '', 'data' => null]);
+    }
 }
 

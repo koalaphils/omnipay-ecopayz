@@ -195,7 +195,12 @@ DbBundle\Entity\Transaction:
             column: transaction_customer_id
         productID:
             type: integer            
-            column: transaction_product_id               
+            column: transaction_product_id
+        popup:
+            type: boolean
+            column: transaction_popup
+            options:
+                default: false               
     manyToOne:
         customer:
             targetEntity: DbBundle\Entity\Customer

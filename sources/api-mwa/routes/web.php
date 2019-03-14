@@ -42,6 +42,7 @@ $router->get('/api/transaction/exchange-rates', 'TransactionController@getExchan
 $router->post('/api/transaction/balance', 'TransactionController@getBalance');
 $router->get('/api/transaction/bitcoin-rate', 'TransactionController@getBitcoinRate');
 $router->post('/api/transaction/bitcoin-lock-rate', 'TransactionController@getBitcoinLockRate');
+$router->post('/api/transaction/update-lock-rate-popup', 'TransactionController@updateLockRatePopup');
 
 $router->post('/api/transaction/tickets', 'TransactionController@getTicketList');
 $router->post('/api/transaction/tickets/conversation', 'TransactionController@getTicketConversation');

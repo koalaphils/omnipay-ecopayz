@@ -591,4 +591,30 @@ class TransactionController extends Controller
         }
         return true;
     }
+
+    /**
+     * update Lock Rate Popup
+     *
+     * @param Request $request
+     * @return Array
+     */
+    public function updateLockRatePopup(Request $request)
+    {                        
+        $data = [];
+        $error = null;
+        $post = $request->all();
+                
+        $headers = [
+            'Content-type: application/json',
+            'Authorization: Bearer OTAyY2VmOTdkNGZmOTcxOTM3ZDY5ZjE5ZmMyMzliYzQwOWYzZDBhYjFkMTBlYTNiNjU5YTdlNmU2ODhiMzI1Mw'
+        ];
+        
+        $data_bo = ['tid' => $post['tid']];
+        $url = $this->base_url_piwi_bo . '/me/transactions/update-lock-rate-popup';        
+        $res = $this->callApiBo($url, json_encode($data_bo), 'POST', $headers);         
+        $res = json_decode($res);
+
+        return response()->json(['status' => 200, 'error' => false, 'data' => $res, $post], 201); 
+    }
+
 }
