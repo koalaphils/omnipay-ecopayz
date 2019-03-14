@@ -1,0 +1,50 @@
+DbBundle\Entity\TransactionLog:
+    type: entity
+    table: transaction_log
+    repositoryClass: DbBundle\Repository\TransactionLogRepository
+    id:
+        id:
+            type: bigint
+            nullable: false
+            options:
+                unsigned: false
+            id: true
+            column: transaction_log_id
+            generator:
+                strategy: IDENTITY
+    fields:
+        transaction_id:
+            type: bigint
+            nullable: true
+            options:
+                unsigned: false
+            column: transaction_log_transaction_id
+        old_status:
+            type: smallint
+            nullable: true
+            options:
+                unsigned: false
+            column: transaction_log_old_status
+        new_status:
+            type: smallint
+            nullable: true
+            options:
+                unsigned: false
+            column: transaction_log_new_status
+        is_voided:
+            type: boolean
+            column: transaction_log_is_voided
+            options:
+                default: false
+        created_by:
+            type: bigint
+            nullable: true
+            options:
+                unsigned: false
+            column: transaction_log_created_by
+        created_at:
+            type: datetime
+            nullable: false
+            column: transaction_log_created_at
+
+    lifecycleCallbacks: {  }

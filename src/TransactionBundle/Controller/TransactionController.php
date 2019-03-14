@@ -410,7 +410,11 @@ class TransactionController extends AbstractController
 
             $response = ['success' => true];
             try {
+                $old_status = $transaction->getStatus();
                 $transaction = $this->getManager()->handleFormTransaction($form, $request);
+                $this->getManager()->insertTransactionLog($transaction, $old_status, $this->getUser()->getId());
+                $this->getManager()->insertNotificationByTransaction($transaction);
+                
                 $response['data'] = $transaction;
             } catch (\AppBundle\Exceptions\FormValidationException $e) {
                 $response['success'] = false;

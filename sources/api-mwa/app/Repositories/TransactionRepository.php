@@ -17,9 +17,36 @@ class TransactionRepository extends BaseRepository
     const TRANSACTION_STATUS_END = 2;
     const TRANSACTION_STATUS_DECLINE = 3;
     const TRANSACTION_STATUS_ACKNOWLEDGE = 4;
+    const TRANSACTION_STATUS_VOIDED = 'voided';
+    
+    const TRANSACTION_TYPE_DEPOSIT = 1;
+    const TRANSACTION_TYPE_WITHDRAW = 2;
     
     public function __construct(Transaction $model) {
         $this->model = $model;
+    }
+    
+    public function getTypeList($key = null)
+    {
+        $list = [
+            static::TRANSACTION_TYPE_DEPOSIT => 'deposit',
+            static::TRANSACTION_TYPE_WITHDRAW => 'withdraw'
+        ];
+        
+        return $key != null ? $list[$key] : $list;
+    }
+    
+    public function getStatusList($key = null)
+    {
+        $list = [
+            static::TRANSACTION_STATUS_START => 'requested',
+            static::TRANSACTION_STATUS_END => 'processed',
+            static::TRANSACTION_STATUS_DECLINE => 'declined',
+            static::TRANSACTION_STATUS_ACKNOWLEDGE => 'acknowledged',
+            static::TRANSACTION_STATUS_VOIDED => 'voided',            
+        ];
+        
+        return $key != null ? $list[$key] : $list;
     }
     
     public function getListPaymentProcessed($cid){

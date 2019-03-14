@@ -456,6 +456,14 @@ class TransactionOldManager extends AbstractManager
     }
 
     /**
+     * @return \DbBundle\Repository\TransactionLogRepository
+     */
+    public function getTransactionLogRepository(): \DbBundle\Repository\TransactionLogRepository
+    {
+        return $this->getDoctrine()->getRepository('DbBundle:TransactionLog');
+    }
+
+    /**
      * @return \DbBundle\Repository\CurrencyRepository
      */
     public function getCurrencyRepository(): \DbBundle\Repository\CurrencyRepository

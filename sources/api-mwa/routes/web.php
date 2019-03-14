@@ -16,12 +16,21 @@ $router->get('/', function () use ($router) {
 
 // users
 $router->get('/api/users/get-config', 'UserController@getConfig');
+$router->get('/api/user/chat/token', 'UserController@getTokenZendesk');
+$router->get('/api/user/chat/tickets', 'UserController@getListTickets');
+$router->get('/api/user/get-list-payment-processed', 'UserController@getListPaymentProcessed');
+$router->get('/api/user/chat/ticket/comments', 'UserController@getListTicketComment');
+$router->get('/api/user/chat/get-authorization-code', 'UserController@getAuthorizationCode');
+$router->get('/api/user/notifications', 'UserController@getListNotification');
+
 $router->post('/api/users', 'UserController@create');
 $router->post('/api/users/login', 'UserController@login');
 $router->post('/api/users/logout', 'UserController@logout');
 $router->post('/api/users/refresh', 'UserController@refresh');
 $router->post('/api/users/forgot-password', 'UserController@forgotPassword');
 $router->post('/api/users/update-password', 'UserController@updatePassword');
+
+
 
 // sms-code
 $router->post('/api/sms-code/get-code', 'SmsCodeController@getSmsCode');
@@ -46,12 +55,6 @@ $router->post('/api/transaction/update-lock-rate-popup', 'TransactionController@
 
 $router->post('/api/transaction/tickets', 'TransactionController@getTicketList');
 $router->post('/api/transaction/tickets/conversation', 'TransactionController@getTicketConversation');
-
-$router->get('/api/user/chat/token', 'UserController@getTokenZendesk');
-$router->get('/api/user/chat/tickets', 'UserController@getListTickets');
-$router->get('/api/user/get-list-payment-processed', 'UserController@getListPaymentProcessed');
-$router->get('/api/user/chat/ticket/comments', 'UserController@getListTicketComment');
-$router->get('/api/user/chat/get-authorization-code', 'UserController@getAuthorizationCode');
 
 
 

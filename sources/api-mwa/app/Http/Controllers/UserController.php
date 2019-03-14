@@ -510,6 +510,22 @@ class UserController extends Controller
         return response()->json(['payments' => $payments], 200);
     }
     
+    public function getListNotification(Request $request){
+        $list = array();
+        $cid = $request->get("cid");
+        $rows = $this->repoUser->getNotifications($cid);
+        foreach($rows as $row){
+            $item = new \stdClass();
+            $item->message = $row->notification_message;
+            $item->date = date("m/d/Y", strtotime($row->notification_created_at));
+            $item->time = date("h:i A", strtotime($row->notification_created_at));
+            $item->style = $row->notification_style;
+            $list[] = $item;
+        }
+        
+        return response()->json(['notifications' => $list], 200);
+    }
+    
     private function parseHTMLToListComment($html_body){
         $comments = array();
         $html_body = $html_body;

@@ -1,0 +1,35 @@
+DbBundle\Entity\Notification:
+    type: entity
+    table: notification
+    repositoryClass: DbBundle\Repository\NotificationRepository
+    id:
+        id:
+            type: bigint
+            nullable: false
+            options:
+                unsigned: false
+            id: true
+            column: notification_id
+            generator:
+                strategy: IDENTITY
+    fields:
+        user_id:
+            type: bigint
+            nullable: true
+            options:
+                unsigned: false
+            column: notification_user_id
+        message:
+            type: string
+            nullable: true
+            column: notification_message
+        style:
+            type: string
+            length: 15
+            column: notification_style
+        created_at:
+            type: datetime
+            nullable: false
+            column: notification_created_at
+
+    lifecycleCallbacks: {  }

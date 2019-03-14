@@ -23,4 +23,14 @@ class UserRepository extends BaseRepository
                 ->first();
         return $row;
     }
+    
+    public function getNotifications($cid, $offset = 0, $limit = 100){
+        $rows = DB::table("notification as a")
+                ->join("customer as b", "a.notification_user_id", "=", "b.customer_user_id")
+                ->where("b.customer_id", $cid)
+                ->orderBy("a.notification_id", "desc")
+                ->offset($offset)->limit($limit)
+                ->get();
+        return $rows;
+    }
 }
