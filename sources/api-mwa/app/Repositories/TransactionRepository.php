@@ -57,4 +57,13 @@ class TransactionRepository extends BaseRepository
                 ->distinct()->get();
         return $rows;
     }
+    
+    public function getLastTransactionBitcoin($cid){
+        $rows = $this->model->where("transaction_customer_id", $cid)
+                ->where("transaction_payment_option_type", "BITCOIN")
+                ->where("transaction_is_voided", 0)
+                ->orderBy("transaction_id", "desc")
+                ->first();
+        return $rows;
+    }
 }

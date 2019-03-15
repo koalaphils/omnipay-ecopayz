@@ -5,17 +5,20 @@ use Validator;
 use App\Transaction;
 use App\User;
 use Illuminate\Http\Request;
+use App\Repositories\TransactionRepository;
 
 class TransactionController extends Controller
 {
+    
+    private $repoTransaction;
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(TransactionRepository $repoTransaction)
     {
-        //
+        $this->repoTransaction = $repoTransaction;
     }
     
     /**
@@ -264,12 +267,12 @@ class TransactionController extends Controller
         ];
         $data_bo = ['transaction' => []];            
 
-        $trans_data = $post['status']['request'];
+        $trans_data = $post['deposit'];
         $data_bo['transaction']['paymentOptionType'] = 'bitcoin';
         $data_bo['transaction']['bitcoinAmount'] = $trans_data['bitcoinAmount'];
         $data_bo['transaction']['eurAmount'] = $trans_data['eurAmount'];
         $data_bo['transaction']['amount'] = $trans_data['eurAmount'];
-        $data_bo['transaction']['currentRate'] = $trans_data['currentRate'];
+        $data_bo['transaction']['currentRate'] = $post['currentRate'];
         $data_bo['transaction']['phoneNumber'] = '';
         $data_bo['transaction']['phoneCode'] = '';
         $data_bo['transaction']['children'] = [];        
@@ -286,7 +289,7 @@ class TransactionController extends Controller
         $customer_id = $customer['customer_id'];
         $data_bo['transaction']['customer'] = $customer_id;
                 
-        // $url = env('API_PIWI_BO_DEPOSIT');        
+        // $url = env('API_PIWI_BO_DEPOSIT');  
         $url = $this->base_url_piwi_bo . '/me/transactions/deposit';                                
         $res_bo = $this->callApiBo($url,  json_encode($data_bo), 'POST', $headers);         
         $res_bo = json_decode($res_bo);
@@ -616,6 +619,37 @@ class TransactionController extends Controller
         $res = json_decode($res);
 
         return response()->json(['status' => 200, 'error' => false, 'data' => $res, $post], 201); 
+    }
+    
+    public function getLastTransactionBitcoin(Request $request){
+        $data = null;
+        $post = $request->all(); 
+        $customer = $this->_getCustomer($post); 
+//        print_r($customer); exit;
+        $transaction = $this->repoTransaction->getLastTransactionBitcoin($customer['customer_id']);
+//        $transaction = null;
+        if($transaction && $transaction->transaction_status != 2 && $transaction->transaction_popup == 0){
+            $details = json_decode($transaction->transaction_other_details);
+            $rate = $details->bitcoinRate;
+            $btc_amount = number_format($transaction->transaction_amount/$rate, 4, '.', '');
+            $countdown = strtotime($transaction->transaction_created_at) + (20*60) - time();
+            
+            $data['bitcoin'] = array(
+                'id' => $transaction->transaction_id,
+                'number' => $transaction->transaction_number,
+                'status' => $transaction->transaction_status,
+                'amount' => number_format($transaction->transaction_amount, 2, '.', ''),
+                'amount_btc' => $btc_amount,
+                'address' => $transaction->transaction_virtual_bitcoin_receiver_unique_address,
+                'bitcoin_confirmation_count' => $transaction->transaction_bitcoin_confirmation_count,
+                'popup' => $transaction->transaction_popup,
+                'is_voided' => $transaction->transaction_is_voided,
+                'other_details' => array('bitcoinRate' => $details->bitcoinRate),
+                'countdown' => $countdown >= 0 ? $countdown : 0
+            ); 
+        }
+        
+        return response()->json(['status' => 200, 'error' => false, 'data' => $data], 200); 
     }
 
 }
