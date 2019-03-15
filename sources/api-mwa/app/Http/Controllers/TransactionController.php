@@ -331,6 +331,7 @@ class TransactionController extends Controller
         if(!empty($post['filter']['paymentOption'])){
             $post['filter']['paymentOption'] = array($post['filter']['paymentOption']);
         }
+        $post['filter']['isVoided'] = 0;
         
 //        echo "<pre>";
 //        print_r($post); exit;

@@ -152,6 +152,11 @@ class TransactionRepository
             $qb->setParameter('interval', new \DateTime("-" . $filters['interval']));
         }
 
+        if (array_has($filters, 'isVoided')) {
+            $qb->andWhere('t.isVoided = :isVoided')
+                ->setParameter('isVoided', $filters['isVoided']);
+        }
+
         return $qb;
     }
 

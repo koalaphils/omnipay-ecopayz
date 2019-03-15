@@ -123,6 +123,10 @@ class TransactionController extends AbstractController
         if ($post['filter']['paymentOption'] != null && $post['filter']['paymentOption'] != -1) {
             $filters['paymentOption'] = $post['filter']['paymentOption'];
         }
+           
+        if (isset($post['filter']['isVoided'])) {
+            $filters['isVoided'] = $post['filter']['isVoided'];
+        }
 
         $transactions = $this->getTransactionRepository()->filters($filters, $orders);
 
