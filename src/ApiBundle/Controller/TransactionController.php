@@ -304,7 +304,7 @@ class TransactionController extends AbstractController
     }
 
     private function verifySmsCode($data){        
-        $full_phone = $data['phoneCode'] . substr($data['phoneNumber'], 1);
+        $full_phone = $data['phoneCode'] . $data['phoneNumber'];
 
         if ($data['signupType'] == 0) {
             $query = 'SELECT sms_code_value FROM piwi_system_log_sms_code WHERE sms_code_customer_phone_number = \''.$full_phone.'\' order by sms_code_created_at desc limit 1';
