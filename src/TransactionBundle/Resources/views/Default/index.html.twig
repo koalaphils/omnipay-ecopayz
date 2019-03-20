@@ -65,7 +65,7 @@
                         <tr>
                             <th data-priority="1">{{ "fields.number"|trans({}, "TransactionBundle") }}</th>
                             <th>{{ "fields.date"|trans({}, "TransactionBundle") }}</th>
-                            <th>{{ "fields.username"|trans({}, "TransactionBundle") }}</th>
+                            <th>{{ "fields.member"|trans({}, "TransactionBundle") }}</th>
                             <th>{{ "fields.productUsername"|trans({}, "TransactionBundle") }}</th>
                             <th>{{ "fields.paymentOption"|trans({}, "TransactionBundle") }}</th>
                             <th>{{ "fields.currency"|trans({}, "TransactionBundle") }}</th>
@@ -159,7 +159,7 @@
 
                         return hidden;
                     },
-                    'exclude': ['number', 'customer.user.username']
+                    'exclude': ['number', 'customer.full_name']
                 },
                 'search': '{{ app.request.get("search", '') }}',
                 'featuresDom': "<'form-inline'"
@@ -177,13 +177,8 @@
                     },
                     'dataFilter': function (str) {
                         var draw = this.draw;
-                        var json = $.parseJSON( str );                        
-                        var records = [];
-                        for (var i in json.records){
-                            records[i] = json.records[i][0];
-                            records[i]['username_product'] = json.records[i]['username_product'];
-                        }
-                        json.records = records;                        
+                        var json = $.parseJSON( str );
+
                         return JSON.stringify({
                             'draw': draw,
                             'data': json.records,
@@ -465,14 +460,44 @@
                         }
                     },
                     {
-                        'name': 'customer.user.username',
-                        'data': 'customer.user.username',
-                        'defaultContent': ''                        
+                        'name': 'customer.full_name',
+                        'data': 'customer.full_name',
+                        'defaultContent': ''
                     },
                     {
-                        'data': 'username_product',                        
-                        'name': 'username_product',
-                        'defaultContent': '',                                                                            
+                        'data': 'sub_transactions',
+                        'defaultContent': '',
+                        'name': 'sub_transactions',
+                        'render': function (data, type, full) {
+
+                            if (data === null) {
+                                return '';
+                            }
+
+                            var productUsername = '';
+                            $.each(data , function(key,val) {
+                                var customerProductUserName = val.immutable_customer_product_data === '' ? val.customer_product.username : val.immutable_customer_product_data;
+                                productUsername  += '&nbsp;' + val.customer_product.product.name + '(' + customerProductUserName + '),';
+                            });
+
+                            productUsername = productUsername.replace(/,*$/, "");
+                            productUsername = productUsername.split(",");
+                            var moreThan = '';
+                            $i = 1;
+                            if (productUsername.length > 2) {
+
+                                $.each(productUsername , function(key,val) {
+                                    moreThan  += val + ',';
+                                    if ($i == 2) {
+                                        productUsername = moreThan;
+                                    }
+                                    $i++;
+                                });
+                                productUsername = productUsername.replace(/,*$/, "...");
+                            }
+
+                            return productUsername;
+                        }
                     },
                     {
                         'data': 'immutable_payment_option_data',
@@ -621,7 +646,7 @@
                 var transactionNumber = data.number;
                 var tdDate = '<dt>Transaction Date</dt><dd>'+ moment(data.date).format('YYYY/MM/DD') + '</dd>';
                 var tdGateway = data.gateway != null ? '<dt>Payment Gateway</dt><dd>' + data.gateway.name + '</dd>' : '';
-                var tdCustomer = '<dt>Member</dt><dd>'+ data.customer.user.username + '</dd>';
+                var tdCustomer = '<dt>Member</dt><dd>'+ data.customer.full_name + '</dd>';
                 var tdCustomerFee = '<dt>Member Fee</dt><dd>'+ data.currency.code + '&nbsp;' + data.customer_fee + '</dd>';
                 var tdAmountDeposited = '<dt>Amount Deposited</dt><dd>'+ data.currency.code + '&nbsp;' + data.amount + '</dd>';
 

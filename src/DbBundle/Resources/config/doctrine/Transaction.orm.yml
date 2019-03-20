@@ -191,11 +191,15 @@ DbBundle\Entity\Transaction:
             length: 255
             column: transaction_email
         customerID:
-            type: integer            
+            type: bigint
             column: transaction_customer_id
+            options:
+                unsigned: true
         productID:
             type: integer            
             column: transaction_product_id
+            options:
+                unsigned: true
         popup:
             type: boolean
             column: transaction_popup

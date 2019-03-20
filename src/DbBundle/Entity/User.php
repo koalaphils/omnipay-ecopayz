@@ -16,6 +16,8 @@ class User extends Entity implements ActionInterface, TimestampInterface, Advanc
     const USER_TYPE_MEMBER = 1;
     const USER_TYPE_ADMIN = 2;
     const USER_TYPE_CASHPAYER = 3;
+    const SIGNUP_TYPE_PHONE = 0;
+    const SIGNUP_TYPE_EMAIL = 1;
 
     const SALT_ACTIVATION_CODE = 'activationCode';
     const SALT_TRANSACTION_PASSWORD = 'transactionPassword';
