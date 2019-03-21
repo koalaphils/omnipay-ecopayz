@@ -246,3 +246,23 @@ if (!function_exists('number_are_equal')) {
         return remove_trailing_decimals((string) $number) === remove_trailing_decimals((string) $numberToCompare);
     }
 }
+
+if (!function_exists('convert_to_timezone')) {
+    function convert_to_timezone($date, string $timezone = 'UTC'): DateTimeInterface
+    {
+        if (!is_string($date) && ($date instanceof DateTimeInterface)) {
+            throw new \Exception('Argument 1 must be string date or DateTimeInterface');
+        }
+
+        $dateTobeConverted = $date;
+        if (!($date instanceof DateTimeInterface)) {
+            $dateTobeConverted = new DateTimeImmutable($date);
+        } elseif ($date instanceof DateTime) {
+            $dateTobeConverted = DateTimeImmutable::createFromMutable($date);
+        }
+
+        $convertedDate = $dateTobeConverted->setTimezone(new DateTimeZone($timezone));
+
+        return $convertedDate;
+    }
+}

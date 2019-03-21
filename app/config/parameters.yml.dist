@@ -84,3 +84,9 @@ parameters:
     blockchain.xpub_scanner.username: "${BC_XPUB__USER}"
     blockchain.xpub_scanner.password: "${BC_XPUB__PASSWORD}"
     blockchain.xpub_scanner.private_key_path: "${BC_XPUB_PK}"
+
+    # Pinnacle
+    pinnacle_api_url: "${PIN_API_URL}"
+    pinnacle_api_agent_key: "${PIN_API_AGENT_KEY}"
+    pinnacle_api_secret_key: "${PIN_API_SECRET_KEY}"
+    pinnacle_agent_code: "${PIN_AGENT_CODE}"
