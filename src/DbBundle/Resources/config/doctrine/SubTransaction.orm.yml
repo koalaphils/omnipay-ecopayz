@@ -21,7 +21,7 @@ DbBundle\Entity\SubTransaction:
         dwl_winloss_index:
             columns: [subtransaction_dwl_winloss]
         immutable_username_index:
-            columns: [virtual_immutable_username]
+            columns: [subtransaction_virtual_immutable_username]
     fields:
         type:
             type: smallint

@@ -1,0 +1,67 @@
+version: "3.4"
+services:
+  php:
+    build:
+      context: ../
+      dockerfile: $PWD/docker/php/Dockerfile
+    volumes:
+    - ../:/var/www/html
+    - uploads:/uploads
+    environment:
+    - SYMFONY_ENV=dev
+    - DATABASE_HOST=database
+    - DATABASE_NAME=backoffice
+    - DATABASE_USER=backoffice
+    - DATABASE_PASSWORD_FILE=/run/secrets/dbpw
+    - ECOPAYZ_TEST_MODE=true
+    secrets:
+    - env
+    - dbpw
+
+  nginx:
+    build:
+      context: ../
+      dockerfile: $PWD/docker/nginx/Dockerfile
+    environment:
+    - PHPHOST=php
+    - PHPPORT=9000
+    volumes:
+    - ../:/var/www/html
+
+  database:
+    image: mysql:8.0.15
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+    - database:/var/lib/mysql
+    environment:
+    - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/dbrootpw
+    - MYSQL_PASSWORD_FILE=/run/secrets/dbpw
+    - MYSQL_DATABASE=backoffice
+    - MYSQL_USER=backoffice
+    secrets:
+    - dbpw
+    - dbrootpw
+
+  mailhog:
+    image: mailhog/mailhog
+    command:
+      - "-smtp-bind-addr"
+      - "0.0.0.0:25"
+    user: root
+
+  adminer:
+    image: adminer
+    ports:
+    - 9080:8080
+
+volumes:
+  database:
+  uploads:
+
+secrets:
+  env:
+    file: $PWD/secrets/env
+  dbrootpw:
+    file: $PWD/secrets/dbrootpw
+  dbpw:
+    file: $PWD/secrets/dbpw

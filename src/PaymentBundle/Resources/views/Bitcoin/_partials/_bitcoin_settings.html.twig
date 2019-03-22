@@ -5,11 +5,13 @@
             {{ form_row(form.minutesInterval) }}
             {{ form_row(form.minimumAllowedDeposit) }}
             {{ form_row(form.maximumAllowedDeposit) }}
-            {{ form_row(form.minimumAllowedWithdrawal) }}
-            {{ form_row(form.maximumAllowedWithdrawal) }}
+        </div>
+    </div>
+    <div class="card-box">
+        <div class="row">
             {{ form_row(form.autoLock) }}
             {{ form_row(form.minutesLockDownInterval) }}
         </div>
-    </div>        
+    </div>
     {{ form_row(form.saveConfigurationButton) }}
 {{ form_end(form) }}

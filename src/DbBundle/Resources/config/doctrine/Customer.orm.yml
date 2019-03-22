@@ -113,8 +113,6 @@ DbBundle\Entity\Customer:
             type: json
             column: customer_tags
             nullable: false
-            options:
-                default: ''
         pinUserCode:
             type: string
             column: customer_pin_user_code

@@ -15,6 +15,7 @@ fields:
     name: Name
     currency: Currency
     tags: Tags
+    phoneCode: Phone Code
     
 notification:
     title: Success
