@@ -61,11 +61,9 @@ class SmsCode extends Entity
         return $this->id;
     }
 
-    public function setId(string $id): self
+    public function setId($id): void
     {
         $this->id = $id;
-
-        return $this;
     }
 
     public function getValue(): int

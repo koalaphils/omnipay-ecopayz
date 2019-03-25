@@ -90,3 +90,10 @@ parameters:
     pinnacle_api_agent_key: "${PIN_API_AGENT_KEY}"
     pinnacle_api_secret_key: "${PIN_API_SECRET_KEY}"
     pinnacle_agent_code: "${PIN_AGENT_CODE}"
+
+    sms_template: 'code-request-sms.html.twig'
+    email_template: 'code-request.html.twig'
+
+    twilio_sid: '${TWILIO_SID}'
+    twilio_token: '${TWILIO_TOKEN}'
+    twilio_from: '${TWILIO_FROM}'

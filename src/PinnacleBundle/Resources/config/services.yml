@@ -1,4 +1,1 @@
 services:
-    pinnacle.service:
-        class: PinnacleBundle\Service\PinnacleService
-        arguments: ["%pinnacle_api_url%", "%pinnacle_agent_code%", "%pinnacle_api_agent_key%", "%pinnacle_api_secret_key%"]

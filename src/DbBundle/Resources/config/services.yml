@@ -57,5 +57,28 @@ services:
             - ['setTransactionManager', ['@transaction.manager']]
         tags:
             - { name: jms_serializer.event_subscriber }
+
+    DbBundle\Repository\CurrencyRepository:
+        factory: ['@doctrine.orm.default_entity_manager', getRepository]
+        arguments:
+            - DbBundle\Entity\Currency
+    DbBundle\Repository\CountryRepository:
+        factory: ['@doctrine.orm.default_entity_manager', getRepository]
+        arguments:
+            - DbBundle\Entity\Country
+    DbBundle\Repository\ProductRepository:
+        factory: ['@doctrine.orm.default_entity_manager', getRepository]
+        arguments:
+            - DbBundle\Entity\Product
+    DbBundle\Repository\SmsCodeRepository:
+        factory: ['@doctrine.orm.default_entity_manager', getRepository]
+        arguments:
+            - DbBundle\Entity\SmsCode
+    DbBundle\Repository\TwoFactorCodeRepository:
+        factory: ['@doctrine.orm.default_entity_manager', getRepository]
+        arguments:
+            - DbBundle\Entity\TwoFactorCode
+    Doctrine\ORM\EntityManager: '@Doctrine\ORM\EntityManagerInterface'
+
 imports:
     - { resource: data_transfers.yml }

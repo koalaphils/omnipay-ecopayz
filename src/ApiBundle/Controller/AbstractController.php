@@ -7,13 +7,17 @@
 
 namespace ApiBundle\Controller;
 
+use AppBundle\Helper\StrHelper;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\View\View;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Translation\TranslatorInterface;
+use Symfony\Component\Validator\ConstraintViolationInterface;
+use Symfony\Component\Validator\ConstraintViolationList;
 
 /**
  * Description of AbstractController
@@ -24,7 +28,16 @@ abstract class AbstractController extends FOSRestController
 {
     protected function view($data = null, $statusCode = null, array $headers = []): View
     {
-        $view = View::create($data, $statusCode, $headers);
+        if($data instanceof ConstraintViolationList) {
+            $violations = $this->serializeViolation($data);
+            if ($statusCode === null) {
+                $statusCode = Response::HTTP_UNPROCESSABLE_ENTITY;
+            }
+            $view = View::create(['success' => false, 'errors' => $violations], $statusCode, $headers);
+        } else {
+            $view = View::create($data, $statusCode, $headers);
+        }
+
         $format = $this->getRequestStack()->getCurrentRequest()->get('_format');
         if ($format !== null) {
             $view->setFormat($format);
@@ -33,6 +46,20 @@ abstract class AbstractController extends FOSRestController
         $view->getContext()->setSerializeNull(true);
 
         return $view;
+    }
+
+    protected function serializeViolation(ConstraintViolationList $constraintViolationList): array
+    {
+        $violations = [];
+        /* @var $constraintViolation ConstraintViolationInterface */
+        foreach ($constraintViolationList as $constraintViolation) {
+            $violations[] = [
+                'field' => StrHelper::snakeCase($constraintViolation->getPropertyPath()),
+                'message' => $constraintViolation->getMessage(),
+            ];
+        }
+
+        return $violations;
     }
 
     protected function getRepository($className)

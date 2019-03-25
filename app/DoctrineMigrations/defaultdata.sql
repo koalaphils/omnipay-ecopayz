@@ -266,7 +266,8 @@ INSERT INTO `setting` (`setting_id`, `setting_code`, `setting_value`) VALUES
 (108,	'piwi247.session',	'{\"refreshSessionInterval\": \"720000\"}'),
 (109,	'transaction.validate',	'{\"skrill\": {\"deposit\": {\"fee\": 0, \"max_amount\": 10000, \"min_amount\": 10}, \"withdraw\": {\"fee\": 0, \"max_amount\": 10000, \"min_amount\": 10}}, \"bitcoin\": {\"deposit\": {\"fee\": 0, \"max_amount\": 10000, \"min_amount\": 0.0001}, \"withdraw\": {\"fee\": 0, \"max_amount\": 10000, \"min_amount\": \"0.0001\"}}, \"neteller\": {\"deposit\": {\"fee\": 0, \"max_amount\": 10000, \"min_amount\": 10}, \"withdraw\": {\"fee\": 0, \"max_amount\": 10000, \"min_amount\": 10}}}'),
 (110,	'bitcoin.setting.withdrawalConfiguration',	'[{\"min\": \"200\"}]'),
-(113,	'bitcoin.setting',	'{\"configuration\": {\"autoDecline\": false, \"minutesInterval\": 20, \"maximumAllowedDeposit\": \"40\", \"minimumAllowedDeposit\": \"0.0001\"}, \"lockRatePeriodSetting\": {\"autoLock\": false, \"minutesLockDownInterval\": 20}, \"withdrawalConfiguration\": {\"maximumAllowedWithdrawal\": \"40\", \"minimumAllowedWithdrawal\": \"0.0001\"}}');
+(113,	'bitcoin.setting',	'{\"configuration\": {\"autoDecline\": false, \"minutesInterval\": 20, \"maximumAllowedDeposit\": \"40\", \"minimumAllowedDeposit\": \"0.0001\"}, \"lockRatePeriodSetting\": {\"autoLock\": false, \"minutesLockDownInterval\": 20}, \"withdrawalConfiguration\": {\"maximumAllowedWithdrawal\": \"40\", \"minimumAllowedWithdrawal\": \"0.0001\"}}'),
+(114,	'pinnacle',	'{\"product\": \"PINBET\"}');
 
 INSERT INTO `product` (`product_id`, `product_code`, `product_name`, `product_is_active`, `product_deleted_at`, `product_created_by`, `product_created_at`, `product_updated_by`, `product_updated_at`, `product_logo_uri`, `product_url`, `product_details`) VALUES
-(1,	'PINBET',	'PIN BET',	1,	NULL,	1,	NOW(),	NULL,	NULL,	NULL,	NULL,	'{\"is_pinnacle\": true}');
+(1,	'PINBET',	'PIN BET',	1,	NULL,	1,	NOW(),	NULL,	NULL,	NULL,	NULL);

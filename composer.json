@@ -38,6 +38,7 @@
         "php-http/client-common": "^1.7",
         "php-http/guzzle6-adapter": "^1.1",
         "phpseclib/phpseclib": "2.0.11",
+        "ramsey/uuid-doctrine": "^1.5",
         "rx/thruway-client": "^3.0",
         "sensio/distribution-bundle": "^5.0.19",
         "sensio/framework-extra-bundle": "^3.0.2",
@@ -46,6 +47,7 @@
         "symfony/swiftmailer-bundle": "^2.3.10",
         "symfony/symfony": "3.3.*",
         "syslogic/doctrine-json-functions": "^1.0",
+        "twilio/sdk": "^5.30",
         "zendesk/zendesk_api_client_php": "2.1.7"
     },
     "require-dev": {

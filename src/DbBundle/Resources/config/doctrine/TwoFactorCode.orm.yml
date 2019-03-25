@@ -1,0 +1,36 @@
+DbBundle\Entity\TwoFactorCode:
+    type: entity
+    table: two_factor_code
+    repositoryClass: DbBundle\Repository\TwoFactorCodeRepository
+    id:
+        id:
+            type: uuid
+            generator:
+                strategy: CUSTOM
+            customIdGenerator:
+                class: Ramsey\Uuid\Doctrine\UuidGenerator
+            column: two_factory_code_id
+    indexes:
+        code_idx:
+            columns: [two_factory_code_code]
+    fields:
+        code:
+            type: string
+            nullable: true
+            column: two_factory_code_code
+        payload:
+            type: json
+            nullable: false
+            column: two_factory_code_payload
+        status:
+            type: integer
+            nullable: false
+            column: two_factory_code_status
+        createdAt:
+            type: datetimetz_immutable
+            nullable: false
+            column: two_factory_code_created_at
+        expireAt:
+            type: datetimetz_immutable
+            nullable: false
+            column: two_factory_code_expire_at

@@ -2,7 +2,7 @@ imports:
     - { resource: handlers.yml }
     - { resource: managers.yml }
     - { resource: forms.yml }
-
+    - { resource: controller.yml }
 services:
     api.jms_parser:
         class: ApiBundle\Parser\JmsMetadataParser

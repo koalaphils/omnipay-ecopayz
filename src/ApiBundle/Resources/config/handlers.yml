@@ -11,3 +11,11 @@ services:
             - '@doctrine.orm.entity_manager'
             - '@=service("doctrine").getRepository("DbBundle\\Entity\\Product")'
             - '@event_dispatcher'
+
+    ApiBundle\RequestHandler\RegisterHandler:
+        lazy: true
+        autowire: true
+
+    ApiBundle\RequestHandler\RegistrationCodeHandler:
+        lazy: true
+        autowire: true

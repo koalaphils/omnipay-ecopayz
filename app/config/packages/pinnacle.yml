@@ -1,0 +1,6 @@
+pinnacle:
+    api:
+        url: '%pinnacle_api_url%'
+        agent_key: '%pinnacle_api_agent_key%'
+        secret_key: '%pinnacle_api_secret_key%'
+    agent_code: '%pinnacle_agent_code%'

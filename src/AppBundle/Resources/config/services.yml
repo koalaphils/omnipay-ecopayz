@@ -55,6 +55,8 @@ services:
             - [ 'setContainer', ['@service_container'] ]
             - [ 'registerSettingMenu' ]
 
+    AppBundle\Manager\SettingManager: '@app.setting_manager'
+
     app.menu_manager:
         class: AppBundle\Manager\MenuManager
         arguments:
@@ -188,6 +190,8 @@ services:
     app.mailer_manager:
         class: AppBundle\Manager\MailerManager
         arguments: ["@mailer", "@templating", "%mailer_email_from%", "%email_spool_command%", "@media.manager"]
+
+    AppBundle\Manager\MailerManager: '@app.mailer_manager'
 
     # helpers
     app.publisher:

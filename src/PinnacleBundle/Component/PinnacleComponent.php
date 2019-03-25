@@ -22,7 +22,8 @@ abstract class PinnacleComponent
 
     protected function get(string $path, array $query = [], array $params = []): array
     {
-        $data = json_decode($this->pinnacle->get($path, $query, $params)->getBody(), true);
+        $response = $this->pinnacle->get($path, $query, $params)->getBody()->getContents();
+        $data = json_decode($response, true);
         $this->checkResponse($data);
 
         return $data;
@@ -30,7 +31,7 @@ abstract class PinnacleComponent
 
     protected function post(string $path, array $postData = [], array $params = []): array
     {
-        $data = json_decode($this->pinnacle->post($path, $postData, $params)->getBody(), true);
+        $data = json_decode($this->pinnacle->post($path, $postData, $params)->getBody()->getContents(), true);
         $this->checkResponse($data);
 
         return $data;

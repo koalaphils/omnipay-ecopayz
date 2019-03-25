@@ -1,0 +1,5 @@
+api_members.register_member:
+    path: register
+    defaults:
+        _controller: ApiBundle:Member:register
+    methods: [POST]

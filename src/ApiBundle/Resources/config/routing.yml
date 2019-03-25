@@ -347,3 +347,11 @@ api_customers.me_available_balance:
     defaults:
         _controller: ApiBundle:Transaction:getAvailableBalance
     methods: [GET]
+
+api_members:
+    resource: "@ApiBundle/Resources/config/routes/member.yml"
+    prefix:   member/
+
+api_2fa:
+    resource: "@ApiBundle/Resources/config/routes/2fa.yml"
+    prefix: 2fa/

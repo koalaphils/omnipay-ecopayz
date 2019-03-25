@@ -68,7 +68,7 @@ class Player
         $instance->status = $data['status'];
         $instance->availableBalance = (string) $data['availableBalance'];
         $instance->outstanding = (string) $data['outstanding'];
-        $instance->createdDate = (new \DateTimeImmutable($data['createdDate'] . ' -04:00'))->setTimezone('UTC');
+        $instance->createdDate = (new \DateTimeImmutable($data['createdDate'] . ' -04:00'))->setTimezone(new \DateTimeZone('UTC'));
         $instance->createdBy = $data['createdBy'];
 
         return $instance;

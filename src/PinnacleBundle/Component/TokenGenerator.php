@@ -31,9 +31,9 @@ class TokenGenerator
 
     public function generate(): string
     {
-        $time = time()*1000;
-        $hashToken = md5($this->agentCode . $time . $this->agentKey);
-        $tokenPayload = $this->agentCode . "|" . $time . "|" . $hashToken;
+        $timestamp = time() * 1000;
+        $hashToken = md5($this->agentCode . $timestamp . $this->agentKey);
+        $tokenPayload = $this->agentCode . "|" . $timestamp . "|" . $hashToken;
 
         return $this->encrypt($tokenPayload);
     }

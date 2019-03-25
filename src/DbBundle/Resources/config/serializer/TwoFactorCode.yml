@@ -1,0 +1,2 @@
+DbBundle\Entity\TwoFactorCode:
+    exclusion_policy: ALL
