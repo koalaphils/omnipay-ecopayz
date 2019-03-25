@@ -11,6 +11,7 @@ class CountryController extends AbstractController
      /**
      * @ApiDoc(
      *  description="Get all countries",
+     *  views={"piwi", "default"},
      *  output={
      *      "class"="ArrayCollection<DbBundle\Entity\Country>",
      *      "parsers"={ "ApiBundle\Parser\CollectionParser", "ApiBundle\Parser\JmsMetadataParser" },
@@ -51,6 +52,7 @@ class CountryController extends AbstractController
     /**
      * @ApiDoc (
      *  description="Get specific country",
+     *  views={"piwi", "default"},
      *  output={
      *      "class"="DbBundle\Entity\Country",
      *      "parsers"={ "ApiBundle\Parser\CollectionParser", "ApiBundle\Parser\JmsMetadataParser" },
