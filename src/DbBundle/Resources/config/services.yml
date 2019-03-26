@@ -78,6 +78,10 @@ services:
         factory: ['@doctrine.orm.default_entity_manager', getRepository]
         arguments:
             - DbBundle\Entity\TwoFactorCode
+    DbBundle\Repository\UserRepository:
+        factory: ['@doctrine.orm.default_entity_manager', getRepository]
+        arguments:
+            - DbBundle\Entity\User
     Doctrine\ORM\EntityManager: '@Doctrine\ORM\EntityManagerInterface'
 
 imports:

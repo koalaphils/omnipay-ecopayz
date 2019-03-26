@@ -155,6 +155,9 @@ class MemberController extends AbstractController
      *             "name"="repeat_password",
      *             "dataType"="string"
      *         }
+     *     },
+     *     headers={
+     *         { "name"="Authorization", "description"="Bearer <access_token>" }
      *     }
      * )
      */

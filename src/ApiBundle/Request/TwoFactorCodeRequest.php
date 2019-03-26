@@ -57,7 +57,7 @@ class TwoFactorCodeRequest implements GroupSequenceProviderInterface
 
     public function getPhoneWithCountryCode(): string
     {
-        return str_replace('+','', $this->getCountryPhoneCode()) . $this->getPhoneNumber();
+        return $this->countryPhoneCode . $this->phoneNumber;
     }
 
     public function getEmail(): string

@@ -9,9 +9,11 @@
 namespace ApiBundle\RequestHandler;
 
 use ApiBundle\Manager\CustomerManager;
+use ApiBundle\Request\ForgotPasswordRequest;
 use AppBundle\Helper\Publisher;
 use DbBundle\Entity\OAuth2\AccessToken;
 use DbBundle\Entity\User;
+use DbBundle\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use OAuth2\OAuth2;
 use OAuth2\OAuth2AuthenticateException;
@@ -20,6 +22,7 @@ use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use UserBundle\Manager\UserManager;
 
 class AuthHandler
 {
@@ -53,13 +56,25 @@ class AuthHandler
      */
     private $tokenStorage;
 
+    /**
+     * @var UserRepository
+     */
+    private $userRepository;
+
+    /**
+     * @var UserManager
+     */
+    private $userManager;
+
     public function __construct(
         OAuth2 $oauthService,
         PinnacleService $pinnacleService,
         EntityManagerInterface $entityManager,
         Publisher $publisher,
         CustomerManager $customerManager,
-        TokenStorageInterface $tokenStorage
+        TokenStorageInterface $tokenStorage,
+        UserRepository $userRepository,
+        UserManager $userManager
     ) {
         $this->oauthService = $oauthService;
         $this->pinnacleService = $pinnacleService;
@@ -67,6 +82,8 @@ class AuthHandler
         $this->publisher = $publisher;
         $this->customerManager = $customerManager;
         $this->tokenStorage = $tokenStorage;
+        $this->userRepository = $userRepository;
+        $this->userManager = $userManager;
     }
 
     /**
@@ -122,6 +139,19 @@ class AuthHandler
                 $this->deleteUserAccessToken(null, [$tokenString]);
             }
         }
+    }
+
+    public function handleForgotPassword(ForgotPasswordRequest $forgotPasswordRequest): void
+    {
+        if ($forgotPasswordRequest->getEmail() === '') {
+            $user = $this->userRepository->findUserByPhoneNumber($forgotPasswordRequest->getPhoneNumber(), $forgotPasswordRequest->getCountryPhoneCode());
+        } else {
+            $user = $this->userRepository->findByEmail($forgotPasswordRequest->getEmail());
+        }
+
+        $user->setPassword($this->userManager->encodePassword($user, $forgotPasswordRequest->getPassword()));
+        $this->entityManager->persist($user);
+        $this->entityManager->flush($user);
     }
 
     private function deleteUserAccessToken(?int $userId = null, array $accessTokens = [], array $except = []): void

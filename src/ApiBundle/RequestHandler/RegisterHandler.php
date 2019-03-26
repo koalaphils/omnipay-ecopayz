@@ -163,7 +163,8 @@ class RegisterHandler
         $user = new User();
         if ($registerRequest->getEmail() === '') {
             $user->setSignupType(User::SIGNUP_TYPE_PHONE);
-            $user->setUsername($registerRequest->getPhoneWithCountryCode());
+            $user->setUsername(str_replace('+', '', $registerRequest->getPhoneWithCountryCode()));
+            $user->setPhoneNumber($registerRequest->getCountryPhoneCode() . $registerRequest->getPhoneNumber());
         } else {
             $user->setSignupType(User::SIGNUP_TYPE_EMAIL);
             $user->setEmail($registerRequest->getEmail());

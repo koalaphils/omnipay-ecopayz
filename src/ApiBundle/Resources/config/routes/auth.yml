@@ -13,3 +13,9 @@ api_auth_refresh:
     defaults:
         _controller: ApiBundle:Auth:refreshToken
     methods: [POST, GET]
+
+api_auth_forgot_password:
+    path: forgot-password
+    defaults:
+        _controller: ApiBundle:Auth:forgotPassword
+    methods: [POST]

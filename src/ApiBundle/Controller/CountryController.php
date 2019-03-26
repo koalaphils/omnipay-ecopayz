@@ -23,7 +23,10 @@ class CountryController extends AbstractController
      *      {"name"="limit", "dataType"="integer"},
      *      {"name"="page", "dataType"="integer"},
      *      {"name"="tags", "dataType"="string"},
-     *  }
+     *  },
+     *     headers={
+     *         { "name"="Authorization", "description"="Bearer <access_token>" }
+     *     }
      * )
      */
     public function countryListAction(Request $request)
@@ -59,6 +62,9 @@ class CountryController extends AbstractController
      *      "class"="DbBundle\Entity\Country",
      *      "parsers"={ "ApiBundle\Parser\CollectionParser", "ApiBundle\Parser\JmsMetadataParser" },
      *      "groups"={ "Default" ,"API" }
+     *  },
+     *  headers={
+     *      { "name"="Authorization", "description"="Bearer <access_token>" }
      *  }
      * )
      */

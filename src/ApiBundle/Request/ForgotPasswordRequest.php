@@ -7,7 +7,7 @@ namespace ApiBundle\Request;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\GroupSequenceProviderInterface;
 
-class RegisterRequest implements GroupSequenceProviderInterface
+class ForgotPasswordRequest implements GroupSequenceProviderInterface
 {
     /**
      * @var string
@@ -39,48 +39,22 @@ class RegisterRequest implements GroupSequenceProviderInterface
      */
     private $repeatPassword;
 
-    /**
-     * @var string
-     */
-    private $currency;
-
-    /**
-     * @var string
-     */
-    private $locale;
-
-    /**
-     * @var string
-     */
-    private $ipAddress;
-
-    /**
-     * @var string
-     */
-    private $referrerUrl;
-
-    /**
-     * @var string
-     */
-    private $originUrl;
-
     public static function createFromRequest(Request $request): self
     {
         $instance = new static();
         $instance->email = $request->get('email', '');
-        $instance->phoneNumber = $request->get('phone_number', '');
+        $instance->countryPhoneCode = $request->get('country_phone_code', '');
+        $instance->phoneNumber = $request->get('phone_number');
         $instance->verificationCode = $request->get('verification_code', '');
         $instance->password = $request->get('password', '');
         $instance->repeatPassword = $request->get('repeat_password', '');
-        $instance->currency = $request->get('currency', '');
-        $instance->countryPhoneCode = $request->get('country_phone_code', '');
-
-        $instance->locale = $request->getLocale();
-        $instance->ipAddress = $request->getClientIp();
-        $instance->referrerUrl = $request->headers->get('Referrer', '');
-        $instance->originUrl = $request->headers->get('Origin', '');
 
         return $instance;
+    }
+
+    public function getVerificationCode(): string
+    {
+        return $this->verificationCode;
     }
 
     public function getEmail(): string
@@ -93,9 +67,9 @@ class RegisterRequest implements GroupSequenceProviderInterface
         return $this->phoneNumber;
     }
 
-    public function getVerificationCode(): string
+    public function getCountryPhoneCode(): string
     {
-        return $this->verificationCode;
+        return $this->countryPhoneCode;
     }
 
     public function getPassword(): string
@@ -108,44 +82,14 @@ class RegisterRequest implements GroupSequenceProviderInterface
         return $this->repeatPassword;
     }
 
-    public function getCurrency(): string
-    {
-        return $this->currency;
-    }
-
-    public function getCountryPhoneCode(): string
-    {
-        return $this->countryPhoneCode;
-    }
-
-    public function getLocale(): string
-    {
-        return $this->locale;
-    }
-
-    public function getIpAddress(): string
-    {
-        return $this->ipAddress;
-    }
-
-    public function getReferrerUrl(): string
-    {
-        return $this->referrerUrl;
-    }
-
-    public function getOriginUrl(): string
-    {
-        return $this->originUrl;
-    }
-
     public function getPhoneWithCountryCode(): string
     {
-        return $this->getCountryPhoneCode() . $this->getPhoneNumber();
+        return $this->countryPhoneCode . $this->phoneNumber;
     }
 
     public function getVerificationPayload(): array
     {
-        $payload = ['purpose' => 'register'];
+        $payload = ['purpose' => 'reset-password'];
         if ($this->email === '') {
             $payload['provider'] = 'sms';
             $payload['phone'] = $this->getPhoneWithCountryCode();
@@ -165,9 +109,9 @@ class RegisterRequest implements GroupSequenceProviderInterface
     {
         $groups = [];
         if ($this->email === '') {
-            $groups[] = ['RegisterRequest', 'Phone'];
+            $groups[] = ['ForgotPasswordRequest', 'Phone'];
         } else {
-            $groups[] = ['RegisterRequest', 'Email'];
+            $groups[] = ['ForgotPasswordRequest', 'Email'];
         }
 
         return $groups;

@@ -35,8 +35,12 @@ class TwoFactorController extends AbstractController
      *         },
      *         {
      *             "name"="purpose",
-     *             "dataType"="string"
+     *             "dataType"="string",
+     *             "description"="register, reset-password"
      *         }
+     *     },
+     *     headers={
+     *         { "name"="Authorization", "description"="Bearer <access_token>" }
      *     }
      * )
      */

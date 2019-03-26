@@ -4,10 +4,12 @@ declare(strict_types = 1);
 
 namespace ApiBundle\Controller;
 
+use ApiBundle\Request\ForgotPasswordRequest;
 use ApiBundle\RequestHandler\AuthHandler;
 use FOS\RestBundle\View\View;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class AuthController extends AbstractController
 {
@@ -98,5 +100,37 @@ class AuthController extends AbstractController
         ]);
 
         return $this->view($authHandler->handleRefreshToken($request));
+    }
+
+    /**
+     * @ApiDoc(
+     *     section="Authentication",
+     *     description="Forgot Password",
+     *     views={"piwi"},
+     *     requirements={
+     *         { "name"="verification_code", "dataType"="string" },
+     *         { "name"="email", "dataType"="string" },
+     *         { "name"="country_phone_code", "dataType"="string" },
+     *         { "name"="phone_number", "dataType"="string" },
+     *         { "name"="password", "dataType"="string" },
+     *         { "name"="repeat_password", "dataType"="string" }
+     *     },
+     *     headers={
+     *         { "name"="Authorization", "description"="Bearer <access_token>" }
+     *     }
+     * )
+     */
+    public function forgotPasswordAction(Request $request, AuthHandler $authHandler, ValidatorInterface $validator): View
+    {
+        $forgotPasswordRequest = ForgotPasswordRequest::createFromRequest($request);
+
+        $violations = $validator->validate($forgotPasswordRequest, null);
+        if ($violations->count() > 0) {
+            return $this->view($violations);
+        }
+
+        $authHandler->handleForgotPassword($forgotPasswordRequest);
+
+        return $this->view(['success' => true]);
     }
 }
