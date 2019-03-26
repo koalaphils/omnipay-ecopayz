@@ -37,13 +37,13 @@ widgets:
                     from: customer.user.username
                 product_username:
                     label: ProductId
-                    type: function
-                    function: getProductUsername
-                    from: customer
+                    type: text
+                    from: customer.pinUserCode
                 country:
                     label: Country
-                    type: text
-                    from: 'customer.country.name'
+                    type: function
+                    function: getCountryName
+                    from: 'customer.country'
                 # currency:
                 #     label: Currency
                 #     type: text

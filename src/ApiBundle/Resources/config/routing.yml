@@ -359,3 +359,7 @@ api_2fa:
 api_auth:
     resource: "./routes/auth.yml"
     prefix: auth/
+
+api_setting:
+    resource: "./routes/setting.yml"
+    prefix: setting/

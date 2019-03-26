@@ -157,7 +157,14 @@ $(function () {
                     'data': '0.full_name',
                 },
                 {
-                    'data': '0.country.name'
+                    'data': '0.country',
+                    'render': function (data, type, full) {
+                        if (data) {
+                            return data.name;
+                        }
+
+                        return '';
+                    }
                 },
                 {
                     'data': '0.currency.name',

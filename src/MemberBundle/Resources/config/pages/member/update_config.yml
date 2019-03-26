@@ -52,7 +52,7 @@ widgets:
                 email:
                     options:
                         label: Email
-                        required: true
+                        required: false
                     type: email
                     size: 12
                     group: Left
@@ -98,7 +98,7 @@ widgets:
                 country:
                     options:
                         label: Country
-                        required: true
+                        required: false
                     type: dropdown
                     size: 12
                     group: Right
@@ -123,21 +123,20 @@ widgets:
                         label: Birth Date
                         widget: 'single_text'
                         format: 'M/dd/yyyy'
-                        required: true
+                        required: false
                     size: 12
                     group: Left
                 gender:
-                    type: choices
+                    type: dropdown
                     options:
                         choices:
                             Not set: 0 
                             Male: 1
                             Female: 2
                         label: Gender
-                        required: true
+                        required: false
                     group: Left
                     size: 12
-                    type: dropdown
                 joinedAt:
                     options:
                         label: Date Joined
