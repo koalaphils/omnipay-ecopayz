@@ -22,9 +22,9 @@ class AuthComponent extends PinnacleComponent
         return LoginResponse::create($data);
     }
 
-    public function logout(string $userCode): bool
+    public function logout(string $userCode, ?string $token = null): bool
     {
-        $data = $this->get(self::LOGOUT_PATH, ['userCode' => $userCode]);
+        $data = $this->get(self::LOGOUT_PATH, ['userCode' => $userCode], ['headers' => ['token' => $token]]);
 
         $status = $data['status'] ?? 'unsuccessfull';
 

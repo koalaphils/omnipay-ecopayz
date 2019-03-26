@@ -123,7 +123,7 @@ INSERT INTO `country` (`country_id`, `country_code`, `country_name`, `country_cu
 (116,	'LA',	'Lao Peoples Democratic Republic',	NULL,	1,	'2015-08-04 00:22:45',	1,	'2018-01-19 15:26:00',	'[\"ac88-main\", \"ac88-promo\"]',	'+856'),
 (117,	'LV',	'Latvia',	NULL,	1,	'2015-08-04 00:22:45',	1,	'2018-01-19 15:26:13',	'[\"ac88-main\", \"ac88-promo\"]',	'+371'),
 (118,	'LB',	'Lebanon',	NULL,	1,	'2015-08-04 00:22:45',	1,	'2018-01-19 15:26:25',	'[\"ac88-main\", \"ac88-promo\"]',	'+961'),
-(119,	'LS',	'Lesotho',	NULL,	1,	'2015-08-04 00:22:45',	1,	'2015-08-04 00:22:45',	'null',	'+266'),
+(119,	'LS',	'Lesotho',	NULL,	1,	'2015-08-04 00:22:45',	1,	'2015-08-0584 00:22:45',	'null',	'+266'),
 (120,	'LR',	'Liberia',	NULL,	1,	'2015-08-04 00:22:45',	1,	'2018-01-19 15:26:35',	'[\"ac88-main\", \"ac88-promo\"]',	'+231'),
 (121,	'LY',	'Libyan Arab Jamahiriya',	NULL,	1,	'2015-08-04 00:22:45',	1,	'2015-08-04 00:22:45',	'null',	'+218'),
 (122,	'LI',	'Liechtenstein',	NULL,	1,	'2015-08-04 00:22:45',	1,	'2018-01-19 15:26:49',	'[\"ac88-main\", \"ac88-promo\"]',	'+423'),
@@ -270,4 +270,4 @@ INSERT INTO `setting` (`setting_id`, `setting_code`, `setting_value`) VALUES
 (114,	'pinnacle',	'{\"product\": \"PINBET\"}');
 
 INSERT INTO `product` (`product_id`, `product_code`, `product_name`, `product_is_active`, `product_deleted_at`, `product_created_by`, `product_created_at`, `product_updated_by`, `product_updated_at`, `product_logo_uri`, `product_url`, `product_details`) VALUES
-(1,	'PINBET',	'PIN BET',	1,	NULL,	1,	NOW(),	NULL,	NULL,	NULL,	NULL);
+(1,	'PINBET',	'PIN BET',	1,	NULL,	1,	NOW(),	NULL,	NULL,	NULL,	NULL, '{}');

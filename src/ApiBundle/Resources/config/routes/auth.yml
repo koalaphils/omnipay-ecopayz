@@ -1,0 +1,10 @@
+api_auth_login:
+    path: login
+    defaults:
+        _controller: ApiBundle:Auth:login
+    methods: [POST, GET]
+api_auth_logout:
+    path: logout
+    defaults:
+        _controller: ApiBundle:Auth:logout
+    methods: [POST, GET]

@@ -199,6 +199,7 @@ services:
         arguments: ["%websocket.url%", "%websocket.realm%", "%jwt_key%"]
         calls:
             - ['setWampUrl', ['%websocket.wamp%']]
+    AppBundle\Helper\Publisher: '@app.publisher'
 
     # form extension
     app.form.extension.model_transformer:

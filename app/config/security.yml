@@ -27,6 +27,10 @@ security:
             pattern:  ^/(%app_locales%)/api/doc
             security: false
 
+        api_login:
+            pattern: ^/(%app_locales%)/api/auth/(login|logout)
+            security: false
+
         api:
             pattern:    ^/(%app_locales%)/api
             anonymous: false

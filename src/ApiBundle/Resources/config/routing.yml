@@ -349,9 +349,13 @@ api_customers.me_available_balance:
     methods: [GET]
 
 api_members:
-    resource: "@ApiBundle/Resources/config/routes/member.yml"
+    resource: "./routes/member.yml"
     prefix:   member/
 
 api_2fa:
-    resource: "@ApiBundle/Resources/config/routes/2fa.yml"
+    resource: "./routes/2fa.yml"
     prefix: 2fa/
+
+api_auth:
+    resource: "./routes/auth.yml"
+    prefix: auth/

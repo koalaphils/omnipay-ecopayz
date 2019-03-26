@@ -59,6 +59,7 @@ ENV UPLOAD_FOLDER=/uploads \
     MAIL_HOST= \
     MAIL_USER= \
     MAIL_PASSWORD= \
+    MAIL_PORT= \
     MAIL_FROM= \
     MAIL_CC= \
     MAIL_AFFILIATE_FROM= \
