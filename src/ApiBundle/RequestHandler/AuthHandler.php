@@ -99,6 +99,14 @@ class AuthHandler
 
         return $loginResponse;
     }
+
+    public function handleRefreshToken(Request $request): array
+    {
+        $response = $this->oauthService->grantAccessToken($request);
+
+        return json_decode($response->getContent(), true);
+    }
+
     public function handleLogout(Request $request): void
     {
         $tokenString = $request->get('token');

@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace ApiBundle\RequestHandler;
 
-use ApiBundle\Request\RegistrationCodeRequest;
+use ApiBundle\Request\TwoFactorCodeRequest;
 use AppBundle\Manager\SettingManager;
 use DbBundle\Entity\TwoFactorCode;
 use TwoFactorBundle\Provider\Message\Email\EmailCodeGenerator;
@@ -13,7 +13,7 @@ use TwoFactorBundle\Provider\Message\Sms\SmsCodeGenerator;
 use TwoFactorBundle\Provider\Message\Sms\SmsMessenger;
 use TwoFactorBundle\Provider\Message\StorageInterface;
 
-class RegistrationCodeHandler
+class TwoFactorCodeHandler
 {
     /**
      * @var StorageInterface
@@ -61,7 +61,7 @@ class RegistrationCodeHandler
         $this->smsCodeGenerator = $smsCodeGenerator;
     }
 
-    public function handle(RegistrationCodeRequest $codeRequest): TwoFactorCode
+    public function handle(TwoFactorCodeRequest $codeRequest): TwoFactorCode
     {
         if ($codeRequest->usePhone()) {
             $codeGenerator = $this->smsCodeGenerator;
@@ -74,7 +74,7 @@ class RegistrationCodeHandler
             $to = $codeRequest->getEmail();
             $payload = ['provider' => 'email', 'email' => $codeRequest->getEmail()];
         }
-        $payload['purpose'] = 'register';
+        $payload['purpose'] = $codeRequest->getPurpose();
         $createdAt = new \DateTimeImmutable();
         $expiredAt = $createdAt->add(date_interval_create_from_date_string($this->settingManager->getSetting('code.expiration')));
 

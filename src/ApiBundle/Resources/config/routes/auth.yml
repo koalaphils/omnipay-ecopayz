@@ -8,3 +8,8 @@ api_auth_logout:
     defaults:
         _controller: ApiBundle:Auth:logout
     methods: [POST, GET]
+api_auth_refresh:
+    path: refreshtoken
+    defaults:
+        _controller: ApiBundle:Auth:refreshToken
+    methods: [POST, GET]

@@ -123,6 +123,7 @@ class MemberController extends AbstractController
 
     /**
      * @ApiDoc(
+     *     section="Member",
      *     description="Register Member",
      *     views={"default","piwi"},
      *     requirements={

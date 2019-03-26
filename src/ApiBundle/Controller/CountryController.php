@@ -11,6 +11,7 @@ class CountryController extends AbstractController
      /**
      * @ApiDoc(
      *  description="Get all countries",
+     *  section="Country",
      *  views={"piwi", "default"},
      *  output={
      *      "class"="ArrayCollection<DbBundle\Entity\Country>",
@@ -51,6 +52,7 @@ class CountryController extends AbstractController
     
     /**
      * @ApiDoc (
+     *  section="Country",
      *  description="Get specific country",
      *  views={"piwi", "default"},
      *  output={

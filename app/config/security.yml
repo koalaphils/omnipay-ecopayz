@@ -28,7 +28,7 @@ security:
             security: false
 
         api_login:
-            pattern: ^/(%app_locales%)/api/auth/(login|logout)
+            pattern: ^/(%app_locales%)/api/auth/(login|logout|refreshtoken)
             security: false
 
         api:

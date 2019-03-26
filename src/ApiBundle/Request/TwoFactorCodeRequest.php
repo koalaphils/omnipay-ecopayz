@@ -12,7 +12,7 @@ namespace ApiBundle\Request;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\GroupSequenceProviderInterface;
 
-class RegistrationCodeRequest implements GroupSequenceProviderInterface
+class TwoFactorCodeRequest implements GroupSequenceProviderInterface
 {
     /**
      * @var string
@@ -29,12 +29,18 @@ class RegistrationCodeRequest implements GroupSequenceProviderInterface
      */
     private $email;
 
+    /**
+     * @var string
+     */
+    private $purpose;
+
     public static function createFromRequest(Request $request): self
     {
         $instance = new static();
         $instance->phoneNumber = $request->get('phone_number', '');
         $instance->countryPhoneCode = $request->get('country_phone_code', '');
         $instance->email = $request->get('email', '');
+        $instance->purpose = $request->get('purpose', '');
 
         return $instance;
     }
@@ -71,6 +77,11 @@ class RegistrationCodeRequest implements GroupSequenceProviderInterface
         }
 
         return ['Email'];
+    }
+
+    public function getPurpose(): string
+    {
+        return $this->purpose;
     }
 
     private function __construct()

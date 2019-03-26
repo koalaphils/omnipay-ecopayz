@@ -13,6 +13,7 @@ class AuthController extends AbstractController
 {
     /**
      * @ApiDoc(
+     *     section="Authentication",
      *     description="Login",
      *     views = {"piwi"},
      *     requirements={
@@ -50,6 +51,7 @@ class AuthController extends AbstractController
 
     /**
      * @ApiDoc(
+     *     section="Authentication",
      *     description="Logout",
      *     views = {"piwi"},
      *     requirements={
@@ -65,5 +67,36 @@ class AuthController extends AbstractController
         $authHandler->handleLogout($request);
 
         return $this->view();
+    }
+
+    /**
+     * @ApiDoc(
+     *     section="Authentication",
+     *     description="Login",
+     *     views = {"piwi"},
+     *     requirements={
+     *         {
+     *             "name"="refresh_token",
+     *             "dataType"="string"
+     *         },
+     *         {
+     *             "name"="client_id",
+     *             "dataType"="string"
+     *         },
+     *         {
+     *             "name"="client_secret",
+     *             "dataType"="string"
+     *         }
+     *     }
+     * )
+     */
+    public function refreshTokenAction(AuthHandler $authHandler): View
+    {
+        $request = Request::createFromGlobals();
+        $request->request->add([
+            'grant_type' => 'refresh_token'
+        ]);
+
+        return $this->view($authHandler->handleRefreshToken($request));
     }
 }
