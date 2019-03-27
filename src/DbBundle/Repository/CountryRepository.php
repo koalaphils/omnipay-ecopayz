@@ -2,6 +2,8 @@
 
 namespace DbBundle\Repository;
 
+use Doctrine\ORM\QueryBuilder;
+
 /**
  * CountryRepository.
  *
@@ -28,7 +30,7 @@ class CountryRepository extends BaseRepository
      *
      * @return Doctrine/ORM/EntityRepository
      */
-    public function getCountryListQb($filters)
+    public function getCountryListQb($filters): QueryBuilder
     {
         $qb = $this->createQueryBuilder('country');
         $qb->leftJoin('country.currency', 'currency');
@@ -44,6 +46,12 @@ class CountryRepository extends BaseRepository
             $json = json_encode($filters['tags']);
             $qb->andWhere('JSON_CONTAINS(country.tags, :tags) = 1')->setParameter('tags', $json);
         }
+
+        if (array_get($filters, 'withphonecode', 0) == 1) {
+            $qb
+                ->andWhere('(country.phoneCode <> :emptyphonecode AND country.phoneCode IS NOT NULL)')
+                ->setParameter('emptyphonecode', '');
+        }
         
         return $qb;
     }
@@ -54,7 +62,9 @@ class CountryRepository extends BaseRepository
         $qb->select('country, currency');
         
         if (array_has($filters, 'length') || array_has($filters, 'limit')) {
-            $qb->setMaxResults(array_get($filters, 'length', array_get($filters, 'limit', 20)));
+            if (array_get($filters, 'length', array_get($filters, 'limit', 20)) !== 'all') {
+                $qb->setMaxResults(array_get($filters, 'length', array_get($filters, 'limit', 20)));
+            }
         }
         if (array_has($filters, 'start') || array_has($filters, 'offset')) {
             $qb->setFirstResult(array_get($filters, 'start', array_get($filters, 'offset', 0)));
