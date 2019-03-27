@@ -8,7 +8,9 @@ use ApiBundle\Request\ForgotPasswordRequest;
 use ApiBundle\RequestHandler\AuthHandler;
 use FOS\RestBundle\View\View;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
+use OAuth2\OAuth2ServerException;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class AuthController extends AbstractController
@@ -48,7 +50,14 @@ class AuthController extends AbstractController
      */
     public function loginAction(Request $request, AuthHandler $authHandler): View
     {
-        return $this->view($authHandler->handleLogin($request));
+        try {
+            $view = $this->view($authHandler->handleLogin($request));
+            $view->getContext()->setGroups(['Default', 'API', 'paymentOptions']);
+
+            return $view;
+        } catch (OAuth2ServerException $exception) {
+            return $this->view(['success' => false, 'error' => $exception->getDescription()], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
     }
 
     /**

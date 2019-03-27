@@ -118,4 +118,19 @@ class Player
     {
         return $this->createdBy;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'user_code' => $this->userCode,
+            'login_id' => $this->loginId,
+            'first_name' => $this->firstName,
+            'last_name' => $this->lastName,
+            'status' => $this->status,
+            'available_balance' => $this->availableBalance,
+            'outstanding' => $this->outstanding,
+            'create_date' => $this->createdDate->format('c'),
+            'created_by' => $this->createdBy,
+        ];
+    }
 }

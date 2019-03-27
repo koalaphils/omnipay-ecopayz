@@ -15,6 +15,8 @@ DbBundle\Entity\User:
             expose: true
         activationCode:
             expose: true
+        signupType:
+            expose: true
     virtual_properties:
         isActivated:
             expose: true

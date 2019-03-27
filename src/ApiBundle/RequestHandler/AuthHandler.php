@@ -104,8 +104,7 @@ class AuthHandler
         $user = $accessToken->getUser();
         $pinLoginResponse = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode());
 
-        $loginResponse = $data;
-        $loginResponse['pinnacle'] = $pinLoginResponse->toArray();
+        $loginResponse = ['token' => $data, 'pinnacle' => $pinLoginResponse->toArray(), 'member' => $user->getCustomer()];
         $this->deleteUserAccessToken($accessToken->getUser()->getId(), [], [$accessToken->getToken()]);
 
         $this->loginUser($user);

@@ -39,10 +39,10 @@ DbBundle\Entity\Customer:
             groups: ['Default', 'groups']
         joinedAt:
             expose: true
-            type: DateTime<'Y-m-d H:i:s'>
+            type: DateTime<'c'>
         verifiedAt:
             expose: true
-            type: DateTime<'Y-m-d H:i:s'>
+            type: DateTime<'c'>
         pinUserCode:
             expose: true
             type: string
@@ -82,7 +82,7 @@ DbBundle\Entity\Customer:
         activatedAt:
             exp: object.getUser().getActivationTimestamp()
             expose: true
-            type: DateTime<'Y-m-d H:i:s'>
+            type: DateTime<'c'>
             serialized_name: activated_at
         isActivated:
             exp: object.getUser().getIsActive()

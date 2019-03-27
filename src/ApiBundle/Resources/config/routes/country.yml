@@ -1,0 +1,11 @@
+api_countries.list:
+  path: countries
+  defaults:
+    _controller: ApiBundle:Country:countryList
+  methods: [GET]
+
+api_countries.country:
+  path: countries/{code}
+  defaults:
+    _controller: ApiBundle:Country:country
+  methods: [GET]

@@ -1,0 +1,5 @@
+api_me_pinnacle_balance:
+    path: /pinnacle/balance
+    defaults:
+      _controller: ApiBundle:Member:getPinnacleBalance
+    methods: [GET]

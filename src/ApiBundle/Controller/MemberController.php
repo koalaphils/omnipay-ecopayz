@@ -4,6 +4,7 @@ namespace ApiBundle\Controller;
 
 use ApiBundle\Form\Member\RegisterType;
 use ApiBundle\Request\RegisterRequest;
+use ApiBundle\RequestHandler\MemberHandler;
 use ApiBundle\RequestHandler\RegisterHandler;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use FOS\RestBundle\View\View;
@@ -179,6 +180,23 @@ class MemberController extends AbstractController
 
 
         return $this->view($member);
+    }
+
+    /**
+     * @ApiDoc(
+     *     section="Current Login Member",
+     *     description="Get Pinnacle Balance",
+     *     views={"default", "piwi"},
+     *     headers={
+     *         { "name"="Authorization", "description"="Bearer <access_token>" }
+     *     }
+     * )
+     */
+    public function getPinnacleBalanceAction(MemberHandler $memberHandler): View
+    {
+        $user = $this->getUser();
+
+        return $this->view($memberHandler->handleGetBalance($user->getCustomer()));
     }
 
     private function getMemberManager(): MemberManager
