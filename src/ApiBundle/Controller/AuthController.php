@@ -77,7 +77,7 @@ class AuthController extends AbstractController
     {
         $authHandler->handleLogout($request);
 
-        return $this->view();
+        return $this->view(['success' => true]);
     }
 
     /**
