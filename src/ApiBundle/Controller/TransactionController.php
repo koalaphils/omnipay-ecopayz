@@ -2,6 +2,7 @@
 
 namespace ApiBundle\Controller;
 
+use FOS\RestBundle\View\View;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -80,51 +81,74 @@ class TransactionController extends AbstractController
      *  }
      * )
      */
-    public function customerTransactionsAction(Request $request)
+
+    /**
+     * @ApiDoc(
+     *     description="Transaction of current login member",
+     *     section="Transaction",
+     *     views = {"piwi"},
+     *     filters={
+     *         {"name"="search", "dataType"="string"},
+     *         {"name"="limit", "dataType"="integer"},
+     *         {"name"="orders[0][column]", "dataType"="array"},
+     *         {"name"="orders[0][dir]", "dataType"="array"},
+     *         {"name"="page", "dataType"="integer"},
+     *         {"name"="from", "dataType"="date"},
+     *         {"name"="to", "dataType"="date"},
+     *         {"name"="interval", "dataType"="string"},
+     *         {"name"="types", "dataType"="string"},
+     *         {"name"="status"},
+     *         {"name"="paymentOption", "dataType"="string"}
+     *     }
+     * )
+     *
+     * @param Request $request
+     * @return View
+     */
+    public function customerTransactionsAction(Request $request): View
     {
-        $customer = $this->getUser()->getCustomer();                
-        $post = $request->request->all();
+        $customer = $this->getUser()->getCustomer();
         
         $page = 1;         
         $customerRepository = $this->getDoctrine()->getManager()->getRepository(Customer::class);                
-        
-        // zimi - check $customer is null
+
         if ($customer === null) {
-            $customer_id = $post['cid'];
-            $customer = $customerRepository->findOneBy(['id' => $customer_id]);            
-            $customer->setIsCustomer(true);        
+            $customerId = $request->get('cid');
+            $customer = $customerRepository->findOneBy(['id' => $customerId]);
         }
 
+        $post = array_merge($request->query->all(), $request->request->all());
+
         /**filter**/
-        $filters = ['customer' => $customer_id];
-        $filters['limit'] = $request->get('limit', 1000);       
+        $filters = ['customer' => $customer->getId()];
+        $filters['limit'] = $request->get('limit', 20);
         $filters['offset'] = (((int) $page)-1) * $filters['limit'];        
         $orders = [["column" => "date", "dir" => "desc"]];
         
-        if ($post['search'] != null) {
+        if (array_has($post, 'search')) {
             $filters['search'] = $post['search'];
-        }            
-        if ($post['filter']['fromDate'] != null) {
+        }
+        if (array_has($post, 'filter.fromDate')) {
             $filters['from'] = $post['filter']['fromDate'];
         }
 
-        if ($post['filter']['toDate'] != null) {
+        if (array_has($post, 'filter.toDate')) {
             $filters['to'] = $post['filter']['toDate'];
         }
 
-        if ($post['filter']['type'] != null && $post['filter']['type'] != -1) {
+        if (array_has($post, 'filter.type') && $post['filter']['type'] != -1) {
             $filters['types'] = $post['filter']['type'];
         }
 
-        if ($post['filter']['status'] != null && $post['filter']['status'] != -1) {
+        if (array_has($post, 'filter.status') && $post['filter']['status'] != -1) {
             $filters['status'] = $post['filter']['status'];
         }
            
-        if ($post['filter']['paymentOption'] != null && $post['filter']['paymentOption'] != -1) {
+        if (array_has($post, 'filter.paymentOption') && $post['filter']['paymentOption'] != -1) {
             $filters['paymentOption'] = $post['filter']['paymentOption'];
         }
            
-        if (isset($post['filter']['isVoided'])) {
+        if (array_has($post, 'filter.isVoided')) {
             $filters['isVoided'] = $post['filter']['isVoided'];
         }
 
@@ -133,11 +157,10 @@ class TransactionController extends AbstractController
         // zimi - data filter
         $transactions = $this->filterTrans($transactions);
 
-        $total = $this->getTransactionRepository()->getTotal(['customer' => $customer_id]);
+        $total = $this->getTransactionRepository()->getTotal(['customer' => $customer->getId()]);
         $totalFiltered = $this->getTransactionRepository()->getTotal($filters);
         $collection = new Collection($transactions, $total, $totalFiltered, $filters['limit'], $page);
 
-        // FOS\RestBundle\View\View
         $view = $this->view($collection);                
         // $view->getContext()->setGroups(['Default', 'API', 'subtransactions_group', 'items' => ['Default', 'API', 'subtransactions_group']]);
 

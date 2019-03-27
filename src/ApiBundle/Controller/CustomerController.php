@@ -338,7 +338,9 @@ class CustomerController extends AbstractController
 
     /**
      * @ApiDoc(
-     *  description="Check if email or phone Number on registration exists or not",
+     *     views={"piwi"},
+     *     section="Member",
+     *     description="Check if email or phone Number on registration exists or not",
      *     requirements={
      *      {
      *          "name"="email,phone",

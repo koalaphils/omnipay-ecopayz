@@ -3,3 +3,9 @@ api_members.register_member:
     defaults:
         _controller: ApiBundle:Member:register
     methods: [POST]
+
+api_customers.check_email_or_phone_number_if_exists:
+    path: email-phone/check-if-exists
+    defaults:
+        _controller: ApiBundle:Customer:checkPhoneOrEmailIfExists
+    methods: [POST]

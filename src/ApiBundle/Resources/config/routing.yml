@@ -1,6 +1,5 @@
 api_me:
   resource: "./routes/me.yml"
-  prefix: me/
 
 api_members:
   resource: "./routes/member.yml"

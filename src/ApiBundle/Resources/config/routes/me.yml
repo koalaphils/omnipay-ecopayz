@@ -1,5 +1,11 @@
 api_me_pinnacle_balance:
-    path: /pinnacle/balance
+    path: me//pinnacle/balance
     defaults:
       _controller: ApiBundle:Member:getPinnacleBalance
+    methods: [GET]
+
+api_customers.me_transactions:
+    path: me/transactions
+    defaults:
+        _controller: ApiBundle:Transaction:customerTransactions
     methods: [GET]
