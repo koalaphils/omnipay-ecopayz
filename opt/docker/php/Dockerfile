@@ -1,7 +1,4 @@
 FROM alpine:3.9 as base
-
-ENV TIMEZONE=Asia/Manila
-
 RUN apk add --update imagemagick \
     git \
     php7 \
@@ -37,16 +34,13 @@ RUN apk add --update imagemagick \
     grep
 
 FROM composer:1.8 as vendor
-
 COPY composer.json /app/composer.json
 COPY composer.lock /app/composer.lock
 COPY app/AppKernel.php /app/app/AppKernel.php
 COPY app/AppCache.php /app/app/AppCache.php
-
 RUN cd /app && composer install --ignore-platform-reqs --no-scripts --no-interaction --no-suggest --no-dev
 
 FROM base as prod
-
 ENV UPLOAD_FOLDER=/uploads \
     SYMFONY_ENV=prod \
     APP_SECRET=ThisTokenIsNotSoSecretChangeIt \
@@ -97,47 +91,31 @@ ENV UPLOAD_FOLDER=/uploads \
     TWILIO_FROM=
 
 RUN mkdir $UPLOAD_FOLDER
-
 COPY /opt/docker/php/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
-
 COPY /opt/docker/php/www.conf /etc/php7/php-fpm.d/www.conf
 COPY /opt/docker/php/php.ini /etc/php7/php.ini
-
 WORKDIR /var/www/html
-
 COPY --from=vendor /usr/bin/composer /usr/bin/composer
 COPY --from=vendor /app/vendor /var/www/html/vendor
 COPY . /var/www/html/
-
 RUN envsubst < app/config/parameters.yml.dist > app/config/parameters.yml
-
 RUN composer install --no-dev
 RUN php app/console theme:apply euro
 RUN php app/console assets:install --symlink --relative
 RUN php app/console assetic:dump
 RUN rm app/config/parameters.yml
-
 ENV DATABASE_DRIVER=pdo_mysql
-
 RUN mkdir -p /var/log/php7 && chmod -Rf 777 /var/log/php7
 RUN chmod -R 777 ./var/
-
 ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
-
 EXPOSE 9000
-
 CMD ["/usr/sbin/php-fpm7", "--nodaemonize"]
 
 FROM nginx:alpine as webservice
-
 COPY /opt/docker/nginx/site.conf /etc/nginx/conf.d/default.conf
 COPY /opt/docker/nginx/upstream.conf /etc/nginx/conf.d/hosts.tmp
-
 RUN mkdir -p /var/www/html/web && chmod 777 /var/www/html/web
-
 COPY --from=prod /var/www/html /var/www/html
-
 RUN rm -Rf /var/www/html/vendor
-
 CMD /bin/sh -c "envsubst < /etc/nginx/conf.d/hosts.tmp > /etc/nginx/conf.d/hosts.conf && exec nginx -g 'daemon off;'"

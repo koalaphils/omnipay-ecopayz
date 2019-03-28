@@ -26,6 +26,7 @@ php app/console assets:install --symlink --relative
 php app/console assetic:dump
 php app/console app:email-setup
 php app/console app:referral-tools-setup
+php app/console doctrine:migrations:migrate -n
 
 chmod -R 777 ./var/
 
