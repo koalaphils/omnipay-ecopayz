@@ -29,6 +29,7 @@ RUN apk add --update imagemagick \
     php7-ctype \
     php7-session \
     php7-pdo_mysql \
+    php7-pdo_sqlite \
     php7-zip \
     php7-iconv \
     php7-imagick \
@@ -43,15 +44,14 @@ COPY app/AppKernel.php /app/app/AppKernel.php
 COPY app/AppCache.php /app/app/AppCache.php
 
 RUN cd /app && composer install --ignore-platform-reqs --no-scripts --no-interaction --no-suggest --no-dev
-RUN cp -R /app/vendor /app/vendor_dev
-RUN cd /app && COMPOSER_VENDOR_DIR=vendor_dev composer install --ignore-platform-reqs --no-scripts --no-interaction --no-suggest
 
-FROM base
+FROM base as prod
 
 ENV UPLOAD_FOLDER=/uploads \
     SYMFONY_ENV=prod \
     APP_SECRET=ThisTokenIsNotSoSecretChangeIt \
-    DATABASE_HOST= \
+    DATABASE_DRIVER=pdo_sqlite \
+    DATABASE_HOST=127.0.0.1 \
     DATABASE_NAME= \
     DATABASE_USER= \
     DATABASE_PASSWORD= \
@@ -78,8 +78,8 @@ ENV UPLOAD_FOLDER=/uploads \
     AO_DOMAIN= \
     CUSTOMER_TEMP_PASSWORD=super@c66p@$$w0rd \
     ECOPAYZ_TEST_MODE=false \
-    SLACK_TOKEN= \
-    SLACK_CHANNEL= \
+    SLACK_TOKEN=temp \
+    SLACK_CHANNEL=temp \
     BC_KEY= \
     BC_WALLET_URL= \
     BC_XPUB_HOST= \
@@ -88,10 +88,10 @@ ENV UPLOAD_FOLDER=/uploads \
     BC_XPUB_PASSWORD= \
     BC_XPUB_PK= \
     TRUSTED_PROXIES=[127.0.0.1] \
-    PIN_API_URL= \
-    PIN_API_AGENT_KEY= \
-    PIN_API_SECRET_KEY= \
-    PIN_AGENT_CODE= \
+    PIN_API_URL=http://temp \
+    PIN_API_AGENT_KEY=temp \
+    PIN_API_SECRET_KEY=temp \
+    PIN_AGENT_CODE=temp \
     TWILIO_SID= \
     TWILIO_TOKEN= \
     TWILIO_FROM=
@@ -107,14 +107,37 @@ COPY /opt/docker/php/php.ini /etc/php7/php.ini
 WORKDIR /var/www/html
 
 COPY --from=vendor /usr/bin/composer /usr/bin/composer
-COPY --from=vendor /app/vendor /var/www/html/vendor_non_dev
-COPY --from=vendor /app/vendor_dev /var/www/html/vendor_dev
+COPY --from=vendor /app/vendor /var/www/html/vendor
 COPY . /var/www/html/
 
+RUN envsubst < app/config/parameters.yml.dist > app/config/parameters.yml
+
+RUN composer install --no-dev
+RUN php app/console theme:apply euro
+RUN php app/console assets:install --symlink --relative
+RUN php app/console assetic:dump
+RUN rm app/config/parameters.yml
+
+ENV DATABASE_DRIVER=pdo_mysql
+
 RUN mkdir -p /var/log/php7 && chmod -Rf 777 /var/log/php7
+RUN chmod -R 777 ./var/
 
 ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
 
 EXPOSE 9000
 
 CMD ["/usr/sbin/php-fpm7", "--nodaemonize"]
+
+FROM nginx:alpine as webservice
+
+COPY /opt/docker/nginx/site.conf /etc/nginx/conf.d/default.conf
+COPY /opt/docker/nginx/upstream.conf /etc/nginx/conf.d/hosts.tmp
+
+RUN mkdir -p /var/www/html/web && chmod 777 /var/www/html/web
+
+COPY --from=prod /var/www/html /var/www/html
+
+RUN rm -Rf /var/www/html/vendor
+
+CMD /bin/sh -c "envsubst < /etc/nginx/conf.d/hosts.tmp > /etc/nginx/conf.d/hosts.conf && exec nginx -g 'daemon off;'"

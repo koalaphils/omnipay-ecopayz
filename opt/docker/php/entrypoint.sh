@@ -1,11 +1,9 @@
 cd /var/www/html
 
-if [ ! -d vendor ]; then
-    if [[ $SYMFONY_ENV = "dev" ]]; then
-        ln -s vendor_dev vendor
-    else
-        ln -s vendor_non_dev vendor
-    fi
+if [[ $SYMFONY_ENV = "dev" ]]; then
+    composer install --ignore-platform-reqs --no-scripts --no-interaction --no-suggest
+else
+    composer install --no-dev --ignore-platform-reqs --no-scripts --no-interaction --no-suggest
 fi
 
 if [ -f /run/secrets/env ]; then
@@ -28,5 +26,7 @@ php app/console assets:install --symlink --relative
 php app/console assetic:dump
 php app/console app:email-setup
 php app/console app:referral-tools-setup
+
+chmod -R 777 ./var/
 
 exec "$@"

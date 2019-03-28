@@ -2,6 +2,7 @@
 # Set parameters here that may be different on each deployment target of the app, e.g. development, staging, production.
 # http://symfony.com/doc/current/best_practices/configuration.html#infrastructure-related-configuration
 parameters:
+    database_driver:   "${DATABASE_DRIVER}"
     database_host:     "${DATABASE_HOST}"
     database_port:     "${DATABASE_PORT}"
     database_name:     "${DATABASE_NAME}"

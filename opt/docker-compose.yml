@@ -4,6 +4,7 @@ services:
     build:
       context: ../
       dockerfile: $PWD/docker/php/Dockerfile
+      target: prod
     volumes:
     - ../:/var/www/html
     - uploads:/uploads
@@ -21,7 +22,8 @@ services:
   nginx:
     build:
       context: ../
-      dockerfile: $PWD/docker/nginx/Dockerfile
+      dockerfile: $PWD/docker/php/Dockerfile
+      target: webservice
     environment:
     - PHPHOST=php
     - PHPPORT=9000
