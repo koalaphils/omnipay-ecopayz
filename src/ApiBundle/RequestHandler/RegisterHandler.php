@@ -120,6 +120,7 @@ class RegisterHandler
         $now = new \DateTime('now');
         $user = $this->generateUser($registerRequest);
         $user->setActivationSentTimestamp($now);
+        $user->setActivationTimestamp($now);
         $currency = $this->currencyRepository->findByCode($registerRequest->getCurrency());
         $pinnacleProduct = $this->getPinnacleProduct();
         $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->createPlayer();
