@@ -15,6 +15,11 @@ services:
     - DATABASE_USER=backoffice
     - DATABASE_PASSWORD_FILE=/run/secrets/dbpw
     - ECOPAYZ_TEST_MODE=true
+    - BC_KEY=
+    - BC_WALLET_URL=http://wallet:3000
+    - BC_XPUB__HOST=wallet
+    - BC_XPUB__USER=www
+    - BC_XPUB__PASSWORD=admin.123
     secrets:
     - env
     - dbpw
@@ -29,6 +34,14 @@ services:
     - PHPPORT=9000
     volumes:
     - ../:/var/www/html
+
+  wallet:
+    build:
+      dockerfile: $PWD/docker/wallet/Dockerfile
+      environment:
+      - SSH_USER=www
+      - SSH_PASS=admin.123
+      - WALLET_PORT=3000
 
   database:
     image: mysql:8.0.15
