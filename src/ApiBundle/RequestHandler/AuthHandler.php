@@ -148,8 +148,7 @@ class AuthHandler
             $user = $this->userRepository->findByEmail($forgotPasswordRequest->getEmail(), 1);
         }
 
-        $pass = $this->userManager->encodePassword($user, $forgotPasswordRequest->getPassword());
-        $user->setPassword($pass);
+        $user->setPassword($this->userManager->encodePassword($user, $forgotPasswordRequest->getPassword()));
         $this->entityManager->persist($user);
         $this->entityManager->flush($user);
     }
