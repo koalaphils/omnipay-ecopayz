@@ -2,6 +2,8 @@
 
 namespace ApiBundle\Controller;
 
+use ApiBundle\Request\Transaction\GetLastBitcoinRequest;
+use ApiBundle\RequestHandler\Transaction\TransactionQueryHandler;
 use FOS\RestBundle\View\View;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,6 +25,7 @@ use Http\Adapter\Guzzle6\Client as GuzzleAdapter;
 use Http\Client\Common\HttpMethodsClient;
 use Http\Message\MessageFactory\GuzzleMessageFactory;
 use DbBundle\Repository\CustomerPaymentOptionRepository;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 
 class TransactionController extends AbstractController
 {
@@ -62,25 +65,6 @@ class TransactionController extends AbstractController
 
         return $trans;
     }
-    
-    /**
-     * @ApiDoc(
-     *  description="Get customer transactions",
-     *  filters={
-     *      {"name"="search", "dataType"="string"},
-     *      {"name"="limit", "dataType"="integer"},
-     *      {"name"="orders[0][column]", "dataType"="array"},
-     *      {"name"="orders[0][dir]", "dataType"="array"},
-     *      {"name"="page", "dataType"="integer"},
-     *      {"name"="from", "dataType"="date"},
-     *      {"name"="to", "dataType"="date"},
-     *      {"name"="interval", "dataType"="string"},
-     *      {"name"="types", "dataType"="string"},
-     *      {"name"="status"},
-     *      {"name"="paymentOption", "dataType"="string"}
-     *  }
-     * )
-     */
 
     /**
      * @ApiDoc(
@@ -101,9 +85,6 @@ class TransactionController extends AbstractController
      *         {"name"="paymentOption", "dataType"="string"}
      *     }
      * )
-     *
-     * @param Request $request
-     * @return View
      */
     public function customerTransactionsAction(Request $request): View
     {
@@ -187,18 +168,20 @@ class TransactionController extends AbstractController
 
         return new JsonResponse(['error' => false, 'error_message' => '', 'data' => $res]);        
     }
-
     /**
      * @ApiDoc(
-     *  description="Request deposit transaction",
-     *  input={
-     *      "class"="ApiBundle\Form\Transaction\TransactionType",
-     *      "options"={"hasEmail"=true}
-     *  }
+     *     description="Request deposit transaction",
+     *     section="Transaction",
+     *     views={"piwi"}
      * )
      */
-    // namdopin
     public function depositTransactionAction(Request $request)
+    {
+        /* @var $customer Customer */
+        $customer = $this->getUser()->getCustomer();
+    }
+
+    public function depositTransactionOldAction(Request $request)
     {                
         $customer = $this->getUser()->getCustomer();
         $customerRepository = $this->getDoctrine()->getManager()->getRepository(Customer::class);
@@ -653,6 +636,28 @@ class TransactionController extends AbstractController
         } catch(\DomainException $ex) {
             return new Response($ex->getMessage(), Response::HTTP_BAD_REQUEST);
         }  
+    }
+
+    /**
+     * @ApiDoc(
+     *     views={"piwi"},
+     *     section="Transaction",
+     *     description="Get last bitcoin transaction",
+     *     headers={{ "name"="Authorization", "description"="Bearer <access_token>" }}
+     * )
+     *
+     * @param TokenStorage $tokenStorage
+     * @param TransactionQueryHandler $handler
+     * @return View
+     */
+    public function getLastBitcoinTransactionAction(TokenStorage $tokenStorage, TransactionQueryHandler $handler): View
+    {
+        $member = $tokenStorage->getToken()->getUser()->getCustomer();
+        $request = new GetLastBitcoinRequest($member->getId());
+
+        $transaction = $handler->handleGetLastBitcoin($request);
+
+        return $this->view(['data' => $transaction]);
     }
 
     private function getTransactionRepository(): \ApiBundle\Repository\TransactionRepository

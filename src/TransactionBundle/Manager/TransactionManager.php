@@ -861,4 +861,11 @@ class TransactionManager extends TransactionOldManager
     {
         return $this->getRepository()->findLastTransactionDateByMemberId($memberId);
     }
+
+    public function generateTransactionNumber(string $type, string $suffix = ''): string
+    {
+        $date = (new \DateTimeImmutable())->setTimezone(new \DateTimeZone('UTC'));
+
+        return $date->format('Ymd-His-') . generate_code(6, false, 'd') . '-' . $this->getType($type) . $suffix;
+    }
 }

@@ -1,11 +1,34 @@
 api_me_pinnacle_balance:
-    path: me//pinnacle/balance
-    defaults:
-      _controller: ApiBundle:Member:getPinnacleBalance
-    methods: [GET]
+  path: me/pinnacle/balance
+  defaults:
+    _controller: ApiBundle:Member:getPinnacleBalance
+  methods: [GET]
 
-api_customers.me_transactions:
-    path: me/transactions
-    defaults:
-        _controller: ApiBundle:Transaction:customerTransactions
-    methods: [GET]
+api_me_transactions:
+  path: me/transactions
+  defaults:
+    _controller: ApiBundle:Transaction:customerTransactions
+  methods: [GET]
+
+api_customers.me_deposit_transaction:
+  path: me/transactions/deposit
+  defaults:
+    _controller: ApiBundle:Transaction:depositTransaction
+  methods: [POST]
+
+api_me_deposit:
+  path: me/transactions/deposit_new
+  defaults:
+    _controller: ApiBundle:Transaction:depositTransaction
+  methods: [POST]
+
+api_me_last_bitcoin_transaction:
+  path: me/transactions/last-bitcoin
+  defaults:
+    _controller: ApiBundle:Transaction:getLastBitcoinTransaction
+  methods: [GET]
+
+api_me_update_password:
+  path: me/update-password
+  defaults:
+    _controller: ApiBundle:

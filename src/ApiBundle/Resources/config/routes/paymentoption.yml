@@ -1,0 +1,5 @@
+api_paymentoptions.get_cached_bitcoin_adjustment:
+    path: paymentoptions/bitcoin-adjustment
+    defaults:
+        _controller: ApiBundle:PaymentOption:getCachedBitcoinAdjustment
+    methods: [GET]

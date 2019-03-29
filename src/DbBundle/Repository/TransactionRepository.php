@@ -666,4 +666,28 @@ class TransactionRepository extends BaseRepository
 
         return $qb->getQuery()->getSingleResult();
     }
+
+    /**
+     * @param int $memberId
+     * @param string $paymentOption
+     * @return Transaction
+     *
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function getLastTransactionForPaymentOption(int $memberId, string $paymentOption): Transaction
+    {
+        $query = $this->createQueryBuilder('t')
+            ->select('t')
+            ->where('t.customer = :memberId AND t.paymentOptionType = :paymentOption AND t.isVoided = false')
+            ->orderBy('t.id', 'DESC')
+            ->setMaxResults(1)
+            ->setParameters([
+                'memberId' => $memberId,
+                'paymentOption' => $paymentOption,
+            ])
+        ;
+
+        return $query->getQuery()->getSingleResult();
+    }
 }

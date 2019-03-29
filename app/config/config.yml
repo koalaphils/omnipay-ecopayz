@@ -1,6 +1,5 @@
 imports:
     - { resource: parameters.yml }
-    - { resource: security.yml }
     - { resource: services.yml }
     - { resource: "@AppBundle/Resources/config/services.yml" }
     - { resource: "@DbBundle/Resources/config/services.yml" }
@@ -94,10 +93,10 @@ doctrine:
                 class: AppBundle\DoctrineExtension\Types\MetaDataType
             uuid_binary:  Ramsey\Uuid\Doctrine\UuidBinaryType
             uuid:  Ramsey\Uuid\Doctrine\UuidType
-            #datetime: AppBundle\DoctrineExtension\Types\UTCDateTimeType
-            #datetimetz: AppBundle\DoctrineExtension\Types\UTCDateTimeType
-            #datetime_immutable: AppBundle\DoctrineExtension\Types\UTCDateTimeImmutableType
-            #datetimetz_immutable: AppBundle\DoctrineExtension\Types\UTCDateTimeImmutableType
+            datetime: AppBundle\DoctrineExtension\Types\UTCDateTimeType
+            datetimetz: AppBundle\DoctrineExtension\Types\UTCDateTimeType
+            datetime_immutable: AppBundle\DoctrineExtension\Types\UTCDateTimeImmutableType
+            datetimetz_immutable: AppBundle\DoctrineExtension\Types\UTCDateTimeImmutableType
         mapping_types:
             json: json
             tinyinteger: tinyint
@@ -195,18 +194,6 @@ nelmio_cors:
 
 nelmio_api_doc:
     name: Back Office API
-
-fos_oauth_server:
-    db_driver: orm
-    client_class:        DbBundle\Entity\OAuth2\Client
-    access_token_class:  DbBundle\Entity\OAuth2\AccessToken
-    refresh_token_class: DbBundle\Entity\OAuth2\RefreshToken
-    auth_code_class:     DbBundle\Entity\OAuth2\AuthCode
-    service:
-        storage:       api.oauth_storage
-        user_provider: api.oauth_user_provider
-        options:
-            supported_scopes: api
 
 fos_rest:
     zone:

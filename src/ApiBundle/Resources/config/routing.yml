@@ -20,3 +20,5 @@ api_setting:
 api_country:
   resource: "./routes/country.yml"
 
+api_paymentoption:
+  resource: "./routes/paymentoption.yml"

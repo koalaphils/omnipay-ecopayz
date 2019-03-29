@@ -34,9 +34,9 @@ parameters:
 
     data_transfer.xml: AppBundle:DataTransfer:default.html.twig
 
-    websocket.url: '${WS_SCHEME}://${WS_HOST}:${WS_PORT}'
-    websocket.realm: 'realm'
-    websocket.wamp: 'http://${WS_HOST}:${WS_WAMP_PORT}'
+    websocket.url: '${WS_URL}'
+    websocket.realm: '${WS_REALM}'
+    websocket.wamp: '${WS_WAMP_URL}'
 
     # Brokerage Url
     betadmin.url: '${BA_URL}'

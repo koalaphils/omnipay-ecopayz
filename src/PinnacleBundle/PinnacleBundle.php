@@ -9,7 +9,7 @@ class PinnacleBundle extends Bundle
     public function registerDefaultSetting()
     {
         return [
-            'pinnacle' => [],
+            'pinnacle' => ['product' => ''],
         ];
     }
 

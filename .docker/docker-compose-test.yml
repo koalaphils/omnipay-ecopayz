@@ -1,8 +1,0 @@
-version: '2.3'
-services:
-    bo:
-        ports:
-            - 5000:80
-        environments:
-            BLOCKCHAIN_API_KEY: not-used
-            SLACK_CHANNEL: ac66-nonprod-errors
