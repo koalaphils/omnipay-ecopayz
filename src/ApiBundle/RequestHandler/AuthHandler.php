@@ -145,7 +145,7 @@ class AuthHandler
         if ($forgotPasswordRequest->getEmail() === '') {
             $user = $this->userRepository->findUserByPhoneNumber($forgotPasswordRequest->getPhoneNumber(), $forgotPasswordRequest->getCountryPhoneCode());
         } else {
-            $user = $this->userRepository->findByEmail($forgotPasswordRequest->getEmail());
+            $user = $this->userRepository->findByEmail($forgotPasswordRequest->getEmail(), 1);
         }
 
         $user->setPassword($this->userManager->encodePassword($user, $forgotPasswordRequest->getPassword()));

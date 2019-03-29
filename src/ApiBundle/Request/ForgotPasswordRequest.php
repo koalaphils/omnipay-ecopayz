@@ -44,7 +44,7 @@ class ForgotPasswordRequest implements GroupSequenceProviderInterface
         $instance = new static();
         $instance->email = $request->get('email', '');
         $instance->countryPhoneCode = $request->get('country_phone_code', '');
-        $instance->phoneNumber = $request->get('phone_number');
+        $instance->phoneNumber = $request->get('phone_number', '');
         $instance->verificationCode = $request->get('verification_code', '');
         $instance->password = $request->get('password', '');
         $instance->repeatPassword = $request->get('repeat_password', '');
