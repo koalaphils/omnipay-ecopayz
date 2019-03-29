@@ -10,13 +10,13 @@ parameters:
     database_password: "${DATABASE_PASSWORD}"
     mailer_transport:  "${MAIL_TRANSPORT}"
     mailer_host:       "${MAIL_HOST}"
-    mailer_user:       "${MAIL_USER}"
+    mailer_user:       ${MAIL_USER}
     mailer_port:       ${MAIL_PORT}
-    mailer_password:   "${MAIL_PASSWORD}"
+    mailer_password:   ${MAIL_PASSWORD}
     mailer_email_from: "${MAIL_FROM}"
     mailer_email_cc:   "${MAIL_CC}"
     mailer_email_affiliate_from: "${MAIL_AFFILIATE_FROM}"
-    mailer_encryption: "${MAIL_ENCRYPTION}"
+    mailer_encryption: ${MAIL_ENCRYPTION}
     # A secret key that's used to generate certain security-related tokens
     secret:            "${APP_SECRET}"
 
@@ -56,7 +56,7 @@ parameters:
     activation.expiration_duration: '+1 week'
 
     # email spooling command
-    email_spool_command: '%php_command% %kernel.project_dir%/app/console swiftmailer:spool:send --env=dev >> %kernel.project_dir%/var/logs/email.log 2>&1 &'
+    email_spool_command: '%php_command% %kernel.project_dir%/app/console swiftmailer:spool:send --env=%kernel.environment% >> %kernel.project_dir%/var/logs/email.log 2>&1 &'
 
     asianconnect_url: '${AC_URL}'
     asianconnect09_domain: '${AC_DOMAIN}'
