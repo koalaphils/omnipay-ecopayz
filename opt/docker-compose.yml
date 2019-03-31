@@ -37,11 +37,12 @@ services:
 
   wallet:
     build:
+      context: .
       dockerfile: $PWD/docker/wallet/Dockerfile
-      environment:
-      - SSH_USER=www
-      - SSH_PASS=admin.123
-      - WALLET_PORT=3000
+    environment:
+    - SSH_USER=www
+    - SSH_PASS=admin.123
+    - WALLET_PORT=3000
 
   database:
     image: mysql:8.0.15
