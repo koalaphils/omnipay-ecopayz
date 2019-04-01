@@ -178,7 +178,8 @@ class TransactionController extends AbstractController
      *     views={"piwi"},
      *     requirements={
      *         {"name"="payment_option_type", "dataType"="string"},
-     *         {"name"="products[0][id]", "dataType"="integer"},
+     *         {"name"="products[0][username]", "dataType"="string"},
+     *         {"name"="products[0][product_code]", "dataType"="string"},
      *         {"name"="products[0][amount]", "dataType"="string"},
      *         {"name"="meta[field][email]", "dataType"="string"},
      *     },

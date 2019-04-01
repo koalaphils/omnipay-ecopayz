@@ -96,7 +96,7 @@ class DepositHandler
             $transaction->autoSetPaymentOptionType();
 
             foreach ($depositRequest->getProducts() as $productInfo) {
-                $memberProduct = $this->customerProductRepository->findById($productInfo['id']);
+                $memberProduct = $this->customerProductRepository->findByUsernameProductCodeAndCurrencyCode($productInfo['username'], $productInfo['product_code'], $member->getCurrencyCode());
                 $subTransaction = new SubTransaction();
                 $subTransaction->setAmount($productInfo['amount']);
                 $subTransaction->setCustomerProduct($memberProduct);

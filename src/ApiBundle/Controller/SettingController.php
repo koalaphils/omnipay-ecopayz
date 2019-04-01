@@ -15,7 +15,10 @@ class SettingController extends AbstractController
      * @ApiDoc(
      *     section="Application",
      *     description="Setting/Configurations",
-     *     views={"piwi"}
+     *     views={"piwi"},
+     *     headers={
+     *         { "name"="Authorization", "description"="Bearer <access_token>" }
+     *     }
      * )
      */
     public function getSettingAction(Request $request, SettingManager $settingManager): View
@@ -24,6 +27,7 @@ class SettingController extends AbstractController
             'piwi247.session' => $settingManager->getSetting('piwi247.session'),
             'bitcoin.setting' => $settingManager->getSetting('bitcoin.setting'),
             'transaction.validate' => $settingManager->getSetting('transaction.validate'),
+            'pinnacle' => $settingManager->getSetting('pinnacle'),
         ];
 
         return $this->view([
