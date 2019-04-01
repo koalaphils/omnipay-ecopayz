@@ -119,8 +119,12 @@ class AuthHandler
     public function handleRefreshToken(Request $request): array
     {
         $response = $this->oauthService->grantAccessToken($request);
+        $data = json_decode($response->getContent(), true);
+        $accessToken = $this->oauthService->verifyAccessToken($data['access_token']);
+        $user = $accessToken->getUser();
+        $pinLoginResponse = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode());
 
-        return json_decode($response->getContent(), true);
+        return ['token' => $data, 'pinnacle' => $pinLoginResponse->toArray(), 'member' => $user->getCustomer()];
     }
 
     public function handleLogout(Request $request): void
