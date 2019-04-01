@@ -58,7 +58,7 @@ class TransactionRepository extends BaseRepository
         return $qb->getQuery()->getSingleResult($hydrationMode);
     }
 
-    public function findByIdAndType($id, $type, $hydrationMode = Query::HYDRATE_OBJECT, $lockMode = null)
+    public function findByIdAndType($id, $type, $hydrationMode = Query::HYDRATE_OBJECT, $lockMode = null): Transaction
     {
         $qb = $this->createQueryBuilder('t');
         
@@ -195,13 +195,8 @@ class TransactionRepository extends BaseRepository
         $queryBuilder = $this->createFilterQueryBuilder($filters);
         $queryBuilder->setMaxResults($limit);
         $queryBuilder->setFirstResult($offset);
-        if (empty($select)) {            
-            $queryBuilder->leftJoin(CustomerProduct::class, "cp", "WITH", "cp.productID = transaction.productID and cp.customerID = transaction.customerID")
-            ->select("transaction, cp.userName username_product");
-            // ->addSelect('cp.userName username_product');            
-        } else {            
-            $queryBuilder->select($select);
-        }
+
+        $queryBuilder->select($select);
      
         foreach ($orders as $order) {
             $queryBuilder->addOrderBy($order['column'], $order['dir']);

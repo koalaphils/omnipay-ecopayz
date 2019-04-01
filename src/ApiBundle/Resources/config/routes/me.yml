@@ -10,20 +10,14 @@ api_me_transactions:
     _controller: ApiBundle:Transaction:customerTransactions
   methods: [GET]
 
-api_customers.me_deposit_transaction:
+api_me_deposit:
   path: me/transactions/deposit
   defaults:
     _controller: ApiBundle:Transaction:depositTransaction
   methods: [POST]
 
-api_me_deposit:
-  path: me/transactions/deposit_new
-  defaults:
-    _controller: ApiBundle:Transaction:depositTransaction
-  methods: [POST]
-
 api_me_last_bitcoin_transaction:
-  path: me/transactions/last-bitcoin
+  path: me/transaction/last-bitcoin
   defaults:
     _controller: ApiBundle:Transaction:getLastBitcoinTransaction
   methods: [GET]

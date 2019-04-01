@@ -16,6 +16,7 @@ use DbBundle\Repository\CommissionPeriodRepository;
 use DbBundle\Repository\MemberRunningCommissionRepository;
 use Doctrine\ORM\Query;
 use PDO;
+use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use AppBundle\Manager\AbstractManager;
 use Symfony\Component\Form\Form;
@@ -29,6 +30,16 @@ class TransactionManager extends TransactionOldManager
 {
     private $memberRunningCommissionRepository;
     private $commissionPeriodRepository;
+
+    /**
+     * @var PinnacleService
+     */
+    private $pinnacleService;
+
+    public function __construct(PinnacleService $pinnacleService)
+    {
+        $this->pinnacleService = $pinnacleService;
+    }
 
     public function findTransactions(Request $request)
     {
@@ -144,6 +155,54 @@ class TransactionManager extends TransactionOldManager
             $csvReport .= "\n";
 
             echo $csvReport;
+        }
+    }
+
+    public function endTransaction(&$transaction)
+    {
+        $subTransactions = $transaction->getSubTransactions();
+        $customerProducts = [];
+        $customers = [];
+        $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
+
+        foreach ($subTransactions as $subTransaction) {
+            $customerProduct = array_get($customerProducts, $subTransaction->getCustomerProduct()->getId(), $subTransaction->getCustomerProduct());
+            $customerBalance = new Number(array_get($customers, $customerProduct->getCustomerID(), 0));
+            if ($subTransaction->isDeposit() || $subTransaction->isDWL()) {
+                $customerProductBalance = new Number($customerProduct->getBalance());
+                $customerProductBalance = $customerProductBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
+                $customerProduct->setBalance($customerProductBalance->toString());
+                $customerBalance = $customerBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()))->toString();
+                if ($pinnacleProduct->getCode() === $customerProduct->getProduct()->getCode()) {
+                    $subTransactionAmount = Number::round($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()), 2, Number::ROUND_DOWN);
+                    $pinTransactionDeposit = $this->pinnacleService->getTransactionComponent()->deposit($customerProduct->getUsername(), $subTransactionAmount);
+                    $pinTransactionDeposit->availableBalance();
+                }
+            } elseif ($subTransaction->isWithdrawal()) {
+                $customerProductBalance = new Number($customerProduct->getBalance());
+                $customerProductBalance = $customerProductBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
+                $customerProduct->setBalance($customerProductBalance . '');
+                $customerBalance = $customerBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()))->toString();
+            }
+
+            array_set($customerProducts, $customerProduct->getId(), $customerProduct);
+            array_set($customers, $customerProduct->getCustomerID(), $customerBalance);
+        }
+
+        foreach ($customerProducts as $customerProductId => $customerProduct) {
+            $this->getRepository()->save($customerProduct);
+        }
+
+        if ($transaction->isDeposit()) {
+            $transaction->getCustomer()->setEnabled();
+            $this->getRepository()->save($transaction->getCustomer());
+        }
+
+        if ($transaction->isDeposit() || $transaction->isWithdrawal() || $transaction->isBonus()) {
+            if ($transaction->getGateway()) {
+                $this->processPaymentGatewayBalance($transaction);
+                $this->save($transaction->getGateway());
+            }
         }
     }
 
@@ -420,9 +479,6 @@ class TransactionManager extends TransactionOldManager
                 $subtransaction->removeFee('customer_fee');
             }
         }
-        
-        // zimi        
-        $amount = $transaction->getAmount();
 
         $event = new TransactionProcessEvent($transaction, $action, $fromCustomer);
         try {
@@ -436,11 +492,7 @@ class TransactionManager extends TransactionOldManager
             $this->getEventDispatcher()->dispatch('transaction.pre_save', $event);
             $this->getRepository()->reconnectToDatabase();
             $this->updateBitcoinPaymentOption($transaction);
-            // zimi- DbBundle\Entity\Transaction            
-            $eventTransaction = $event->getTransaction();            
-            $eventTransaction->setAmount($amount);   
-
-            $this->getRepository()->save($eventTransaction);
+            $this->getRepository()->save($event->getTransaction());
             $this->getRepository()->commit();
             $this->getEventDispatcher()->dispatch('transaction.saved', $event);
 

@@ -2,6 +2,7 @@
 
 namespace TransactionBundle\EventHandler;
 
+use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use TransactionBundle\Event\TransactionProcessEvent;
 use Symfony\Component\Workflow\Event\Event as WorkflowEvent;

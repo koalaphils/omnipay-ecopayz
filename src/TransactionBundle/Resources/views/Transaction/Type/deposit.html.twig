@@ -33,7 +33,7 @@
                     <span class="input-group-addon"><i class="fa fa-money"></i></span>
                     {{ form_widget(form.amount, {"attr": {"class":"subtransaction-amount"}}) }}
                     {% if not view %}
-                    <button type="button" class="btn btn-danger waves-effect waves-light btn-remove-product"><i class="fa fa-close"></i></button>
+                        <button type="button" class="btn btn-danger waves-effect waves-light btn-remove-product"><i class="fa fa-close"></i></button>
                     {% endif %}
                 </div>
                 <div class="help-block">
@@ -63,7 +63,7 @@
                 'amount': '{{ child.vars.data.amount }}',
                 'enabled': {% if child.vars.view -%} false {%- else -%} true {%- endif -%},
                 'errors': '{{ form_errors(child) }}',
-                'bitcoinRequestedAmount' : {% if child.vars.data.details.bitcoin.requested_btc is defined -%} {{ child.vars.data.details.bitcoin.requested_btc | number_format(8, '.') }} {%- else -%} 0 {% endif -%}
+                'bitcoinRequestedAmount' : {% if child.vars.data.details.bitcoin.requested_btc is defined -%} {{ child.vars.data.details.bitcoin.requested_btc | round_format(8, '.', constant('AppBundle\\ValueObject\\Number::ROUND_DOWN')) }} {%- else -%} 0 {% endif -%}
             });
             {% else %}
             products.add({
@@ -76,27 +76,6 @@
 
             $('#gateway-container').removeClass('hide');
             $('#payment-option-container').removeClass('hide');
-        }
-
-        function resetBitcoinFields(memberPaymentOptionText) {
-            $('#{{form.details.bitcoin.rate.vars.id}}').val('');
-            $('#{{form.details.bitcoin.receiver_unique_address.vars.id}}').val(memberPaymentOptionText);
-        }
-
-        function removeBitcoinErrors() {
-            $('#bitcoinFields').find('.form-group').removeClass('has-error');
-            $('#bitcoinFields').find('.help-block ul li').remove();
-        }
-
-        function loadBitcoinFields(memberPaymentOptionText) {
-            $('#bitcoinFields').removeClass('hide');
-            removeBitcoinErrors();
-            resetBitcoinFields(memberPaymentOptionText);
-        }
-
-        function unloadBitcoinFields() {
-            $('#bitcoinFields').addClass('hide');
-            resetBitcoinFields();
         }
 
         $(function() {
@@ -138,172 +117,184 @@
 {% endblock %}
 
 {% block summary_template %}
-<?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
-    <xsl:output method="xml"/>
-    <xsl:template match="transaction">
-        <div class='card-box'>
-        <div class='card-box'>
-            <div class='row'>
-                <div class='col-md-5 col-sm-12 col-xs-12'>
-                    <b>{{ "Status"|trans({},"TransactionBundle") }}</b>
-                </div>
-                <div class='col-md-7 col-sm-12 col-xs-12'>
+    <?xml version="1.0" encoding="UTF-8"?>
+    <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+        <xsl:output method="xml"/>
+        <xsl:template match="transaction">
+            <div class='card-box'>
+                <div class='card-box'>
+                    <div class='row'>
+                        <div class='col-md-5 col-sm-12 col-xs-12'>
+                            <b>{{ "Status"|trans({},"TransactionBundle") }}</b>
+                        </div>
+                        <div class='col-md-7 col-sm-12 col-xs-12'>
+                            {% if transaction.hasDepositUsingBitcoin() and not transaction.isBitcoinRequestedOnConfirmation() and not transaction.isVoided() and not transaction.hasEnded() and not transaction.isDeclined() %}
+                                {% if transaction.isBitcoinPendingOnConfirmation() %}
+                                    <span class="label label-warning">{{ "Pending Confirmation"|trans({}, "TransactionBundle") }}</span>
+                                {% elseif transaction.isBitcoinConfirmedOnConfirmation() %}
+                                    <span class="label label-success">{{ "Confirmed"|trans({}, "TransactionBundle") }}</span>
+                                {% endif %}
+                            {% else %}
+                                <xsl:choose>
+                                    <xsl:when test="statusinfo/id = 2 and voided = 1">
+                                        <span class="label label-danger">{{ "Voided"|trans({}, "TransactionBundle") }}</span>
+                                    </xsl:when>
+                                    <xsl:when test="statusinfo/id = 3">
+                                        <span class="label label-danger"><xsl:value-of select="statusinfo/label"/></span>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <span class="label label-success"><xsl:value-of select="statusinfo/label"/></span>
+                                    </xsl:otherwise>
+                                </xsl:choose>
+                            {% endif %}
+                        </div>
+                    </div>
                     {% if transaction.hasDepositUsingBitcoin() and not transaction.isBitcoinRequestedOnConfirmation() and not transaction.isVoided() and not transaction.hasEnded() and not transaction.isDeclined() %}
-                        {% if transaction.isBitcoinPendingOnConfirmation() %}
-                            <span class="label label-warning">{{ "Pending Confirmation"|trans({}, "TransactionBundle") }}</span>
-                        {% elseif transaction.isBitcoinConfirmedOnConfirmation() %}
-                            <span class="label label-success">{{ "Confirmed"|trans({}, "TransactionBundle") }}</span>
-                        {% endif %}
-                    {% else %}
+                        <div class='row m-t-5'>
+                            <div class='col-md-5 col-sm-12 col-xs-12'>
+                                <b>{{ "Confirmation Status"|trans({},"TransactionBundle") }}</b>
+                            </div>
+                            <div class='col-md-7 col-sm-12 col-xs-12'>
+                                {% if transaction.isBitcoinPendingOnConfirmation() %}
+                                    <span class="text-warning">{{transaction.getBitcoinConfirmation() | default('0') }}/3 {{ "confirmation(s) received"|trans({},"TransactionBundle") }}</span>
+                                {% elseif transaction.isBitcoinConfirmedOnConfirmation() %}
+                                    <span class="text-success">{{transaction.getBitcoinConfirmation() | default('0') }}/3 {{ "confirmation(s) received"|trans({},"TransactionBundle") }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class='row m-t-5'>
+                        <div class='col-sm-12 col-xs-12'>
+                            <b>{{ "Transaction Number"|trans({},"TransactionBundle") }}</b>
+                        </div>
+                        <div class='col-sm-12 col-xs-12'>
+                            <span><xsl:value-of select="number"/></span>
+                        </div>
+                    </div>
+                </div>
+                <div class='card-box'>
+                    <h4 class="header-title m-t-0">{{ "Payment Gateway"|trans({},"TransactionBundle") }}</h4>
+                    <hr />
+                    <div class='row'>
+                        <div class='col-md-6 col-sm-6 col-xs-6'>
+                            <b>{{ "Name"|trans({},"TransactionBundle") }}</b>
+                        </div>
+                        <div class='col-md-6 col-sm-6 col-xs-6'>
+                            <span><xsl:value-of select="gateway/name"/></span>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='col-md-6 col-sm-6 col-xs-6'>
+                            <b>{{ "Balance"|trans({},"TransactionBundle") }}</b>
+                        </div>
+                        <div class='col-md-6 col-sm-6 col-xs-6'>
+                            <span><xsl:value-of select="gateway/balance"/></span>
+                        </div>
+                    </div>
+                    <xsl:if test='not ((status = 2) or (status = 3))'>
+                        <div class='row'>
+                            <div class='col-md-6 col-sm-6 col-xs-6'>
+                                <b>{{ "After Balance"|trans({},"TransactionBundle") }}</b>
+                            </div>
+                            <div class='col-md-6 col-sm-6 col-xs-6'>
+                                <span><xsl:value-of select="gateway/afterbalance"/></span>
+                            </div>
+                        </div>
+                    </xsl:if>
+                </div>
+                <div class='card-box'>
+                    <h4 class="header-title m-t-0">{{ "Products"|trans({}, "TransactionBundle") }}</h4>
+                    <hr />
                     <xsl:choose>
-                        <xsl:when test="statusinfo/id = 2 and voided = 1">
-                            <span class="label label-danger">{{ "Voided"|trans({}, "TransactionBundle") }}</span>
-                        </xsl:when>
-                        <xsl:when test="statusinfo/id = 3">
-                            <span class="label label-danger"><xsl:value-of select="statusinfo/label"/></span>
+                        <xsl:when test='not ((status = 2) or (status = 3))'>
+                            <div class='row'>
+                                <div class='col-sm-5 col-xs-5'><b>{{ "Product"|trans({}, "TransactionBundle") }}</b></div>
+                                <div class='col-sm-4 col-xs-4'><b>{{ "Current"|trans({}, "TransactionBundle") }}</b></div>
+                                <div class='col-sm-3 col-xs-3'><b>{{ "After"|trans({}, "TransactionBundle") }}</b></div>
+                            </div>
+                            <xsl:for-each select="subtransactions/i">
+                                <div class='row subtransaction'>
+                                    <xsl:attribute name='data-index'>
+                                        <xsl:value-of select='index' />
+                                    </xsl:attribute>
+                                    <xsl:choose>
+                                        <xsl:when test="customerproduct/immutablecustomerproductdata">
+                                            <div class='col-sm-5 col-xs-5'><span><xsl:value-of select="customerproduct/product/name"/></span> (<span><xsl:value-of select="customerproduct/immutablecustomerproductdata"/></span>)</div>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <div class='col-sm-5 col-xs-5'><span><xsl:value-of select="customerproduct/product/name"/></span> (<span><xsl:value-of select="customerproduct/username"/></span>)</div>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                    <div class='col-sm-4 col-xs-4'><span><xsl:value-of select="customerproduct/balance"/></span></div>
+                                    <div class='col-sm-3 col-xs-3'><span><xsl:value-of select="afterbalance"/></span></div>
+                                </div>
+                            </xsl:for-each>
                         </xsl:when>
                         <xsl:otherwise>
-                            <span class="label label-success"><xsl:value-of select="statusinfo/label"/></span>
+                            <div class='row'>
+                                <div class='col-sm-4 col-xs-4'><b>{{ "Product"|trans({}, "TransactionBundle") }}</b></div>
+                                <div class='col-sm-8 col-xs-8'><b>{{ "Balance"|trans({}, "TransactionBundle") }}</b></div>
+                            </div>
+                            <xsl:for-each select="subtransactions/i">
+                                <div class='row subtransaction'>
+                                    <xsl:attribute name='data-index'>
+                                        <xsl:value-of select='index' />
+                                    </xsl:attribute>
+                                    <xsl:choose>
+                                        <xsl:when test="customerproduct/immutablecustomerproductdata">
+                                            <div class='col-sm-4 col-xs-4'><span><xsl:value-of select="customerproduct/product/name"/></span> (<span><xsl:value-of select="customerproduct/immutablecustomerproductdata"/></span>)</div>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <div class='col-sm-4 col-xs-4'><span><xsl:value-of select="customerproduct/product/name"/></span> (<span><xsl:value-of select="customerproduct/username"/></span>)</div>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                    <div class='col-sm-8 col-xs-8'><span><xsl:value-of select="customerproduct/balance"/></span></div>
+                                </div>
+                            </xsl:for-each>
                         </xsl:otherwise>
                     </xsl:choose>
-                    {% endif %}
                 </div>
-            </div>
-            {% if transaction.hasDepositUsingBitcoin() and not transaction.isBitcoinRequestedOnConfirmation() and not transaction.isVoided() and not transaction.hasEnded() and not transaction.isDeclined() %}
-            <div class='row m-t-5'>
-                <div class='col-md-5 col-sm-12 col-xs-12'>
-                    <b>{{ "Confirmation Status"|trans({},"TransactionBundle") }}</b>
-                </div>
-                <div class='col-md-7 col-sm-12 col-xs-12'>
-                        {% if transaction.isBitcoinPendingOnConfirmation() %}
-                            <span class="text-warning">{{transaction.getBitcoinConfirmation()}}/3 {{ "confirmation(s) received"|trans({},"TransactionBundle") }}</span>
-                        {% elseif transaction.isBitcoinConfirmedOnConfirmation() %}
-                            <span class="text-success">{{transaction.getBitcoinConfirmation()}}/3 {{ "confirmation(s) received"|trans({},"TransactionBundle") }}</span>
-                        {% endif %}
-                </div>
-            </div>
-            {% endif %}
-            <div class='row m-t-5'>
-                <div class='col-sm-12 col-xs-12'>
-                    <b>{{ "Transaction Number"|trans({},"TransactionBundle") }}</b>
-                </div>
-                <div class='col-sm-12 col-xs-12'>
-                    <span><xsl:value-of select="number"/></span>
-                </div>
-            </div>
-        </div>
-        <div class='card-box'>
-            <h4 class="header-title m-t-0">{{ "Payment Gateway"|trans({},"TransactionBundle") }}</h4>
-            <hr />
-            <div class='row'>
-                <div class='col-md-6 col-sm-6 col-xs-6'>
-                    <b>{{ "Name"|trans({},"TransactionBundle") }}</b>
-                </div>
-                <div class='col-md-6 col-sm-6 col-xs-6'>
-                    <span><xsl:value-of select="gateway/name"/></span>
-                </div>
-            </div>
-            <div class='row'>
-                <div class='col-md-6 col-sm-6 col-xs-6'>
-                    <b>{{ "Balance"|trans({},"TransactionBundle") }}</b>
-                </div>
-                <div class='col-md-6 col-sm-6 col-xs-6'>
-                    <span><xsl:value-of select="gateway/balance"/></span>
-                </div>
-            </div>
-            <xsl:if test='not ((status = 2) or (status = 3))'>
-            <div class='row'>
-                <div class='col-md-6 col-sm-6 col-xs-6'>
-                    <b>{{ "After Balance"|trans({},"TransactionBundle") }}</b>
-                </div>
-                <div class='col-md-6 col-sm-6 col-xs-6'>
-                    <span><xsl:value-of select="gateway/afterbalance"/></span>
-                </div>
-            </div>
-            </xsl:if>
-        </div>
-        <div class='card-box'>
-            <h4 class="header-title m-t-0">{{ "Products"|trans({}, "TransactionBundle") }}</h4>
-            <hr />
-            <xsl:choose>
-                <xsl:when test='not ((status = 2) or (status = 3))'>
-                <div class='row'>
-                    <div class='col-sm-5 col-xs-5'><b>{{ "Product"|trans({}, "TransactionBundle") }}</b></div>
-                    <div class='col-sm-4 col-xs-4'><b>{{ "Current"|trans({}, "TransactionBundle") }}</b></div>
-                    <div class='col-sm-3 col-xs-3'><b>{{ "After"|trans({}, "TransactionBundle") }}</b></div>
-                </div>
-                <div class='row subtransaction'>
-                    <div class='col-sm-5 col-xs-5'>PINBET</div>
-                    <div class='col-sm-4 col-xs-4' id="withdraw-current-balance">{{ currentBalance | raw }}</div>
-                    <div class='col-sm-3 col-xs-3' id="withdraw-after-balance">{{ afterBalance | raw }}</div>                    
-                </div>                
-                </xsl:when>
-                <xsl:otherwise>
-                <div class='row'>
-                    <div class='col-sm-4 col-xs-4'><b>{{ "Product"|trans({}, "TransactionBundle") }}</b></div>
-                    <div class='col-sm-8 col-xs-8'><b>{{ "Balance"|trans({}, "TransactionBundle") }}</b></div>
-                </div>
-                <xsl:for-each select="subtransactions/i">
-                    <div class='row subtransaction'>
-                        <xsl:attribute name='data-index'>
-                            <xsl:value-of select='index' />
-                        </xsl:attribute>
-                        <xsl:choose>
-                            <xsl:when test="customerproduct/immutablecustomerproductdata">
-                                <div class='col-sm-4 col-xs-4'><span><xsl:value-of select="customerproduct/product/name"/></span> (<span><xsl:value-of select="customerproduct/immutablecustomerproductdata"/></span>)</div>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <div class='col-sm-4 col-xs-4'><span><xsl:value-of select="customerproduct/product/name"/></span> (<span><xsl:value-of select="customerproduct/username"/></span>)</div>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                        <div class='col-sm-8 col-xs-8'><span><xsl:value-of select="customerproduct/balance"/></span></div>
+                <div class='card-box'>
+                    <h4 class="header-title m-t-0">{{ "Fees"|trans({}, "TransactionBundle") }}</h4>
+                    <hr />
+                    <div class='row'>
+                        <div class='col-md-6 col-sm-6 col-xs-6'>
+                            <b>{{ "Member Fee"|trans({},"TransactionBundle") }}</b>
+                        </div>
+                        <div class='col-md-6 col-sm-6 col-xs-6 '>
+                            <span><xsl:value-of select="total_customer_fee"/></span>
+                        </div>
                     </div>
-                </xsl:for-each>
-                </xsl:otherwise>
-            </xsl:choose>
-        </div>
-        <div class='card-box'>
-            <h4 class="header-title m-t-0">{{ "Fees"|trans({}, "TransactionBundle") }}</h4>
-            <hr />
-            <div class='row'>
-                <div class='col-md-6 col-sm-6 col-xs-6'>
-                    <b>{{ "Member Fee"|trans({},"TransactionBundle") }}</b>
+                    <div class='row'>
+                        <div class='col-md-6 col-sm-6 col-xs-6'>
+                            <b>{{ "Company Fee"|trans({},"TransactionBundle") }}</b>
+                        </div>
+                        <div class='col-md-6 col-sm-6 col-xs-6'>
+                            <span><xsl:value-of select="total_company_fee"/></span>
+                        </div>
+                    </div>
                 </div>
-                <div class='col-md-6 col-sm-6 col-xs-6 '>
-                    <span class=""><xsl:value-of select="total_customer_fee"/></span>
-                </div>
-            </div>
-            <div class='row'>
-                <div class='col-md-6 col-sm-6 col-xs-6'>
-                    <b>{{ "Company Fee"|trans({},"TransactionBundle") }}</b>
-                </div>
-                <div class='col-md-6 col-sm-6 col-xs-6'>
-                    <span class=""><xsl:value-of select="total_company_fee"/></span>
-                </div>
-            </div>
-        </div>
 
-        <div class='card-box'>
-            <div class='row'>
-                <div class='col-md-6 col-sm-6 col-xs-6'>
-                    <b>{{ "Member Amount"|trans({},"TransactionBundle") }}</b>
-                </div>
-                <div class='col-md-6 col-sm-6 col-xs-6'>
-                    <span><xsl:value-of select="customer_amount"/></span>
+                <div class='card-box'>
+                    <div class='row'>
+                        <div class='col-md-6 col-sm-6 col-xs-6'>
+                            <b>{{ "Member Amount"|trans({},"TransactionBundle") }}</b>
+                        </div>
+                        <div class='col-md-6 col-sm-6 col-xs-6'>
+                            <span><xsl:value-of select="customer_amount"/></span>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='col-md-6 col-sm-6 col-xs-6'>
+                            <b>{{ "Total Amount"|trans({},"TransactionBundle") }}</b>
+                        </div>
+                        <div class='col-md-6 col-sm-6 col-xs-6'>
+                            <span><xsl:value-of select="total_amount"/></span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class='row'>
-                <div class='col-md-6 col-sm-6 col-xs-6'>
-                    <b>{{ "Total Amount"|trans({},"TransactionBundle") }}</b>
-                </div>
-                <div class='col-md-6 col-sm-6 col-xs-6'>
-                    <span><xsl:value-of select="total_amount"/></span>
-                </div>
-            </div>
-        </div>
-        </div>
-    </xsl:template>
+        </xsl:template>
 
-</xsl:stylesheet>
+    </xsl:stylesheet>
 {% endblock summary_template %}

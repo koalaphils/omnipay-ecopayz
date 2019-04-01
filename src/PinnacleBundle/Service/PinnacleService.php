@@ -4,6 +4,9 @@ declare(strict_types = 1);
 
 namespace PinnacleBundle\Service;
 
+use AppBundle\Manager\SettingManager;
+use DbBundle\Entity\Product;
+use DbBundle\Repository\ProductRepository;
 use GuzzleHttp\Client as GuzzleClient;
 use Http\Adapter\Guzzle6\Client as GuzzleAdapter;
 use Http\Client\Common\HttpMethodsClient;
@@ -75,8 +78,27 @@ class PinnacleService implements PinnacleInterface
      */
     private $logger;
 
-    public function __construct(LoggerInterface $logger, string $apiUrl, string $agentCode, string $agentKey, string $secretKey)
-    {
+    /**
+     * @var SettingManager
+     */
+    private $settingManager;
+
+    /**
+     * @var ProductRepository
+     */
+    private $productRepository;
+
+    public function __construct(
+        LoggerInterface $logger,
+        SettingManager $settingManager,
+        ProductRepository $productRepository,
+        string $apiUrl,
+        string $agentCode,
+        string $agentKey,
+        string $secretKey
+    ) {
+        $this->productRepository = $productRepository;
+        $this->settingManager = $settingManager;
         $this->apiUrl = $apiUrl;
         $this->agentCode = $agentCode;
         $this->agentKey = $agentKey;
@@ -159,5 +181,12 @@ class PinnacleService implements PinnacleInterface
     public function getPlayerComponent(): PlayerComponent
     {
         return $this->playerComponent;
+    }
+
+    public function getPinnacleProduct(): Product
+    {
+        $pinnacleProductCode = $this->settingManager->getSetting('pinnacle.product', '');
+
+        return $this->productRepository->getProductByCode($pinnacleProductCode);
     }
 }

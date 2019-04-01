@@ -64,6 +64,7 @@ services:
             - "@router"
         calls:
             - [ 'registerMenu' ]
+    AppBundle\Manager\MenuManager: '@app.menu_manager'
 
     app.role_manager:
         class: AppBundle\Manager\RoleManager

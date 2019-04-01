@@ -116,7 +116,7 @@ if (!function_exists('generate_code')) {
 }
 
 if (!function_exists('currency_exchangerate')) {
-    function currency_exchangerate($amount, $fromRate, $toRate)
+    function currency_exchangerate($amount, $fromRate, $toRate, array $config = []): string
     {
         $eq = 'x(z/r)';
         $vars = [
@@ -124,7 +124,7 @@ if (!function_exists('currency_exchangerate')) {
             'r' => $fromRate,
             'z' => $toRate,
         ];
-        $value = AppBundle\ValueObject\Number::parseEquation($eq, $vars);
+        $value = \AppBundle\ValueObject\Number::parseEquation($eq, $vars, true, $config);
 
         return $value->toString();
     }

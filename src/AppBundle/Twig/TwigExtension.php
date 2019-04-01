@@ -68,6 +68,7 @@ class TwigExtension extends Twig_Extension
         return [
             new Twig_SimpleFilter('format_number', [$this, 'formatNumber']),
             new Twig_SimpleFilter('json_decode', [$this, 'jsonDecode']),
+            new Twig_SimpleFilter('round_format', [$this, 'numberFormatRound']),
         ];
     }
 
@@ -126,5 +127,10 @@ class TwigExtension extends Twig_Extension
     public function number($number, array $config = []): Number
     {
         return new Number($number, $config);
+    }
+
+    public function numberFormatRound($number, int $decimal, string $decimalSeparation = ',', string $thousandSeparation = '.', int $type = Number::ROUND_DOWN): string
+    {
+        return number_format(Number::round($number, $decimal, $type), $decimal, $decimalSeparation, $thousandSeparation);
     }
 }

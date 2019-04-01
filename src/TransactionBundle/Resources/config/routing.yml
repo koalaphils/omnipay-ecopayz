@@ -4,13 +4,13 @@ transaction.list_page:
 
 transaction.list_search:
     path:       /search
-    defaults:   { _controller: TransactionBundle:Transaction:search }
+    defaults:   { _controller: TransactionBundle:TransactionOld:search }
     condition:  "context.getMethod() in ['POST', 'GET'] and request.isXMLHttpRequest()"
 
 transaction.download:
     path: /download
     defaults:
-        _controller: TransactionBundle:Transaction:download
+        _controller: TransactionBundle:TransactionOld:download
 
 transaction.setting.transaction_page:
     path:       /setting
@@ -18,29 +18,34 @@ transaction.setting.transaction_page:
 
 transaction.count_status:
     path:   /statuses/count
-    defaults:   { _controller: TransactionBundle:Transaction:countTransactionByStatus }
+    defaults:   { _controller: TransactionBundle:TransactionOld:countTransactionByStatus }
 
 transaction.create_page:
     path:       /{type}
-    defaults:    { _controller: TransactionBundle:Transaction:createPage }
+    defaults:    { _controller: TransactionBundle:TransactionOld:createPage }
 
 transaction.view_dwl:
     path: /dwl/{id}
-    defaults: { _controller: TransactionBundle:Transaction:viewDwlTransaction }
+    defaults: { _controller: TransactionBundle:TransactionOld:viewDwlTransaction }
 
 transaction.gateways:
     path: /{type}/gateways
-    defaults: { _controller: TransactionBundle:Transaction:getGatewayByTransaction }
+    defaults: { _controller: TransactionBundle:TransactionOld:getGatewayByTransaction }
 
 transaction.update_page:
     path:       /{type}/{id}
     defaults:    { _controller: TransactionBundle:Transaction:updatePage }
 
+#transaction_deposit.update_page:
+#    path: /deposit/{id}
+#    defaults:
+#        _controller: TransactionBundle:Deposit:updatePage
+
 transaction.save:
     path:       /{type}/{id}/save
-    defaults:   { _controller: TransactionBundle:Transaction:save, id: 'new' }
+    defaults:   { _controller: TransactionBundle:TransactionOld:save, id: 'new' }
     condition:  "context.getMethod() in ['POST']"
 
 transaction.void:
     path:       /{type}/{id}/void
-    defaults:   { _controller: TransactionBundle:Transaction:voidTransaction}
+    defaults:   { _controller: TransactionBundle:TransactionOld:voidTransaction}

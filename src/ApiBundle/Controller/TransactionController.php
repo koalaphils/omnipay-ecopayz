@@ -2,7 +2,9 @@
 
 namespace ApiBundle\Controller;
 
+use ApiBundle\Request\Transaction\DepositRequest;
 use ApiBundle\Request\Transaction\GetLastBitcoinRequest;
+use ApiBundle\RequestHandler\Transaction\DepositHandler;
 use ApiBundle\RequestHandler\Transaction\TransactionQueryHandler;
 use FOS\RestBundle\View\View;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
@@ -26,6 +28,7 @@ use Http\Client\Common\HttpMethodsClient;
 use Http\Message\MessageFactory\GuzzleMessageFactory;
 use DbBundle\Repository\CustomerPaymentOptionRepository;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class TransactionController extends AbstractController
 {
@@ -172,13 +175,38 @@ class TransactionController extends AbstractController
      * @ApiDoc(
      *     description="Request deposit transaction",
      *     section="Transaction",
-     *     views={"piwi"}
+     *     views={"piwi"},
+     *     requirements={
+     *         {"name"="payment_option_type", "dataType"="string"},
+     *         {"name"="products[0][id]", "dataType"="integer"},
+     *         {"name"="products[0][amount]", "dataType"="string"},
+     *         {"name"="meta[field][email]", "dataType"="string"},
+     *     },
+     *     parameters={
+     *         {"name"="payment_option", "dataType"="string", "required"=false},
+     *         {"name"="meta[payment_details][rateDetails][rangeStart]", "dataType"="string", "required"=false},
+     *         {"name"="meta[payment_details][rateDetails][rangeEnd]", "dataType"="string", "required"=false},
+     *         {"name"="meta[payment_details][rateDetails][adjustment]", "dataType"="string", "required"=false},
+     *         {"name"="meta[payment_details][rateDetails][adjustmentType]", "dataType"="string", "required"=false},
+     *         {"name"="meta[payment_details][blockchainRate]", "dataType"="string", "required"=false},
+     *         {"name"="meta[payment_details][rate]", "dataType"="string", "required"=false},
+     *         {"name"="products[0][meta][payment_details][bitcoin]", "dataType"="string", "required"=false}
+     *     },
+     *     headers={
+     *         { "name"="Authorization", "description"="Bearer <access_token>" }
+     *     }
      * )
      */
-    public function depositTransactionAction(Request $request)
+    public function depositTransactionAction(Request $request, DepositHandler $depositHandler, ValidatorInterface $validator)
     {
-        /* @var $customer Customer */
-        $customer = $this->getUser()->getCustomer();
+        $depositRequest = DepositRequest::createFromRequest($request);
+        $violations = $validator->validate($depositRequest, null);
+        if ($violations->count() > 0) {
+            return $this->view($violations);
+        }
+        $transaction = $depositHandler->handle($depositRequest);
+
+        return $this->view($transaction);
     }
 
     public function depositTransactionOldAction(Request $request)

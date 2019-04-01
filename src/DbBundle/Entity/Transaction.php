@@ -16,6 +16,7 @@ use DbBundle\Entity\Traits\SoftDeleteTrait;
 use DbBundle\Entity\Traits\TimestampTrait;
 use DbBundle\Entity\Product;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Exception;
 
 /**
@@ -103,8 +104,6 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     private $bitcoinConfirmationCount;
     private $virtualBitcoinSenderAddress;
     private $virtualBitcoinReceiverUniqueAddress;
-    private $product;
-    private $productID;
     private $customerID;
     private $email;
     private $popup;
@@ -434,9 +433,9 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     /**
      * Get sub transaction.
      *
-     * @return ArrayCollection
+     * @return Collection
      */
-    public function getSubTransactions()
+    public function getSubTransactions(): Collection
     {
         return $this->subTransactions;
     }
@@ -761,10 +760,8 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     }
 
     public function getCustomerAmount()
-    {        
-        // zimi
-        // return $this->getDetail('summary.customer_amount', $this->getDetail('summary.total_amount', 0));
-        return $this->getAmount();
+    {
+        return $this->getDetail('summary.customer_amount', $this->getDetail('summary.total_amount', 0));
     }
 
     public function canAutoSetPaymentOptionType()
@@ -1495,18 +1492,6 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         ];
     }
 
-    public function setProduct($product): self
-    {
-        $this->product = $product;
-
-        return $this;
-    }
-
-    public function getProduct(): ?Product
-    {
-        return $this->product;
-    }
-
     /**
      * Set email.
      *
@@ -1529,30 +1514,6 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     public function getEmail()
     {
         return $this->email;
-    }
-
-    /**
-     * Set product id.
-     *
-     * @param string $productID
-     *
-     * @return Transaction
-     */
-    public function setProductID($id)
-    {
-        $this->productID = $id;
-
-        return $this;
-    }
-
-    /**
-     * Get product.
-     *
-     * @return string
-     */
-    public function getProductID()
-    {
-        return $this->productID;
     }
 
     /**

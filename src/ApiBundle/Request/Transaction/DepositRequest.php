@@ -14,11 +14,6 @@ class DepositRequest
     protected $paymentOptionType;
 
     /**
-     * @var string
-     */
-    protected $amount;
-
-    /**
      * @var array
      */
     protected $meta;
@@ -28,13 +23,18 @@ class DepositRequest
      */
     protected $paymentOption;
 
+    /**
+     * @var array
+     */
+    protected $products;
+
     public static function createFromRequest(Request $request): self
     {
         $instance = new static();
         $instance->paymentOptionType = $request->get('payment_option_type', '');
-        $instance->amount = (string) $request->get('amount', '');
         $instance->meta = $request->get('meta', []);
         $instance->paymentOption = $request->get('payment_option', '');
+        $instance->products = $request->get('products', []);
 
         return $instance;
     }
@@ -44,14 +44,14 @@ class DepositRequest
         return $this->paymentOptionType;
     }
 
-    public function getAmount(): string
-    {
-        return $this->amount;
-    }
-
     public function getMeta(): array
     {
         return $this->meta;
+    }
+
+    public function getProducts(): array
+    {
+        return $this->products;
     }
 
     /**
@@ -59,9 +59,9 @@ class DepositRequest
      * @param mixed|null $default
      * @return mixed|null
      */
-    public function getMetaData(string $key, $default)
+    public function getMetaData(string $key, $default = null)
     {
-        return array_get($this->meta, $key);
+        return array_get($this->meta, $key, $default);
     }
 
     public function getPaymentOption(): string

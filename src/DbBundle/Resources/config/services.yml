@@ -90,6 +90,14 @@ services:
         factory: ['@doctrine.orm.default_entity_manager', getRepository]
         arguments:
             - DbBundle\Entity\Transaction
+    DbBundle\Repository\PaymentOptionRepository:
+        factory: ['@doctrine.orm.default_entity_manager', getRepository]
+        arguments:
+            - DbBundle\Entity\PaymentOption
+    DbBundle\Repository\CustomerProductRepository:
+        factory: ['@doctrine.orm.default_entity_manager', getRepository]
+        arguments:
+            - DbBundle\Entity\CustomerProduct
     Doctrine\ORM\EntityManager: '@Doctrine\ORM\EntityManagerInterface'
 
 imports:

@@ -15,8 +15,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 abstract class AbstractController extends Controller
 {
-    abstract protected function getManager();
-
     protected function getContainer()
     {
         return $this->container;
@@ -260,5 +258,31 @@ abstract class AbstractController extends Controller
     protected function getFormFactory(): FormFactory
     {
         return $this->container->get('form.factory');
+    }
+
+    protected function saveSession(): void
+    {
+        $this->container->get('session')->save();
+    }
+
+    protected function disableProfiler(): void
+    {
+        if ($this->container->has('profiler')) {
+            $this->container->get('profiler')->disable();
+        }
+    }
+
+    protected function setMenu(string $menu): void
+    {
+        $this->getMenuManager()->setActive($menu);
+    }
+
+    /**
+     * @param stirng $key
+     * @param mixed|null $default
+     */
+    protected function getSetting(stirng $key, $default = null)
+    {
+        return $this->getSettingManager()->getSetting($key, $default);
     }
 }

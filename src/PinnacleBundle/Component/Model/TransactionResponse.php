@@ -32,7 +32,7 @@ class TransactionResponse
 
     public function availableBalance(): string
     {
-        return $this->data['availableBalance'];
+        return (string) $this->data['availableBalance'];
     }
 
     public function amount(): string

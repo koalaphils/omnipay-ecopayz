@@ -4,8 +4,8 @@ declare(strict_types = 1);
 
 namespace ApiBundle\RequestHandler\Transaction;
 
+use ApiBundle\Event\TransactionCreatedEvent;
 use ApiBundle\Request\Transaction\DepositRequest;
-use AppBundle\Manager\SettingManager;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerPaymentOption;
 use DbBundle\Entity\SubTransaction;
@@ -13,6 +13,8 @@ use DbBundle\Entity\Transaction;
 use DbBundle\Repository\CustomerPaymentOptionRepository;
 use DbBundle\Repository\CustomerProductRepository;
 use DbBundle\Repository\PaymentOptionRepository;
+use Doctrine\ORM\EntityManager;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use TransactionBundle\Manager\TransactionManager;
 
@@ -44,9 +46,14 @@ class DepositHandler
     private $customerProductRepository;
 
     /**
-     * @var SettingManager
+     * @var EntityManager
      */
-    private $settingManager;
+    private $entityManager;
+
+    /**
+     * @var EventDispatcherInterface
+     */
+    private $eventDispatcher;
 
     public function __construct(
         TokenStorageInterface $tokenStorage,
@@ -54,44 +61,70 @@ class DepositHandler
         CustomerPaymentOptionRepository $memberPaymentOptionRepository,
         PaymentOptionRepository $paymentOptionRepository,
         CustomerProductRepository $customerProductRepository,
-        SettingManager $settingManager
+        EntityManager $entityManager,
+        EventDispatcherInterface $eventDispatcher
     ) {
         $this->tokenStorage = $tokenStorage;
         $this->memberPaymentOptionRepository = $memberPaymentOptionRepository;
         $this->paymentOptionRepository = $paymentOptionRepository;
         $this->transactionManager = $transactionManager;
         $this->customerProductRepository = $customerProductRepository;
-        $this->settingManager = $settingManager;
+        $this->entityManager = $entityManager;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     public function handle(DepositRequest $depositRequest): Transaction
     {
-        $productCode = $this->settingManager->getSetting('pinnacle.product');
-        $member = $this->getCurrentMember();
-        $memberPaymentOption = $this->getMemberPaymentOption($member, $depositRequest);
-        $memberProduct = $this->customerProductRepository->findByCodeAndUsername(['code' => $productCode, 'username' => $member->getPinUserCode()]);
+        try {
+            $this->entityManager->beginTransaction();
+            $member = $this->getCurrentMember();
+            $memberPaymentOption = $this->getMemberPaymentOption($member, $depositRequest);
 
-        $transaction = new Transaction();
-        $transaction->setCustomer($member);
-        $transaction->setPaymentOption($memberPaymentOption);
-        $transaction->setType(Transaction::TRANSACTION_TYPE_DEPOSIT);
-        $transaction->setNumber($this->transactionManager->generateTransactionNumber('deposit'));
-        $transaction->setDate(new \DateTime());
-        $transaction->setFee('customer_fee', 0);
-        $transaction->setFee('company_fee', 0);
-        $transaction->setDetail('email', $depositRequest->getMetaData('field.email'));
-        foreach ($depositRequest->getMetaData('payment_details', []) as $key => $value) {
-            $transaction->setDetail($key, $value);
+            $transaction = new Transaction();
+            $transaction->setCustomer($member);
+            $transaction->setPaymentOption($memberPaymentOption);
+            $transaction->setType(Transaction::TRANSACTION_TYPE_DEPOSIT);
+            $transaction->setNumber($this->transactionManager->generateTransactionNumber('deposit'));
+            $transaction->setDate(new \DateTime());
+            $transaction->setFee('customer_fee', 0);
+            $transaction->setFee('company_fee', 0);
+            $transaction->setDetail('email', $depositRequest->getMetaData('field.email'));
+            $transaction->setEmail($depositRequest->getMetaData('field.email'));
+            foreach ($depositRequest->getMetaData('payment_details', []) as $key => $value) {
+                $transaction->setDetail($key, $value);
+            }
+            $transaction->autoSetPaymentOptionType();
+
+            foreach ($depositRequest->getProducts() as $productInfo) {
+                $memberProduct = $this->customerProductRepository->findById($productInfo['id']);
+                $subTransaction = new SubTransaction();
+                $subTransaction->setAmount($productInfo['amount']);
+                $subTransaction->setCustomerProduct($memberProduct);
+                $subTransaction->setType(Transaction::TRANSACTION_TYPE_DEPOSIT);
+                foreach (array_get($productInfo, 'meta.payment_details', []) as $key => $value) {
+                    $subTransaction->setDetail($key, $value);
+                }
+
+                $transaction->addSubTransaction($subTransaction);
+            }
+            $transaction->setPaymentOptionOnTransaction($memberPaymentOption);
+            $transaction->retainImmutableData();
+
+            $action = ['label' => 'Save', 'status' => Transaction::TRANSACTION_STATUS_START];
+            $this->transactionManager->processTransaction($transaction, $action, true);
+
+            $this->entityManager->commit();
+
+            $event = new TransactionCreatedEvent($transaction);
+            $this->eventDispatcher->dispatch('transaction.created', $event);
+
+            return $transaction;
+        } catch (\Exception $exception) {
+            @$this->entityManager->rollback();
+
+            throw $exception;
         }
-        $transaction->autoSetPaymentOptionType();
 
-        $subTransaction = new SubTransaction();
-        $subTransaction->setAmount($depositRequest->getAmount());
-        $subTransaction->setCustomerProduct($memberProduct);
-        $subTransaction->setType(Transaction::TRANSACTION_TYPE_DEPOSIT);
-
-
-        $transaction->addSubTransaction($subTransaction);
     }
 
     private function getMemberPaymentOption(Customer $member, DepositRequest $depositRequest): CustomerPaymentOption
@@ -106,6 +139,9 @@ class DepositHandler
         $memberPaymentOption->addField('account_id', array_get($depositRequest->getMeta(), 'fields.account_id', ''));
         $memberPaymentOption->addField('email', array_get($depositRequest->getMeta(), 'field.email', ''));
         $memberPaymentOption->addField('is_withdrawal', 1);
+
+        $this->entityManager->persist($memberPaymentOption);
+        $this->entityManager->flush($memberPaymentOption);
 
         return $memberPaymentOption;
     }

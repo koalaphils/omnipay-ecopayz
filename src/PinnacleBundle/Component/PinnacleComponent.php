@@ -45,7 +45,7 @@ abstract class PinnacleComponent
     protected function checkResponse(array $response): void
     {
         if (array_has($response, 'code') && array_has($response, 'message')) {
-            throw new PinnacleError($response['message'], $response['code']);
+            throw new PinnacleError($response['message'], (int) $response['code']);
         } elseif (array_has($response, 'trace')) {
             throw new PinnacleException($response['trace']);
         }
