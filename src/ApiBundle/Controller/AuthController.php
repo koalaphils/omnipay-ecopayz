@@ -101,13 +101,8 @@ class AuthController extends AbstractController
      *     }
      * )
      */
-    public function refreshTokenAction(AuthHandler $authHandler): View
+    public function refreshTokenAction(Request $request, AuthHandler $authHandler): View
     {
-        $request = Request::createFromGlobals();
-        $request->request->add([
-            'grant_type' => 'refresh_token'
-        ]);
-
         return $this->view($authHandler->handleRefreshToken($request));
     }
 
