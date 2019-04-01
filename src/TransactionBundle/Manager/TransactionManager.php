@@ -183,6 +183,11 @@ class TransactionManager extends TransactionOldManager
                 $customerProductBalance = $customerProductBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
                 $customerProduct->setBalance($customerProductBalance . '');
                 $customerBalance = $customerBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()))->toString();
+                if ($pinnacleProduct->getCode() === $customerProduct->getProduct()->getCode()) {
+                    $subTransactionAmount = Number::round($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()), 2, Number::ROUND_DOWN);
+                    $pinTransactionDeposit = $this->pinnacleService->getTransactionComponent()->withdraw($customerProduct->getUsername(), $subTransactionAmount);
+                    $pinTransactionDeposit->availableBalance();
+                }
             }
 
             array_set($customerProducts, $customerProduct->getId(), $customerProduct);
@@ -202,6 +207,77 @@ class TransactionManager extends TransactionOldManager
             if ($transaction->getGateway()) {
                 $this->processPaymentGatewayBalance($transaction);
                 $this->save($transaction->getGateway());
+            }
+        }
+    }
+
+    public function voidTransaction(&$transaction)
+    {
+        $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
+
+        if (!$transaction->isVoided()) {
+            $transaction->setIsVoided(true);
+            $subTransactions = $transaction->getSubTransactions();
+            foreach ($subTransactions as $subTransaction) {
+                /* @var $subTransaction SubTransaction */
+                $customerProduct = $subTransaction->getCustomerProduct();
+                $customerProductBalance = new Number($customerProduct->getBalance());
+                $subTransactionAmount = $subTransaction->getDetail('convertedAmount', $subTransaction->getAmount());
+
+                if ($subTransaction->getType() == Transaction::TRANSACTION_TYPE_DEPOSIT) {
+                    $customerProductBalance = $customerProductBalance->minus($subTransactionAmount);
+                    $customerProduct->setBalance($customerProductBalance . '');
+                    if ($pinnacleProduct->getCode() === $customerProduct->getProduct()->getCode()) {
+                        $subTransactionAmount = Number::round($subTransactionAmount, 2, Number::ROUND_DOWN);
+                        $this->pinnacleService->getTransactionComponent()->withdraw($customerProduct->getUsername(), $subTransactionAmount);
+                    }
+
+                } elseif ($subTransaction->getType() == Transaction::TRANSACTION_TYPE_WITHDRAW) {
+                    $customerProductBalance = $customerProductBalance->plus($subTransactionAmount);
+                    $customerProduct->setBalance($customerProductBalance . '');
+                    if ($pinnacleProduct->getCode() === $customerProduct->getProduct()->getCode()) {
+                        $subTransactionAmount = Number::round($subTransactionAmount, 2, Number::ROUND_DOWN);
+                        $this->pinnacleService->getTransactionComponent()->deposit($customerProduct->getUsername(), $subTransactionAmount);
+                    }
+                }
+            }
+
+            // Payment Gateway
+            $gateway = $transaction->getGateway();
+            if ($gateway) {
+                if ($transaction->isBonus()) {
+                    $method = ['equation' => '-x', 'variables' => [['var' => 'x', 'value' => 'total_amount']]];
+                } else {
+                    $method = $gateway->getDetail('methods.' . $this->getType($transaction->getType(), true));
+                }
+                $equation = array_get($method, 'equation');
+
+                switch ($equation[0]) {
+                    case '+':
+                        $equation[0] = '-';
+                        break;
+                    case '-':
+                        $equation[0] = '+';
+                        break;
+                    case '*':
+                        $equation[0] = '/';
+                        break;
+                    case '/':
+                        $equation[0] = '*';
+                        break;
+                }
+
+                $equation = $gateway->getBalance() . $equation;
+
+                $variables = [];
+                foreach (array_get($method, 'variables') as $var) {
+                    $variables[$var['var']] = $var['value'];
+                }
+                $predefineValues = $transaction->getDetail('summary', []);
+                $newBalance = $this->processEquation($equation, $variables, $predefineValues) . '';
+                $this->auditGateway($transaction, $gateway, $gateway->getBalance(), $newBalance);
+                $transaction->getGateway()->setBalance($newBalance);
+                $this->getRepository()->save($transaction->getGateway());
             }
         }
     }

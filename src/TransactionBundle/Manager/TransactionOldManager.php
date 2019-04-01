@@ -478,7 +478,7 @@ class TransactionOldManager extends AbstractManager
         return $action;
     }
 
-    private function auditGateway(Transaction $transaction, Gateway $gateway, $oldBalance, $newBalance)
+    protected function auditGateway(Transaction $transaction, Gateway $gateway, $oldBalance, $newBalance)
     {
         $gatewayLogManager = $this->getGatewayLogManager();
 
