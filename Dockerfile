@@ -79,7 +79,7 @@ ENV UPLOAD_FOLDER=/uploads \
     BC_XPUB_USER= \
     BC_XPUB_PASSWORD= \
     BC_XPUB_PK= \
-    TRUSTED_PROXIES=[127.0.0.1] \
+    TRUSTED_PROXIES=127.0.0.1 \
     PIN_API_URL=http://temp \
     PIN_API_AGENT_KEY=temp \
     PIN_API_SECRET_KEY=temp \
@@ -111,8 +111,11 @@ EXPOSE 9000
 CMD ["/usr/sbin/php-fpm7", "--nodaemonize"]
 
 FROM nginx:alpine as webservice
-COPY /opt/docker/nginx/site.conf /etc/nginx/conf.d/default.conf
-COPY /opt/docker/nginx/upstream.conf /etc/nginx/conf.d/hosts.tmp
+COPY ./opt/docker/nginx/site.conf /etc/nginx/conf.d/default.conf
+COPY ./opt/docker/nginx/upstream.conf /etc/nginx/conf.d/hosts.tmp
+COPY ./opt/docker/nginx/gzip.conf /etc/nginx/conf.d/gzip.conf
+COPY ./opt/docker/nginx/proxy_headers.conf /etc/nginx/conf.d/proxy_headers.conf
+
 RUN mkdir -p /var/www/html/web && chmod 777 /var/www/html/web
 COPY --from=prod /var/www/html /var/www/html
 RUN rm -Rf /var/www/html/vendor

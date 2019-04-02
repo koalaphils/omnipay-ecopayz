@@ -76,7 +76,7 @@ parameters:
     slack.channel: "${SLACK_CHANNEL}"
 
     # trusted proxies
-    trusted_proxies: [172.18.0.5]
+    trusted_proxies: [${TRUSTED_PROXIES}]
     cron_user: system
 
     blockchain.api_key: "${BC_KEY}"
