@@ -17,7 +17,22 @@ class AuthController extends AbstractController
 {
     /**
      * @ApiDoc(
-     *     section="Authentication",
+     *     description="Check if token can still login",
+     *     section="Auth",
+     *     views={"piwi"},
+     *     headers={
+     *         { "name"="Authorization", "description"="Bearer <access_token>" }
+     *     }
+     * )
+     */
+    public function checkIfAuthenticatedAction(Request $request): View
+    {
+        return $this->view(["success" => true]);
+    }
+
+    /**
+     * @ApiDoc(
+     *     section="Auth",
      *     description="Login",
      *     views = {"piwi"},
      *     requirements={
@@ -62,7 +77,7 @@ class AuthController extends AbstractController
 
     /**
      * @ApiDoc(
-     *     section="Authentication",
+     *     section="Auth",
      *     description="Logout",
      *     views = {"piwi"},
      *     requirements={
@@ -82,7 +97,7 @@ class AuthController extends AbstractController
 
     /**
      * @ApiDoc(
-     *     section="Authentication",
+     *     section="Auth",
      *     description="Login",
      *     views = {"piwi"},
      *     requirements={
@@ -108,7 +123,7 @@ class AuthController extends AbstractController
 
     /**
      * @ApiDoc(
-     *     section="Authentication",
+     *     section="Auth",
      *     description="Forgot Password",
      *     views={"piwi"},
      *     requirements={

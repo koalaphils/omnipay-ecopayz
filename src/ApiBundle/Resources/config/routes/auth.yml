@@ -19,3 +19,9 @@ api_auth_forgot_password:
     defaults:
         _controller: ApiBundle:Auth:forgotPassword
     methods: [POST]
+
+api_auth_check_auth:
+    path: check-token
+    defaults:
+        _controller: ApiBundle:Auth:checkIfAuthenticated
+    methods: [POST, GET]
