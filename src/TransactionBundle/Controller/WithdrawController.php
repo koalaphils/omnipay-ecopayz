@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use TransactionBundle\Manager\TransactionManager;
 
-class DepositController extends  AbstractController
+class WithdrawController extends AbstractController
 {
     public function updatePageAction(
         Request $request,
@@ -26,7 +26,7 @@ class DepositController extends  AbstractController
         $this->setMenu('transaction.list');
         $pinnacleProduct = $pinnacleService->getPinnacleProduct();
 
-        $transaction = $transactionRepository->findByIdAndType($id, Transaction::TRANSACTION_TYPE_DEPOSIT);
+        $transaction = $transactionRepository->findByIdAndType($id, Transaction::TRANSACTION_TYPE_WITHDRAW);
         foreach ($transaction->getSubTransactions() as $subTransaction) {
             if ($subTransaction->getCustomerProduct()->getProduct()->getCode() === $pinnacleProduct->getCode()) {
                 $playerInfo = $pinnacleService->getPlayerComponent()->getPlayer($subTransaction->getCustomerProduct()->getUserName());
@@ -35,16 +35,11 @@ class DepositController extends  AbstractController
         }
         $form = $transactionManager->createForm($transaction, false);
 
-        return $this->render("TransactionBundle:Transaction/Type:deposit.html.twig", [
+        return $this->render("TransactionBundle:Transaction/Type:withdraw.html.twig", [
             'form' => $form->createView(),
-            'type' => 'deposit',
+            'type' => 'withdraw',
             'gateway' => $transaction->getGateway(),
             'transaction' => $transaction,
         ]);
-    }
-
-    public function saveAction(Request $request, int $id): Response
-    {
-
     }
 }

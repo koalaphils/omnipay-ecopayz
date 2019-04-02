@@ -67,62 +67,6 @@ twig:
     globals:
         asianconnect_url: "%asianconnect_url%"
 
-# Doctrine Configuration
-doctrine:
-    dbal:
-        driver:   "%database_driver%"
-        host:     "%database_host%"
-        port:     "%database_port%"
-        dbname:   "%database_name%"
-        user:     "%database_user%"
-        password: "%database_password%"
-        charset:  UTF8
-        server_version: 5.7
-        platform_service: custom_mysql_platform
-        wrapper_class: AppBundle\DoctrineExtension\DBAL\Connection
-        #options:
-        #    20: false # Turn off PDO::ATTR_EMULATE_PREPARES
-        types:
-            json:
-                class: AppBundle\DoctrineExtension\Types\JsonType
-                commented: true
-            tinyint:
-                class: AppBundle\DoctrineExtension\Types\TinyIntType
-                commented: true
-            metadata:
-                class: AppBundle\DoctrineExtension\Types\MetaDataType
-            uuid_binary:  Ramsey\Uuid\Doctrine\UuidBinaryType
-            uuid:  Ramsey\Uuid\Doctrine\UuidType
-            datetime: AppBundle\DoctrineExtension\Types\UTCDateTimeType
-            datetimetz: AppBundle\DoctrineExtension\Types\UTCDateTimeType
-            datetime_immutable: AppBundle\DoctrineExtension\Types\UTCDateTimeImmutableType
-            datetimetz_immutable: AppBundle\DoctrineExtension\Types\UTCDateTimeImmutableType
-        mapping_types:
-            json: json
-            tinyinteger: tinyint
-            uuid_binary: binary
-
-    orm:
-        auto_generate_proxy_classes: "%kernel.debug%"
-        naming_strategy: doctrine.orm.naming_strategy.underscore
-        auto_mapping: true
-        dql:
-            string_functions:
-                GROUP_CONCAT: Oro\ORM\Query\AST\Functions\String\GroupConcat
-                JSON_SET: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonSet
-                JSON_CONTAINS: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonContains
-                JSON_CONTAINS_PATH: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonContainsPath
-                JSON_REMOVE: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonRemove
-                JSON_OBJECT: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonObject
-                JSON_EXTRACT: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonExtract
-                JSON_MERGE: AppBundle\DoctrineExtension\ORM\Query\AST\Functions\Mysql\JsonMerge
-                JSON_UNQUOTE: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonUnquote
-                CAST: Oro\ORM\Query\AST\Functions\Cast
-                FIND_IN_SET: AppBundle\DoctrineExtension\ORM\Query\AST\Functions\Mysql\FindInSet
-                IFNULL: AppBundle\DoctrineExtension\ORM\Query\AST\Functions\Mysql\IfNull
-                MATCH: DoctrineExtensions\Query\Mysql\MatchAgainst
-                IF: AppBundle\DoctrineExtension\ORM\Query\AST\Functions\Mysql\IfFunction
-
 doctrine_migrations:
     dir_name: "%kernel.root_dir%/DoctrineMigrations"
     namespace: Application\Migrations

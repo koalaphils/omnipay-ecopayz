@@ -6,7 +6,7 @@ namespace ApiBundle\Request\Transaction;
 
 use Symfony\Component\HttpFoundation\Request;
 
-class DepositRequest
+class WithdrawRequest
 {
     /**
      * @var string
