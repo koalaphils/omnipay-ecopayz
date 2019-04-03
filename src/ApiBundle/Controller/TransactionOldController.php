@@ -109,23 +109,23 @@ class TransactionOldController extends AbstractController
         if (array_has($post, 'search')) {
             $filters['search'] = $post['search'];
         }
-        if (array_has($post, 'filter.fromDate')) {
+        if (array_has($post, 'filter.fromDate') && !empty($post['filter']['fromDate'])) {
             $filters['from'] = $post['filter']['fromDate'];
         }
 
-        if (array_has($post, 'filter.toDate')) {
+        if (array_has($post, 'filter.toDate') && !empty($post['filter']['toDate'])) {
             $filters['to'] = $post['filter']['toDate'];
         }
 
-        if (array_has($post, 'filter.type') && $post['filter']['type'] != -1) {
+        if (array_has($post, 'filter.type') && !empty($post['filter']['type']) && $post['filter']['type'] != -1) {
             $filters['types'] = $post['filter']['type'];
         }
 
-        if (array_has($post, 'filter.status') && $post['filter']['status'] != -1) {
+        if (array_has($post, 'filter.status') && count($post['filter']['status']) != 0 && $post['filter']['status'] != -1) {
             $filters['status'] = $post['filter']['status'];
         }
            
-        if (array_has($post, 'filter.paymentOption') && $post['filter']['paymentOption'] != -1) {
+        if (array_has($post, 'filter.paymentOption') && !empty($post['filter']['paymentOption']) && $post['filter']['paymentOption'] != -1) {
             $filters['paymentOption'] = $post['filter']['paymentOption'];
         }
            
