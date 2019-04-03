@@ -9,3 +9,19 @@ api_customers.check_email_or_phone_number_if_exists:
     defaults:
         _controller: ApiBundle:Customer:checkPhoneOrEmailIfExists
     methods: [POST]
+
+api_customers.update_password:
+    path: update-password
+    defaults:
+        _controller: ApiBundle:Customer:updatePassword
+    methods: [POST]
+
+api_customers.me_payment_options:
+    path: payment-options
+    defaults: { _controller: ApiBundle:Customer:customerPaymentOptions }
+    methods: [GET]
+
+api_customers.me_payment_option:
+    path: payment-options/{id}
+    defaults: { _controller: ApiBundle:Customer:customerPaymentOption }
+    methods: [GET]
