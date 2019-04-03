@@ -3,6 +3,8 @@
 namespace ApiBundle\Controller;
 
 use DbBundle\Entity\Transaction;
+use DbBundle\Repository\PaymentOptionRepository;
+use FOS\RestBundle\View\View;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -73,6 +75,28 @@ class PaymentOptionController extends AbstractController
         $bitcoinWithdrawalAdjustment = $bitcoinManager->createBitcoinAdjustment(Rate::RATE_EUR, Transaction::TRANSACTION_TYPE_WITHDRAW);
 
         return new JsonResponse($bitcoinWithdrawalAdjustment->toArray(Transaction::TRANSACTION_TYPE_WITHDRAW));
+    }
+
+    /**
+     * @ApiDoc(
+     *     description="Get member process payment option types",
+     *     section="Member",
+     *     views={"piwi"},
+     *     headers={
+     *         { "name"="Authorization", "description"="Bearer <access_token>" }
+     *     }
+     * )
+     */
+    public function getMemberProcessPaymentOptionsAction(PaymentOptionRepository $paymentOptionRepository): View
+    {
+        $customer = $this->getUser()->getCustomer();
+        $paymentOptionTypes = $paymentOptionRepository->getMemberProcessedPaymentOption($customer->getId());
+        $processPaymentOptionTypes = [];
+        foreach ($paymentOptionTypes as $paymentOption) {
+            $processPaymentOptionTypes[$paymentOption->getCode()] = true;
+        }
+
+        return $this->view($processPaymentOptionTypes);
     }
     
     protected function getPaymentOptionRepository(): \DbBundle\Repository\PaymentOptionRepository

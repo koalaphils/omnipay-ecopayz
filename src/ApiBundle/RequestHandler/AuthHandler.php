@@ -13,6 +13,7 @@ use ApiBundle\Request\ForgotPasswordRequest;
 use AppBundle\Helper\Publisher;
 use DbBundle\Entity\OAuth2\AccessToken;
 use DbBundle\Entity\User;
+use DbBundle\Repository\PaymentOptionRepository;
 use DbBundle\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use OAuth2\OAuth2;
@@ -66,6 +67,11 @@ class AuthHandler
      */
     private $userManager;
 
+    /**
+     * @var PaymentOptionRepository
+     */
+    private $paymentOptionRepository;
+
     public function __construct(
         OAuth2 $oauthService,
         PinnacleService $pinnacleService,
@@ -74,6 +80,7 @@ class AuthHandler
         CustomerManager $customerManager,
         TokenStorageInterface $tokenStorage,
         UserRepository $userRepository,
+        PaymentOptionRepository $paymentOptionRepository,
         UserManager $userManager
     ) {
         $this->oauthService = $oauthService;
@@ -84,6 +91,7 @@ class AuthHandler
         $this->tokenStorage = $tokenStorage;
         $this->userRepository = $userRepository;
         $this->userManager = $userManager;
+        $this->paymentOptionRepository = $paymentOptionRepository;
     }
 
     /**
@@ -103,8 +111,18 @@ class AuthHandler
         /* @var $user \DbBundle\Entity\User */
         $user = $accessToken->getUser();
         $pinLoginResponse = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode());
+        $paymentOptionTypes = $this->paymentOptionRepository->getMemberProcessedPaymentOption($user->getCustomer()->getId());
+        $processPaymentOptionTypes = [];
+        foreach ($paymentOptionTypes as $paymentOption) {
+            $processPaymentOptionTypes[$paymentOption->getCode()] = true;
+        }
 
-        $loginResponse = ['token' => $data, 'pinnacle' => $pinLoginResponse->toArray(), 'member' => $user->getCustomer()];
+        $loginResponse = [
+            'token' => $data,
+            'pinnacle' => $pinLoginResponse->toArray(),
+            'member' => $user->getCustomer(),
+            'process_payments' => $processPaymentOptionTypes
+        ];
         $this->deleteUserAccessToken($accessToken->getUser()->getId(), [], [$accessToken->getToken()]);
 
         $this->loginUser($user);

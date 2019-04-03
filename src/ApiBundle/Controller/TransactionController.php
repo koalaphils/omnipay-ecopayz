@@ -44,7 +44,10 @@ class TransactionController extends AbstractController
      */
     public function depositAction(Request $request, DepositHandler $depositHandler, ValidatorInterface $validator): View
     {
+        $member = $this->getUser()->getCustomer();
         $depositRequest = DepositRequest::createFromRequest($request);
+        $depositRequest->setMemberId((int) $member->getId());
+
         $violations = $validator->validate($depositRequest, null);
         if ($violations->count() > 0) {
             return $this->view($violations);
