@@ -163,7 +163,6 @@ class TransactionManager extends TransactionOldManager
         $subTransactions = $transaction->getSubTransactions();
         $customerProducts = [];
         $customers = [];
-        $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
 
         foreach ($subTransactions as $subTransaction) {
             $customerProduct = array_get($customerProducts, $subTransaction->getCustomerProduct()->getId(), $subTransaction->getCustomerProduct());
@@ -173,21 +172,11 @@ class TransactionManager extends TransactionOldManager
                 $customerProductBalance = $customerProductBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
                 $customerProduct->setBalance($customerProductBalance->toString());
                 $customerBalance = $customerBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()))->toString();
-                if ($pinnacleProduct->getCode() === $customerProduct->getProduct()->getCode()) {
-                    $subTransactionAmount = Number::round($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()), 2, Number::ROUND_DOWN);
-                    $pinTransactionDeposit = $this->pinnacleService->getTransactionComponent()->deposit($customerProduct->getUsername(), $subTransactionAmount);
-                    $pinTransactionDeposit->availableBalance();
-                }
             } elseif ($subTransaction->isWithdrawal()) {
                 $customerProductBalance = new Number($customerProduct->getBalance());
                 $customerProductBalance = $customerProductBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
                 $customerProduct->setBalance($customerProductBalance . '');
                 $customerBalance = $customerBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()))->toString();
-                if ($pinnacleProduct->getCode() === $customerProduct->getProduct()->getCode()) {
-                    $subTransactionAmount = Number::round($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()), 2, Number::ROUND_DOWN);
-                    $pinTransactionDeposit = $this->pinnacleService->getTransactionComponent()->withdraw($customerProduct->getUsername(), $subTransactionAmount);
-                    $pinTransactionDeposit->availableBalance();
-                }
             }
 
             array_set($customerProducts, $customerProduct->getId(), $customerProduct);
@@ -227,18 +216,9 @@ class TransactionManager extends TransactionOldManager
                 if ($subTransaction->getType() == Transaction::TRANSACTION_TYPE_DEPOSIT) {
                     $customerProductBalance = $customerProductBalance->minus($subTransactionAmount);
                     $customerProduct->setBalance($customerProductBalance . '');
-                    if ($pinnacleProduct->getCode() === $customerProduct->getProduct()->getCode()) {
-                        $subTransactionAmount = Number::round($subTransactionAmount, 2, Number::ROUND_DOWN);
-                        $this->pinnacleService->getTransactionComponent()->withdraw($customerProduct->getUsername(), $subTransactionAmount);
-                    }
-
                 } elseif ($subTransaction->getType() == Transaction::TRANSACTION_TYPE_WITHDRAW) {
                     $customerProductBalance = $customerProductBalance->plus($subTransactionAmount);
                     $customerProduct->setBalance($customerProductBalance . '');
-                    if ($pinnacleProduct->getCode() === $customerProduct->getProduct()->getCode()) {
-                        $subTransactionAmount = Number::round($subTransactionAmount, 2, Number::ROUND_DOWN);
-                        $this->pinnacleService->getTransactionComponent()->deposit($customerProduct->getUsername(), $subTransactionAmount);
-                    }
                 }
             }
 

@@ -11,6 +11,7 @@ class Exists extends Constraint
     protected $column;
     protected $em = 'default';
     protected $expression = null;
+    protected $joinExpression = '';
     protected $valuePath = null;
     protected $expressionParams = [];
     protected $ignoreNull = false;
@@ -65,5 +66,10 @@ class Exists extends Constraint
     public function ignoreNull(): bool
     {
         return $this->ignoreNull;
+    }
+
+    public function getJoinExpression(): string
+    {
+        return $this->joinExpression;
     }
 }

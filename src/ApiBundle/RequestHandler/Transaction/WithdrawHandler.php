@@ -79,6 +79,7 @@ class WithdrawHandler
             $this->entityManager->beginTransaction();
             $member = $this->getCurrentMember();
             $memberPaymentOption = $this->getMemberPaymentOption($member, $withdrawRequest);
+            $email = $withdrawRequest->getMeta()->getFields()->getEmail();
 
             $transaction = new Transaction();
             $transaction->setCustomer($member);
@@ -88,10 +89,9 @@ class WithdrawHandler
             $transaction->setDate(new \DateTime());
             $transaction->setFee('customer_fee', 0);
             $transaction->setFee('company_fee', 0);
-            $transaction->setDetail('email', $withdrawRequest->getMetaData('field.email'));
-            $transaction->setEmail($withdrawRequest->getMetaData('field.email'));
-
-            foreach ($withdrawRequest->getMetaData('payment_details', []) as $key => $value) {
+            $transaction->setDetail('email', $email);
+            $transaction->setEmail($email);
+            foreach ($withdrawRequest->getMeta()->getPaymentDetailsAsArray() as $key => $value) {
                 $transaction->setDetail($key, $value);
             }
 
@@ -105,7 +105,7 @@ class WithdrawHandler
                 $subTransaction->setAmount($productInfo->getAmount());
                 $subTransaction->setCustomerProduct($memberProduct);
                 $subTransaction->setType(Transaction::TRANSACTION_TYPE_WITHDRAW);
-                foreach ($productInfo->getMetaData('payment_details', []) as $key => $value) {
+                foreach ($productInfo->getMeta()->getPaymentDetailsAsArray() as $key => $value) {
                     $subTransaction->setDetail($key, $value);
                 }
 
@@ -133,7 +133,10 @@ class WithdrawHandler
             return $this->memberPaymentOptionRepository->find($withdrawRequest->getPaymentOption());
         }
 
-        $memberPaymentOption = $this->memberPaymentOptionRepository->findByCustomerPaymentOptionAndEmail($member->getId(), $withdrawRequest->getPaymentOptionType(), $withdrawRequest->getMetaData('field.email'));
+        $memberPaymentOption = $this
+            ->memberPaymentOptionRepository
+            ->findByCustomerPaymentOptionAndEmail($member->getId(), $withdrawRequest->getPaymentOptionType(), $withdrawRequest->getMeta()->getFields()->getEmail())
+        ;
         if ($memberPaymentOption instanceof CustomerPaymentOption) {
             return $memberPaymentOption;
         }
@@ -142,8 +145,8 @@ class WithdrawHandler
         $memberPaymentOption = new CustomerPaymentOption();
         $memberPaymentOption->setPaymentOption($paymentOption);
         $memberPaymentOption->setCustomer($member);
-        $memberPaymentOption->addField('account_id', array_get($withdrawRequest->getMeta(), 'fields.account_id', ''));
-        $memberPaymentOption->addField('email', array_get($withdrawRequest->getMeta(), 'field.email', ''));
+        $memberPaymentOption->addField('account_id', array_get($withdrawRequest->getMeta()->toArray(), 'fields.account_id', ''));
+        $memberPaymentOption->addField('email', array_get($withdrawRequest->getMeta()->toArray(), 'field.email', ''));
         $memberPaymentOption->addField('is_withdrawal', 1);
 
         $this->entityManager->persist($memberPaymentOption);

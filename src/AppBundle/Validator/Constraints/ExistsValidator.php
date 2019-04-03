@@ -46,7 +46,7 @@ class ExistsValidator extends ConstraintValidator
             $column = $constraint->getColumn();
         }
         
-        $dql = "SELECT COUNT(e) totalEntity FROM " . $constraint->getEntityClass() . " AS e WHERE e." . $column . " = :value";
+        $dql = "SELECT COUNT(e) totalEntity FROM " . $constraint->getEntityClass() . " AS e " . $constraint->getJoinExpression() . " WHERE e." . $column . " = :value";
         if ($constraint->getExpression() !== null) {
             $dql .= ' ' . $constraint->getExpression();
         }

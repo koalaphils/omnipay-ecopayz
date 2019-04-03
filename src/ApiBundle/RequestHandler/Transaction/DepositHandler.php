@@ -80,6 +80,8 @@ class DepositHandler
             $member = $this->getCurrentMember();
             $memberPaymentOption = $this->getMemberPaymentOption($member, $depositRequest);
 
+            $email = $depositRequest->getMeta()->getFields()->getEmail();
+
             $transaction = new Transaction();
             $transaction->setCustomer($member);
             $transaction->setPaymentOption($memberPaymentOption);
@@ -88,9 +90,9 @@ class DepositHandler
             $transaction->setDate(new \DateTime());
             $transaction->setFee('customer_fee', 0);
             $transaction->setFee('company_fee', 0);
-            $transaction->setDetail('email', $depositRequest->getMetaData('field.email'));
-            $transaction->setEmail($depositRequest->getMetaData('field.email'));
-            foreach ($depositRequest->getMetaData('payment_details', []) as $key => $value) {
+            $transaction->setDetail('email', $email);
+            $transaction->setEmail($email);
+            foreach ($depositRequest->getMeta()->getPaymentDetailsAsArray() as $key => $value) {
                 $transaction->setDetail($key, $value);
             }
             $transaction->autoSetPaymentOptionType();
@@ -105,7 +107,7 @@ class DepositHandler
                 $subTransaction->setAmount($productInfo->getAmount());
                 $subTransaction->setCustomerProduct($memberProduct);
                 $subTransaction->setType(Transaction::TRANSACTION_TYPE_DEPOSIT);
-                foreach ($productInfo->getMetaData('payment_details', []) as $key => $value) {
+                foreach ($productInfo->getMeta()->getPaymentDetailsAsArray() as $key => $value) {
                     $subTransaction->setDetail($key, $value);
                 }
 
@@ -137,7 +139,11 @@ class DepositHandler
             return $this->memberPaymentOptionRepository->find($depositRequest->getPaymentOption());
         }
 
-        $memberPaymentOption = $this->memberPaymentOptionRepository->findByCustomerPaymentOptionAndEmail($member->getId(), $depositRequest->getPaymentOptionType(), $depositRequest->getMetaData('field.email'));
+        $memberPaymentOption = $this
+            ->memberPaymentOptionRepository
+            ->findByCustomerPaymentOptionAndEmail($member->getId(), $depositRequest->getPaymentOptionType(), $depositRequest->getMeta()->getFields()->getEmail())
+        ;
+
         if ($memberPaymentOption instanceof CustomerPaymentOption) {
             return $memberPaymentOption;
         }
@@ -146,8 +152,8 @@ class DepositHandler
         $memberPaymentOption = new CustomerPaymentOption();
         $memberPaymentOption->setPaymentOption($paymentOption);
         $memberPaymentOption->setCustomer($member);
-        $memberPaymentOption->addField('account_id', array_get($depositRequest->getMeta(), 'fields.account_id', ''));
-        $memberPaymentOption->addField('email', array_get($depositRequest->getMeta(), 'field.email', ''));
+        $memberPaymentOption->addField('account_id', array_get($depositRequest->getMeta()->toArray(), 'fields.account_id', ''));
+        $memberPaymentOption->addField('email', array_get($depositRequest->getMeta()->toArray(), 'field.email', ''));
         $memberPaymentOption->addField('is_withdrawal', 0);
 
         $this->entityManager->persist($memberPaymentOption);

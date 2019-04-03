@@ -1,9 +1,13 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace ApiBundle\Request\Transaction;
 
+use ApiBundle\Request\Transaction\Meta\Meta;
+use Symfony\Component\Validator\GroupSequenceProviderInterface;
 
-class Product
+class Product implements GroupSequenceProviderInterface
 {
     /**
      * @var string
@@ -21,16 +25,22 @@ class Product
     private $amount;
 
     /**
-     * @var array
+     * @var Meta
      */
     private $meta;
 
-    public function __construct(string $username, string $productCode, string $amount, array $meta)
+    /**
+     * @var string
+     */
+    private $paymentOptionType;
+
+    public function __construct(string $username, string $productCode, string $amount, array $meta, string $paymentOptionType, bool $metaWithPaymentDetails = true)
     {
         $this->username = $username;
         $this->productCode = $productCode;
         $this->amount = $amount;
-        $this->meta = $meta;
+        $this->meta = Meta::createFromArray($meta, $paymentOptionType, true, false);
+        $this->paymentOptionType = $paymentOptionType;
     }
 
     public function getUsername(): string
@@ -48,7 +58,7 @@ class Product
         return $this->amount;
     }
 
-    public function getMeta(): array
+    public function getMeta(): Meta
     {
         return $this->meta;
     }
@@ -61,5 +71,10 @@ class Product
     public function getMetaData(string $key, $default = null)
     {
         return array_get($this->meta, $key, $default);
+    }
+
+    public function getGroupSequence()
+    {
+        return [['Product', $this->paymentOptionType], 'afterBlank'];
     }
 }

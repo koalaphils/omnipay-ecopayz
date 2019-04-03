@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace ApiBundle\Request\Transaction;
 
+use ApiBundle\Request\Transaction\Meta\Meta;
 use Symfony\Component\HttpFoundation\Request;
 
 class WithdrawRequest
@@ -14,7 +15,7 @@ class WithdrawRequest
     protected $paymentOptionType;
 
     /**
-     * @var array
+     * @var Meta
      */
     protected $meta;
 
@@ -32,11 +33,18 @@ class WithdrawRequest
     {
         $instance = new static();
         $instance->paymentOptionType = $request->get('payment_option_type', '');
-        $instance->meta = $request->get('meta', []);
+        $instance->meta = Meta::createFromArray($request->get('meta', []), $instance->paymentOptionType, false, false);
         $instance->paymentOption = $request->get('payment_option', '');
         $instance->products = [];
         foreach ($request->get('products', []) as $product) {
-            $instance->products[] = new Product($product['username'], $product['product_code'], $product['amount'], $product['meta'] ?? []);
+            $instance->products[] = new Product(
+                $product['username'] ?? '',
+                $product['product_code'] ?? '',
+                (string) ($product['amount'] ?? ''),
+                $product['meta'] ?? [],
+                $instance->paymentOptionType,
+                false
+            );
         }
 
         return $instance;
@@ -47,7 +55,7 @@ class WithdrawRequest
         return $this->paymentOptionType;
     }
 
-    public function getMeta(): array
+    public function getMeta(): Meta
     {
         return $this->meta;
     }
@@ -58,16 +66,6 @@ class WithdrawRequest
     public function getProducts(): array
     {
         return $this->products;
-    }
-
-    /**
-     * @param string $key
-     * @param mixed|null $default
-     * @return mixed|null
-     */
-    public function getMetaData(string $key, $default = null)
-    {
-        return array_get($this->meta, $key, $default);
     }
 
     public function getPaymentOption(): string

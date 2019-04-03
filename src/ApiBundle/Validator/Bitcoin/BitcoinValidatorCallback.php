@@ -2,14 +2,14 @@
 
 namespace ApiBundle\Validator\Bitcoin;
 
-use ApiBundle\Model\Bitcoin\BitcoinPayment;
-use ApiBundle\Model\Bitcoin\BitcoinRateDetail;
-use ApiBundle\Model\Bitcoin\BitcoinSubTransactionDetail;
+use ApiBundle\Request\Transaction\DepositRequest;
+use ApiBundle\Request\Transaction\Meta\Bitcoin\BitcoinPayment;
+use ApiBundle\Request\Transaction\Meta\Bitcoin\BitcoinRateDetail;
+use ApiBundle\Request\Transaction\Product;
 use AppBundle\Helper\NumberHelper;
 use AppBundle\ValueObject\Number;
-use Symfony\Component\Form\Form;
+use Symfony\Component\Validator\Context\ExecutionContext;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
-use function dump;
 
 class BitcoinValidatorCallback
 {
@@ -19,38 +19,43 @@ class BitcoinValidatorCallback
 
     public static function validateConvertedAmount(BitcoinPayment $bitcoinDetail, ExecutionContextInterface $context, $payload): void
     {
-        $context->setNode($context->getRoot()->getData(), $context->getRoot()->getData(), null, '');
+        $currentPropertyPath = $context->getPropertyPath();
+        $context->setNode($context->getValue(), $context->getObject(), $context->getMetadata(), 'products');
 
         $rate = new Number($bitcoinDetail->getRate());
-        $subTransactionsForm = $context->getRoot()->get('subTransactions');
-        foreach ($subTransactionsForm->getIterator() as $index => $subTransactionForm) {
-            $bitcoin = $subTransactionForm->getData()->getPaymentDetails()->getBitcoin();
-            $amount = $subTransactionForm->getData()->getAmount();
-            if (is_null($subTransactionForm->getData()->getAmount())) {
+        $products = $context->getRoot()->getProducts();
+        foreach ($products as $key => $product) {
+            /* @var $product Product */
+            $bitcoin = $product->getMeta()->getPaymentDetails()['bitcoin']->getBitcoin();
+            $amount = $product->getAmount();
+            if (is_null($product->getAmount())) {
                 continue;
             }
             $expectedAmount = $rate->times($bitcoin);
             if ($expectedAmount->notEqual($amount)) {
                 $context
                     ->buildViolation(static::$incorectConvertedAmountMessage)
-                    ->atPath('children[subTransactions].data[' . $index . '].amount')
+                    ->atPath('[' . $key . '].amount')
                     ->setParameter('{{ value }}', NumberHelper::toFloat($amount))
                     ->setParameter('{{ expectedAmount }}', $expectedAmount->toFloat())
                     ->addViolation();
             }
         }
+        $context->setNode($context->getValue(), $context->getObject(), $context->getMetadata(), $currentPropertyPath);
     }
 
     public static function validateRate(string $adjustedRate, ExecutionContextInterface $context, $payload): void
     {
         $bitcoinPayment = $context->getObject();
-        $expectedRate = static::computeExpectedRate($bitcoinPayment->getBlockchainRate(), $bitcoinPayment->getRateDetails());
+        $request = $context->getRoot();
+        $expectedRate = static::computeExpectedRate($request, $bitcoinPayment->getBlockchainRate(), $bitcoinPayment->getRateDetail());
 
         $expectedRate = new Number(Number::format($expectedRate->toString(), [ 'precision' => 2 ]));
         if (!$expectedRate->equals($adjustedRate)) {
             $context
                 ->buildViolation(static::$incorrectAdjustedRateMessage)
                 ->setParameter('{{ expectedRate }}', $expectedRate->toFloat())
+                ->setParameter('{{ value }}', $adjustedRate)
                 ->addViolation();
         }
     }
@@ -58,14 +63,15 @@ class BitcoinValidatorCallback
     public static function validateRangeAmount(BitcoinRateDetail $rateDetail, ExecutionContextInterface $context, $payload): void
     {
         $totalBitcoin = new Number(0);
-        $transaction = $context->getRoot()->getData();
-        foreach ($transaction->getSubTransactions() as $subTransaction) {
-            if (!Number::isNumber($subTransaction->getPaymentDetails()->getBitcoin())) {
+        $request = $context->getRoot();
+        /* @var $product \ApiBundle\Request\Transaction\Product */
+        foreach ($request->getProducts() as $product) {
+            if (!Number::isNumber($product->getMeta()->getPaymentDetails()['bitcoin']->getBitcoin())) {
                 continue;
             }
-            $totalBitcoin = $totalBitcoin->plus($subTransaction->getPaymentDetails()->getBitcoin());
+            $totalBitcoin = $totalBitcoin->plus($product->getMeta()->getPaymentDetails()['bitcoin']->getBitcoin());
         }
-        
+
         if ($rateDetail->getRangeStart() !== '' && $rateDetail->getRangeEnd() !== '') {
             if ($totalBitcoin->greaterThan($rateDetail->getRangeEnd()) || $totalBitcoin->lessThan($rateDetail->getRangeStart())) {
                 $context
@@ -78,9 +84,13 @@ class BitcoinValidatorCallback
         }
     }
 
-    private static function computeExpectedRate(string $blockchainRate, BitcoinRateDetail $rateDetail): Number
+    private static function computeExpectedRate($request, string $blockchainRate, BitcoinRateDetail $rateDetail): Number
     {
-        $expectedRate = Number::sub($blockchainRate, $rateDetail->getAdjustment());
+        if ($request instanceof DepositRequest) {
+            $expectedRate = Number::sub($blockchainRate, $rateDetail->getAdjustment());
+        } else {
+            $expectedRate = Number::add($blockchainRate, $rateDetail->getAdjustment());
+        }
 
         return $expectedRate;
     }

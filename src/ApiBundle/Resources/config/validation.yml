@@ -758,3 +758,117 @@ ApiBundle\Request\ForgotPasswordRequest:
             - Expression:
                   expression: "this.getPassword() === this.getRepeatPassword()"
                   message: "Password does not match"
+
+ApiBundle\Request\Transaction\DepositRequest:
+    group_sequence_provider: true
+    getters:
+        paymentOptionType:
+            - NotBlank: ~
+            - AppBundle\Validator\Constraints\Exists:
+                  entityClass: DbBundle\Entity\PaymentOption
+                  valuePath: value
+                  column: code
+                  ignoreNull: false
+        products:
+            - Valid: ~
+        meta:
+            - Valid: ~
+ApiBundle\Request\Transaction\Meta\Meta:
+    getters:
+        fields:
+            - Valid: ~
+        paymentDetails:
+            - Valid: ~
+ApiBundle\Request\Transaction\Meta\Fields:
+    getters:
+        email:
+            - Email: ~
+
+ApiBundle\Request\Transaction\Meta\Bitcoin\BitcoinRateDetail:
+    constraints:
+        - Callback: [ApiBundle\Validator\Bitcoin\BitcoinValidatorCallback, validateRangeAmount]
+    getters:
+        rangeStart:
+            - NotBlank: ~
+            - Regex:
+                  pattern: '/^[0-9]+(\.[0-9]{1,})?$/'
+                  match: true
+        rangeEnd:
+            - NotBlank: ~
+            - Regex:
+                  pattern: '/^[0-9]+(\.[0-9]{1,})?$/'
+                  match: true
+        adjustment:
+            - NotBlank: ~
+            - Regex:
+                  pattern: '/^[0-9]+(\.[0-9]{1,})?$/'
+                  match: true
+        adjustmentType:
+            - Choice: ['fixed', 'percentage']
+
+ApiBundle\Request\Transaction\Meta\Bitcoin\BitcoinPayment:
+    group_sequence_provider: true
+    constraints:
+        - Callback: [ApiBundle\Validator\Bitcoin\BitcoinValidatorCallback, validateConvertedAmount]
+        - ApiBundle\Validator\Bitcoin\BitcoinTransactionConstraint: ~
+    getters:
+        blockchainRate:
+            - NotBlank: ~
+            - NotEqualTo:
+                  value: 0
+                  groups: [afterBlank]
+            - Regex:
+                  pattern: '/^[0-9]+(\.[0-9]{1,})?$/'
+                  match: true
+                  groups: [afterBlank]
+        rate:
+            - NotBlank: ~
+            - NotEqualTo:
+                  value: 0
+                  groups: [afterBlank]
+            - Regex:
+                  pattern: '/^[0-9]+(\.[0-9]{1,})?$/'
+                  match: true
+                  groups: [afterBlank]
+            - Callback:
+                callback: [ApiBundle\Validator\Bitcoin\BitcoinValidatorCallback, validateRate]
+                groups: [correctRate]
+        rateDetail:
+            - NotNull: ~
+            - Valid: ~
+
+ApiBundle\Request\Transaction\Meta\Bitcoin\BitcoinProductPayment:
+    getters:
+        bitcoin:
+            - NotBlank: ~
+            - NotEqualTo:
+                  value: 0
+            - Regex:
+                  pattern: '/^[0-9]+(\.[0-9]{1,})?$/'
+                  match: true
+
+ApiBundle\Request\Transaction\Product:
+    group_sequence_provider: true
+    getters:
+        username:
+            - NotBlank: ~
+            - AppBundle\Validator\Constraints\Exists:
+                  entityClass: DbBundle\Entity\CustomerProduct
+                  valuePath: value
+                  column: userName
+                  joinExpression: "INNER JOIN e.product p"
+                  expression: "AND e.customer = :memberId AND p.code = :productCode"
+                  expressionParams:
+                      memberId: root.getMemberId()
+                      productCode: object.getProductCode()
+                  ignoreNull: false
+        amount:
+            - NotBlank: ~
+            - NotEqualTo:
+                  value: 0
+                  message: "Amount should not be 0."
+                  groups: [afterBlank]
+            - Expression:
+                expression: "this.getAmount() >= 10  && this.getAmount() <= 999999"
+                message: "Amount should be greater than equals 10 but less than 999999"
+                groups: [afterBlank]

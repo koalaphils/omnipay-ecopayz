@@ -49,6 +49,7 @@ class TransactionController extends AbstractController
         $depositRequest->setMemberId((int) $member->getId());
 
         $violations = $validator->validate($depositRequest, null);
+
         if ($violations->count() > 0) {
             return $this->view($violations);
         }
@@ -70,15 +71,7 @@ class TransactionController extends AbstractController
      *         {"name"="meta[field][email]", "dataType"="string"}
      *     },
      *     parameters={
-     *         {"name"="payment_option", "dataType"="string", "required"=false},
-     *         {"name"="meta[payment_details][bitcoin][receiver_unique_address]", "dataType"="string", "required"=false},
-     *         {"name"="meta[payment_details][bitcoin][rate_detail][range_start]", "dataType"="string", "required"=false},
-     *         {"name"="meta[payment_details][bitcoin][rate_detail][range_end]", "dataType"="string", "required"=false},
-     *         {"name"="meta[payment_details][bitcoin][rate_detail][adjustment]", "dataType"="string", "required"=false},
-     *         {"name"="meta[payment_details][bitcoin][rate_detail][adjustment_type]", "dataType"="string", "required"=false},
-     *         {"name"="meta[payment_details][bitcoin][block_chain_rate]", "dataType"="string", "required"=false},
-     *         {"name"="meta[payment_details][bitcoin][rate]", "dataType"="string", "required"=false},
-     *         {"name"="products[0][meta][payment_details][bitcoin][requested_btc]", "dataType"="string", "required"=false}
+     *         {"name"="payment_option", "dataType"="string", "required"=false}
      *     },
      *     headers={
      *         { "name"="Authorization", "description"="Bearer <access_token>" }
