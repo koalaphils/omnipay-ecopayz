@@ -271,46 +271,6 @@
                             });
                         }
                     },
-                    'product': {
-                        'dom': "<'form-group form-group-sm m-r-10 xs-filter'i>",
-                        'type': 'select',
-                        'label': 'Product',
-                        'symbol': 'p',
-                        'class': 'selectpicker',
-                        'applyOnChanged': false,
-                        'attrs': {
-                            'data-style': 'btn-white btn-sm',
-                            'multiple': 'multiple',
-                            'title': 'Select Product',
-                            'data-selected-text-format': 'count > 3',
-                            'data-width': 'auto',
-                            'data-size': 5
-                        },
-                        'waitByTable': true,
-                        'resetValue': function (feature) {
-                            $(feature.input).selectpicker('val', feature.feature.value);
-                        },
-                        'initialized': function (feature) {
-                            feature.ztable.waitDrawTable();
-                            $.ajax({
-                                'url': '{{ path('product.list_search') }}',
-                                'success': function (data) {
-                                    var options = {};
-                                    for (var i in data) {
-                                        var option = $("<option value='" + data[i].id + "'>" + data[i].name + "</option>");
-                                        if (feature.feature.value.indexOf(data[i].id + "") !== -1) {
-                                            option.attr('selected', 'selected');
-                                        }
-                                        $(feature.input).append(option);
-                                    }
-                                    $(feature.input).selectpicker('refresh');
-                                    feature.setToDone();
-                                    feature.ztable.reloadTable();
-                                }
-                            });
-                        },
-                        'value': '{{ app.request.get("product", [])|json_encode|raw }}',
-                    },
                     'paymentOption': {
                         'dom': "<'form-group form-group-sm m-r-10 xs-filter'i>",
                         'type': 'select',

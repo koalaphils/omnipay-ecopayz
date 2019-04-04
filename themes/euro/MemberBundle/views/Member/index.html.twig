@@ -107,6 +107,14 @@
 
             return action;
         }
+
+        function getCountryName(data, text, full) {
+            if (data) {
+                return data.name;
+            }
+
+            return '';
+        }
     </script>
     {{ widget_render_block(page.getWidget('list'), 'javascript') }}
 {% endblock %}

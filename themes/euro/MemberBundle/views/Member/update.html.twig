@@ -3,8 +3,8 @@
 {% widget_template widgets.productForm 'MemberBundle:Member:widgets/update-widgets.html.twig' %}
 {% widget_template widgets.updateProductForm 'MemberBundle:Member:widgets/update-widgets.html.twig' %}
 {% widget_template widgets.linkForm 'MemberBundle:Member:widgets/update-widgets.html.twig' %}
-{% widget_template widgets.addCommissionForm 'MemberBundle:Member:widgets/update-widgets.html.twig' %}
-{% widget_template widgets.updateCommissionForm 'MemberBundle:Member:widgets/update-widgets.html.twig' %}
+{#{% widget_template widgets.addCommissionForm 'MemberBundle:Member:widgets/update-widgets.html.twig' %}#}
+{#{% widget_template widgets.updateCommissionForm 'MemberBundle:Member:widgets/update-widgets.html.twig' %}#}
 {% widget_template widgets.paymentOptions 'MemberBundle:Member:widgets/update-widgets.html.twig' %}
 {% widget_template widgets.profileForm 'MemberBundle:Member:widgets/update-widgets.html.twig' %}
 {% widget_template widgets.createMemberReferralNameForm 'MemberBundle:Member:widgets/update-widgets.html.twig' %}
@@ -152,28 +152,28 @@
                                         </li>
                                     </ul>
 
-                                    <div class="tab-content" style="display: block">
-                                        <div class="tab-pane active" id="running-commission">
-                                            <div class="card-box table-responsive">
-                                               {{ widget_render(page.getWidget('runningCommissionList')) }}
-                                            </div>
-                                        </div>
-                                        <div class="tab-pane" id="commission-setting">
-                                            <div class="card-box table-responsive">
-                                                {{ widget_render(page.getWidget('commissions')) }}
-                                            </div>
-                                        </div>
-                                        <div class="tab-pane" id="turnover-commission-product">
-                                            <div class="card-box table-responsive">
-                                                {{ widget_render(page.getWidget('turnoverCommissionByProductList')) }}
-                                            </div>
-                                        </div>
-                                        <div class="tab-pane" id="turnover-commission-member">
-                                            <div class="card-box table-responsive">
-                                                {{ widget_render(page.getWidget('turnoverCommissionByMemberList')) }}
-                                            </div>
-                                        </div>
-                                    </div>
+                                    {#<div class="tab-content" style="display: block">#}
+                                        {#<div class="tab-pane active" id="running-commission">#}
+                                            {#<div class="card-box table-responsive">#}
+                                               {#{{ widget_render(page.getWidget('runningCommissionList')) }}#}
+                                            {#</div>#}
+                                        {#</div>#}
+                                        {#<div class="tab-pane" id="commission-setting">#}
+                                            {#<div class="card-box table-responsive">#}
+                                                {#{{ widget_render(page.getWidget('commissions')) }}#}
+                                            {#</div>#}
+                                        {#</div>#}
+                                        {#<div class="tab-pane" id="turnover-commission-product">#}
+                                            {#<div class="card-box table-responsive">#}
+                                                {#{{ widget_render(page.getWidget('turnoverCommissionByProductList')) }}#}
+                                            {#</div>#}
+                                        {#</div>#}
+                                        {#<div class="tab-pane" id="turnover-commission-member">#}
+                                            {#<div class="card-box table-responsive">#}
+                                                {#{{ widget_render(page.getWidget('turnoverCommissionByMemberList')) }}#}
+                                            {#</div>#}
+                                        {#</div>#}
+                                    {#</div>#}
                                 </div>
                             </div>
                         </div>
@@ -279,8 +279,8 @@
     {{ widget_render(page.getWidget('productForm')) }}
     {{ widget_render(page.getWidget('updateProductForm')) }}
     {{ widget_render(page.getWidget('linkForm')) }}
-    {{ widget_render(page.getWidget('addCommissionForm')) }}
-    {{ widget_render(page.getWidget('updateCommissionForm')) }}
+    {#{{ widget_render(page.getWidget('addCommissionForm')) }}#}
+    {#{{ widget_render(page.getWidget('updateCommissionForm')) }}#}
     {{ widget_render(widgets.createMemberReferralNameForm) }}
     {{ widget_render(page.getWidget('createWebsiteForm')) }}
 {% endblock modals %}
@@ -335,91 +335,110 @@
             return location;
         }
 
-        function turnoverCommissionDwlAmount(data, type, full) {
-            return full.currencyCode + ' ' + data.rounded;
-        }
+        {#function turnoverCommissionDwlAmount(data, type, full) {#}
+            {#return full.currencyCode + ' ' + data.rounded;#}
+        {#}#}
 
-        function turnoverCommissionAffiliateAmount(data, type, full) {
-            return '{{ customer.currencyCode }} ' + data.rounded;
-        }
+        {#function turnoverCommissionAffiliateAmount(data, type, full) {#}
+            {#return '{{ customer.currencyCode }} ' + data.rounded;#}
+        {#}#}
 
-        function turnoverCommissionTotalTurnover(totals) {
-            var value = '';
+        {#function turnoverCommissionTotalTurnover(totals) {#}
+            {#var value = '';#}
 
-            $.each(totals, function(key, total) {
-                value += total.currencyCode + ' ' + total.totalTurnover.rounded + "<br/>";
-            });
+            {#$.each(totals, function(key, total) {#}
+                {#value += total.currencyCode + ' ' + total.totalTurnover.rounded + "<br/>";#}
+            {#});#}
 
-            return value;
-        }
+            {#return value;#}
+        {#}#}
 
-        function turnoverCommissionTotalWinLoss(totals) {
-            var value = '';
+        {#function turnoverCommissionTotalWinLoss(totals) {#}
+            {#var value = '';#}
 
-            $.each(totals, function(key, total) {
-                value += total.currencyCode + ' ' + total.totalWinLoss.rounded + "<br/>";
-            });
+            {#$.each(totals, function(key, total) {#}
+                {#value += total.currencyCode + ' ' + total.totalWinLoss.rounded + "<br/>";#}
+            {#});#}
 
-            return value;
-        }
+            {#return value;#}
+        {#}#}
 
-        function turnoverCommissionTotalCommission(totals) {
-            var memberCurrencyCode = '{{ customer.currencyCode }}';
+        {#function turnoverCommissionTotalCommission(totals) {#}
+            {#var memberCurrencyCode = '{{ customer.currencyCode }}';#}
 
-            try {
-                var total = totals[0];
-                return memberCurrencyCode + ' ' + total.totalAffiliateCommission.rounded;
-            } catch (err) {
-                return memberCurrencyCode;
-            }
-        }
+            {#try {#}
+                {#var total = totals[0];#}
+                {#return memberCurrencyCode + ' ' + total.totalAffiliateCommission.rounded;#}
+            {#} catch (err) {#}
+                {#return memberCurrencyCode;#}
+            {#}#}
+        {#}#}
 
-        function turnoverCommissionPeriod(period) {
-            return 'Date Covered: ' +
-            moment(period.dwlDateFrom).format('MMM D, YYYY') + ' - ' +
-            moment(period.dwlDateTo).format('MMM D, YYYY');
-        }
+        {#function turnoverCommissionPeriod(period) {#}
+            {#return 'Date Covered: ' +#}
+            {#moment(period.dwlDateFrom).format('MMM D, YYYY') + ' - ' +#}
+            {#moment(period.dwlDateTo).format('MMM D, YYYY');#}
+        {#}#}
 
-        function {{ widgets.turnoverCommissionByMemberList.getId() }}_extendCreatedRow(row, data, dataIndex) {
-            if (data.memberProductId === null) {
-                $('td:eq(1)', row).attr('colspan', 4);
-                $('td:eq(1)', row).attr('align', 'center');
-                $('td:eq(2)', row).css('display', 'none');
-                $('td:eq(3)', row).css('display', 'none');
-                $('td:eq(4)', row).css('display', 'none');
-                {{ widgets.turnoverCommissionByMemberList.getFullId() }}Table.dataTable.api().cell($('td:eq(1)', row)).data('No products');
-            }
-        }
+        {#function {{ widgets.turnoverCommissionByMemberList.getId() }}_extendCreatedRow(row, data, dataIndex) {#}
+            {#if (data.memberProductId === null) {#}
+                {#$('td:eq(1)', row).attr('colspan', 4);#}
+                {#$('td:eq(1)', row).attr('align', 'center');#}
+                {#$('td:eq(2)', row).css('display', 'none');#}
+                {#$('td:eq(3)', row).css('display', 'none');#}
+                {#$('td:eq(4)', row).css('display', 'none');#}
+                {#{{ widgets.turnoverCommissionByMemberList.getFullId() }}Table.dataTable.api().cell($('td:eq(1)', row)).data('No products');#}
+            {#}#}
+        {#}#}
 
-        $('#{{ widgets.turnoverCommissionByMemberList.getFullId() }}_container, #{{ widgets.turnoverCommissionByProductList.getFullId() }}_container')
-            .on('xhr.dt', function (e, settings, json, xhr) {
-                if (typeof xhr.responseText !== 'undefined') {
-                    var table = $(this);
-                    var response = JSON.parse(xhr.responseText);
-                    var period = response.period;
+        {#$('#{{ widgets.turnoverCommissionByMemberList.getFullId() }}_container, #{{ widgets.turnoverCommissionByProductList.getFullId() }}_container')#}
+            {#.on('xhr.dt', function (e, settings, json, xhr) {#}
+                {#if (typeof xhr.responseText !== 'undefined') {#}
+                    {#var table = $(this);#}
+                    {#var response = JSON.parse(xhr.responseText);#}
+                    {#var period = response.period;#}
 
-                    turnoverCommissionReport.filters[response.filters.orderBy] = response.filters;
+                    {#turnoverCommissionReport.filters[response.filters.orderBy] = response.filters;#}
 
-                    table.find('input[name=dwlDateFrom]').val(moment(period.dwlDateFrom).format('L'));
-                    table.find('input[name=dwlDateTo]').val(moment(period.dwlDateTo).format('L'));
+                    {#table.find('input[name=dwlDateFrom]').val(moment(period.dwlDateFrom).format('L'));#}
+                    {#table.find('input[name=dwlDateTo]').val(moment(period.dwlDateTo).format('L'));#}
+                {#}#}
+            {#});#}
+
+        {#$('#{{ widgets.turnoverCommissionByProductList.getFullId() }}_container').on('click', 'button[name=btnExportCsv]', function () {#}
+            {#exportTurnoverCommissionToCsv('productName');#}
+        {#});#}
+
+        {#$('#{{ widgets.turnoverCommissionByMemberList.getFullId() }}_container').on('click', 'button[name=btnExportCsv]', function () {#}
+            {#exportTurnoverCommissionToCsv('memberId');#}
+        {#});#}
+
+        {#function exportTurnoverCommissionToCsv(orderBy) {#}
+            {#var filters = { 'filters': turnoverCommissionReport.filters[orderBy] };#}
+            {#var exportUrl = turnoverCommissionReport.exportUrl.replace('__orderBy__', orderBy);#}
+            {#exportUrl = exportUrl.replace('__id__', '{{ customer.id }}');#}
+
+            {#window.open(exportUrl + '?' + $.param(filters), '_blank');#}
+        {#}#}
+
+        $(function () {
+            $('.page-widget-list').on('ztable.created', function () {
+                if ($(this).is(':visible')) {
+                    let ztable = $(this).data('ztable');
+                    ztable.initialize();
+                    ztable.dataTable.api().ajax.reload();
                 }
             });
-
-        $('#{{ widgets.turnoverCommissionByProductList.getFullId() }}_container').on('click', 'button[name=btnExportCsv]', function () {
-            exportTurnoverCommissionToCsv('productName');
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                $($(e.target).attr('href')).find('.page-widget-list:visible').each(function () {
+                    let ztable = $(this).data('ztable');
+                    if (ztable !== undefined) {
+                        ztable.initialize();
+                        ztable.dataTable.api().ajax.reload();
+                    }
+                });
+            });
         });
-
-        $('#{{ widgets.turnoverCommissionByMemberList.getFullId() }}_container').on('click', 'button[name=btnExportCsv]', function () {
-            exportTurnoverCommissionToCsv('memberId');
-        });
-
-        function exportTurnoverCommissionToCsv(orderBy) {
-            var filters = { 'filters': turnoverCommissionReport.filters[orderBy] };
-            var exportUrl = turnoverCommissionReport.exportUrl.replace('__orderBy__', orderBy);
-            exportUrl = exportUrl.replace('__id__', '{{ customer.id }}');
-
-            window.open(exportUrl + '?' + $.param(filters), '_blank');
-        }
 
         function transactionListStatus(data, type, full)
         {
@@ -623,7 +642,7 @@
                                 'text': notifications.message
                             }, function() {
                                 {{ widgets.referrals.getFullId() }}Table.reloadTable();
-                                {{ widgets.commissions.getFullId() }}Table.reloadTable();
+                                {#{{ widgets.commissions.getFullId() }}Table.reloadTable();#}
                             });
                         });
                     }
@@ -676,7 +695,7 @@
             $('#{{ widgets.linkForm.getFormView().vars.id }}').on('form.success', function (e, data) {
                 $('#{{ widgets.linkForm.getFormView().vars.id }} select').val(null).trigger('change');
                 {{ widgets.referrals.getFullId() }}Table.reloadTable();
-                {{ widgets.commissions.getFullId() }}Table.reloadTable();
+                {#{{ widgets.commissions.getFullId() }}Table.reloadTable();#}
             });
             $('#{{ widgets.createWebsiteForm.getFormView().vars.id }}').on('form.success', function (e, data) {
                 {{ widgets.websites.getFullId() }}Table.reloadTable();
@@ -762,19 +781,19 @@
             });
 
             // Commission
-            $('#{{ widgets.commissions.getFullId() }}_container').on('click', '.btn-edit', function () {
-                var tr = $(this).closest('tr');
-                var data = {{ widgets.commissions.getFullId() }}Table.dataTable.api().row(tr).data();
-                $('#{{ widgets.updateCommissionForm.getFullId() }}_container').data('commission', data);
-                $('#{{ widgets.updateCommissionForm.getFullId() }}_container').modal('show');
-            });
+            {#$('#{{ widgets.commissions.getFullId() }}_container').on('click', '.btn-edit', function () {#}
+                {#var tr = $(this).closest('tr');#}
+                {#var data = {{ widgets.commissions.getFullId() }}Table.dataTable.api().row(tr).data();#}
+                {#$('#{{ widgets.updateCommissionForm.getFullId() }}_container').data('commission', data);#}
+                {#$('#{{ widgets.updateCommissionForm.getFullId() }}_container').modal('show');#}
+            {#});#}
 
-            $('#{{ widgets.addCommissionForm.getFormView().vars.id }}').on('form.success', function (e, data) {
-                {{ widgets.commissions.getFullId() }}Table.reloadTable();
-            });
-            $('#{{ widgets.updateCommissionForm.getFormView().vars.id }}').on('form.success', function (e, data) {
-                {{ widgets.commissions.getFullId() }}Table.reloadTable();
-            });
+            {#$('#{{ widgets.addCommissionForm.getFormView().vars.id }}').on('form.success', function (e, data) {#}
+                {#{{ widgets.commissions.getFullId() }}Table.reloadTable();#}
+            {#});#}
+            {#$('#{{ widgets.updateCommissionForm.getFormView().vars.id }}').on('form.success', function (e, data) {#}
+                {#{{ widgets.commissions.getFullId() }}Table.reloadTable();#}
+            {#});#}
         });
 
         $(function () {
@@ -857,6 +876,9 @@
 
                 $(this).closest('li').addClass('active');
                 $($(this).attr('href') + '.tab-pane').addClass('active');
+
+                $($(this).attr('href') + '.tab-pane .page-widget-list').data('ztable').initialize();
+                $($(this).attr('href') + '.tab-pane .page-widget-list').data('ztable').dataTable.api().ajax.reload();
                 history.pushState({}, null, customerTab.replace("#",''));
             });
         });
