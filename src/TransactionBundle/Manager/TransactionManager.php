@@ -72,7 +72,6 @@ class TransactionManager extends TransactionOldManager
             }
         }
 
-
         $transactions = $this->getRepository()->findTransactions($filters, $orders, $limit, $offset, [], \Doctrine\ORM\Query::HYDRATE_OBJECT);
         $recordsFiltered = $this->getRepository()->getTotal($filters);
         $recordsTotal = $this->getRepository()->getTotal();

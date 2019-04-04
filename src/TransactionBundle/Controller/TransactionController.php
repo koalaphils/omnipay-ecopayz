@@ -57,12 +57,12 @@ class TransactionController extends AbstractController
         return $this->jsonResponse($results, Response::HTTP_OK, [], $context);
     }
 
-    public function updatePageAction(string $type, int $id): Response
+    public function updatePageAction(Request $request, string $type, int $id): Response
     {
         if ($type === 'deposit') {
-            $response = $this->forward('TransactionBundle:Deposit:updatePage', ['id' => $id, 'type' => $type]);
+            $response = $this->forward('TransactionBundle:Deposit:updatePage', ['id' => $id, 'type' => $type], $request->query->all());
         } elseif ($type === 'withdraw') {
-            $response = $this->forward('TransactionBundle:Withdraw:updatePage', ['id' => $id, 'type' => $type]);
+            $response = $this->forward('TransactionBundle:Withdraw:updatePage', ['id' => $id, 'type' => $type], $request->query->all());
         } else {
             throw $this->createNotFoundException();
         }
@@ -70,10 +70,10 @@ class TransactionController extends AbstractController
         return $response;
     }
 
-    public function saveAction(string $type, int $id): Response
+    public function saveAction(Request $request, string $type, int $id): Response
     {
         if ($type === 'deposit') {
-            $response = $this->forward('TransactionBundle:Deposit:save', ['id' => $id, 'type' => $type]);
+            $response = $this->forward('TransactionBundle:Deposit:save', ['id' => $id, 'type' => $type], $request->query->all());
         } else {
             throw $this->createNotFoundException();
         }

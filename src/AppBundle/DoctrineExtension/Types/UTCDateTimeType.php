@@ -17,6 +17,12 @@ class UTCDateTimeType extends DateTimeType
 
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
+        if ($value instanceof \DateTimeImmutable) {
+            $value = \DateTime::createFromFormat(\DateTime::ISO8601, $value->format(\DateTimeImmutable::ISO8601));
+        } elseif (is_string($value)) {
+            $value = new \DateTime($value);
+        }
+
         if ($value instanceof \DateTime) {
             $value->setTimezone(self::getUTC());
         }

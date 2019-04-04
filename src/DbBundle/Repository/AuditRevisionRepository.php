@@ -44,12 +44,12 @@ class AuditRevisionRepository extends BaseRepository
         if (!empty($groupFilters)) {
             if (!empty(array_get($groupFilters, 'from', ''))) {
                 $queryBuilder->andWhere('ar.audit_revision_timestamp >= :from');
-                $queryBuilder->setParameter('from', (new \DateTimeImmutable($groupFilters['from']))->format('Y-m-d H:i:s'));
+                $queryBuilder->setParameter('from', (new \DateTimeImmutable($groupFilters['from'])), \Doctrine\DBAL\Types\Type::DATETIME_IMMUTABLE);
             }
 
             if (!empty(array_get($groupFilters, 'to', ''))) {
                 $queryBuilder->andWhere('ar.audit_revision_timestamp < :to');
-                $queryBuilder->setParameter('to', (new \DateTimeImmutable($groupFilters['to'] . '+1 day'))->format('Y-m-d H:i:s'));
+                $queryBuilder->setParameter('to', (new \DateTimeImmutable($groupFilters['to'] . '+1 day')), \Doctrine\DBAL\Types\Type::DATETIME_IMMUTABLE);
             }
 
             if (!empty(array_get($groupFilters, 'operation', [])) || !empty(array_get($groupFilters, 'category', []))) {
@@ -115,11 +115,11 @@ class AuditRevisionRepository extends BaseRepository
 
         if (!empty($groupFilters)) {
             if (!empty(array_get($groupFilters, 'from', ''))) {
-                $queryBuilder->setParameter('from', (new \DateTime($groupFilters['from']))->format('Y-m-d H:i:s'));
+                $queryBuilder->setParameter('from', (new \DateTime($groupFilters['from'])), \Doctrine\DBAL\Types\Type::DATETIME);
             }
 
             if (!empty(array_get($groupFilters, 'to', ''))) {
-                $queryBuilder->setParameter('to', (new \DateTime($groupFilters['to'] . '+1 day'))->format('Y-m-d H:i:s'));
+                $queryBuilder->setParameter('to', (new \DateTime($groupFilters['to'] . '+1 day')), \Doctrine\DBAL\Types\Type::DATETIME);
             }
 
             if (!empty(array_get($groupFilters, 'operation', [])) || !empty(array_get($groupFilters, 'category', []))) {

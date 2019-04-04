@@ -69,7 +69,6 @@ widgets:
                         required: false
                     type: text
                     size: 12
-                    size: 12
                     group: Left
                 groups:
                     options:
@@ -350,6 +349,7 @@ widgets:
     productList:
         type: \AppBundle\Widget\Page\ListWidget
         properties:
+            autoload: false
             processResult: 'controller::processCustomerProductListResult'
             class: \DbBundle\Entity\CustomerProduct
             methods:
@@ -491,6 +491,7 @@ widgets:
     transactionList:
         type: \AppBundle\Widget\Page\ListWidget
         properties:
+            autoload: false
             class: \DbBundle\Entity\CustomerProduct
             ajax:
                 url:
@@ -668,6 +669,7 @@ widgets:
     referrals:
         type: AppBundle\Widget\Page\ListWidget
         properties:
+            autoload: false
             class: DbBundle\Entity\Customer
             processResult: 'controller::processListResult'
             additionalFilters:
@@ -728,125 +730,126 @@ widgets:
                     templateSelection: linkSelection
                     templateResult: linkResult
 
-    commissions:
-        type: AppBundle\Widget\Page\ListWidget
-        properties:
-            class: DbBundle\Entity\CustomerProduct
-            processResult: 'controller::processCommissionResult'
-            dom: t
-            methods:
-                records:
-                    name: getReferrerTotalReferredProducts
-                    params:
-                        filters: []
-                        orders: []
-                        limit: 10
-                        offset: 0
-                totalFiltered:
-                    name: getReferrerReferredProductsCount
-                    params:
-                        filters: []
-                total:
-                    name: getReferrerReferredProductsCount
-                    params:
-                        filters: []
-            additionalFilters:
-                member: '@=pageManager.getData("customer").getId()'
-            columns:
-                product:
-                    label: Product
-                    type: text
-                    from: productName
-                commission:
-                    label: % Commission
-                    type: text
-                    from: commission.commission
-                created_at:
-                    label: Date Last Updated
-                    type: date
-                    format: F j, Y H:i:s
-                    from: commission.created_at
-                number_member_product:
-                    label: No. of Referral's Product
-                    type: text
-                    from: totalProductReferrals
-                action:
-                    label: Action
-                    type: function
-                    function: commissionListAction
-
-    addCommissionForm:
-        type: AppBundle\Widget\Page\FormWidget
-        properties:
-            modelClass: MemberBundle\Request\AddCommissionRequest
-            handler: '@member.handler.add_commission_member::handle'
-            data: '@pageManager.customer'
-            notifications:
-                success:
-                    title: Saved
-                    message: Successfully Added Commission
-            fields:
-                product:
-                    options:
-                        label: Product
-                        required: true
-                    type: dropdown
-                    choicesFrom:
-                        function: '@product.manager::getProductList'
-                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
-                        value: result['id']
-                        preselect: false
-                commission:
-                    options:
-                        label: Commission
-                        required: true
-                    type: text
-                status:
-                    options:
-                        label: Status
-                        required: false
-                    type: switch
-
-    updateCommissionForm:
-        type: AppBundle\Widget\Page\FormWidget
-        properties:
-            modelClass: MemberBundle\Request\UpdateCommissionRequest
-            handler: '@member.handler.update_commission_member::handle'
-            data: '@pageManager.customer'
-            notifications:
-                success:
-                    title: Saved
-                    message: Successfully Updated Commission
-            fields:
-                product:
-                    options:
-                        label: Product
-                        required: false
-                        attr:
-                            readonly: readonly
-                    type: text
-                commission:
-                    options:
-                        label: Commission
-                        required: true
-                    type: text
-# NOTE: see https://ac88dev.atlassian.net/browse/AC66-1017
+#    commissions:
+#        type: AppBundle\Widget\Page\ListWidget
+#        properties:
+#            class: DbBundle\Entity\CustomerProduct
+#            processResult: 'controller::processCommissionResult'
+#            dom: t
+#            methods:
+#                records:
+#                    name: getReferrerTotalReferredProducts
+#                    params:
+#                        filters: []
+#                        orders: []
+#                        limit: 10
+#                        offset: 0
+#                totalFiltered:
+#                    name: getReferrerReferredProductsCount
+#                    params:
+#                        filters: []
+#                total:
+#                    name: getReferrerReferredProductsCount
+#                    params:
+#                        filters: []
+#            additionalFilters:
+#                member: '@=pageManager.getData("customer").getId()'
+#            columns:
+#                product:
+#                    label: Product
+#                    type: text
+#                    from: productName
+#                commission:
+#                    label: % Commission
+#                    type: text
+#                    from: commission.commission
+#                created_at:
+#                    label: Date Last Updated
+#                    type: date
+#                    format: F j, Y H:i:s
+#                    from: commission.created_at
+#                number_member_product:
+#                    label: No. of Referral's Product
+#                    type: text
+#                    from: totalProductReferrals
+#                action:
+#                    label: Action
+#                    type: function
+#                    function: commissionListAction
+#
+#    addCommissionForm:
+#        type: AppBundle\Widget\Page\FormWidget
+#        properties:
+#            modelClass: MemberBundle\Request\AddCommissionRequest
+#            handler: '@member.handler.add_commission_member::handle'
+#            data: '@pageManager.customer'
+#            notifications:
+#                success:
+#                    title: Saved
+#                    message: Successfully Added Commission
+#            fields:
+#                product:
+#                    options:
+#                        label: Product
+#                        required: true
+#                    type: dropdown
+#                    choicesFrom:
+#                        function: '@product.manager::getProductList'
+#                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
+#                        value: result['id']
+#                        preselect: false
+#                commission:
+#                    options:
+#                        label: Commission
+#                        required: true
+#                    type: text
 #                status:
 #                    options:
 #                        label: Status
 #                        required: false
 #                    type: switch
-                resourceId:
-                    type: hidden
-                productId:
-                    type: hidden
-#                memberId:
+#
+#    updateCommissionForm:
+#        type: AppBundle\Widget\Page\FormWidget
+#        properties:
+#            modelClass: MemberBundle\Request\UpdateCommissionRequest
+#            handler: '@member.handler.update_commission_member::handle'
+#            data: '@pageManager.customer'
+#            notifications:
+#                success:
+#                    title: Saved
+#                    message: Successfully Updated Commission
+#            fields:
+#                product:
+#                    options:
+#                        label: Product
+#                        required: false
+#                        attr:
+#                            readonly: readonly
+#                    type: text
+#                commission:
+#                    options:
+#                        label: Commission
+#                        required: true
+#                    type: text
+## NOTE: see https://ac88dev.atlassian.net/browse/AC66-1017
+##                status:
+##                    options:
+##                        label: Status
+##                        required: false
+##                    type: switch
+#                resourceId:
 #                    type: hidden
+#                productId:
+#                    type: hidden
+##                memberId:
+##                    type: hidden
 
 
     paymentOptions:
         type: MemberBundle\Widget\Page\PaymentOptionWidget
         properties:
+            autoload: false
             member:
                 method: 'pagemanager::getData'
                 arguments:
@@ -858,6 +861,7 @@ widgets:
     websites:
         type: AppBundle\Widget\Page\ListWidget
         properties:
+            autoload: false
             class: DbBundle\Entity\MemberWebsite
             methods:
                 records:
@@ -911,6 +915,7 @@ widgets:
     memberReferralName:
         type: AppBundle\Widget\Page\ListWidget
         properties:
+            autoload: false
             class: DbBundle\Entity\MemberReferralName
             methods:
                 records:
@@ -963,6 +968,7 @@ widgets:
     banners:
         type: AppBundle\Widget\Page\ListWidget
         properties:
+            autoload: false
             class: DbBundle\Entity\MemberBanner
             methods:
                 records:
@@ -1016,6 +1022,7 @@ widgets:
     memberCampaignName:
         type: AppBundle\Widget\Page\ListWidget
         properties:
+            autoload: false
             class: DbBundle\Entity\MemberBanner
             methods:
                 records:
@@ -1041,259 +1048,259 @@ widgets:
                     label: Campaign Name
                     type: text
                     from: campaign_name
-    runningCommissionList:
-        type: AppBundle\Widget\Page\ListWidget
-        properties:
-            class: DbBundle\Entity\CommissionPeriod
-            processResult: '@member.manager::processRunningCommission'
-            methods:
-                records:
-                    name: getCommissionPeriodList
-                    # staticParams:
-                    #    filters:
-                    #        statuses:
-                    #            - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT
-                    #            - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION
-                    params:
-                        filters: []
-                        limit: 20
-                        offset: 0
-                totalFiltered:
-                    name: countCommissionList
-                    staticParams:
-                        filters:
-                            statuses:
-                                - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT
-                                - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION
-                    params:
-                        filters: []
-                total:
-                    name: countCommissionList
-                    staticParams:
-                        filters:
-                            statuses:
-                                - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT
-                                - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION
-                    params:
-                        filters: []
-            footer:
-                columns:
-                    total:
-                        type: static
-                        attrs:
-                            colspan: 3
-                            class: text-right
-                        value: Total Running
-                        isHead: true
-                    totalCommission:
-                        type: text
-                        attrs:
-                            colspan: 2
-                        from: totalRunningCommission
-            columns:
-                dwlDateFrom:
-                    label: Date From
-                    type: text
-                    from: schedule.dwl_date_from
-                dwlDateTo:
-                    label: Date To
-                    type: text
-                    from: schedule.dwl_date_to
-                status:
-                    label: Status
-                    type: choice
-                    from: commission.status
-                    choices:
-                        condition_unmet: Condition Not Met
-                        condition_met: Condition Met
-                commisison:
-                    label: Commission
-                    type: text
-                    from: commission.commission
-                payout:
-                    label: AC Wallet Payout
-                    type: text
-                    from: commission.payout
+#    runningCommissionList:
+#        type: AppBundle\Widget\Page\ListWidget
+#        properties:
+#            class: DbBundle\Entity\CommissionPeriod
+#            processResult: '@member.manager::processRunningCommission'
+#            methods:
+#                records:
+#                    name: getCommissionPeriodList
+#                    # staticParams:
+#                    #    filters:
+#                    #        statuses:
+#                    #            - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT
+#                    #            - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION
+#                    params:
+#                        filters: []
+#                        limit: 20
+#                        offset: 0
+#                totalFiltered:
+#                    name: countCommissionList
+#                    staticParams:
+#                        filters:
+#                            statuses:
+#                                - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT
+#                                - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION
+#                    params:
+#                        filters: []
+#                total:
+#                    name: countCommissionList
+#                    staticParams:
+#                        filters:
+#                            statuses:
+#                                - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT
+#                                - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION
+#                    params:
+#                        filters: []
+#            footer:
+#                columns:
+#                    total:
+#                        type: static
+#                        attrs:
+#                            colspan: 3
+#                            class: text-right
+#                        value: Total Running
+#                        isHead: true
+#                    totalCommission:
+#                        type: text
+#                        attrs:
+#                            colspan: 2
+#                        from: totalRunningCommission
+#            columns:
+#                dwlDateFrom:
+#                    label: Date From
+#                    type: text
+#                    from: schedule.dwl_date_from
+#                dwlDateTo:
+#                    label: Date To
+#                    type: text
+#                    from: schedule.dwl_date_to
+#                status:
+#                    label: Status
+#                    type: choice
+#                    from: commission.status
+#                    choices:
+#                        condition_unmet: Condition Not Met
+#                        condition_met: Condition Met
+#                commisison:
+#                    label: Commission
+#                    type: text
+#                    from: commission.commission
+#                payout:
+#                    label: AC Wallet Payout
+#                    type: text
+#                    from: commission.payout
 
-    turnoverCommissionByProductList:
-        type: \AppBundle\Widget\Page\ListWidget
-        properties:
-            class: \DbBundle\Entity\Customer
-            ajax:
-                url:
-                    route: member.turnover_commission.search
-                    params:
-                        id: '@=pageManager.getData("customer").getId()'
-                        orderBy: 'productName'
-                        precision: '2'
-                type: POST
-            columns:
-                productName:
-                    label: Product
-                    type: text
-                    exclude: true
-                memberId:
-                    label: Member ID
-                    type: text
-                totalTurnover:
-                    label: Total Turnover
-                    type: function
-                    function: turnoverCommissionDwlAmount
-                totalWinLoss:
-                    label: Total Member W/L
-                    type: function
-                    function: turnoverCommissionDwlAmount
-                totalAffiliateCommission:
-                    label: Affiliate Commission
-                    type: function
-                    function: turnoverCommissionAffiliateAmount
-            footer:
-                columns:
-                    period:
-                        attrs:
-                            colspan: 2
-                        type: function
-                        function: turnoverCommissionPeriod
-                        from: period
-                    totalTurnover:
-                        type: function
-                        function: turnoverCommissionTotalTurnover
-                        from: totals
-                    totalWinLoss:
-                        type: function
-                        function: turnoverCommissionTotalWinLoss
-                        from: totals
-                    totalAffiliateCommission:
-                        type: function
-                        function: turnoverCommissionTotalCommission
-                        from: totals
-            filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'fth>>ar<'form-group' <'m-t-10'>>c<'form-group' <'m-t-10'>>>
-            filters:
-                dwlDateFrom:
-                    label: DWL Date From
-                    type: date
-                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
-                    symbol: f
-                    attrs:
-                        placeholder: DWL Date From
-                        type: input
-                        class: form-control cls-date
-                    applyOnChanged: 0
-                dwlDateTo:
-                    label: DWL Date To
-                    type: date
-                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
-                    symbol: t
-                    attrs:
-                        placeholder: DWL Date To
-                        type: input
-                        class: form-control cls-date
-                    applyOnChanged: 0
-                hideZeroTurnover:
-                    label: 'Hide zero turnover?'
-                    type: checkbox
-                    symbol: h
-                    applyOnChanged: 0
-                applyFilter:
-                    attrs:
-                        class: btn btn-sm btn-default
-                resetFilter:
-                    attrs:
-                        class: btn btn-sm btn-inverse
-                btnExportCsv:
-                    type: button
-                    label: Export to CSV
-                    symbol: c
-                    attrs:
-                        class: btn btn-sm btn-inverse
-    turnoverCommissionByMemberList:
-        type: \AppBundle\Widget\Page\ListWidget
-        properties:
-            class: \DbBundle\Entity\Customer
-            ajax:
-                url:
-                    route: member.turnover_commission.search
-                    params:
-                        id: '@=pageManager.getData("customer").getId()'
-                        orderBy: 'memberId'
-                        precision: '2'
-                type: POST
-            columns:
-                memberId:
-                    label: Member ID
-                    type: text
-                    exclude: true
-                productName:
-                    label: Product
-                    type: text
-                totalTurnover:
-                    label: Total Turnover
-                    type: function
-                    function: turnoverCommissionDwlAmount
-                totalWinLoss:
-                    label: Total Member W/L
-                    type: function
-                    function: turnoverCommissionDwlAmount
-                totalAffiliateCommission:
-                    label: Affiliate Commission
-                    type: function
-                    function: turnoverCommissionAffiliateAmount
-            footer:
-                columns:
-                    period:
-                        attrs:
-                            colspan: 2
-                        type: function
-                        function: turnoverCommissionPeriod
-                        from: period
-                    totalTurnover:
-                        type: function
-                        function: turnoverCommissionTotalTurnover
-                        from: totals
-                    totalWinLoss:
-                        type: function
-                        function: turnoverCommissionTotalWinLoss
-                        from: totals
-                    totalAffiliateCommission:
-                        type: function
-                        function: turnoverCommissionTotalCommission
-                        from: totals
-            filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'fth>>ar<'form-group' <'m-t-10'>>c<'form-group' <'m-t-10'>>>
-            filters:
-                dwlDateFrom:
-                    label: DWL Date From
-                    type: date
-                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
-                    symbol: f
-                    attrs:
-                        placeholder: DWL Date From
-                        type: input
-                        class: form-control cls-date
-                    applyOnChanged: 0
-                dwlDateTo:
-                    label: DWL Date To
-                    type: date
-                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
-                    symbol: t
-                    attrs:
-                        placeholder: DWL Date To
-                        type: input
-                        class: form-control cls-date
-                    applyOnChanged: 0
-                hideZeroTurnover:
-                    label: 'Hide zero turnover?'
-                    type: checkbox
-                    symbol: h
-                    applyOnChanged: 0
-                applyFilter:
-                    attrs:
-                        class: btn btn-sm btn-default
-                resetFilter:
-                    attrs:
-                        class: btn btn-sm btn-inverse
-                btnExportCsv:
-                    type: button
-                    label: Export to CSV
-                    symbol: c
-                    attrs:
-                        class: btn btn-sm btn-inverse
+#    turnoverCommissionByProductList:
+#        type: \AppBundle\Widget\Page\ListWidget
+#        properties:
+#            class: \DbBundle\Entity\Customer
+#            ajax:
+#                url:
+#                    route: member.turnover_commission.search
+#                    params:
+#                        id: '@=pageManager.getData("customer").getId()'
+#                        orderBy: 'productName'
+#                        precision: '2'
+#                type: POST
+#            columns:
+#                productName:
+#                    label: Product
+#                    type: text
+#                    exclude: true
+#                memberId:
+#                    label: Member ID
+#                    type: text
+#                totalTurnover:
+#                    label: Total Turnover
+#                    type: function
+#                    function: turnoverCommissionDwlAmount
+#                totalWinLoss:
+#                    label: Total Member W/L
+#                    type: function
+#                    function: turnoverCommissionDwlAmount
+#                totalAffiliateCommission:
+#                    label: Affiliate Commission
+#                    type: function
+#                    function: turnoverCommissionAffiliateAmount
+#            footer:
+#                columns:
+#                    period:
+#                        attrs:
+#                            colspan: 2
+#                        type: function
+#                        function: turnoverCommissionPeriod
+#                        from: period
+#                    totalTurnover:
+#                        type: function
+#                        function: turnoverCommissionTotalTurnover
+#                        from: totals
+#                    totalWinLoss:
+#                        type: function
+#                        function: turnoverCommissionTotalWinLoss
+#                        from: totals
+#                    totalAffiliateCommission:
+#                        type: function
+#                        function: turnoverCommissionTotalCommission
+#                        from: totals
+#            filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'fth>>ar<'form-group' <'m-t-10'>>c<'form-group' <'m-t-10'>>>
+#            filters:
+#                dwlDateFrom:
+#                    label: DWL Date From
+#                    type: date
+#                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
+#                    symbol: f
+#                    attrs:
+#                        placeholder: DWL Date From
+#                        type: input
+#                        class: form-control cls-date
+#                    applyOnChanged: 0
+#                dwlDateTo:
+#                    label: DWL Date To
+#                    type: date
+#                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
+#                    symbol: t
+#                    attrs:
+#                        placeholder: DWL Date To
+#                        type: input
+#                        class: form-control cls-date
+#                    applyOnChanged: 0
+#                hideZeroTurnover:
+#                    label: 'Hide zero turnover?'
+#                    type: checkbox
+#                    symbol: h
+#                    applyOnChanged: 0
+#                applyFilter:
+#                    attrs:
+#                        class: btn btn-sm btn-default
+#                resetFilter:
+#                    attrs:
+#                        class: btn btn-sm btn-inverse
+#                btnExportCsv:
+#                    type: button
+#                    label: Export to CSV
+#                    symbol: c
+#                    attrs:
+#                        class: btn btn-sm btn-inverse
+#    turnoverCommissionByMemberList:
+#        type: \AppBundle\Widget\Page\ListWidget
+#        properties:
+#            class: \DbBundle\Entity\Customer
+#            ajax:
+#                url:
+#                    route: member.turnover_commission.search
+#                    params:
+#                        id: '@=pageManager.getData("customer").getId()'
+#                        orderBy: 'memberId'
+#                        precision: '2'
+#                type: POST
+#            columns:
+#                memberId:
+#                    label: Member ID
+#                    type: text
+#                    exclude: true
+#                productName:
+#                    label: Product
+#                    type: text
+#                totalTurnover:
+#                    label: Total Turnover
+#                    type: function
+#                    function: turnoverCommissionDwlAmount
+#                totalWinLoss:
+#                    label: Total Member W/L
+#                    type: function
+#                    function: turnoverCommissionDwlAmount
+#                totalAffiliateCommission:
+#                    label: Affiliate Commission
+#                    type: function
+#                    function: turnoverCommissionAffiliateAmount
+#            footer:
+#                columns:
+#                    period:
+#                        attrs:
+#                            colspan: 2
+#                        type: function
+#                        function: turnoverCommissionPeriod
+#                        from: period
+#                    totalTurnover:
+#                        type: function
+#                        function: turnoverCommissionTotalTurnover
+#                        from: totals
+#                    totalWinLoss:
+#                        type: function
+#                        function: turnoverCommissionTotalWinLoss
+#                        from: totals
+#                    totalAffiliateCommission:
+#                        type: function
+#                        function: turnoverCommissionTotalCommission
+#                        from: totals
+#            filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'fth>>ar<'form-group' <'m-t-10'>>c<'form-group' <'m-t-10'>>>
+#            filters:
+#                dwlDateFrom:
+#                    label: DWL Date From
+#                    type: date
+#                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
+#                    symbol: f
+#                    attrs:
+#                        placeholder: DWL Date From
+#                        type: input
+#                        class: form-control cls-date
+#                    applyOnChanged: 0
+#                dwlDateTo:
+#                    label: DWL Date To
+#                    type: date
+#                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
+#                    symbol: t
+#                    attrs:
+#                        placeholder: DWL Date To
+#                        type: input
+#                        class: form-control cls-date
+#                    applyOnChanged: 0
+#                hideZeroTurnover:
+#                    label: 'Hide zero turnover?'
+#                    type: checkbox
+#                    symbol: h
+#                    applyOnChanged: 0
+#                applyFilter:
+#                    attrs:
+#                        class: btn btn-sm btn-default
+#                resetFilter:
+#                    attrs:
+#                        class: btn btn-sm btn-inverse
+#                btnExportCsv:
+#                    type: button
+#                    label: Export to CSV
+#                    symbol: c
+#                    attrs:
+#                        class: btn btn-sm btn-inverse

@@ -1,0 +1,7 @@
+twig:
+  debug:            "%kernel.debug%"
+  strict_variables: "%kernel.debug%"
+  form_themes:
+    - 'AppBundle:Form:ubold.html.twig'
+  globals:
+    asianconnect_url: "%asianconnect_url%"

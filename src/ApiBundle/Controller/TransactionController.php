@@ -33,7 +33,7 @@ class TransactionController extends AbstractController
      *         {"name"="meta[payment_details][bitcoin][rate_detail][range_end]", "dataType"="string", "required"=false},
      *         {"name"="meta[payment_details][bitcoin][rate_detail][adjustment]", "dataType"="string", "required"=false},
      *         {"name"="meta[payment_details][bitcoin][rate_detail][adjustment_type]", "dataType"="string", "required"=false},
-     *         {"name"="meta[payment_details][bitcoin][block_chain_rate]", "dataType"="string", "required"=false},
+     *         {"name"="meta[payment_details][bitcoin][blockchain_rate]", "dataType"="string", "required"=false},
      *         {"name"="meta[payment_details][bitcoin][rate]", "dataType"="string", "required"=false},
      *         {"name"="products[0][meta][payment_details][bitcoin][requested_btc]", "dataType"="string", "required"=false}
      *     },

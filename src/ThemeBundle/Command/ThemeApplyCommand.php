@@ -44,12 +44,12 @@ class ThemeApplyCommand extends ContainerAwareCommand
         $themePath = $this->getContainer()->getParameter('kernel.root_dir') . '/../themes/' . $theme;
         foreach ($this->getContainer()->get('kernel')->getBundles() as $name => $bundle) {
             $origPaths = [
-                'view' => "$themePath/$name/views",
+                #'view' => "$themePath/$name/views",
                 'public' => "$themePath/$name/public",
                 'translations' => "$themePath/$name/translations",
             ];
             $targetDirs = [
-                'view' => $bundle->getPath() . '/Resources/views',
+                #'view' => $bundle->getPath() . '/Resources/views',
                 'public' => $bundle->getPath() . '/Resources/public',
                 'translations' => $bundle->getPath() . '/Resources/translations',
             ];

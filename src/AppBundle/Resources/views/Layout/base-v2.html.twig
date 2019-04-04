@@ -133,6 +133,7 @@
                 asset("assets/js/jquery.nicescroll.js"),
                 asset("assets/js/jquery.scrollTo.min.js"),
                 asset("assets/plugins/moment/moment.js"),
+                asset('assets/plugins/moment/moment-timezone.js'),
                 asset("assets/plugins/notifyjs/js/notify.js"),
                 asset("assets/plugins/notifications/notify-metro.js"),
                 asset("assets/plugins/bootstrap-sweetalert/sweetalert.min.js"),
@@ -144,6 +145,7 @@
             ]) }}
 
         <script type="text/javascript">
+            moment.tz.setDefault("{{ "now"|date("e") }}");
             var resizefunc = [];
             window.lodash = _;
             var topics = {

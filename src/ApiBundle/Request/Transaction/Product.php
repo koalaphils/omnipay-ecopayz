@@ -39,7 +39,7 @@ class Product implements GroupSequenceProviderInterface
         $this->username = $username;
         $this->productCode = $productCode;
         $this->amount = $amount;
-        $this->meta = Meta::createFromArray($meta, $paymentOptionType, true, false);
+        $this->meta = Meta::createFromArray($meta, $paymentOptionType, true, $metaWithPaymentDetails);
         $this->paymentOptionType = $paymentOptionType;
     }
 

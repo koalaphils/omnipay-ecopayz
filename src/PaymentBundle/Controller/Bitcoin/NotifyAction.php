@@ -55,13 +55,7 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
         try {
             $this->validateRequest($httpRequest);
         } catch (\RuntimeException $ex) {
-            $this->logWithHttpRequest(LogLevel::ERROR, 'Invalid Request', $httpRequest);
-            
-            // zimi-debug
-            // $data = ['confirm' => 0, 'status' => 'requested'];
-            // $data = ['confirm' => 0, 'status' => 'pending'];            
-            // $topic = 'mwa.topic.deposit.bitcoin';                    
-            // $this->publisher->publish($topic, json_encode($data));
+            $this->logWithHttpRequest(LogLevel::ERROR, 'Invalid Request', $httpRequest, [$ex]);
 
             throw $this->createOkResponse();
         }
@@ -71,11 +65,11 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
         try {
             $member = $this->memberRepository->getById($memberId);
         } catch (NoResultException $e) {
-            $this->logWithHttpRequest(LogLevel::CRITICAL, 'Member not found', $httpRequest);
+            $this->logWithHttpRequest(LogLevel::CRITICAL, 'Member not found', $httpRequest, [$e]);
 
             throw $this->createOkResponse();
         } catch (NonUniqueResultException $e) {
-            $this->logWithHttpRequest(LogLevel::CRITICAL, 'Multiple memebers has been found', $httpRequest);
+            $this->logWithHttpRequest(LogLevel::CRITICAL, 'Multiple memebers has been found', $httpRequest, [$e]);
 
             throw $this->createOkResponse();
         }
@@ -171,9 +165,8 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
             $response = new HttpResponse('');
         }
 
-        // zimi-comment
-        // $this->publishTransactionStatus($transaction);
-        $this->publishNoneUsingWampTransactionStatus($transaction);
+        $this->publishTransactionStatus($transaction);
+        // $this->publishNoneUsingWampTransactionStatus($transaction);
         
         throw $response;
     }

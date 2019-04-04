@@ -79,6 +79,7 @@ ENV UPLOAD_FOLDER=/uploads \
     BC_XPUB_USER= \
     BC_XPUB_PASSWORD= \
     BC_XPUB_PK= \
+    BC_CALLBACK_HOST=http://localhost \
     TRUSTED_PROXIES=127.0.0.1 \
     PIN_API_URL=http://temp \
     PIN_API_AGENT_KEY=temp \
@@ -86,7 +87,8 @@ ENV UPLOAD_FOLDER=/uploads \
     PIN_AGENT_CODE=temp \
     TWILIO_SID= \
     TWILIO_TOKEN= \
-    TWILIO_FROM=
+    TWILIO_FROM= \
+    APP_TIMEZONE=UTC
 
 RUN mkdir $UPLOAD_FOLDER
 COPY /opt/docker/php/entrypoint.sh /entrypoint.sh

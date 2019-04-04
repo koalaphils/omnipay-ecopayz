@@ -79,6 +79,7 @@ parameters:
     trusted_proxies: [${TRUSTED_PROXIES}]
     cron_user: system
 
+    blockchain.callback_host: "${BC_CALLBACK_HOST}"
     blockchain.api_key: "${BC_KEY}"
     blockchain.wallet_url: "${BC_WALLET_URL}"
     blockchain.xpub_scanner.host: "${BC_XPUB__HOST}"
@@ -99,3 +100,5 @@ parameters:
     twilio_sid: '${TWILIO_SID}'
     twilio_token: '${TWILIO_TOKEN}'
     twilio_from: '${TWILIO_FROM}'
+
+    timezone: '${APP_TIMEZONE}'

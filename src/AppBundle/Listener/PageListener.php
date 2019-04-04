@@ -43,6 +43,21 @@ class PageListener
     public function onKernelRequest(GetResponseEvent $event)
     {
         $this->defaultLocale = $event->getRequest()->getLocale();
+        if ($event->isMasterRequest()) {
+            $masterRequest = $event->getRequest();
+
+            $timezone = $masterRequest->get('timezone', $this->container->getParameter('timezone'));
+
+            if ($masterRequest->headers->has('REFERER')) {
+                $url = parse_url($masterRequest->headers->get('REFERER'));
+                $queries = [];
+                parse_str($url['query'] ?? '', $queries);
+                if (array_has($queries, 'timezone')) {
+                    $timezone = array_get($queries, 'timezone');
+                }
+            }
+            date_default_timezone_set($timezone);
+        }
 
         $debug = in_array($this->container->get('kernel')->getEnvironment(), ['test', 'dev']);
         if (!in_array($event->getRequest()->attributes->get('_route'), $this->unInclude) && !$debug) {

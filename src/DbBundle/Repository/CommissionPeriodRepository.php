@@ -96,7 +96,7 @@ class CommissionPeriodRepository extends BaseRepository
     {
         $queryBuilder = $this->createQueryBuilder('cs');
         $queryBuilder->where('cs.dwlDateFrom <= :date AND cs.dwlDateTo >= :date')
-            ->setParameter('date', $date->format('Y-m-d'));
+            ->setParameter('date', $date);
 
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }
@@ -107,7 +107,7 @@ class CommissionPeriodRepository extends BaseRepository
         $queryBuilder->where('cs.dwlDateTo < :date')
             ->orderBy('cs.dwlDateTo', 'DESC')
             ->setMaxResults(1)
-            ->setParameter('date', $commissionPeriod->getDWLDateFrom()->format('Y-m-d'));
+            ->setParameter('date', $commissionPeriod->getDWLDateFrom());
 
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }
@@ -118,7 +118,7 @@ class CommissionPeriodRepository extends BaseRepository
         $queryBuilder->where('cs.dwlDateTo > :date')
             ->orderBy('cs.dwlDateTo', 'ASC')
             ->setMaxResults(1)
-            ->setParameter('date', $commissionPeriod->getDWLDateTo()->format('Y-m-d'));
+            ->setParameter('date', $commissionPeriod->getDWLDateTo());
 
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }
