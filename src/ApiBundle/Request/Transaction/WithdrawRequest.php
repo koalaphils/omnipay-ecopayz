@@ -94,7 +94,7 @@ class WithdrawRequest implements GroupSequenceProviderInterface
 
     public function getMemberId(): int
     {
-        return $this->member->getId();
+        return (int)$this->member->getId();
     }
 
     public function setMember(Customer $member): void
