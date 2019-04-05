@@ -3,6 +3,10 @@ imports:
     - { resource: widgets.yml }
 
 services:
+    MemberBundle\Manager\MemberProductManager:
+        autoconfigure: true
+        autowire: true
+
     member.transformer.referrerTransformer:
         class: MemberBundle\Transformer\ReferrerTransformer
         lazy: true

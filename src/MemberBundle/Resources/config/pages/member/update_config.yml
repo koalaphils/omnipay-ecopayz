@@ -350,7 +350,7 @@ widgets:
         type: \AppBundle\Widget\Page\ListWidget
         properties:
             autoload: false
-            processResult: 'controller::processCustomerProductListResult'
+            processResult: '@MemberBundle\Manager\MemberProductManager::processMemberProductListWidget'
             class: \DbBundle\Entity\CustomerProduct
             methods:
                 records:
@@ -379,7 +379,7 @@ widgets:
                 balance:
                     label: Balance
                     type: text
-                    from: balanceWithBA
+                    from: balance
                 status:
                     label: Status
                     type: function

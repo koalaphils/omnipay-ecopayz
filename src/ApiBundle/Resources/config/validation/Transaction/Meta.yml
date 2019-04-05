@@ -1,0 +1,16 @@
+ApiBundle\Request\Transaction\Meta\Meta:
+  getters:
+    fields:
+      - Type:
+          type: ApiBundle\Request\Transaction\Meta\Fields
+          message: Invalid field
+      - Valid: ~
+    paymentDetails:
+      - Callback: [ApiBundle\Request\Transaction\Meta\Meta, isValidPaymentDetails]
+      - Valid: ~
+
+ApiBundle\Request\Transaction\Meta\Fields:
+  getters:
+    email:
+      - NotBlank: ~
+      - Email: ~

@@ -61,4 +61,9 @@ class Meta
             }, $this->paymentDetails)
         ];
     }
+
+    public static function isValidPaymentDetails($details): bool
+    {
+        return $details instanceof PaymentInterface;
+    }
 }

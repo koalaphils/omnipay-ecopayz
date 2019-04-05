@@ -1,0 +1,652 @@
+ApiBundle\Model\Transaction:
+    properties:
+        subTransactions:
+            # zimi
+            # - Count:
+            #    min: 1
+            #    minMessage: "You must add one product"
+        email:
+            # - NotNull:
+            #     message: "Email cannot be empty"
+            #     groups: [withEmail]
+            # - Email:
+            #     message: "Invalid Email"
+            #     groups: [withEmail]
+            - AppBundle\Validator\Constraints\Unique:
+                entityClass: DbBundle\Entity\CustomerPaymentOption
+                valuePath: value
+                select: " e "
+                expression: "JSON_CONTAINS(e.fields, JSON_OBJECT('email' , :email)) = 1 and e.paymentOption = :paymentOption and e.customer <> :customerId"
+                expressionParams2:
+                    email: value
+                    paymentOption: object.getPayment().getCode()
+                    customerId: object.getCustomer().getId()
+                errorPath: email
+                message: "Email is already used."
+                groups: ['withUniqueEmail']
+        transactionPassword:
+            - NotNull:
+                message: "Transaction password should not be empty"
+                groups: [withdraw, p2p]
+            - ApiBundle\Validator\TransactionPasswordConstraint:
+                groups: [withdraw, p2p]
+        file:
+            - File:
+                maxSize: 2M
+                mimeTypes: ['image/png', 'image/jpeg', 'image/jpg']
+                mimeTypesMessage: 'Please upload a valid file.'
+                groups: ['deposit']
+
+ApiBundle\Model\SubTransaction:
+    properties:
+        product:
+            - NotNull:
+                message: "Product cannot be empty."
+            - Type:
+                type: DbBundle\Entity\CustomerProduct
+                message: "Invalid Product"
+            - AppBundle\Validator\Constraints\Exists:
+                entityClass: DbBundle\Entity\CustomerProduct
+                valuePath: value.getId()
+                column: id
+                expression: "AND e.customer = :customer"
+                expressionParams:
+                    customer: root.getCustomer().getId()
+                groups: [withdraw, deposit, transfer]
+                ignoreNull: true
+            - Expression:
+                expression: "value !== null && value.getCustomer().getId() == this.getTransaction().getCustomer().getId()"
+                message: "You can only tranfer to your own product"
+                groups: [transfer]
+            - ApiBundle\Validator\SameProductConstraint:
+                groups: [p2p]
+        username:
+            - Expression:
+                expression: "this.getProduct().getCustomer().getId() != this.getTransaction().getCustomer().getId()"
+                message: "You can't transfer to your own product"
+                groups: [p2p]
+        amount:
+            - NotNull:
+                message: "Amount cannot be empty."
+            - NotEqualTo:
+                value: 0
+                message: "Amount should not be 0."
+                groups: [deposit]
+            - Expression:
+                expression: "(this.getAmount() >= 10  && this.getAmount() <= 999999) || this.isPaymentBitcoin()"
+                message: "Amount should be greater than equals 10 but less than 999999"
+                groups: [withdraw, deposit]
+            - Expression:
+                expression: "this.getAmount() > 0 && this.getAmount() <= 999999"
+                message: "Amount should be greater 0 and less than 999999"
+                groups: [p2p, transfer]
+        forFee:
+            - NotNull:
+                groups: [withdraw]
+            - Type:
+                type: bool
+                groups: [withdraw]
+ApiBundle\Model\Transfer:
+    properties:
+        from:
+            - Type:
+                type: DbBundle\Entity\CustomerProduct
+                message: "Invalid From"
+            - AppBundle\Validator\Constraints\Exists:
+                entityClass: DbBundle\Entity\CustomerProduct
+                valuePath: value.getId()
+                column: id
+                expression: "AND e.customer = :customer"
+                expressionParams:
+                    customer: object.getCustomer().getId()
+                ignoreNull: true
+            - NotNull:
+                message: "Product should not be empty"
+            #- Expression:
+            #    expression: "value !== null && this.getTotalAmount() <= value.getBalance()"
+            #    message: "Not enough balance"
+            - Expression:
+                expression: "not this.isMultipleToCustomer()"
+                message: "Unable to transfer to mulitple customer"
+                groups: [p2p]
+        to:
+            - Count:
+                min: 1
+                minMessage: "Invalid product(s). Please make sure that usernames and codes are correct."
+            - ApiBundle\Validator\SameProductConstraint:
+                groups: [p2p]
+            - ApiBundle\Validator\SameCurrencyConstraint:
+                groups: [p2p]
+
+        transactionPassword:
+            - NotNull:
+                message: "Transaction password should not be empty"
+                groups: [withdraw, p2p]
+            - ApiBundle\Validator\TransactionPasswordConstraint:
+                groups: [withdraw, p2p]
+
+ApiBundle\Model\AccountActivation:
+    properties:
+        password:
+            - NotBlank:
+                message: "Password is required."
+            - Regex:
+                pattern: '/(?=^.{8,}$)(?=(.*[0-9]){2,})(?=(.*[A-Za-z]){2,})(?=(.*[+\-\/\{~\}!"^_`\[\]:$!@#%^&*\?]){2,})/'
+                match: true
+                message: "Password is invalid. Must be at least 8 characters, contain at least 2 letters, 2 digits and 2 symbols."
+        username:
+            - AppBundle\Validator\Constraints\Unique:
+                  entityClass: DbBundle\Entity\User
+                  select: " e.username "
+                  expression: " e.username = :value0 "
+                  requiredKey: [username]
+            - NotBlank:
+                message: "Username is required."
+            - Regex:
+                pattern: '/^[A-Za-z0-9\_\-\@\.]*$/u'
+                match: true
+                message: "Username is invalid. Must contain letters, numbers, email format and underscore only."
+            - Length:
+                min: 3
+                max: 50
+                minMessage: "Username should be at least 6 characters."
+                maxMessage: "Username should not exceed 50 characters."
+        transactionPassword:
+            - NotBlank:
+                message: "Transaction password is required."
+            - Regex:
+                pattern: '/(^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$)/'
+                match: true
+                message: "Transaction password is alphanumeric and should have at least 1 capital letter."
+            - Length:
+                min: 6
+                max: 50
+                minMessage: "Transaction password should be at least 6 characters."
+                maxMessage: "Transaction password should not exceed 50 characters."
+
+ApiBundle\Model\Register:
+    constraints:
+        - AppBundle\Validator\Constraints\Unique:
+            entityClass: DbBundle\Entity\User
+            joins:
+              uc: e.customer
+              ucc: uc.country
+            expression: "e.phoneNumber = :phoneNumber AND ucc.phoneCode = :phoneCode"
+            expressionParams:
+              phoneNumber: object.getPhoneNumber()
+              phoneCode: object.getCountryPhoneCode()
+            validator: composite_unique
+            errorPath: username
+            violationValues:
+              --phoneNumber: object.getPhoneNumber()
+              --phoneCode: object.getCountryPhoneCode()
+            message: "User with --phoneNumber and country phone code --phoneCode is already exists."
+    properties:
+        email:
+#            - NotBlank: ~
+            - Email: ~
+            - AppBundle\Validator\Constraints\Unique:
+                entityClass: DbBundle\Entity\User
+                select: " e.email "
+                expression: " e.email = :value0 "
+                requiredKey: [email]
+        firstName:
+            - NotBlank: ~
+            - Regex:
+                pattern: /^[a-zA-Z0-9 .\-']+$/
+                match:   true
+                message: First name is invalid.
+        middleInitial:
+            - Regex:
+                pattern: '/^[a-zA-Z]+$/'
+                match:   true
+                message: Middle initial is invalid.
+        lastName:
+            - NotBlank: ~
+            - Regex:
+                pattern: /^[a-zA-Z0-9 .\-']+$/
+                match:   true
+                message: Last name is invalid.
+        birthDate:
+            - NotBlank: ~
+            - Type:
+                type: \DateTime
+            - Date: ~
+            - GreaterThanOrEqual:
+                value: -100 years
+                message: Birth date is Invalid, you must below 100 years old to join!
+            - LessThanOrEqual:
+                value: -18 years
+                message: You must be at least 18+ years old to join!
+        country:
+            - NotBlank: ~
+            - Regex:
+                pattern: '/[A-Z]{2,}/'
+                match:   true
+                message: Country code must have two or more capital character.
+            - AppBundle\Validator\Constraints\Exists:
+                entityClass: DbBundle\Entity\Country
+                valuePath: value
+                column: code         
+        currency:
+            - NotBlank: ~
+            - Regex:
+                pattern: '/[A-Z]{2,}/'
+                match:   true
+                message: Currency code must have two or more capital character.
+            - AppBundle\Validator\Constraints\Exists:
+                entityClass: DbBundle\Entity\Currency
+                valuePath: value
+                column: code
+        depositMethod:
+            - NotBlank: ~
+            - Regex:
+                pattern: '/[A-Z]{2,}/'
+                match:   true
+                message: Deposit method code must have two or more capital character.
+            - AppBundle\Validator\Constraints\Exists:
+                entityClass: DbBundle\Entity\PaymentOption
+                valuePath: value
+                column: code
+        contact:
+            - NotBlank: ~
+            - Regex:
+                pattern: '/^\(?\+?(\d{3,6})\)?[-\. ]?(\d{3,7})[-\. ]?(\d{1,7})$/'
+                match:   true
+                message: Contact number is invalid.
+        affiliate:
+            - Regex:
+                pattern: '/^[\w\._\-]+$/'
+                match:   true
+                message: Affiliate name is invalid 
+        promo:
+            - Regex:
+                pattern: '/^[\w\._\-]+$/'
+                match:   true
+                message: Promo code is invalid 
+        bookies:
+            #- Count:
+            #    min: 1
+            #    minMessage: "You must add one bookie"
+            #- AppBundle\Validator\Constraints\Unique:
+            #    entityClass: DbBundle\Entity\CustomerProduct
+            #    isJoinTable: true
+            #    entityClass2: DbBundle\Entity\Product
+            #    select: " e.userName, e2.code "
+            #    expression: "e.productID = e2.id AND e.userName IN (:value0) AND e2.code in (:value1) "
+            #    requiredKey: [userName, code]
+                
+ApiBundle\Model\Bookie:
+    constraints:
+        - AppBundle\Validator\Constraints\Unique:
+            entityClass: DbBundle\Entity\CustomerProduct
+            joins:
+                p: e.product
+            expression: "p.code = :code AND e.userName = :username"
+            expressionParams:
+                code: object.getCode()
+                username: object.getUsername()
+            validator: composite_unique
+            errorPath: username
+            violationValues:
+                --code: object.getCode()
+                --username: object.getUsername()
+            message: "Product code --code and username --username, already un used."
+    properties:
+        code:
+            - NotBlank: ~
+            - AppBundle\Validator\Constraints\Exists:
+                entityClass: DbBundle\Entity\Product
+                valuePath: value
+                column: code
+
+ApiBundle\Model\Security:
+    properties:
+        hasChangeUsername:
+            - Type:
+                type: bool
+        username:
+            - AppBundle\Validator\Constraints\Unique:
+                  entityClass: DbBundle\Entity\User
+                  select: " e.username "
+                  expression: " e.username = :value0 "
+                  requiredKey: [username]
+                  groups: [username]
+            - NotBlank:
+                message: "Username is required."
+                groups: [username]
+            - Regex:
+                pattern: '/^[A-Za-z0-9\_\-\@\.]*$/u'
+                match: true
+                message: "Username is invalid. Must contain letters, numbers, email format, and underscore only."
+                groups: [username]
+        hasChangePassword:
+            - Type:
+                type: bool
+        password:
+            - NotBlank:
+                message: "Password is required."
+                groups: [password]
+            - Regex:
+                pattern: '/(?=^.{8,}$)(?=(.*[0-9]){2,})(?=(.*[A-Za-z]){2,})(?=(.*[+\-\/\{~\}!"^_`\[\]:$!@#%^&*\?]){2,})/'
+                match: true
+                message: "Password is invalid. Must be at least 8 characters, contain at least 2 letters, 2 digits and 2 symbols."
+                groups: [password]
+        hasChangeTransactionPassword:
+            - Type:
+                type: bool
+        transactionPassword:
+            - NotBlank:
+                message: "Transaction password is required."
+                groups: [transactionPassword]
+            - Regex:
+                pattern: '/(^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$)/'
+                match: true
+                message: "Transaction password is alphanumeric and should have at least 1 capital letter."
+                groups: [transactionPassword]
+            - Length:
+                minMessage: "Transaction password should be at least 6 characters."
+                min: 6
+                groups: [transactionPassword]
+        currentPassword:
+            - NotBlank:
+                message: "Current password is required."
+            - Symfony\Component\Security\Core\Validator\Constraints\UserPassword:
+                message: "Wrong value for your current password."
+
+ApiBundle\Model\RequestResetPassword:
+    properties:
+        email:
+            - NotBlank:
+                message: "Email is required."
+            - AppBundle\Validator\Constraints\Exists:
+                entityClass: DbBundle\Entity\User
+                valuePath: value
+                column: email
+                message: "Email does not exist. Please contact customer support for assistance."
+                expression: "AND e.type = :type AND e.activationTimestamp IS NOT NULL"
+                expressionParams:
+                    type: 1
+            - Email:
+                message: "Email is invalid."
+
+ApiBundle\Model\ResetPassword:
+    properties:
+        password:
+            - NotBlank:
+                message: "Password is required."
+            - Regex:
+                pattern: '/(?=^.{8,}$)(?=(.*[0-9]){2,})(?=(.*[A-Za-z]){2,})(?=(.*[+\-\/\{~\}!"^_`\[\]:$!@#%^&*\?]){2,})/'
+                match: true
+                message: "Password is invalid. Must be at least 8 characters, contain at least 2 letters, 2 digits and 2 symbols."
+
+# Registration V2
+ApiBundle\Model\RegisterV2\Register:
+    properties:
+        email:
+            - NotBlank:
+                message: "Email is required."
+            - Email:
+                message: "Email is invalid."
+            - AppBundle\Validator\Constraints\Unique:
+                entityClass: DbBundle\Entity\User
+                select: " e.email "
+                expression: " e.email = :value0 "
+                requiredKey: [email]
+                message: "Email is already used."
+        fullName:
+            - NotBlank:
+                message: "Full name is required."
+            - Regex:
+                pattern: /^[a-zA-Z0-9 .\-']+$/
+                match:   true
+                message: "Full name is invalid."
+        birthDate:
+            - Date:
+                message: "Birth date is invalid."
+            - GreaterThanOrEqual:
+                value: -100 years
+                message: "Birth date is invalid, you must be below 100 years old to join!"
+            - LessThanOrEqual:
+                value: -18 years
+                message: "You must be at least 18+ years old to join!"
+        country:
+            - NotBlank:
+                message: "Country is required."
+        currency:
+            - NotBlank:
+                message: "Currency is required."
+        contacts:
+            - Collection:
+                fields:
+                    mobile:
+                        - NotBlank:
+                            groups: ['member_only']
+                            message: "Contact number is required."
+                        - Regex:
+                            groups: ['member_only']
+                            pattern: '/^\(?\+?(\d{3,6})\)?[-\. ]?(\d{3,7})[-\. ]?(\d{1,7})$/'
+                            match:   true
+                            message: "Contact number is invalid."
+        socials:
+            - Collection:
+                allowMissingFields: true
+                fields:
+                    skype:
+                        - Regex:
+                            pattern: '/^[a-z][a-z0-9\.,\-_]{5,31}$/i'
+                            match: true
+                            message: "Skype username is invalid."
+        affiliate:
+            - Collection:
+                allowMissingFields: true
+                fields:
+                    code:
+                        - Regex:
+                            pattern: '/^\S{4,20}$/'
+                            match: true
+                            message: "Affiliate code must be between 4-20 characters and does not contain space."
+                    promo:
+                        - Regex:
+                            pattern: '/^[\w\._\-]+$/'
+                            match:   true
+                            message: "Promo code is invalid."
+        bookies:
+            - Count:
+                min: 1
+                minMessage: "At least one bookie is required."
+                groups: ['member_only']
+        tag:
+            - NotBlank:
+                message: "Tag is required."
+        websiteUrl:
+            - Regex:
+                pattern: ~^((?:https?:\/\/)?[^./]+(?:\.[^./]+)+(?:\/.*)?)$~ixu
+                match: true
+                message: "Website url is invalid."
+            - AppBundle\Validator\Constraints\Unique:
+                entityClass: DbBundle\Entity\MemberWebsite
+                select: " e.website "
+                expression: " e.website = :value0 "
+                requiredKey: [website]
+                message: "Website is already used."
+        preferredReferralName:
+            - Regex:
+                pattern: '/^([a-zA-Z 0-9])+$/'
+                match: true
+                message: "Referral Name is invalid. It should be alpha numeric."
+            - AppBundle\Validator\Constraints\Unique:
+                entityClass: DbBundle\Entity\MemberReferralName
+                select: " e.name "
+                expression: " e.name = :value0 "
+                requiredKey: [name]
+                message: "Referral Name is already used."
+        preferredPaymentGateway:
+            - Regex:
+                pattern: '/^([a-zA-Z 0-9])+$/'
+                match: true
+                message: "Payment Gateway is invalid. It should be alpha numeric."
+
+ApiBundle\Model\RegisterV2\Bookie:
+    constraints:
+        - AppBundle\Validator\Constraints\Unique:
+            entityClass: DbBundle\Entity\CustomerProduct
+            joins:
+                p: e.product
+            expression: "p.code = :code AND e.userName = :username"
+            expressionParams:
+                code: object.getProduct().getCode()
+                username: object.getUsername()
+            validator: composite_unique
+            errorPath: username
+            violationValues:
+                --code: object.getProduct().getCode()
+                --username: object.getUsername()
+            message: "Product code --code and username --username is already used."
+    properties:
+        product:
+            - NotBlank:
+                message: "Bookie code is required."
+        username:
+            - Regex:
+                pattern: '/^([a-zA-Z 0-9])+$/'
+                match: true
+                message: "Username is invalid."
+
+ApiBundle\Request\CreateMemberBannerRequest:
+    properties:
+        website:
+            - Regex:
+                pattern: ~^((?:https?:\/\/)?[^./]+(?:\.[^./]+)+(?:\/.*)?)$~ixu
+                match: true
+                message: "Website url is invalid."
+        type:
+            - NotBlank:
+                message: "Type is required."
+            - Choice:
+                choices: [promotion, advertisement]
+                message: "Type is invalid."
+        language:
+            - NotBlank:
+                message: "Language is required."
+            - Choice:
+                choices: [EN, FR, DE, ES, AO]
+                message: "Language is invalid."
+        size:
+            - NotBlank:
+                message: "Size is required."
+        campaignName:
+            - AppBundle\Validator\Constraints\Unique:
+                entityClass: DbBundle\Entity\MemberBanner
+                select: " e.campaignName "
+                expression: " e.campaignName = :value0 "
+                requiredKey: [campaignName]
+                message: "Campaign name is already used."
+            - NotBlank:
+                message: "Campaign name is required."
+            - Regex:
+                pattern: '/^[A-Za-z0-9-]+$/'
+                match: true
+                message: "Campaign name should only contain letters and hyphen."
+        trackingCode:
+            - NotBlank:
+                message: "Tracking code is required."
+            - Regex:
+                pattern: '/^\S{4,20}$/'
+                match: true
+                message: "Tracking code must be between 4-20 characters and does not contain space."
+
+ApiBundle\Model\Bitcoin\BitcoinPayment:
+    constraints:
+        # - Callback: [ApiBundle\Validator\Bitcoin\BitcoinValidatorCallback, validateConvertedAmount]
+        - ApiBundle\Validator\Bitcoin\BitcoinTransactionConstraint: ~
+    getters:
+        blockchainRate:
+            - NotBlank: ~
+            - NotEqualTo:
+                value: 0
+            - Regex:
+                pattern: '/^[0-9]+(\.[0-9]{1,})?$/'
+                match: true
+        rate:
+            - NotEqualTo:
+                value: 0
+            - Regex:
+                pattern: '/^[0-9]+(\.[0-9]{1,})?$/'
+                match: true
+            - Callback: [ApiBundle\Validator\Bitcoin\BitcoinValidatorCallback, validateRate]
+        rateDetails:
+            - NotNull: ~
+            - Valid: ~
+            
+ApiBundle\Model\Bitcoin\BitcoinRateDetail:
+    constraints:
+        - Callback: [ApiBundle\Validator\Bitcoin\BitcoinValidatorCallback, validateRangeAmount]
+    getters:
+        rangeStart:
+            - NotBlank: ~
+            - Regex:
+                pattern: '/^[0-9]+(\.[0-9]{1,})?$/'
+                match: true
+        rangeEnd:
+            - NotBlank: ~
+            - Regex:
+                pattern: '/^[0-9]+(\.[0-9]{1,})?$/'
+                match: true
+        adjustment:
+            - NotBlank: ~
+            - Regex:
+                pattern: '/^[0-9]+(\.[0-9]{1,})?$/'
+                match: true
+        adjustmentType:
+            - NotBlank: ~
+            
+ApiBundle\Model\Bitcoin\BitcoinSubTransactionDetail:
+    getters:
+        bitcoin:
+            - NotBlank: ~
+            - NotEqualTo:
+                value: 0
+            - Regex:
+                pattern: '/^[0-9]+(\.[0-9]{1,})?$/'
+                match: true
+
+ApiBundle\Request\CreateMemberProductRequest\MemberProductList:
+    constraints:
+        - ApiBundle\Validator\Constraints\UniqueMemberProduct: ~
+    properties:
+        memberProducts:
+            - Count:
+                min: 1
+                minMessage: "At least one product is required."
+
+ApiBundle\Request\CreateMemberProductRequest\MemberProduct:
+    constraints:
+        - AppBundle\Validator\Constraints\Unique:
+            entityClass: DbBundle\Entity\CustomerProduct
+            joins:
+                p: e.product
+            expression: "p.code = :code AND e.userName = :username"
+            expressionParams:
+                code: object.getProduct()
+                username: object.getUsername()
+            validator: composite_unique
+            errorPath: username
+            violationValues:
+                --code: object.getProduct()
+                --username: object.getUsername()
+            message: "Product code --code and username --username is already used."
+    properties:
+        product:
+            - NotBlank:
+                message: "Product is required."
+            - AppBundle\Validator\Constraints\Exists:
+                entityClass: DbBundle\Entity\Product
+                valuePath: value
+                column: code
+                message: "Product does not exist."
+        username:
+            - Regex:
+                pattern: '/^([a-zA-Z 0-9])+$/'
+                match: true
+                message: "Username is invalid."

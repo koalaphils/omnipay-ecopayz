@@ -64,6 +64,7 @@ class TransactionController extends AbstractController
      *     section="Transaction",
      *     views={"piwi"},
      *     requirements={
+     *         {"name"="verification_code", "dataType"="string"},
      *         {"name"="payment_option_type", "dataType"="string"},
      *         {"name"="products[0][username]", "dataType"="string"},
      *         {"name"="products[0][product_code]", "dataType"="string"},
@@ -80,7 +81,9 @@ class TransactionController extends AbstractController
      */
     public function withdrawAction(Request $request, WithdrawHandler $withdrawHandler, ValidatorInterface $validator): View
     {
+        $member = $this->getUser()->getCustomer();
         $withdrawRequest = WithdrawRequest::createFromRequest($request);
+        $withdrawRequest->setMember($member);
         $violations = $validator->validate($withdrawRequest, null);
         if ($violations->count() > 0) {
             return $this->view($violations);
