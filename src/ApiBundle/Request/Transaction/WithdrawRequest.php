@@ -5,7 +5,6 @@ declare(strict_types = 1);
 namespace ApiBundle\Request\Transaction;
 
 use ApiBundle\Request\Transaction\Meta\Meta;
-use AppBundle\ValueObject\Number;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\User;
 use Symfony\Component\HttpFoundation\Request;
