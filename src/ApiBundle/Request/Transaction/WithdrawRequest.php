@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace ApiBundle\Request\Transaction;
 
 use ApiBundle\Request\Transaction\Meta\Meta;
+use AppBundle\ValueObject\Number;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\User;
 use Symfony\Component\HttpFoundation\Request;
@@ -94,7 +95,7 @@ class WithdrawRequest implements GroupSequenceProviderInterface
 
     public function getMemberId(): int
     {
-        return $this->member->getId();
+        return (int)$this->member->getId();
     }
 
     public function setMember(Customer $member): void
