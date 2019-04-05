@@ -155,12 +155,21 @@ $(function () {
             'columns': [
                 {
                     'data': '0.full_name',
+                    'render': function (data, type, full) {
+                        if (data === '') {
+                            return full[0].user.username;
+                        }
+
+                        return data;
+                    }
                 },
                 {
-                    'data': '0.country.name'
+                    'data': '0.country.name',
+                    'defaultContent': ''
                 },
                 {
                     'data': '0.currency.name',
+                    'defaultContent': ''
                 },
                 {
                     'data': '0.verified_at',

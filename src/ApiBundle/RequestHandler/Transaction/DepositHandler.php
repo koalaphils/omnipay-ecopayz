@@ -91,7 +91,6 @@ class DepositHandler
             $transaction->setFee('customer_fee', 0);
             $transaction->setFee('company_fee', 0);
             $transaction->setDetail('email', $email);
-            $transaction->setEmail($email);
             foreach ($depositRequest->getMeta()->getPaymentDetailsAsArray() as $key => $value) {
                 $transaction->setDetail($key, $value);
             }

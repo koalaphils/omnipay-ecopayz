@@ -90,7 +90,6 @@ class WithdrawHandler
             $transaction->setFee('customer_fee', 0);
             $transaction->setFee('company_fee', 0);
             $transaction->setDetail('email', $email);
-            $transaction->setEmail($email);
             foreach ($withdrawRequest->getMeta()->getPaymentDetailsAsArray() as $key => $value) {
                 $transaction->setDetail($key, $value);
             }

@@ -152,7 +152,14 @@ $(function () {
                         'data': 'number'
                     },
                     {
-                        'data': 'customer.full_name'
+                        'data': 'customer.full_name',
+                        'render': function (data, type, full) {
+                            if (data == '') {
+                                return full.customer.user.username;
+                            }
+
+                            return data;
+                        }
                     },
                     {
                         'data': 'amount',

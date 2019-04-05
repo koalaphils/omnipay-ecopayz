@@ -188,7 +188,10 @@ DbBundle\Entity\Transaction:
         # zimi
         email:
             type: string
-            length: 255
+            nullable: true
+            options:
+                generate: transaction_other_details->>"$.email"
+                readOnly: true
             column: transaction_email
         customerID:
             type: bigint

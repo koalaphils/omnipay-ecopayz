@@ -7,22 +7,47 @@
 
 namespace CustomerBundle\Manager;
 
-use AppBundle\Manager\AbstractManager;
 use DbBundle\Entity\CustomerProduct;
+use DbBundle\Repository\CustomerProductRepository;
+use PinnacleBundle\Service\PinnacleService;
+use Symfony\Component\Routing\RouterInterface;
 
-class CustomerProductManager extends AbstractManager
+class CustomerProductManager
 {
+    /**
+     * @var PinnacleService
+     */
+    private $pinnacleService;
+
+    /**
+     * @var CustomerProductRepository
+     */
+    private $memberProductRepository;
+
+    /**
+     * @var RouterInterface
+     */
+    private $router;
+
+    public function __construct(PinnacleService $pinnacleService, CustomerProductRepository $memberProductRepository, RouterInterface $router)
+    {
+        $this->pinnacleService = $pinnacleService;
+        $this->memberProductRepository = $memberProductRepository;
+        $this->router = $router;
+    }
+
     /**
      * @return \DbBundle\Repository\CustomerProductRepository
      */
     public function getRepository()
     {
-        return $this->getDoctrine()->getRepository('DbBundle:CustomerProduct');
+        return $this->memberProductRepository;
     }
 
     public function getCustomerProductList($filters = null, bool $isSelect = false)
     {
         $status = true;
+        $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
         $results = [];
 
         if (array_get($filters, 'datatable', 0)) {
@@ -30,7 +55,6 @@ class CustomerProductManager extends AbstractManager
                 $filters['search'] = $filters['search']['value'];
             }
             $results['data'] = $this->getRepository()->getCustomerProductList($filters);
-
             if (array_get($filters, 'route', 0)) {
                 $results['data'] = array_map(function ($data) {
                     $data['customerProduct'] = $data;
@@ -43,16 +67,6 @@ class CustomerProductManager extends AbstractManager
                 }, $results['data']);
             }
 
-            // Get Balance from BA
-            $brokerageManger = $this->get('brokerage.brokerage_manager');
-            foreach ($results['data'] as &$datum) {
-                if (isset($datum['details']['brokerage']['sync_id'])) {
-                    $syncId = $datum['details']['brokerage']['sync_id'];
-                    $balance = $brokerageManger->getCustomerBalance($syncId);
-                    $datum['ba_balance'] = $balance;
-                }
-            }
-
             $results['draw'] = $filters['draw'];
             $results['recordsFiltered'] = $this->getRepository()->getCustomerProductListFilterCount($filters);
             $results['recordsTotal'] = $this->getRepository()->getCustomerProductListAllCount();
@@ -63,6 +77,20 @@ class CustomerProductManager extends AbstractManager
             } else {
                 $results = $this->getRepository()->getCustomerProductList($filters);
             }
+            $results = array_map(function ($record) use($pinnacleProduct) {
+                if ($pinnacleProduct->getId() == $record['id']) {
+                    try {
+                        $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->getPlayer($record['userName']);
+                        $record['balance'] = $pinnaclePlayer->availableBalance();
+                    } catch (PinnacleException $exception) {
+                        $record['balance'] = "Unable to fetch balance";
+                    } catch (PinnacleError $exception) {
+                        $record['balance'] = "Unable to fetch balance";
+                    }
+                }
+
+                return $record;
+            }, $results);
         }
 
         return $results;
@@ -117,4 +145,8 @@ class CustomerProductManager extends AbstractManager
         return true;
     }
 
+    private function getRouter(): RouterInterface
+    {
+        return $this->router;
+    }
 }
