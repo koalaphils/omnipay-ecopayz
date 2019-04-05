@@ -59,7 +59,6 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
     private function processSubtransactions(Collection $subTransactions, bool $voided = false): void
     {
         $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
-        dump($subTransactions);
         foreach ($subTransactions as $subTransaction) {
             $memberProduct = $subTransaction->getCustomerProduct();
             $subTransactionAmount = Number::round($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()), 2, Number::ROUND_DOWN);
