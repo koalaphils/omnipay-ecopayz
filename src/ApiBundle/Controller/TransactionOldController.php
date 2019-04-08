@@ -56,7 +56,7 @@ class TransactionOldController extends AbstractController
             $tran['amount'] = number_format((float)$t->getAmount(), 2, '.', '');
 
             // DateTime
-            $tran['date'] = $t->getDate()->format('m/d/Y');
+            $tran['date'] = $t->getDate()->format('c');
             $tran['currency'] = $t->getCurrency()->getCode();
 
             $trans[] = $tran;
