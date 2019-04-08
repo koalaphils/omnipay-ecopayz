@@ -75,7 +75,7 @@ DbBundle\Entity\Customer:
             serialized_name: currency
             type: string
         country_code:
-            exp: object.getCountry().getCode()
+            exp: 'object.getCountry() == null ? "" : object.getCountry().getCode()'
             groups: ['transaction_exp']
             serialized_name: country
             type: string
@@ -103,8 +103,8 @@ DbBundle\Entity\Customer:
             type: array
             groups: [preferences]
             serialized_name: preferences
-        brokerageSyncId:
-            exp: object.getBrokerageProductSyncId()
-            expose: true
-            type: integer
-            serialized_name: brokerage_sync_id
+#        brokerageSyncId:
+#            exp: object.getBrokerageProductSyncId()
+#            expose: true
+#            type: integer
+#            serialized_name: brokerage_sync_id

@@ -250,7 +250,7 @@ class TransactionType extends AbstractType
                 },
                 function ($data) {
                     if ($data && !($data instanceof \DbBundle\Entity\Gateway)) {
-                        return $this->getGatewayRepository()->find($data, LockMode::PESSIMISTIC_WRITE);
+                        return $this->getGatewayRepository()->find($data);
                     }
 
                     return null;

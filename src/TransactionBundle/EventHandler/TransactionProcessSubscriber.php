@@ -2,6 +2,7 @@
 
 namespace TransactionBundle\EventHandler;
 
+use DbBundle\Entity\Transaction;
 use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use TransactionBundle\Event\TransactionProcessEvent;
@@ -35,7 +36,7 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
     }
 
     public function onTransactionSaving(TransactionProcessEvent $event)
-    {        
+    {
         $transaction = $event->getTransaction();
         $action = $event->getAction();
         if ($transaction->isNew() && !$event->fromCustomer()) {
@@ -72,17 +73,30 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
             } else {
                 throw new TransitionGuardException('Unable to transition the transaction');
             }
+
+            $transactionDate = new \DateTime('now');
+            $transactionDate->setTimezone(new \DateTimeZone('UTC'));
+            $transaction->setDate($transactionDate);
+            $transaction->setDetail('transaction_dates.' . $transaction->getStatus(), $transactionDate->format('c'));
         } else {            
             if ($this->getTransactionWorkflow()->can($transaction, 'void')) {
                 $this->getTransactionWorkflow()->apply($transaction, 'void');
+                $transactionDate = new \DateTime('now');
+                $transactionDate->setTimezone(new \DateTimeZone('UTC'));
+                $transaction->setDate($transactionDate);
+                $transaction->setDetail('transaction_dates.void', $transactionDate->format('c'));
             } else {
                 throw new TransitionGuardException('Unable to void the transaction');
             }
         }
+
+
+
     }
 
     public function onTransitionEntered(WorkflowEvent $event)
     {
+        /* @var $transaction Transaction */
         $transaction = $event->getSubject();
         $newStatus = $this->getStatus($transaction->getStatus());
         if ($event->getTransition()->getName() === 'void') {

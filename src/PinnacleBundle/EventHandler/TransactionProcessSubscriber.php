@@ -45,20 +45,22 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
         /* @var $transaction Transaction */
         $transaction = $event->getSubject();
         if ($event->getTransition()->getName() === 'void') {
-            $this->processSubtransactions($transaction->getSubTransactions(), true);
+            $this->processSubtransactions($transaction, true);
         } elseif ($transaction->isDeposit() && $transaction->getStatus() == $this->settingManager->getSetting('pinnacle.transaction.deposit.status')) {
-            $this->processSubtransactions($transaction->getSubTransactions());
+            $this->processSubtransactions($transaction);
         } elseif ($transaction->isWithdrawal() && $transaction->getStatus() == $this->settingManager->getSetting('pinnacle.transaction.withdraw.status')) {
-            $this->processSubtransactions($transaction->getSubTransactions());
+            $this->processSubtransactions($transaction);
         }
     }
 
     /**
      * @param SubTransaction[] $subTransactions
      */
-    private function processSubtransactions(Collection $subTransactions, bool $voided = false): void
+    private function processSubtransactions(Transaction $transaction, bool $voided = false): void
     {
         $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
+
+        $subTransactions = $transaction->getSubTransactions();
         foreach ($subTransactions as $subTransaction) {
             $memberProduct = $subTransaction->getCustomerProduct();
             $subTransactionAmount = Number::round($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()), 2, Number::ROUND_DOWN);
