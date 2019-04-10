@@ -11,8 +11,8 @@
         }
     });
 
-    var triggerNotification = function(args, notificationType, alertType, playSoundAlert = playDefaultSoundAlert) {
-        var details = JSON.parse(args[0]);
+    var triggerNotification = function(args, notificationType, alertType, playSoundAlert) {
+        var details = args[0];
         var title = details.title;
         var message = details.message + ' Please proceed to pending tab to view.';
         var url = Global.dummyTransactionUrl.replace('/__type__', '/'+ details.otherDetails.type).replace('/__id__', '/'+ details.otherDetails.id);
@@ -60,28 +60,12 @@
             loginSubscription(session);
         }
 
-        session.subscribe(topics.memberCreated, function(args) {
-          triggerNotification(args, 'registration', 'info', playMemberCreationSoundAlert);
+        session.subscribe('member.registered', function (args) {
+            triggerNotification(args, 'registration', 'success', playMemberCreationSoundAlert);
         });
 
-        session.subscribe(topics.productRequested, function(args) {
-            triggerNotification(args, 'requestProduct', 'success');
-        });
-
-        session.subscribe('ms.topic.transaction_deposit', function(args) {
-            triggerNotification(args, 'transaction', 'success');
-        });
-
-        session.subscribe('ms.topic.transaction_withdrawal', function(args) {
-            triggerNotification(args, 'transaction', 'success');
-        });
-
-        session.subscribe('ms.topic.transaction_transfer', function(args) {
-            triggerNotification(args, 'transaction', 'success');
-        });
-
-        session.subscribe('ms.topic.transaction_p2p_transfer', function(args) {
-            triggerNotification(args, 'transaction', 'success');
+        session.subscribe('transaction.created', function (args) {
+            triggerNotification(args, 'transaction', 'success', playDefaultSoundAlert);
         });
 
         if (typeof btcExchangeRateSubscription === "function") {

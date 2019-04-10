@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace ApiBundle\RequestHandler;
 
 use ApiBundle\Request\RegisterRequest;
+use AppBundle\Helper\Publisher;
 use AppBundle\Manager\SettingManager;
 use DbBundle\Entity\Customer as Member;
 use DbBundle\Entity\CustomerProduct as MemberProduct;
@@ -68,6 +69,11 @@ class RegisterHandler
      */
     private $twoFactorCodeRepository;
 
+    /**
+     * @var Publisher
+     */
+    private $publisher;
+
     public function __construct(
         PinnacleService $pinnacleService,
         UserManager $userManager,
@@ -77,7 +83,8 @@ class RegisterHandler
         SettingManager $settingManager,
         EntityManager $entityManager,
         StorageInterface $codeStorage,
-        TwoFactorCodeRepository $twoFactorCodeRepository
+        TwoFactorCodeRepository $twoFactorCodeRepository,
+        Publisher $publisher
     ) {
         $this->pinnacleService = $pinnacleService;
         $this->userManager = $userManager;
@@ -88,6 +95,7 @@ class RegisterHandler
         $this->entityManager = $entityManager;
         $this->codeStorage = $codeStorage;
         $this->twoFactorCodeRepository = $twoFactorCodeRepository;
+        $this->publisher = $publisher;
     }
 
     public function handle(RegisterRequest $registerRequest): Member
@@ -100,6 +108,19 @@ class RegisterHandler
             $this->entityManager->flush($member);
 
             $this->entityManager->commit();
+
+            try {
+                $this->publisher->publishUsingWamp('member.registered', [
+                    'message' => $member->getUser()->getUsername() . ' was registered',
+                    'title' => 'New Member',
+                    'otherDetails' => [
+                        'id' => $member->getId(),
+                        'type' => 'profile'
+                    ]
+                ]);
+            } catch (\Exception $exception) {
+                // Do nothing
+            }
         } catch (\PDOException $ex) {
             $this->entityManager->rollback();
             throw $ex;

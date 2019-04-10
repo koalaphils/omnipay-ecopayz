@@ -2,6 +2,7 @@
 
 namespace ApiBundle\Subscriber;
 
+use AppBundle\Helper\Publisher;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use ApiBundle\Event\TransactionCreatedEvent;
 
@@ -12,7 +13,16 @@ use ApiBundle\Event\TransactionCreatedEvent;
  */
 class TransactionSubscriber implements EventSubscriberInterface
 {
-    
+    /**
+     * @var Publisher
+     */
+    private $publisher;
+
+    public function __construct(Publisher $publisher)
+    {
+        $this->publisher = $publisher;
+    }
+
     public static function getSubscribedEvents(): array
     {
         return [
@@ -22,5 +32,14 @@ class TransactionSubscriber implements EventSubscriberInterface
     
     public function onTransactionCreated(TransactionCreatedEvent $event)
     {
+        $transaction = $event->getTransaction();
+        $this->publisher->publishUsingWamp('transaction.created', [
+            'title' => 'Transaction Requested',
+            'message' => 'Transaction ' . $transaction->getNumber() . ' has been requested.',
+            'otherDetails' => [
+                'id' => $transaction->getId(),
+                'type' => strtolower($transaction->getTypeAsText()),
+            ],
+        ]);
     }
 }

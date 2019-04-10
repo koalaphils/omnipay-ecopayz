@@ -194,13 +194,17 @@ services:
 
     AppBundle\Manager\MailerManager: '@app.mailer_manager'
 
-    # helpers
-    app.publisher:
-        class: AppBundle\Helper\Publisher
-        arguments: ["%websocket.url%", "%websocket.realm%", "%jwt_key%"]
+    AppBundle\Helper\Publisher:
+        autoconfigure: true
+        autowire: true
+        arguments:
+            $websocketUrl: '%websocket.url%'
+            $websocketRealm: '%websocket.realm%'
+            $jwtKey: '%jwt_key%'
+            $kernelEnvironment: '%kernel.environment%'
         calls:
             - ['setWampUrl', ['%websocket.wamp%']]
-    AppBundle\Helper\Publisher: '@app.publisher'
+    app.publisher: '@AppBundle\Helper\Publisher'
 
     # form extension
     app.form.extension.model_transformer:

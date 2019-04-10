@@ -1,6 +1,7 @@
 FROM alpine:3.9 as base
 RUN apk add --update imagemagick \
     git \
+    curl \
     php7 \
     php7-cli \
     php7-curl \
