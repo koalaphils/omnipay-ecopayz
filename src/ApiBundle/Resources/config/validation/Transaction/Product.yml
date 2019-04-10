@@ -1,0 +1,25 @@
+ApiBundle\Request\Transaction\Product:
+  group_sequence_provider: true
+  getters:
+    username:
+      - NotBlank: ~
+      - AppBundle\Validator\Constraints\Exists:
+          entityClass: DbBundle\Entity\CustomerProduct
+          valuePath: value
+          column: userName
+          joinExpression: "INNER JOIN e.product p"
+          expression: "AND e.customer = :memberId AND p.code = :productCode"
+          expressionParams:
+            memberId: root.getMemberId()
+            productCode: object.getProductCode()
+          ignoreNull: false
+    amount:
+      - NotBlank: ~
+      - NotEqualTo:
+          value: 0
+          message: "Amount should not be 0."
+          groups: [afterBlank]
+      - Expression:
+          expression: "this.getAmount() >= 10  && this.getAmount() <= 999999"
+          message: "Amount should be greater than equals 10 but less than 999999"
+          groups: [afterBlank]

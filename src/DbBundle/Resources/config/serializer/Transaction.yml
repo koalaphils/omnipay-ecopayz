@@ -13,7 +13,7 @@ DbBundle\Entity\Transaction:
             expose: true
         date:
             expose: true
-            type: DateTime<'Y-m-d H:i:s'>
+            type: DateTime<'c'>
         status:
             expose: true
         isVoided:

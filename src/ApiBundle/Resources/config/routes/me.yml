@@ -1,0 +1,35 @@
+api_me_pinnacle_balance:
+  path: me/pinnacle/balance
+  defaults:
+    _controller: ApiBundle:Member:getPinnacleBalance
+  methods: [GET]
+
+api_me_process_payment_options:
+  path: me/processed-paymentoptions
+  defaults:
+    _controller: ApiBundle:PaymentOption:getMemberProcessPaymentOptions
+  methods: [POST, GET]
+
+api_me_transactions:
+  path: me/transactions
+  defaults:
+    _controller: ApiBundle:TransactionOld:customerTransactions
+  methods: [GET]
+
+api_me_deposit:
+  path: me/transactions/deposit
+  defaults:
+    _controller: ApiBundle:Transaction:deposit
+  methods: [POST]
+
+api_me_withdraw:
+  path: me/transactions/withdraw
+  defaults:
+    _controller: ApiBundle:Transaction:withdraw
+  methods: [POST]
+
+api_me_last_bitcoin_transaction:
+  path: me/transaction/last-bitcoin
+  defaults:
+    _controller: ApiBundle:TransactionOld:getLastBitcoinTransaction
+  methods: [GET]

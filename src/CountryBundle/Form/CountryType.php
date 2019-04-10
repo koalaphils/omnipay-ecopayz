@@ -57,6 +57,10 @@ class CountryType extends AbstractType
                 ],
                 'required' => false,
             ])
+            ->add('phoneCode', TextType::class, [
+                'label' => 'fields.phoneCode',
+                'required' => true,
+            ])
             ->add('tags', \AppBundle\Form\Type\Select2Type::class, [
                 'label' => 'fields.tags',
                 'attr' => [

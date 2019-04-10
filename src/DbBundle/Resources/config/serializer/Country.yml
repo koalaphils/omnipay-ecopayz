@@ -7,3 +7,5 @@ DbBundle\Entity\Country:
             groups: ['currency']
         code:
             expose: true
+        phoneCode:
+            expose: true

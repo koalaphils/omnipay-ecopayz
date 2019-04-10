@@ -241,7 +241,7 @@ class TransactionType extends AbstractType
             $builder->get('gateway')->addModelTransformer(new CallbackTransformer(
                 function ($data) {
                     if ($data instanceof \DbBundle\Entity\Gateway && method_exists($data, '__isInitialized') && $data->__isInitialized() === false) {
-                        $data = $this->getGatewayRepository()->findById($data->getId(), LockMode::PESSIMISTIC_WRITE);
+                        $data = $this->getGatewayRepository()->findById($data->getId());
                     }
                     $context = \JMS\Serializer\SerializationContext::create();
                     $context->setGroups(['Default', 'balance', 'details']);
@@ -250,7 +250,7 @@ class TransactionType extends AbstractType
                 },
                 function ($data) {
                     if ($data && !($data instanceof \DbBundle\Entity\Gateway)) {
-                        return $this->getGatewayRepository()->find($data, LockMode::PESSIMISTIC_WRITE);
+                        return $this->getGatewayRepository()->find($data);
                     }
 
                     return null;

@@ -66,6 +66,7 @@ services:
         class: PaymentBundle\TokenFactory\MemberTokenFactory
         arguments:
             - '@=service("router").getGenerator()'
+            - '%blockchain.callback_host%'
 
     payment.bitcoin.capture:
         class: PaymentBundle\Controller\Bitcoin\CaptureAction

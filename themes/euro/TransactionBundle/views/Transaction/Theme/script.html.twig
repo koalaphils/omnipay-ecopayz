@@ -286,9 +286,10 @@
                             }
                         }
                     });
+
                     addSummaryInfo('customer', {
                         'balance': (new Decimal(data.available_balance)).toFixed(2,1),
-                        'countryName': data.country.name,
+                        'countryName': data.country !== null ? data.country.name : "",
                         'currencyName': transactionCurrency !== null ? transactionCurrency.name : data.currency.name,
                         'disabled': data.disabled,
                         'fName': data.fName,

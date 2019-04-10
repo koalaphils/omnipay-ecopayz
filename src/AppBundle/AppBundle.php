@@ -2,6 +2,8 @@
 
 namespace AppBundle;
 
+use Doctrine\DBAL\Types\Type;
+use MongoDB\BSON\UTCDateTime;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use AppBundle\DependencyInjection\CompilerPass\DataTransferCompilerPass;
@@ -90,6 +92,9 @@ class AppBundle extends Bundle
     public function registerDefaultSetting()
     {
         return [
+            'code' => [
+                'expiration' => '30 minutes'
+            ],
             'scheduler.task' => [
                 'auto_decline' => [
                     'autoDecline' => Setting::ENABLE_AUTO_DECLINE,

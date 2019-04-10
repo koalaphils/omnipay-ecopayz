@@ -1,13 +1,12 @@
 services:
-    api.member.create_banner.request_handler:
-        class: ApiBundle\RequestHandler\CreateMemberBannerRequestHandler
-        lazy: true
-        arguments: ["@doctrine"]
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
 
-    api.member_product.create.request_handler:
-        class: ApiBundle\RequestHandler\CreateMemberProductRequestHandler
+    ApiBundle\RequestHandler\:
+        resource: '../../RequestHandler'
         lazy: true
-        arguments:
-            - '@doctrine.orm.entity_manager'
-            - '@=service("doctrine").getRepository("DbBundle\\Entity\\Product")'
-            - '@event_dispatcher'
+
+    api.member.create_banner.request_handler: '@ApiBundle\RequestHandler\CreateMemberBannerRequestHandler'
+    api.member_product.create.request_handler: '@ApiBundle\RequestHandler\CreateMemberProductRequestHandler'

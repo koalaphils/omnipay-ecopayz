@@ -190,12 +190,8 @@
           <div class="fl-fl float-widgets">
             <i class="widgets-holder fa fa-money"></i>
               <ul>
-                <a href="{{ path("transaction.create_page", {'type': 'adjustment'}) }}"><li>Adjustment</li></a>
                 <a href="{{ path("transaction.create_page", {'type': 'deposit'}) }}"><li>Deposit</li></a>
                 <a href="{{ path("transaction.create_page", {'type': 'withdraw'}) }}"><li>Withdrawal</li></a>
-                <a href="{{ path("transaction.create_page", {'type': 'transfer'}) }}"><li>Transfer</li></a>
-                <a href="{{ path("transaction.create_page", {'type': 'p2p_transfer'}) }}"><li>P2P Transfer</li></a>
-                <a href="{{ path("transaction.create_page", {'type': 'bonus'}) }}"><li>Bonus</li> </a>
               </ul>
           </div>
         </div>
@@ -237,7 +233,9 @@
         -%}
             <script type="text/javascript" src="{{ asset_url }}"></script>
         {%- endjavascripts %}
+        <script type="text/javascript" src="{{ asset('assets/plugins/moment/moment-timezone.js') }}"></script>
         <script>
+            moment.tz.setDefault("{{ "now"|date("e") }}");
             var topics = {
                 'memberCreated': "{{ constant('TransactionBundle\\WebsocketTopics::TOPIC_CUSTOMER_CREATED') }}",
                 'productRequested': "{{ constant('WebSocketBundle\\Topics::TOPIC_MEMBER_PRODUCT_REQUESTED') }}"
@@ -420,7 +418,6 @@
         <script src="{{ asset("assets/plugins/bootstrap-select/js/bootstrap-select.min.js") }}" type="text/javascript"></script>
         <script src="{{ asset("assets/plugins/switchery/js/switchery.min.js") }}" type="text/javascript"></script>
 
-        <script src="{{ asset("assets/plugins/moment/moment.js") }}" type="text/javascript"></script>
      	<script src="{{ asset("assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.min.js") }}" type="text/javascript"></script>
         <script src="{{ asset("assets/plugins/bootstrap-daterangepicker/daterangepicker.js") }}" type="text/javascript"></script>
 

@@ -14,7 +14,7 @@ class DefaultController extends AbstractController
     public function indexAction()
     {
         // off this feature
-        return $this->redirectToRoute("app.dashboard_page");
+        # return $this->redirectToRoute("app.dashboard_page");
         
         $this->denyAccessUnlessGranted(['ROLE_GATEWAY_VIEW']);
 

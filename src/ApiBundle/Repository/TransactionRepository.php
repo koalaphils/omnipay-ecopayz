@@ -189,6 +189,28 @@ class TransactionRepository
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }
 
+    public function findActiveBitcoinTransactionByMemberId(int $memberId): ?Transaction
+    {
+        $nonActiveTypes = [Transaction::TRANSACTION_STATUS_END];
+        $queryBuilder = $this->createQueryBuilder('transaction');
+        $queryBuilder
+            ->select('transaction', 'paymentOptionType')
+            ->innerJoin('transaction.paymentOptionType', 'paymentOptionType')
+            ->where('transaction.customer = :customer')
+            ->andWhere('transaction.type NOT IN (:nonActiveTypes)')
+            ->andWhere('transaction.status NOT IN (:status)')
+            ->andWhere('transaction.isVoided != true')
+            ->andWhere('paymentOptionType.paymentMode = :paymentMode')
+            ->andWhere("JSON_CONTAINS(transaction.details, 'false', '$.bitcoin.acknowledged_by_user') = true")
+            ->setParameter('customer', $memberId)
+            ->setParameter('nonActiveTypes', $nonActiveTypes)
+            ->setParameter('paymentMode', PaymentOption::PAYMENT_MODE_BITCOIN)
+            ->setParameter('status', [Transaction::TRANSACTION_STATUS_END, Transaction::TRANSACTION_STATUS_DECLINE], Connection::PARAM_INT_ARRAY)
+        ;
+
+        return $queryBuilder->getQuery()->getOneOrNullResult();
+    }
+
 
     public function findUserUnacknowledgedDepositBitcoinTransaction(Member $member): ?Transaction
     {

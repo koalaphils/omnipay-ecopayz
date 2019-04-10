@@ -10,3 +10,5 @@ services:
         arguments: [ "@doctrine", "@router", "@security.authorization_checker"]
         tags:
             - { name: form.type }
+
+    UserBundle\Manager\UserManager: '@user.manager'

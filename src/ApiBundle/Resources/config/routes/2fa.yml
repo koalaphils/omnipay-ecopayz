@@ -1,0 +1,5 @@
+api_2fa_request_code:
+    path: requestcode
+    defaults:
+        _controller: ApiBundle:TwoFactor:requestCode
+    methods: [POST]

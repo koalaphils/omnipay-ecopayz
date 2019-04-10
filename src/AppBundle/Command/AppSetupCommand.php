@@ -72,8 +72,6 @@ class AppSetupCommand extends ContainerAwareCommand
 
         $token = new UsernamePasswordToken($user, null, 'main', $user->getRoles());
         $this->getContainer()->get('security.token_storage')->setToken($token);
-        $event = new \Symfony\Component\Security\Http\Event\InteractiveLoginEvent(new \Symfony\Component\HttpFoundation\Request(), $token);
-        $this->getContainer()->get("event_dispatcher")->dispatch("security.interactive_login", $event);
     }
 
     private function hasExistingUser(): bool
@@ -104,14 +102,17 @@ class AppSetupCommand extends ContainerAwareCommand
         $user->setEmail($email);
         $user->setType(User::USER_TYPE_ADMIN);
         $user->setRoles($roles);
+        $user->setSignupType(User::SIGNUP_TYPE_EMAIL);
         $user->forSetup = true;
         $user->setPassword($this->getPasswordEncoder()->encodePassword($user, $password));
+
+        $this->loginUser($user);
 
         $this->getUserRepository()->save($user);
         $this->output->writeln('User "' . $username . '" was successfully saved');
 
         if (!($this->getContainer()->get('user.manager')->getUser() instanceof User)) {
-            $this->loginUser($user);
+
             $this->output->writeln('User "' . $username . '" was successfully ');
         }
 
@@ -146,7 +147,7 @@ class AppSetupCommand extends ContainerAwareCommand
         $this->getCurrencyRepository()->save($currency);
 
         if ($baseCurrency === null) {
-            $this->getSettingManager()->saveSetting('currency.base', $currency->getId());
+            $this->getSettingManager()->updateSetting('currency.base', $currency->getId());
         }
 
         return $currency;

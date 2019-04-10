@@ -10,6 +10,7 @@ use DbBundle\Entity\Interfaces\AuditInterface;
 use DbBundle\Entity\DWL;
 use DbBundle\Entity\Transaction;
 use DbBundle\Entity\User;
+use Symfony\Component\HttpFoundation\Request;
 
 class AuditManager extends AbstractManager
 {
@@ -92,11 +93,15 @@ class AuditManager extends AbstractManager
             $auditRev->setClientIp('127.0.0.1');
         } else {
             $request = $this->getContainer()->get('request_stack')->getCurrentRequest();
-            $headers = $request->headers->all();
-            if (isset($headers['x-forwarded-for']) && !empty($headers['x-forwarded-for'][0])) {
-                $auditRev->setClientIp($headers['x-forwarded-for'][0]);
+            if ($request instanceof Request) {
+                $headers = $request->headers->all();
+                if (isset($headers['x-forwarded-for']) && !empty($headers['x-forwarded-for'][0])) {
+                    $auditRev->setClientIp($headers['x-forwarded-for'][0]);
+                } else {
+                    $auditRev->setClientIp($request->getClientIp());
+                }
             } else {
-                $auditRev->setClientIp($request->getClientIp());
+                $auditRev->setClientIp('127.0.0.1');
             }
         }
 

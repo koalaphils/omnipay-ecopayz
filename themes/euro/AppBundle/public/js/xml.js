@@ -7,9 +7,11 @@ var XslTemplate = function(template, isUrl) {
 
 XslTemplate.prototype = {
     'apply': function(items) {
-        if(typeof items == 'string')
+        if(typeof items == 'string') {
             var xml = this.loadDoc(items);
-        else var xml = items;
+        } else {
+            var xml = items;
+        }
         // code for IE
         if (window.ActiveXObject)
         {

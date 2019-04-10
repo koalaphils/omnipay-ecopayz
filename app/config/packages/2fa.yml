@@ -1,0 +1,15 @@
+services:
+    TwoFactorBundle\Provider\Message\Sms\TwilioSmsMessenger:
+        arguments:
+            - '%twilio_sid%'
+            - '%twilio_token%'
+            - '%twilio_from%'
+
+two_factor:
+    messenger:
+        sms:
+            sms_messenger_service: 'TwoFactorBundle\Provider\Message\Sms\TwilioSmsMessenger'
+            template: '%sms_template%'
+        email:
+            template: '%email_template%'
+    storage: 'DbBundle\Repository\TwoFactorCodeRepository'

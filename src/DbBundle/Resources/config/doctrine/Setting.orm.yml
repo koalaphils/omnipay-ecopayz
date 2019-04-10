@@ -20,4 +20,5 @@ DbBundle\Entity\Setting:
         value:
             type: json
             column: setting_value
+            nullable: true
     lifecycleCallbacks: {  }

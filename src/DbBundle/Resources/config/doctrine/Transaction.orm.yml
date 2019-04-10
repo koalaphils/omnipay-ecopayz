@@ -188,19 +188,16 @@ DbBundle\Entity\Transaction:
         # zimi
         email:
             type: string
-            length: 255
+            nullable: true
+            options:
+                generate: transaction_other_details->>"$.email"
+                readOnly: true
             column: transaction_email
         customerID:
-            type: integer            
+            type: bigint
             column: transaction_customer_id
-        productID:
-            type: integer            
-            column: transaction_product_id
-        popup:
-            type: boolean
-            column: transaction_popup
             options:
-                default: false               
+                unsigned: true
     manyToOne:
         customer:
             targetEntity: DbBundle\Entity\Customer
@@ -208,16 +205,6 @@ DbBundle\Entity\Transaction:
             joinColumn:
                 name: transaction_customer_id
                 referencedColumnName: customer_id
-            # zimi
-            cascade: ['persist']
-        # zimi
-        product:
-            targetEntity: DbBundle\Entity\Product
-            inversedBy: transactions
-            joinColumn:
-                name: transaction_product_id
-                referencedColumnName: product_id            
-            cascade: ['persist']
         gateway:
             targetEntity: DbBundle\Entity\Gateway
             joinColumn:

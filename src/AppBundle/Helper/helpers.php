@@ -116,7 +116,7 @@ if (!function_exists('generate_code')) {
 }
 
 if (!function_exists('currency_exchangerate')) {
-    function currency_exchangerate($amount, $fromRate, $toRate)
+    function currency_exchangerate($amount, $fromRate, $toRate, array $config = []): string
     {
         $eq = 'x(z/r)';
         $vars = [
@@ -124,7 +124,7 @@ if (!function_exists('currency_exchangerate')) {
             'r' => $fromRate,
             'z' => $toRate,
         ];
-        $value = AppBundle\ValueObject\Number::parseEquation($eq, $vars);
+        $value = \AppBundle\ValueObject\Number::parseEquation($eq, $vars, true, $config);
 
         return $value->toString();
     }
@@ -244,5 +244,25 @@ if (!function_exists('number_are_equal')) {
     function number_are_equal($number, $numberToCompare): bool
     {
         return remove_trailing_decimals((string) $number) === remove_trailing_decimals((string) $numberToCompare);
+    }
+}
+
+if (!function_exists('convert_to_timezone')) {
+    function convert_to_timezone($date, string $timezone = 'UTC'): DateTimeInterface
+    {
+        if (!is_string($date) && ($date instanceof DateTimeInterface)) {
+            throw new \Exception('Argument 1 must be string date or DateTimeInterface');
+        }
+
+        $dateTobeConverted = $date;
+        if (!($date instanceof DateTimeInterface)) {
+            $dateTobeConverted = new DateTimeImmutable($date);
+        } elseif ($date instanceof DateTime) {
+            $dateTobeConverted = DateTimeImmutable::createFromMutable($date);
+        }
+
+        $convertedDate = $dateTobeConverted->setTimezone(new DateTimeZone($timezone));
+
+        return $convertedDate;
     }
 }

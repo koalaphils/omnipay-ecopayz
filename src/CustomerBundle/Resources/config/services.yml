@@ -5,9 +5,12 @@ services:
         class: CustomerBundle\Manager\CustomerManager
         parent: app.base_manager
 
-    customerproduct.manager:
-        class: CustomerBundle\Manager\CustomerProductManager
-        parent: app.base_manager
+    CustomerBundle\Manager\CustomerProductManager:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    customerproduct.manager: '@CustomerBundle\Manager\CustomerProductManager'
 
     customer.group_manager:
         class: CustomerBundle\Manager\CustomerGroupManager

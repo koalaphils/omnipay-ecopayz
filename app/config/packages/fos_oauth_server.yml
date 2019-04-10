@@ -1,0 +1,11 @@
+fos_oauth_server:
+  db_driver: orm
+  client_class:        DbBundle\Entity\OAuth2\Client
+  access_token_class:  DbBundle\Entity\OAuth2\AccessToken
+  refresh_token_class: DbBundle\Entity\OAuth2\RefreshToken
+  auth_code_class:     DbBundle\Entity\OAuth2\AuthCode
+  service:
+    storage:       api.oauth_storage
+    user_provider: api.oauth_user_provider
+    options:
+      supported_scopes: api

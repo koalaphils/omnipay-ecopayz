@@ -198,11 +198,16 @@ class CustomerController extends AbstractController
 
     /**
      * @ApiDoc(
-     *  description="Get customer payment options",
+     *     description="Member Payment-options",
+     *     section="Member",
+     *     views={"piwi"},
      *  output={
      *      "class"="ArrayCollection<DbBundle\Entity\CustomerPaymentOption>",
      *      "parsers"={ "ApiBundle\Parser\CollectionParser", "ApiBundle\Parser\JmsMetadataParser" },
      *      "groups"={ "API" }
+     *  },
+     *  headers={
+     *      { "name"="Authorization", "description"="Bearer <access_token>" }
      *  }
      * )
      */
@@ -221,11 +226,16 @@ class CustomerController extends AbstractController
 
     /**
      * @ApiDoc(
-     *  description="Get customer payment option",
+     *     description="Get Member Payment-option",
+     *     section="Member",
+     *     views={"piwi"},
      *  output={
      *      "class"="DbBundle\Entity\CustomerPaymentOption",
      *      "parsers"={ "ApiBundle\Parser\CollectionParser", "ApiBundle\Parser\JmsMetadataParser" },
      *      "groups"={ "API" }
+     *  },
+     *  headers={
+     *      { "name"="Authorization", "description"="Bearer <access_token>" }
      *  }
      * )
      */
@@ -338,7 +348,9 @@ class CustomerController extends AbstractController
 
     /**
      * @ApiDoc(
-     *  description="Check if email or phone Number on registration exists or not",
+     *     views={"piwi"},
+     *     section="Member",
+     *     description="Check if email or phone Number on registration exists or not",
      *     requirements={
      *      {
      *          "name"="email,phone",

@@ -2,6 +2,10 @@
 
 namespace DbBundle\Repository;
 
+use DbBundle\Entity\PaymentOption;
+use DbBundle\Entity\Transaction;
+use Doctrine\ORM\Query\Expr\Join;
+
 /**
  * PaymentOptionRepository
  *
@@ -71,6 +75,30 @@ class PaymentOptionRepository extends BaseRepository
             ->setParameter('paymentOptionCodes', $paymentOptionCodes);
 
         return $qb->getQuery()->getArrayResult();
+    }
+
+    /**
+     * @return PaymentOption[]
+     */
+    public function getMemberProcessedPaymentOption(int $memberId): array
+    {
+        $qb = $this->createQueryBuilder('po');
+        $qb->innerJoin(
+            Transaction::class,
+            't',
+            Join::WITH,
+            'po.code = t.paymentOptionType AND t.status = :status AND t.customer = :memberId'
+        );
+        $qb
+            ->where('t.paymentOption IS NOT NULL')
+            ->groupBy('po.code')
+            ->setParameters([
+                'status' => Transaction::TRANSACTION_STATUS_END,
+                'memberId' => $memberId
+            ])
+        ;
+
+        return $qb->getQuery()->getResult();
     }
 
     public function getEnabledAutoDecline()

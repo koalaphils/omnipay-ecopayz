@@ -2,6 +2,7 @@
 
 namespace AppBundle\Validator\Constraints;
 
+use Symfony\Component\Form\Form;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 use Symfony\Component\Validator\Constraint;
@@ -20,6 +21,10 @@ class ExistsValidator extends ConstraintValidator
     public function validate($value, Constraint $constraint)
     {
         $expLang = new ExpressionLanguage();
+        $rootData = $this->context->getRoot();
+        if ($rootData instanceof Form) {
+            $rootData = $rootData->getData();
+        }
         if (!($constraint instanceof Exists)) {
             throw new UnexpectedTypeException($constraint, sprintf('%s\Exists', __NAMESPACE__));
         }
@@ -32,7 +37,7 @@ class ExistsValidator extends ConstraintValidator
             $value = $expLang->evaluate($constraint->getValuePath(), [
                 'value' => $value,
                 'object' => $this->context->getObject(),
-                'root' => $this->context->getRoot()->getData(),
+                'root' => $rootData,
             ]);
         }
         
@@ -41,7 +46,7 @@ class ExistsValidator extends ConstraintValidator
             $column = $constraint->getColumn();
         }
         
-        $dql = "SELECT COUNT(e) totalEntity FROM " . $constraint->getEntityClass() . " AS e WHERE e." . $column . " = :value";
+        $dql = "SELECT COUNT(e) totalEntity FROM " . $constraint->getEntityClass() . " AS e " . $constraint->getJoinExpression() . " WHERE e." . $column . " = :value";
         if ($constraint->getExpression() !== null) {
             $dql .= ' ' . $constraint->getExpression();
         }
@@ -53,7 +58,7 @@ class ExistsValidator extends ConstraintValidator
                 $query->setParameter($key, $expLang->evaluate($param, [
                     'value' => $value,
                     'object' => $this->context->getObject(),
-                    'root' => $this->context->getRoot()->getData(),
+                    'root' => $rootData,
                 ]));
             }
         }

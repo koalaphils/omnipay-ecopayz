@@ -11,6 +11,7 @@ class PaymentBundle extends Bundle
     {
         return [
             'bitcoin.confirmations' => [],
+            'bitcoin.setting' => ['paymentOption' => ''],
         ];
     }
 }

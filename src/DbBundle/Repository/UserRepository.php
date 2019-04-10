@@ -261,16 +261,15 @@ class UserRepository extends BaseRepository implements \Symfony\Bridge\Doctrine\
         return $qb->getQuery()->getOneOrNullResult();
     }
 
-    public function findUserByPhoneNumber($phoneNumber, $countryCode)
+    public function findUserByPhoneNumber(string $phoneNumber, string $countryCode): ?User
     {
         $qb = $this->createQueryBuilder('u');
-        $qb->select('u')
-            ->leftJoin('u.customer', 'uc')
-            ->leftJoin('uc.country', 'ucc')
-            ->where($qb->expr()->eq('u.phoneNumber', ':phoneNumber'))
-            ->andWhere($qb->expr()->eq('ucc.phoneCode', ':countryCode'))
-            ->setParameter('phoneNumber', $phoneNumber)
-            ->setParameter('countryCode', $countryCode);
+        $qb
+            ->select('u')
+            ->where('u.phoneNumber = :phoneNumber')
+            ->setParameter('phoneNumber', $countryCode . $phoneNumber);
+        ;
+
         return $qb->getQuery()->getOneOrNullResult();
     }
 

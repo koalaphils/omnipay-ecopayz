@@ -1,0 +1,27 @@
+api_auth_login:
+    path: login
+    defaults:
+        _controller: ApiBundle:Auth:login
+    methods: [POST, GET]
+api_auth_logout:
+    path: logout
+    defaults:
+        _controller: ApiBundle:Auth:logout
+    methods: [POST, GET]
+api_auth_refresh:
+    path: refreshtoken
+    defaults:
+        _controller: ApiBundle:Auth:refreshToken
+    methods: [POST, GET]
+
+api_auth_forgot_password:
+    path: forgot-password
+    defaults:
+        _controller: ApiBundle:Auth:forgotPassword
+    methods: [POST]
+
+api_auth_check_auth:
+    path: check-token
+    defaults:
+        _controller: ApiBundle:Auth:checkIfAuthenticated
+    methods: [POST, GET]

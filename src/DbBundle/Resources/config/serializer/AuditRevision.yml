@@ -5,7 +5,7 @@ DbBundle\Entity\AuditRevision:
             expose: true
         timestamp:
             expose: true
-            type: DateTime<'Y-m-d H:i:s'>
+            type: DateTime<'c'>
         user:
             expose: true
         logs:

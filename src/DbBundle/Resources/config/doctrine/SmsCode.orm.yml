@@ -1,0 +1,49 @@
+DbBundle\Entity\SmsCode:
+    type: entity
+    table: piwi_system_log_sms_code
+    repositoryClass: DbBundle\Repository\SmsCodeRepository
+    id:
+        id:
+            type: string
+            id: true
+            length: 36
+            nullable: false
+            column: sms_code_id
+    fields:
+        value:
+            type: integer
+            nullable: true
+            column: sms_code_value
+        payload:
+            type: json
+            nullable: true
+            column: sms_code_json
+        memberPhoneNumber:
+            type: string
+            nullable: true
+            column: sms_code_customer_phone_number
+        memberEmail:
+            type: string
+            nullable: true
+            column: sms_code_customer_email
+        status:
+            type: string
+            nullable: true
+            length: 1
+            column: sms_code_status
+        createdAt:
+            type: integer
+            nullable: true
+            column: sms_code_created_at
+        providerId:
+            type: string
+            length: 1
+            nullable: true
+            column: sms_code_provider_id
+        sourcePhoneNumber:
+            type: string
+            length: 20
+            nullable: true
+            column: sms_code_source_phone_number
+
+    lifecycleCallbacks: {  }

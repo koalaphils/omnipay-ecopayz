@@ -3,6 +3,7 @@
 namespace TransactionBundle\Widget;
 
 use AppBundle\Widget\AbstractWidget;
+use DbBundle\Entity\Transaction;
 use Symfony\Component\Form\Extension\Core\Type;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
@@ -55,13 +56,6 @@ class TransactionListWidget extends AbstractWidget
         if ($limit === 0) {
             $limit = null;
         }
-        
-        // $transactions = $this->getTransactionRepository()->findTransactions(
-        //     ['status' => $status],
-        //     [['column' => 'transaction.date', 'dir' => 'desc']],
-        //     $limit,
-        //     $offset
-        // );
 
         $transactions = $this->getTransactionRepository()->findTransactions(
             ['status' => $status],
@@ -72,8 +66,12 @@ class TransactionListWidget extends AbstractWidget
 
         $trans = [];
         foreach($transactions as $key => $value){
-            $t = $value[0];            
-            array_push($trans, $t);
+            if ($value instanceof Transaction) {
+                array_push($trans, $value);
+            } else {
+                $t = $value[0];
+                array_push($trans, $t);
+            }
         }
 
         $transactions = $trans;

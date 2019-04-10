@@ -1,0 +1,5 @@
+api_setting_all:
+    path: all
+    defaults:
+        _controller: ApiBundle:Setting:getSetting
+    methods: [GET]

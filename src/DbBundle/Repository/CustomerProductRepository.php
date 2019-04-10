@@ -73,6 +73,27 @@ class CustomerProductRepository extends BaseRepository
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }
 
+    public function findByUsernameProductCodeAndCurrencyCode(string $username, string $product, string $currency): ?MemberProduct
+    {
+        $queryBuilder = $this->createQueryBuilder('cp');
+        $queryBuilder
+            ->join('cp.product', 'p')
+            ->join('cp.customer', 'c')
+            ->join('c.currency', 'cu')
+            ->select('cp, p, c, cu')
+            ->where('cp.userName = :username')
+            ->andWhere('p.code = :product')
+            ->andWhere('cu.code = :currency')
+            ->setParameters([
+                'username' => $username,
+                'product' => $product,
+                'currency' => $currency,
+            ])
+        ;
+
+        return $queryBuilder->getQuery()->getOneOrNullResult();
+    }
+
     public function findByUsernameProduct(string $username, int $product): ?MemberProduct
     {
         $queryBuilder = $this->createQueryBuilder('cp');

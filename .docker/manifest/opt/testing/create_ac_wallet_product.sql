@@ -1,1 +1,0 @@
-INSERT IGNORE INTO product set product_code = 'ACW', product_name = 'AC Wallet', product_is_active = true, product_created_by = 1,product_created_at=now(), product_updated_at=now(), product_details='{"ac_wallet":true}';

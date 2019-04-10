@@ -9,7 +9,7 @@
 {% endblock list_assetcss %}
 
 {% block list_container %}
-    <div id="{{ block_id }}">
+    <div id="{{ block_id }}" class="page-widget-list">
         {{ widget_render_block(widget, 'widget') }}
     </div>
 {% endblock list_container %}
@@ -76,6 +76,7 @@
         {
             $(function () {
                 {{ id }}Table = new ZTable('#{{ id }}_container', {
+                    'autoinit': {{ widget.isAutoload() ? 'true' : 'false' }},
                     'colvis': {
                         'hidden': function() {
                             if (typeof {{ id }}_extendColvisHidden !== 'undefined') {

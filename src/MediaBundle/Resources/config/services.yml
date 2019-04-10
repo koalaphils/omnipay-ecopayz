@@ -4,3 +4,4 @@ services:
         calls:
             - [ 'setContainer', ['@service_container'] ]
             - [ 'init' ]
+    MediaBundle\Manager\MediaManager: '@media.manager'

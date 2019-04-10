@@ -2,8 +2,10 @@
 
 namespace ApiBundle\Validator\Bitcoin;
 
-use ApiBundle\Model\Bitcoin\BitcoinPayment;
+use ApiBundle\Request\Transaction\Meta\Bitcoin\BitcoinPayment;
 use ApiBundle\Repository\TransactionRepository;
+use ApiBundle\Request\Transaction\Meta\Bitcoin\BitcoinProductPayment;
+use ApiBundle\Request\Transaction\Product;
 use AppBundle\Helper\NumberHelper;
 use AppBundle\ValueObject\Number;
 use DbBundle\Entity\Transaction;
@@ -32,19 +34,14 @@ class BitcoinTransactionConstraintValidator extends ConstraintValidator
             return;
         }
 
-        $transaction = $value->getTransaction();
-
-        $depositTransactionWithBitcoin = $this
-            ->transactionRepository
-            ->findActiveBitcoinTransaction(
-                $transaction->getCustomer()
-            );
+        $request = $this->context->getRoot();
+        $depositTransactionWithBitcoin = $this->transactionRepository->findActiveBitcoinTransactionByMemberId($request->getMemberId());
 
         if ($depositTransactionWithBitcoin instanceof Transaction) {
             $this->context->buildViolation($constraint->getMessage())->addViolation();
         }
 
-        $totalAmount = $value->getTotalBitcoin();
+        $totalAmount = $this->getTotalBitcoin($request->getProducts());
 
         if (Number::isNumber($totalAmount)) {
             if ($this->maxBitcoinDeposit->lessThan($totalAmount) || $this->minBitcoinDeposit->greaterThan($totalAmount)) {
@@ -58,6 +55,26 @@ class BitcoinTransactionConstraintValidator extends ConstraintValidator
                 ;
             }
         }
+    }
+
+    /**
+     * @param Product[] $products
+     * @return string
+     * @throws \Exception
+     */
+    public function getTotalBitcoin(array $products): string
+    {
+        $total = new Number('0');
+        foreach ($products as $product) {
+            $bitcoinDetails = $product->getMeta()->getPaymentDetails()['bitcoin'] ?? null;
+            if ($bitcoinDetails instanceof BitcoinProductPayment) {
+                if (Number::isNumber($bitcoinDetails->getBitcoin())) {
+                    $total = $total->plus($bitcoinDetails->getBitcoin());
+                }
+            }
+        }
+
+        return $total->toString();
     }
 
     public function setMinBitcoinDeposit(string $amount): void

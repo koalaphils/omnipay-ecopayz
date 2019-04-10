@@ -73,6 +73,8 @@ class ZTable
         if (this.settings().autoinit) {
             this.initialize();
         }
+
+        $(element).trigger('ztable.created');
     }
 
     deafultSettings()

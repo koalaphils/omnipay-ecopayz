@@ -63,6 +63,11 @@ class ListWidget extends AbstractPageWidget
         return $this->processResult($results, $data);
     }
 
+    public function isAutoload(): bool
+    {
+        return $this->property('autoload', true);
+    }
+
     public function getFilterChoices(string $filterName)
     {
         $filter = $this->property('filters.' . $filterName);

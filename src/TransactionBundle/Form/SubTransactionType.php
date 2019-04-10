@@ -79,7 +79,7 @@ class SubTransactionType extends AbstractType
                     'class' => 'DbBundle\Entity\CustomerProduct',
                     'label' => 'fields.subTransaction.product',
                     'required' => true,
-                    'choices' => [$this->getCustomerProductRepository()->find($data['customerProduct'], LockMode::PESSIMISTIC_WRITE)],
+                    'choices' => [$this->getCustomerProductRepository()->find($data['customerProduct'])],
                     'choice_label' => 'userName',
                     'attr' => [
                         'data-placeholder' => 'Select Product',

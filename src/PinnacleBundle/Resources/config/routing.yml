@@ -1,0 +1,3 @@
+pinnacle_homepage:
+    path:     /
+    defaults: { _controller: PinnacleBundle:Default:index }

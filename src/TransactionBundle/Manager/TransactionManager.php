@@ -16,6 +16,7 @@ use DbBundle\Repository\CommissionPeriodRepository;
 use DbBundle\Repository\MemberRunningCommissionRepository;
 use Doctrine\ORM\Query;
 use PDO;
+use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use AppBundle\Manager\AbstractManager;
 use Symfony\Component\Form\Form;
@@ -29,6 +30,16 @@ class TransactionManager extends TransactionOldManager
 {
     private $memberRunningCommissionRepository;
     private $commissionPeriodRepository;
+
+    /**
+     * @var PinnacleService
+     */
+    private $pinnacleService;
+
+    public function __construct(PinnacleService $pinnacleService)
+    {
+        $this->pinnacleService = $pinnacleService;
+    }
 
     public function findTransactions(Request $request)
     {
@@ -60,7 +71,6 @@ class TransactionManager extends TransactionOldManager
                 $filters['searchTransactionIds'] = $this->getSubtransactionRepository()->getTransactionIds(['search' => $filters['search']], $customerIds);
             }
         }
-
 
         $transactions = $this->getRepository()->findTransactions($filters, $orders, $limit, $offset, [], \Doctrine\ORM\Query::HYDRATE_OBJECT);
         $recordsFiltered = $this->getRepository()->getTotal($filters);
@@ -144,6 +154,110 @@ class TransactionManager extends TransactionOldManager
             $csvReport .= "\n";
 
             echo $csvReport;
+        }
+    }
+
+    public function endTransaction(&$transaction)
+    {
+        $subTransactions = $transaction->getSubTransactions();
+        $customerProducts = [];
+        $customers = [];
+
+        foreach ($subTransactions as $subTransaction) {
+            $customerProduct = array_get($customerProducts, $subTransaction->getCustomerProduct()->getId(), $subTransaction->getCustomerProduct());
+            $customerBalance = new Number(array_get($customers, $customerProduct->getCustomerID(), 0));
+            if ($subTransaction->isDeposit() || $subTransaction->isDWL()) {
+                $customerProductBalance = new Number($customerProduct->getBalance());
+                $customerProductBalance = $customerProductBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
+                $customerProduct->setBalance($customerProductBalance->toString());
+                $customerBalance = $customerBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()))->toString();
+            } elseif ($subTransaction->isWithdrawal()) {
+                $customerProductBalance = new Number($customerProduct->getBalance());
+                $customerProductBalance = $customerProductBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
+                $customerProduct->setBalance($customerProductBalance . '');
+                $customerBalance = $customerBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()))->toString();
+            }
+
+            array_set($customerProducts, $customerProduct->getId(), $customerProduct);
+            array_set($customers, $customerProduct->getCustomerID(), $customerBalance);
+        }
+
+        foreach ($customerProducts as $customerProductId => $customerProduct) {
+            $this->getRepository()->save($customerProduct);
+        }
+
+        if ($transaction->isDeposit()) {
+            $transaction->getCustomer()->setEnabled();
+            $this->getRepository()->save($transaction->getCustomer());
+        }
+
+        if ($transaction->isDeposit() || $transaction->isWithdrawal() || $transaction->isBonus()) {
+            if ($transaction->getGateway()) {
+                $this->processPaymentGatewayBalance($transaction);
+                $this->save($transaction->getGateway());
+            }
+        }
+    }
+
+    public function voidTransaction(&$transaction)
+    {
+        $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
+
+        if (!$transaction->isVoided()) {
+            $transaction->setIsVoided(true);
+            $subTransactions = $transaction->getSubTransactions();
+            foreach ($subTransactions as $subTransaction) {
+                /* @var $subTransaction SubTransaction */
+                $customerProduct = $subTransaction->getCustomerProduct();
+                $customerProductBalance = new Number($customerProduct->getBalance());
+                $subTransactionAmount = $subTransaction->getDetail('convertedAmount', $subTransaction->getAmount());
+
+                if ($subTransaction->getType() == Transaction::TRANSACTION_TYPE_DEPOSIT) {
+                    $customerProductBalance = $customerProductBalance->minus($subTransactionAmount);
+                    $customerProduct->setBalance($customerProductBalance . '');
+                } elseif ($subTransaction->getType() == Transaction::TRANSACTION_TYPE_WITHDRAW) {
+                    $customerProductBalance = $customerProductBalance->plus($subTransactionAmount);
+                    $customerProduct->setBalance($customerProductBalance . '');
+                }
+            }
+
+            // Payment Gateway
+            $gateway = $transaction->getGateway();
+            if ($gateway) {
+                if ($transaction->isBonus()) {
+                    $method = ['equation' => '-x', 'variables' => [['var' => 'x', 'value' => 'total_amount']]];
+                } else {
+                    $method = $gateway->getDetail('methods.' . $this->getType($transaction->getType(), true));
+                }
+                $equation = array_get($method, 'equation');
+
+                switch ($equation[0]) {
+                    case '+':
+                        $equation[0] = '-';
+                        break;
+                    case '-':
+                        $equation[0] = '+';
+                        break;
+                    case '*':
+                        $equation[0] = '/';
+                        break;
+                    case '/':
+                        $equation[0] = '*';
+                        break;
+                }
+
+                $equation = $gateway->getBalance() . $equation;
+
+                $variables = [];
+                foreach (array_get($method, 'variables') as $var) {
+                    $variables[$var['var']] = $var['value'];
+                }
+                $predefineValues = $transaction->getDetail('summary', []);
+                $newBalance = $this->processEquation($equation, $variables, $predefineValues) . '';
+                $this->auditGateway($transaction, $gateway, $gateway->getBalance(), $newBalance);
+                $transaction->getGateway()->setBalance($newBalance);
+                $this->getRepository()->save($transaction->getGateway());
+            }
         }
     }
 
@@ -420,9 +534,6 @@ class TransactionManager extends TransactionOldManager
                 $subtransaction->removeFee('customer_fee');
             }
         }
-        
-        // zimi        
-        $amount = $transaction->getAmount();
 
         $event = new TransactionProcessEvent($transaction, $action, $fromCustomer);
         try {
@@ -436,11 +547,7 @@ class TransactionManager extends TransactionOldManager
             $this->getEventDispatcher()->dispatch('transaction.pre_save', $event);
             $this->getRepository()->reconnectToDatabase();
             $this->updateBitcoinPaymentOption($transaction);
-            // zimi- DbBundle\Entity\Transaction            
-            $eventTransaction = $event->getTransaction();            
-            $eventTransaction->setAmount($amount);   
-
-            $this->getRepository()->save($eventTransaction);
+            $this->getRepository()->save($event->getTransaction());
             $this->getRepository()->commit();
             $this->getEventDispatcher()->dispatch('transaction.saved', $event);
 
@@ -860,5 +967,12 @@ class TransactionManager extends TransactionOldManager
     public function findLastTransactionDateByMemberId(int $memberId): ?\DateTimeInterface
     {
         return $this->getRepository()->findLastTransactionDateByMemberId($memberId);
+    }
+
+    public function generateTransactionNumber(string $type, string $suffix = ''): string
+    {
+        $date = (new \DateTimeImmutable())->setTimezone(new \DateTimeZone('UTC'));
+
+        return $date->format('Ymd-His-') . generate_code(6, false, 'd') . '-' . $this->getType($type) . $suffix;
     }
 }

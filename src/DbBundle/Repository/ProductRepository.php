@@ -172,4 +172,12 @@ class ProductRepository extends BaseRepository
 
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }
+
+    public function getProductByCode(string $code): Product
+    {
+        $qb = $this->createQueryBuilder('p');
+        $qb->andWhere('p.code = :code')->setParameter('code', $code);
+
+        return $qb->getQuery()->getSingleResult();
+    }
 }

@@ -3,6 +3,8 @@
 {% block title %}{{ "tag.create_title"|trans({}, 'TransactionBundle') }} - {{ ('types.' ~ type)|trans({}, 'TransactionBundle')  }}{% endblock title %}
 
 {% block stylesheet_plugins %}
+    <link rel="stylesheet" type="text/css" href="{{ asset("assets/plugins/magnific-popup/css/magnific-popup.css") }}" />
+
     {{ form_assetcss(form) }}
 {% endblock %}
 
@@ -25,13 +27,13 @@
         </a>
         {% endif %}
         <ul class="list-inline quicklinks font-13 font-normal text-right">
-            <li>Quick Links:</li>            
+            <li>Quick Links:</li>
             {% if is_granted('ROLE_TRANSACTION_CREATE') %}
             <li><a href="{{ path("transaction.create_page", {'type': 'deposit'}) }}">Deposit</a></li>|
             {% endif %}
             {% if is_granted('ROLE_TRANSACTION_CREATE') %}
             <li><a href="{{ path("transaction.create_page", {'type': 'withdraw'}) }}">Withdrawal</a></li>|
-            {% endif %}            
+            {% endif %}
         </ul>
     </div>
 
@@ -75,6 +77,7 @@
     {{ block('paymentOptionOnTransaction') }}
     {{ block('gateway') }}
     {{ block('adjustment') }}
+    {{ block('file') }}
 {% endblock left_pane %}
 
 {% block middle_pane %}
@@ -84,8 +87,7 @@
                 {{ form_row(form.number) }}
                 {{ form_row(form.date) }}
                 {{ form_row(form.currency) }}
-
-                {% if transaction.isTransactionPaymentBitcoin() and transaction.isDeposit() %}
+                {% if transaction.isTransactionPaymentBitcoin() %}
                     <div class="col-sm-12 btc-deposit-address">
                         <div class="form-group">
                             <label class="control-label">Bitcoin Address</label>
@@ -104,27 +106,16 @@
                                 </div>
                                 <span class="input-group-addon bg-inverted b-0">=</span>
                                 <div id="Transaction_deposit_request_rate" name="Transaction[deposit_request_rate]">
-                                    <input type="text" class="form-control" class="form-control" disabled="disabled" value="{{ transaction.getDetail('bitcoinRate') }}">                                    
+                                    <input type="text" class="form-control" class="form-control" disabled="disabled" value="{{ transaction.getBitcoinRate() }}">
                                     <span class="currency">{{transaction.getCurrency().getName()}}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 {% endif %}
-
-                {% if transaction.isTransactionPaymentBitcoin() and transaction.isWithdrawal() %}                                        
-                    <div class="col-sm-12">
-                        <div class="form-group">                        
-                            <div class="input-group">
-                                <span class="input-group-addon"><strong>{{ "fields.receiverAddress"|trans({},'TransactionBundle') }}</strong></span>
-                                {{ form_widget(form.receiverAddress) }}
-                            </div>
-                        </div>
-                    </div>                    
-                {% endif %}                                
             </div>
 
-            <div class="row hide" id="bitcoinFields" style="border:#f00 solid thin">
+            <div class="row hide" id="bitcoinFields">
                 <div class="col-sm-12 btc-deposit-address">
                     <div class="form-group m-b-5">
                         <label class="control-label">Bitcoin Address</label>
@@ -174,6 +165,8 @@
                 {% endif %}
                 {% if transaction.isDeclined() or transaction.isVoided() %}
                     {{ form_row(form.reasonToVoidOrDecline, {'view': true}) }}
+                {% elseif transaction.getVoidingReason() %}
+                    {{ form_row(form.confirmationReason, {'view': true}) }}
                 {% endif %}
             </div>
         </div>
@@ -182,6 +175,8 @@
             <div class="row">
                 {% if transaction.isDeclined() or transaction.isVoided() %}
                     {{ form_row(form.reasonToVoidOrDecline, {'view': true}) }}
+                {% elseif transaction.getVoidingReason() %}
+                    {{ form_row(form.confirmationReason, {'view': true}) }}
                 {% endif %}
             </div>
         </div>
@@ -198,33 +193,17 @@
     </div>
 {% endblock middle_pane %}
 
-{% block _Transaction_subTransactions_row %}    
+{% block _Transaction_subTransactions_row %}
     <div class="card-box" id="{{ form.vars.id }}">
         <h4 class="header-title m-b-30 m-t-0">
             Products
-        </h4>        
+            {%- if form.vars.addSubtransaction -%}
+            &nbsp;&nbsp;|<button type="button" class="btn btn-success btn-xs btn-add-product btn-icon m-l-10"><i class="fa fa-plus" title="Add Product"></i></button>
+            {% else %}
+                <button type="button" class="btn btn-success btn-xs btn-add-product hide">
+            {%- endif %}
+        </h4>
         <div class="product-list">
-            <div id="Transaction_subTransactions_0" class="row customer-product">                
-                <div class="col-md-7 col-sm-7 col-xs-12">
-                    <div class="form-group">
-                        <div class="input-group">
-                            <span class="input-group-addon"><label class="control-label required">Product</label></span>
-                            <span name="" required="required" class="subtransaction-amount form-control">PINBET ({{ customer.getPinUserCode() }})</span>                                
-                        </div>                        
-                    </div>
-                </div>
-                <div class="col-md-5 col-sm-5 col-xs-12 amount-col">
-                    <div class="form-group">
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="fa fa-money"></i></span>
-                            <span id="" name="" class="subtransaction-amount form-control">{{ trans.amount }}</span>
-                        </div>
-                        <div class="help-block">
-                            <ul class="list-unstyled"></ul>
-                        </div>
-                    </div>
-                </div>
-            </div>            
         </div>
     </div>
 {% endblock %}
@@ -240,7 +219,28 @@
 {% block summary_template %}
 {% endblock %}
 
-{% block customer %}    
+{% block file %}
+    {% if transaction.isDeposit() and transaction.hasFile %}
+        <div class="card-box">
+            <h4 class="m-t-0 m-b-30 header-title">{{ "Proof of Deposit"|trans({},'TransactionBundle') }}</h4>
+
+            <div class="image-container">
+                {% if transaction.isFileViewable %}
+                    {% set renderFile = path('app.render_file', { 'fileName' : transaction.filename, 'folder' : transaction.fileFolder })|raw %}
+                    <a class="deposit-slip-image" href="{{ renderFile }}" title="{{ transaction.filename }}">
+                        <img src="{{ renderFile }}"/><br>
+                    </a>
+                    <strong>{{ transaction.filename }}</strong>
+                {% else %}
+                    <span>Attachment already expired.</span>
+                    <strong>{{ transaction.filename }}</strong>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+{% endblock file %}
+
+{% block customer %}
     <div class="card-box" id='customer-container'>
         <h4 class="m-t-0 m-b-30 header-title">{{ "Member"|trans({},'TransactionBundle') }}</h4>
         <div class="form-group {% if form.customer.vars.errors|length > 0 %} has-error {% endif %}">
@@ -250,9 +250,8 @@
 
         <div class="text-muted">
             <div class="row m-t-10">
-                <div class="col-md-3 col-sm-3 col-xs-3 text-right"><b>Username:</b></div>                
-                <div class="col-md-8 col-sm-8 col-xs-8 m-l-15 customer-data">{{ memberUsername }}</div>
-
+                <div class="col-md-3 col-sm-3 col-xs-3 text-right"><b>Username:</b></div>
+                <div class="col-md-8 col-sm-8 col-xs-8 m-l-15 customer-data" data-field="user.username"></div>
             </div>
             <div class="row m-t-10">
                 <div class="col-md-3 col-sm-3 col-xs-3 text-right"><b>Groups:</b></div>
@@ -271,13 +270,17 @@
         {% set label = form.immutablePaymentOptionOnTransactionData is defined ? "Payment Option on Record" : "Payment Option" %}
         <h4 class="m-t-0 m-b-30 header-title">{{ label|trans({}, 'TransactionBundle') }}</h4>
         <div class="form-group">
-            {% if form.paymentOption is defined and transaction.isClosedForFurtherProcessing == false %}
-                {{ form_widget(form.paymentOption, {'attr': {'disabled': 'disabled'}}) }}
-                {{ form_errors(form.paymentOption) }}
-            {% endif %}
-            {% if form.immutablePaymentOptionData is defined and transaction.isClosedForFurtherProcessing == true %}
-                {{ form_widget(form.immutablePaymentOptionData, {'attr': {'disabled': 'disabled'}}) }}
-            {% endif %}
+            <div class="row">
+                <div class="col-md-12">
+                    {% if form.paymentOption is defined and transaction.isClosedForFurtherProcessing == false %}
+                        {{ form_widget(form.paymentOption, {'attr': {'disabled': 'disabled'}}) }}
+                        {{ form_errors(form.paymentOption) }}
+                    {% endif %}
+                    {% if form.immutablePaymentOptionData is defined and transaction.isClosedForFurtherProcessing == true %}
+                        {{ form_widget(form.immutablePaymentOptionData, {'attr': {'disabled': 'disabled'}}) }}
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 {% endblock paymentOption %}
@@ -287,13 +290,17 @@
         <div class="card-box" id='payment-option-on-transaction-container'>
             <h4 class="m-t-0 m-b-30 header-title">{{ "Payment Option on Transaction"|trans({}, 'TransactionBundle') }}</h4>
             <div class="form-group">
-                {{ form_widget(form.immutablePaymentOptionOnTransactionData, {'attr': {'disabled': 'disabled'}}) }}
+                <div class="row">
+                    <div class="col-md-12">
+                        {{ form_widget(form.immutablePaymentOptionOnTransactionData, {'attr': {'disabled': 'disabled'}}) }}
+                    </div>
+                </div>
             </div>
         </div>
     {% endif %}
 {% endblock %}
 
-{% block gateway %}    
+{% block gateway %}
     {% if form.gateway is defined %}
         <div class="card-box" id="gateway-container">
             <h4 class="m-t-0 m-b-30 header-title">{{ "Payment Gateway"|trans({},'TransactionBundle') }}</h4>
@@ -305,7 +312,7 @@
     {% endif %}
 {% endblock gateway %}
 
-{% block adjustment %}    
+{% block adjustment %}
     {% if form.adjustment is defined %}
         <div class="card-box" id="adjustment-container">
             <h4 class="m-t-0 m-b-30 header-title">{{ "Transaction"|trans({},'TransactionBundle') }}</h4>
@@ -313,7 +320,7 @@
                 {{ form_widget(form.adjustment, {'attr': {'disabled': 'disabled'}}) }}
                 {{ form_errors(form.adjustment) }}
             </div>
-        </div>        
+        </div>
     {% endif %}
 {% endblock adjustment %}
 
@@ -324,8 +331,8 @@
 {% block javascripts %}
     <script type="text/javascript" src="{{ asset("bundles/app/js/equation_parser.js") }}"></script>
     <script type="text/javascript" src="{{ asset("bundles/app/js/currency_exchangeRate.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("assets/plugins/magnific-popup/js/jquery.magnific-popup.min.js") }}"></script>
     <script type="text/javascript">
-
         var transactionData = {{ form.vars.data|serialize('json', serialization_context().setSerializeNull(true).setGroups(['Default', 'details']))|raw }};
 
         // reload page if accessed from history (to regen transaction#)
@@ -334,10 +341,37 @@
             window.location.reload();
         }
 
+        $('.deposit-slip-image').magnificPopup({
+            type: 'image',
+            closeOnContentClick: true,
+            mainClass: 'mfp-img-mobile'
+        });
+
         var eparse = new EqParse();
         var SummaryObject = function(data, options) {
             this.data = data;
             this.options = options;
+        }
+
+        function resetBitcoinFields(memberPaymentOptionText) {
+            $('#{{form.details.bitcoin.rate.vars.id}}').val('');
+            $('#{{form.details.bitcoin.receiver_unique_address.vars.id}}').val(memberPaymentOptionText);
+        }
+
+        function removeBitcoinErrors() {
+            $('#bitcoinFields').find('.form-group').removeClass('has-error');
+            $('#bitcoinFields').find('.help-block ul li').remove();
+        }
+
+        function loadBitcoinFields(memberPaymentOptionText) {
+            $('#bitcoinFields').removeClass('hide');
+            removeBitcoinErrors();
+            resetBitcoinFields(memberPaymentOptionText);
+        }
+
+        function unloadBitcoinFields() {
+            $('#bitcoinFields').addClass('hide');
+            resetBitcoinFields();
         }
 
         SummaryObject.prototype.process = function(forceProcess) {
@@ -378,7 +412,7 @@
                 'company_fee': (new Decimal(this.data.fees.companyFee || 0)).toFixed(2,1),
                 'customer_fee': (new Decimal(this.data.fees.customerFee || 0)).toFixed(2,1)
             };
-            
+
             total.amount = 0;
             total.customer = 0;
             if (this.options.equations != null) {
@@ -484,7 +518,6 @@
         summaryTemplate = new XslTemplate(summaryTemplate, false);
 
         function applySummary() {
-
             transactionInfo.process();
             var _temp = $("<div></div>").html(summaryTemplate.apply(json2Xml(transactionInfo.getAll(), "transaction"))).html();
             $('#summary').html(_temp);
@@ -499,6 +532,9 @@
         }
 
         applySummary();
+
+
+
     </script>
     {{ form_javascript(form) }}
 {% endblock javascripts %}
@@ -509,6 +545,8 @@
         {% if not view %}
             <script type="text/javascript">
                 $(function(){
+                    var defaultDate = moment('{{ value }}', 'MM/DD/YYYY h:mm:ss A').toDate();
+                    var maxDate = moment().add(5, 'seconds').toDate();
                     $('#{{ id }}').datetimepicker({
                         'format': 'MM/DD/YYYY h:mm:ss A',
                         'widgetPositioning': {
@@ -516,9 +554,8 @@
                             'vertical': '{{ widget_option.position.vertical|default('top') }}'
                         },
                         'useCurrent': false,
-                        'maxDate': 'now'
+                        'defaultDate': defaultDate,
                     });
-                    $('#{{ id }}').data('DateTimePicker').date(moment('{{ value }}'));
                 });
             </script>
         {% endif %}

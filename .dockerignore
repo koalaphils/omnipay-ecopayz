@@ -3,10 +3,10 @@ app/config/parameters.yml
 .git
 var/cache/*
 var/logs/*
-var/session/*
+var/sessions/*
 var/payum/gateways/*
 var/payum/payments/*
-!var/session/.gitkeep
+!var/sessions/.gitkeep
 !var/cache/.gitkeep
 !var/logs/.gitkeep
 !var/payum/gateways/.gitkeep

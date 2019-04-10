@@ -1,13 +1,21 @@
 imports:
     - { resource: widgets.yml }
 services:
+    TransactionBundle\Controller\:
+        resource: '../../Controller'
+        tags: ['controller.service_arguments']
+        calls:
+            - ['setContainer', ['@service_container']]
+
     transaction.manager:
         class: TransactionBundle\Manager\TransactionManager
+        autowire: true
+        autoConfig: true
         parent: app.base_manager
         calls:
             - ['setMemberRunningCommissionRepository', ['@=service("doctrine").getRepository("DbBundle\\Entity\\MemberRunningCommission")']]
             - ['setCommissionPeriodRepository', ['@=service("doctrine").getRepository("DbBundle\\Entity\\CommissionPeriod")']]
-
+    TransactionBundle\Manager\TransactionManager: "@transaction.manager"
     # form type
     transaction.form_type.bonus:
         class: TransactionBundle\Form\BonusType

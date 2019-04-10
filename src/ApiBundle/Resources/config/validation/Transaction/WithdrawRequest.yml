@@ -1,0 +1,21 @@
+ApiBundle\Request\Transaction\WithdrawRequest:
+  group_sequence_provider: true
+  getters:
+    verificationCode:
+      - TwoFactorBundle\Validator\Constraints\IsCodeCorrect:
+          payloadPath: 'object.getVerificationPayload()'
+    paymentOptionType:
+      - NotBlank: ~
+      - AppBundle\Validator\Constraints\Exists:
+          entityClass: DbBundle\Entity\PaymentOption
+          valuePath: value
+          column: code
+          ignoreNull: false
+          groups: [afterBlank]
+    products:
+      - Count:
+          min: 1
+          minMessage: You should add atleast one product
+      - Valid: ~
+    meta:
+      - Valid: ~

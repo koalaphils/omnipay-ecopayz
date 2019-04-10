@@ -42,7 +42,10 @@ class UpdateProfileRequest
         $request->fullName = $customer->getFullName();
         $request->birthDate = $customer->getBirthDate();
         $request->gender = $customer->getGender();
-        $request->country = $customer->getCountry()->getId();
+        if ($customer->getCountry() !== null) {
+            $request->country = $customer->getCountry()->getId();
+        }
+
         $request->currency = $customer->getCurrency()->getId();
         $request->referrer = $customer->getReferral();
         $request->joinedAt = $customer->getJoinedAt();
@@ -85,7 +88,7 @@ class UpdateProfileRequest
         $this->username = $username;
     }
 
-    public function getEmail(): string
+    public function getEmail(): ?string
     {
         return $this->email;
     }
@@ -125,7 +128,7 @@ class UpdateProfileRequest
         $this->fullName = $fullName;
     }
 
-    public function getBirthDate(): \DateTimeInterface
+    public function getBirthDate(): ?\DateTimeInterface
     {
         return $this->birthDate;
     }
@@ -135,7 +138,7 @@ class UpdateProfileRequest
         $this->birthDate = $birthDate;
     }
 
-    public function getCountry(): int
+    public function getCountry(): ?int
     {
         return $this->country;
     }

@@ -4,25 +4,27 @@ namespace AppBundle\ValueObject;
 
 class Number
 {
-    protected static $config = array(
+    public const ROUND_UP = 1;
+    public const ROUND_DOWN = 2;
+    public const ROUND_HALF_UP = 3;
+
+    protected const CONFIG = [
         'precision' => 20,
-        'round' => true
-    );
+        'round' => true,
+        'round_type' => Number::ROUND_DOWN,
+    ];
+
     protected $value;
     protected $original;
+    protected $currentConfig;
 
-    public static function setConfig($config): void
-    {
-        static::$config = array_replace_recursive(static::$config, $config);
-    }
-
-    public static function format($num, $config = array()): string
+    public static function format($num, $config = []): string
     {
         if (!preg_match('/^([+-]?(\d+(\.\d*)?)|(\.\d+))$/', $num)) {
             throw new \Exception('Number is expecting 1 parameters to be a number.');
         }
 
-        $config = array_replace_recursive(static::$config, $config);
+        $config = array_replace_recursive(self::CONFIG, $config);
 
         $broken_number = explode('.', $num . '');
         if (count($broken_number) != 2) {
@@ -31,18 +33,24 @@ class Number
             $broken_number[1] = str_pad($broken_number[1], $config['precision'], '0', STR_PAD_RIGHT);
         }
 
+        $value = implode('.', $broken_number);
+
         if ($config['round']) {
-            if ($config['precision'] < strlen($broken_number[1])) {
-                $pre = substr($broken_number[1], $config['precision'], 1);
-                $broken_number[1] = substr($broken_number[1], 0, $config['precision']);
-                if ($pre >= 5) {
-                    $broken_number[1] += 1;
-                }
-                $broken_number[1] = str_pad($broken_number[1], $config['precision'], '0', STR_PAD_LEFT);
-            }
+            $value = self::round($value, $config['precision'], $config['round_type']);
         }
 
-        return implode('.', $broken_number);
+        return $value;
+    }
+
+    public static function formatToMinimumDecimal($value, int $numOfDecimal): string
+    {
+        $result = explode('.', $value);
+
+        if (!isset($result[1])) {
+            $result[1] = '';
+        }
+
+        return $result[0] . '.' . str_pad(rtrim($result[1], '0'), $numOfDecimal, '0', STR_PAD_RIGHT);
     }
 
     public static function isNumber(string $number): bool
@@ -86,14 +94,20 @@ class Number
 
     public function __construct($num, $config = array())
     {
-        $config = array_replace_recursive(static::$config, $config);
+        $config = array_replace_recursive(static::CONFIG, $config);
+        $this->currentConfig = $config;
         $num = $this->convertScientificToDecimal((string) $num);
 
         if (preg_match('/^([+-]?(\d+(\.\d*)?)|(\.\d+))$/', $num)) {
-            $this->value = static::format($num, $config);
+            $this->value = static::format($num, $this->currentConfig);
         } else {
             throw new \Exception('Number is expecting 1 parameters to be a number.');
         }
+    }
+
+    public function parse($num): string
+    {
+        return self::format($num, $this->currentConfig);
     }
 
     public function convertScientificToDecimal(string $num): string
@@ -113,91 +127,91 @@ class Number
 
     public function dividedBy($num): Number
     {
-        $num = $this->format($num);
+        $num = $this->parse($num);
         $result = $this->value / $num;
 
-        return new Number($result);
+        return new Number($result, $this->currentConfig);
     }
 
     public function minus($num): Number
     {
-        $num = $this->format($num);
+        $num = $this->parse($num);
         $result = $this->value - $num;
 
-        return new Number($result);
+        return new Number($result, $this->currentConfig);
     }
 
     public function modulo($num): Number
     {
-        $num = $this->format($num);
+        $num = $this->parse($num);
         $result = $this->value / $num;
 
         $real = intval($result);
 
-        $prod = $this->format($real) * $num;
+        $prod = $this->parse($real) * $num;
 
-        return $this->sub($prod);
+        return $this->minus($prod);
     }
 
     public function plus($num): Number
     {
-        $num = $this->format($num);
+        $num = $this->parse($num);
         $result = $this->value + $num;
 
-        return new Number($result);
+        return new Number($result, $this->currentConfig);
     }
 
     public function times($num): Number
     {
-        $num = $this->format($num);
+        $num = $this->parse($num);
         $result = $this->value * $num;
 
-        return new Number($result);
+        return new Number($result, $this->currentConfig);
     }
 
     public function toPower($num): Number
     {
-        return new Number(pow($this->value, $num));
+        return new Number(pow($this->value, $num), $this->currentConfig);
     }
 
     public function equals($num): bool
     {
-        $num = $this->format($num);
+        $num = $this->parse($num);
 
         return $this->value == $num;
     }
 
     public function greaterThan($num): bool
     {
-        $num = $this->format($num);
+        $num = $this->parse($num);
 
         return $this->value > $num;
     }
 
     public function greaterThanOrEqual($num): bool
     {
-        $num = $this->format($num);
+        $num = $this->parse($num);
 
         return $this->value >= $num;
     }
 
     public function lessThan($num): bool
     {
-        $num = $this->format($num);
+        $num = $this->parse($num);
 
         return $this->value < $num;
     }
 
     public function lessThanOrEqual($num): bool
     {
-        $num = $this->format($num);
+        $num = $this->parse($num);
 
         return $this->value < $num;
     }
 
     public function notEqual($num): bool
     {
-        $num = $this->format($num);
+        $num = $this->parse($num);
 
         return $this->value != $num;
     }
@@ -209,7 +223,7 @@ class Number
         return $var;
     }
 
-    public static function parseEquation(string $string, array $vars = [], bool $compute = true): Number
+    final public static function parseEquation(string $string, array $vars = [], bool $compute = true, array $config = []): Number
     {
         $index = 0;
         $array_parse = array();
@@ -246,9 +260,9 @@ class Number
                     $index++;
                 }
                 if ($compute) {
-                    $array_parse[$index] = self::parseEquation($parse, $vars, $compute);
+                    $array_parse[$index] = self::parseEquation($parse, $vars, $compute, $config);
                 } else {
-                    $array_parse[$index] = '(' . self::parseEquation($parse, $vars, $compute) . ')';
+                    $array_parse[$index] = '(' . self::parseEquation($parse, $vars, $compute, $config) . ')';
                 }
             } elseif (self::isOperator($char) && $type != 'opr' && !is_null($type)) {
                 if (array_key_exists($index, $array_parse)) {
@@ -274,7 +288,7 @@ class Number
         self::subtitute($array_parse, $vars);
 
         if ($compute) {
-            return (new Number(self::compute($array_parse, $vars)));
+            return new Number(self::compute($array_parse), $config);
         }
 
         return implode('', $array_parse);
@@ -291,7 +305,7 @@ class Number
         }
     }
 
-    private static function compute($array)
+    private static function compute(array $array, array $config = [])
     {
         $new_array = $array;
         foreach (self::getOperators() as $opr) {
@@ -300,7 +314,7 @@ class Number
                 if (self::isOperator($val) && $val === $opr) {
                     $num1 = $new_array[$index - 1];
                     $num2 = $new_array[$index + 1];
-                    $num = new Number($num1);
+                    $num = new Number($num1, $config);
                     switch ($val) {
                         case '+':
                             $num = $num->plus($num2);
@@ -320,7 +334,7 @@ class Number
                         case '^':
                             $num = $num->toPower($num2);
                             break;
-                        default: $num = new Number($num2);
+                        default: $num = new Number($num2, $config);
                     }
                     array_splice($new_array, $index - 1, 3, $num . '');
                     $index -= 1;
@@ -359,5 +373,61 @@ class Number
     public function toString(): string
     {
         return (string) $this->value;
+    }
+
+    public function toStringWithMinimumDecimal(int $numOfDecimal): string
+    {
+        return self::formatToMinimumDecimal($this->value, $numOfDecimal);
+    }
+
+    public static function round($value, int $precision = 0, int $roundType = 0): string
+    {
+        if ($roundType === 0) {
+            $roundType = self::$config['round_type'];
+        }
+
+        $broken_number = explode('.', $value);
+
+        if (count($broken_number) != 2) {
+            $broken_number[1] = str_pad('', $precision, '0', STR_PAD_RIGHT);
+        } else {
+            $broken_number[1] = str_pad($broken_number[1], $precision + 1, '0', STR_PAD_RIGHT);
+        }
+
+        if ($precision > 0) {
+            $pre = substr($broken_number[1], $precision, 1);
+            $broken_number[1] = substr($broken_number[1], 0, $precision);
+            if (($roundType === self::ROUND_HALF_UP && $pre >= 5) || $roundType === self::ROUND_UP) {
+                $broken_number[1] += 1;
+            }
+
+            $broken_number[1] = str_pad($broken_number[1], $precision, '0', STR_PAD_LEFT);
+
+            return implode('.', $broken_number);
+        } elseif ($precision === 0) {
+            $pre = substr($broken_number[1], 0, 1);
+            if (($roundType === self::ROUND_HALF_UP && $pre >= 5) || $roundType === self::ROUND_UP) {
+                $broken_number[0] += 1;
+            }
+
+            return $broken_number[0];
+        } else {
+            $pre = substr($broken_number[0], $precision, 1);
+            $real = substr($broken_number[0], 0, $precision);
+            if (($roundType === self::ROUND_HALF_UP && $pre >= 5) || $roundType === self::ROUND_UP) {
+                $real += 1;
+            }
+
+            return str_pad($real, strlen($broken_number[0]), '0', STR_PAD_RIGHT);
+        }
+    }
+
+    public function toFixed(int $precision = 0, int $roundType = 0): string
+    {
+        if ($roundType === 0) {
+            $roundType = $this->currentConfig['round_type'];
+        }
+
+        return self::round($this->value, $precision, $roundType);
     }
 }

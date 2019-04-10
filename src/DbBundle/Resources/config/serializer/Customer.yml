@@ -39,10 +39,10 @@ DbBundle\Entity\Customer:
             groups: ['Default', 'groups']
         joinedAt:
             expose: true
-            type: DateTime<'Y-m-d H:i:s'>
+            type: DateTime<'c'>
         verifiedAt:
             expose: true
-            type: DateTime<'Y-m-d H:i:s'>
+            type: DateTime<'c'>
         pinUserCode:
             expose: true
             type: string
@@ -75,14 +75,14 @@ DbBundle\Entity\Customer:
             serialized_name: currency
             type: string
         country_code:
-            exp: object.getCountry().getCode()
+            exp: 'object.getCountry() == null ? "" : object.getCountry().getCode()'
             groups: ['transaction_exp']
             serialized_name: country
             type: string
         activatedAt:
             exp: object.getUser().getActivationTimestamp()
             expose: true
-            type: DateTime<'Y-m-d H:i:s'>
+            type: DateTime<'c'>
             serialized_name: activated_at
         isActivated:
             exp: object.getUser().getIsActive()
@@ -103,8 +103,8 @@ DbBundle\Entity\Customer:
             type: array
             groups: [preferences]
             serialized_name: preferences
-        brokerageSyncId:
-            exp: object.getBrokerageProductSyncId()
-            expose: true
-            type: integer
-            serialized_name: brokerage_sync_id
+#        brokerageSyncId:
+#            exp: object.getBrokerageProductSyncId()
+#            expose: true
+#            type: integer
+#            serialized_name: brokerage_sync_id

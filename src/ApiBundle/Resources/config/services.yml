@@ -2,7 +2,7 @@ imports:
     - { resource: handlers.yml }
     - { resource: managers.yml }
     - { resource: forms.yml }
-
+    - { resource: controller.yml }
 services:
     api.jms_parser:
         class: ApiBundle\Parser\JmsMetadataParser
@@ -45,11 +45,11 @@ services:
         class: ApiBundle\Security\OAuthProvider
         arguments: [ '@api.oauth_user_provider', '@fos_oauth_server.server', '@security.user_checker', '@request_stack' ]
 
-    api.rest_serializer:
-        class: ApiBundle\Subscriber\RestSerializerSubscriber
-        arguments: [ '@router', '@request_stack', '@doctrine']
-        tags:
-            - { name: jms_serializer.event_subscriber }
+    #api.rest_serializer:
+    #    class: ApiBundle\Subscriber\RestSerializerSubscriber
+    #    arguments: [ '@router', '@request_stack', '@doctrine']
+    #    tags:
+    #        - { name: jms_serializer.event_subscriber }
 
     api.member_banner_subsciber:
         class: ApiBundle\Subscriber\MemberBannerSubscriber

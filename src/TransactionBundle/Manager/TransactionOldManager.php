@@ -95,12 +95,7 @@ class TransactionOldManager extends AbstractManager
         $this->_getSettingManager()->updateSetting('counter.status.' . $to, array_get($counter, 'status.' . $to, 0) + 1);
     }
 
-    /**
-     * Process summary.
-     *
-     * @param Transaction $transaction
-     */
-    public function processTransactionSummary(&$transaction)
+    public function processTransactionSummary(Transaction &$transaction): void
     {
         $sumProduct = new Number(0);
         $sumWithdrawProduct = new Number(0);
@@ -112,7 +107,7 @@ class TransactionOldManager extends AbstractManager
         // zimi-check !== null
         if ($transaction->getCustomer()->getCurrency() !== null) {
             $currencies[$transaction->getCustomer()->getCurrency()->getId()] = $transaction->getCustomer()->getCurrency();
-        }        
+        }
 
         foreach ($transaction->getSubTransactions() as $subTransaction) {
             /* @var $subTransaction SubTransaction */
@@ -132,8 +127,7 @@ class TransactionOldManager extends AbstractManager
             }
         }
 
-        //if(!$transaction->getId()) {
-            $baseCurrency = $this->getCurrencyRepository()->find($this->_getSettingManager()->getSetting('currency.base'));
+        $baseCurrency = $this->getCurrencyRepository()->find($this->_getSettingManager()->getSetting('currency.base'));
         foreach ($transaction->getSubTransactions() as &$subTransaction) {
             $currency = $currencies[$transaction->getCustomer()->getCurrency()->getId()];
             if ($subTransaction->getCustomerProduct() instanceof CustomerProduct) {
@@ -149,7 +143,6 @@ class TransactionOldManager extends AbstractManager
             $converted = currency_exchangerate($subTransaction->getAmount(), $currency->getRate(), $toCurrency->getRate());
             $subTransaction->setDetail('convertedAmount', $converted);
         }
-        //}
 
         $customerFeeFromTransaction = array_get($transaction->getFees(), 'customer_fee', 0);
         if (!is_null($customerFeeFromTransaction)) {
@@ -162,10 +155,10 @@ class TransactionOldManager extends AbstractManager
         $expression = $this->_getSettingManager()->getSetting('transaction.equations.' . $this->getType($transaction->getType(), true));
         $values = [
             'sum_products' => $sumProduct . '',
-            'sum_withdraw_products' => $sumWithdrawProduct . '',
-            'sum_deposit_products' => $sumDepositProduct . '',
-            'total_customer_fee' => $totalCustomerFee . '',
-            'total_company_fee' => $totalCompanyFee . '',
+            'sum_withdraw_products' => $sumWithdrawProduct->toString(),
+            'sum_deposit_products' => $sumDepositProduct->toString(),
+            'total_customer_fee' => $totalCustomerFee->toString(),
+            'total_company_fee' => $totalCompanyFee->toString(),
             'company_fee' => $transaction->getFee('company_fee', 0),
             'customer_fee' => $transaction->getFee('customer_fee', 0),
         ];
@@ -174,13 +167,13 @@ class TransactionOldManager extends AbstractManager
         $customerAmount = $this->processEquation(array_get($expression, 'customerAmount.equation'), array_get($expression, 'customerAmount.variables'), $values);
 
         $transaction->setDetail('summary', $values + [
-            'total_amount' => $totalAmount . '',
-            'customer_amount' => $customerAmount . '',
-        ]);
+                'total_amount' => $totalAmount->toString(),
+                'customer_amount' => $customerAmount->toString(),
+            ]);
 
-        $transaction->setAmount($totalAmount . '');
-        $transaction->setFee('total_customer_fee', $totalCustomerFee . '');
-        $transaction->setFee('total_company_fee', $totalCompanyFee . '');
+        $transaction->setAmount($totalAmount->toString());
+        $transaction->setFee('total_customer_fee', $totalCustomerFee->toString());
+        $transaction->setFee('total_company_fee', $totalCompanyFee->toString());
 
         if ($transaction->getGateway()) {
             $transaction->setImmutablePaymentGatewayFormula();
@@ -485,7 +478,7 @@ class TransactionOldManager extends AbstractManager
         return $action;
     }
 
-    private function auditGateway(Transaction $transaction, Gateway $gateway, $oldBalance, $newBalance)
+    protected function auditGateway(Transaction $transaction, Gateway $gateway, $oldBalance, $newBalance)
     {
         $gatewayLogManager = $this->getGatewayLogManager();
 
@@ -510,7 +503,7 @@ class TransactionOldManager extends AbstractManager
         $gatewayLogManager->save($gatewayLog);
     }
 
-    protected function processEquation($equation, $variables = [], $predefineValues = [])
+    protected function processEquation($equation, $variables = [], $predefineValues = []): Number
     {
         $variables = array_map(function ($value) use ($predefineValues) {
             return array_get($predefineValues, $value, $value);

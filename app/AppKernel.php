@@ -56,6 +56,8 @@ class AppKernel extends Kernel
             new JMS\JobQueueBundle\JMSJobQueueBundle(),
             new JMS\DiExtraBundle\JMSDiExtraBundle($this),
             new JMS\AopBundle\JMSAopBundle(),
+            new PinnacleBundle\PinnacleBundle(),
+            new \TwoFactorBundle\TwoFactorBundle(),
         );
 
         if (in_array($this->getEnvironment(), array('dev', 'test'), true)) {
