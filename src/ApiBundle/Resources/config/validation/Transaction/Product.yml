@@ -20,6 +20,6 @@ ApiBundle\Request\Transaction\Product:
           message: "Amount should not be 0."
           groups: [afterBlank]
       - Expression:
-          expression: "this.getPaymentOptionType() != 'BITCOIN' && this.getAmount() >= 10  && this.getAmount() <= 999999"
+          expression: "(this.getPaymentOptionType() != 'BITCOIN' && this.getAmount() >= 10  && this.getAmount() <= 999999) || (this.getPaymentOptionType() == 'BITCOIN')"
           message: "Amount should be greater than equals 10 but less than 999999"
           groups: [afterBlank]
