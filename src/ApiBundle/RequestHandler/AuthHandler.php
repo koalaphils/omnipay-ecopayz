@@ -11,11 +11,13 @@ namespace ApiBundle\RequestHandler;
 use ApiBundle\Manager\CustomerManager;
 use ApiBundle\Request\ForgotPasswordRequest;
 use AppBundle\Helper\Publisher;
+use DbBundle\Entity\Customer;
 use DbBundle\Entity\OAuth2\AccessToken;
 use DbBundle\Entity\User;
 use DbBundle\Repository\PaymentOptionRepository;
 use DbBundle\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Firebase\JWT\JWT;
 use OAuth2\OAuth2;
 use OAuth2\OAuth2AuthenticateException;
 use OAuth2\OAuth2ServerException;
@@ -72,6 +74,16 @@ class AuthHandler
      */
     private $paymentOptionRepository;
 
+    /**
+     * @var string
+     */
+    private $jwtKey;
+
+    /**
+     * @var string
+     */
+    private $sessionExpiration;
+
     public function __construct(
         OAuth2 $oauthService,
         PinnacleService $pinnacleService,
@@ -81,7 +93,9 @@ class AuthHandler
         TokenStorageInterface $tokenStorage,
         UserRepository $userRepository,
         PaymentOptionRepository $paymentOptionRepository,
-        UserManager $userManager
+        UserManager $userManager,
+        string $jwtKey,
+        string $sessionExpiration
     ) {
         $this->oauthService = $oauthService;
         $this->pinnacleService = $pinnacleService;
@@ -92,6 +106,8 @@ class AuthHandler
         $this->userRepository = $userRepository;
         $this->userManager = $userManager;
         $this->paymentOptionRepository = $paymentOptionRepository;
+        $this->jwtKey = $jwtKey;
+        $this->sessionExpiration = $sessionExpiration;
     }
 
     /**
@@ -110,6 +126,7 @@ class AuthHandler
 
         /* @var $user \DbBundle\Entity\User */
         $user = $accessToken->getUser();
+        $this->pinnacleService->getAuthComponent()->logout($user->getCustomer()->getPinUserCode());
         $pinLoginResponse = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode());
         $paymentOptionTypes = $this->paymentOptionRepository->getMemberProcessedPaymentOption($user->getCustomer()->getId());
         $processPaymentOptionTypes = [];
@@ -121,7 +138,8 @@ class AuthHandler
             'token' => $data,
             'pinnacle' => $pinLoginResponse->toArray(),
             'member' => $user->getCustomer(),
-            'process_payments' => $processPaymentOptionTypes
+            'process_payments' => $processPaymentOptionTypes,
+            'jwt' => $this->generateJwtToken($user->getCustomer()),
         ];
         $this->deleteUserAccessToken($accessToken->getUser()->getId(), [], [$accessToken->getToken()]);
 
@@ -129,9 +147,23 @@ class AuthHandler
         $this->customerManager->handleAudit('login');
 
         $channel = $user->getCustomer()->getWebsocketDetails()['channel_id'];
-        $this->publisher->publish($channel . '.login', json_encode(['access_token' => $accessToken->getToken()]));
+        $this->publisher->publishUsingWamp('login.' . $channel, ['access_token' => $accessToken->getToken()]);
 
         return $loginResponse;
+    }
+
+    private function generateJwtToken(Customer $member): string
+    {
+        $token = [
+            'authid' => json_encode([
+                'username' => $member->getUsername(),
+                'userid' => $member->getUser()->getId(),
+                'from' => 'member_site',
+            ]),
+            'exp' => time() + $this->sessionExpiration,
+        ];
+
+        return JWT::encode($token, $this->jwtKey);
     }
 
     public function handleRefreshToken(Request $request): array
@@ -142,7 +174,12 @@ class AuthHandler
         $user = $accessToken->getUser();
         $pinLoginResponse = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode());
 
-        return ['token' => $data, 'pinnacle' => $pinLoginResponse->toArray(), 'member' => $user->getCustomer()];
+        return [
+            'token' => $data,
+            'pinnacle' => $pinLoginResponse->toArray(),
+            'member' => $user->getCustomer(),
+            'jwt' => $this->generateJwtToken($user->getCustomer())
+        ];
     }
 
     public function handleLogout(Request $request): void

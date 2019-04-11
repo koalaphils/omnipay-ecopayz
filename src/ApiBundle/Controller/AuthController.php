@@ -67,7 +67,7 @@ class AuthController extends AbstractController
     {
         try {
             $view = $this->view($authHandler->handleLogin($request));
-            $view->getContext()->setGroups(['Default', 'API', 'paymentOptions']);
+            $view->getContext()->setGroups(['Default', 'API', 'paymentOptions', 'details']);
 
             return $view;
         } catch (OAuth2ServerException $exception) {
@@ -111,6 +111,10 @@ class AuthController extends AbstractController
      *         },
      *         {
      *             "name"="client_secret",
+     *             "dataType"="string"
+     *         },
+     *         {
+     *             "name"="grant_type",
      *             "dataType"="string"
      *         }
      *     }
