@@ -110,10 +110,20 @@ class CustomerController extends AbstractController
 
     /**
      * @ApiDoc(
-     *  description="Get customer notifications",
-     *  statusCodes={
+     *     description="Get customer notifications",
+     *     section="Member",
+     *     views={"piwi"},
+     *     statusCodes={
      *      200="Returned successful",
      *      401="Returned when the user is not authorized",
+     *  },
+     *  output={
+     *      "class"="ArrayCollection<DbBundle\Entity\CustomerPaymentOption>",
+     *      "parsers"={ "ApiBundle\Parser\CollectionParser", "ApiBundle\Parser\JmsMetadataParser" },
+     *      "groups"={ "API" }
+     *  },
+     *  headers={
+     *      { "name"="Authorization", "description"="Bearer <access_token>" }
      *  }
      * )
      */

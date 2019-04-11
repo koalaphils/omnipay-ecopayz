@@ -25,3 +25,8 @@ api_customers.me_payment_option:
     path: payment-options/{id}
     defaults: { _controller: ApiBundle:Customer:customerPaymentOption }
     methods: [GET]
+
+api_customers.me_notifications:
+    path: notifications
+    defaults: { _controller: ApiBundle:Customer:notifications }
+    methods: [GET]
