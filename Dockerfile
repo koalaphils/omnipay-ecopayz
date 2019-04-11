@@ -96,6 +96,7 @@ COPY /opt/docker/php/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 COPY /opt/docker/php/www.conf /etc/php7/php-fpm.d/www.conf
 COPY /opt/docker/php/php.ini /etc/php7/php.ini
+COPY /opt/docker/php/ssh_config /etc/ssh/ssh_config
 WORKDIR /var/www/html
 COPY --from=vendor /usr/bin/composer /usr/bin/composer
 COPY --from=vendor /app/vendor /var/www/html/vendor
