@@ -178,7 +178,8 @@
                     </div>
 
                     <footer class="footer text-right">
-                        © {{ "now"|date("Y") }}. {{ 'layout.All rights reserved'|trans({},"AppBundle") }}.
+                        © {{ "now"|date("Y") }}. {{ 'layout.All rights reserved'|trans({},"AppBundle") }}. <br/>
+                        <em class="font-xs">{{ 'layout.UTC Timezone'|trans({}, "AppBundle") }}. <strong id="utcDateTime"></strong></em>
                    </footer>
                 </div>
             </div>
@@ -432,6 +433,13 @@
         {# Ends Here #}
 
         <script type="text/javascript">
+            $(function () {
+                setInterval(function () {
+                    var dateTimeUtc = moment().format('MMMM Do YYYY, h:mm:ss a');
+                    $('#utcDateTime').text(dateTimeUtc);
+                }, 1000);
+            });
+
             MediaLibrary.init({
                 'modal': "#media-library"
             });

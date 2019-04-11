@@ -64,6 +64,10 @@ class TransactionSerializerSubscriber implements \JMS\Serializer\EventDispatcher
             $timeRemaining = $this->bitcoinManager->getBitcoinTransactionTimeRemaining($object);
             $lockDownRateTimeRemaining = $this->bitcoinManager->getBitcoinTransactionLockdownRateRemaining($object);
             $visitor->setData('time_remaining', $timeRemaining);
+            $parsed = date_parse($timeRemaining);
+            $seconds = $parsed['hour'] * 3600 + $parsed['minute'] * 60 + $parsed['second'];
+
+            $visitor->setData('time_remaining_seconds', $seconds);
             $visitor->setData('lock_down_rate_time_remaining', $lockDownRateTimeRemaining);
         }
 
