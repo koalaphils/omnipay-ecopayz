@@ -5,12 +5,15 @@ declare(strict_types = 1);
 namespace ApiBundle\Controller;
 
 use ApiBundle\Request\Transaction\DepositRequest;
+use ApiBundle\Request\Transaction\GetLastBitcoinRequest;
 use ApiBundle\Request\Transaction\WithdrawRequest;
 use ApiBundle\RequestHandler\Transaction\DepositHandler;
+use ApiBundle\RequestHandler\Transaction\TransactionQueryHandler;
 use ApiBundle\RequestHandler\Transaction\WithdrawHandler;
 use FOS\RestBundle\View\View;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class TransactionController extends AbstractController
@@ -91,5 +94,30 @@ class TransactionController extends AbstractController
         $transaction = $withdrawHandler->handle($withdrawRequest);
 
         return $this->view($transaction);
+    }
+
+    /**
+     * @ApiDoc(
+     *     views={"piwi"},
+     *     section="Transaction",
+     *     description="Get last bitcoin transaction",
+     *     headers={{ "name"="Authorization", "description"="Bearer <access_token>" }}
+     * )
+     *
+     * @param TokenStorage $tokenStorage
+     * @param TransactionQueryHandler $handler
+     * @return View
+     */
+    public function getLastBitcoinTransactionAction(TokenStorage $tokenStorage, TransactionQueryHandler $handler): View
+    {
+        $member = $tokenStorage->getToken()->getUser()->getCustomer();
+        $request = new GetLastBitcoinRequest((int) $member->getId());
+
+        $transaction = $handler->handleGetLastBitcoin($request);
+
+        $view = $this->view(['data' => $transaction]);
+        $view->getContext()->setGroups(['Default', 'details']);
+
+        return $view;
     }
 }

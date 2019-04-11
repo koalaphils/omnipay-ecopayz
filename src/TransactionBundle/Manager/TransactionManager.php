@@ -413,8 +413,7 @@ class TransactionManager extends TransactionOldManager
     {
         $form->handleRequest($request);
 
-        // zimi-comment:  && $form->isValid()
-        if ($form->isSubmitted()) {
+        if ($form->isSubmitted() && $form->isValid()) {
             $transaction = $form->getData();
             $transaction->retainImmutableData();
             $transaction->autoSetPaymentOptionType();

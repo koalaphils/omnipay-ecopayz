@@ -674,11 +674,12 @@ class TransactionRepository extends BaseRepository
     {
         $query = $this->createQueryBuilder('t')
             ->select('t')
-            ->where('t.customer = :memberId AND t.paymentOptionType = :paymentOption AND t.isVoided = false')
+            ->where('t.customer = :memberId AND t.paymentOptionType = :paymentOption AND t.isVoided = false AND t.status <> :declineStatus')
             ->orderBy('t.id', 'DESC')
             ->setMaxResults(1)
             ->setParameters([
                 'memberId' => $memberId,
+                'declineStatus' => Transaction::TRANSACTION_STATUS_DECLINE,
                 'paymentOption' => $paymentOption,
             ])
         ;
