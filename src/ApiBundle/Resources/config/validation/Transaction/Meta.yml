@@ -12,5 +12,10 @@ ApiBundle\Request\Transaction\Meta\Meta:
 ApiBundle\Request\Transaction\Meta\Fields:
   getters:
     email:
-      - NotBlank: ~
-      - Email: ~
+      - NotBlank:
+          groups: [withEmail]
+      - Email:
+          groups: [withEmail]
+    accountId:
+      - NotBlank:
+          groups: [withAccountId]

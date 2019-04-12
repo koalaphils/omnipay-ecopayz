@@ -46,7 +46,7 @@ class WithdrawRequest implements GroupSequenceProviderInterface
     {
         $instance = new static();
         $instance->paymentOptionType = $request->get('payment_option_type', '');
-        $instance->meta = Meta::createFromArray($request->get('meta', []), $instance->paymentOptionType, false, false);
+        $instance->meta = Meta::createFromArray($request->get('meta', []), $instance->paymentOptionType, false, false, false);
         $instance->paymentOption = $request->get('payment_option', '');
         $instance->products = [];
         $instance->verificationCode = $request->get('verification_code', '');

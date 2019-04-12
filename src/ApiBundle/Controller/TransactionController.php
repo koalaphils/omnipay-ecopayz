@@ -71,12 +71,12 @@ class TransactionController extends AbstractController
      *         {"name"="payment_option_type", "dataType"="string"},
      *         {"name"="products[0][username]", "dataType"="string"},
      *         {"name"="products[0][product_code]", "dataType"="string"},
-     *         {"name"="products[0][amount]", "dataType"="string"},
-     *         {"name"="meta[field][email]", "dataType"="string"}
+     *         {"name"="products[0][amount]", "dataType"="string"}
      *     },
      *     parameters={
-     *         {"name"="payment_option", "dataType"="string", "required"=false},
-     *         {"name"="meta[field][account_id]", "dataType"="string", "required"=false}
+     *         {"name"="meta[field][email]", "dataType"="string", required=false},
+     *         {"name"="meta[field][account_id]", "dataType"="string", "required"=false},
+     *         {"name"="payment_option", "dataType"="string", "required"=false}
      *     },
      *     headers={
      *         { "name"="Authorization", "description"="Bearer <access_token>" }
