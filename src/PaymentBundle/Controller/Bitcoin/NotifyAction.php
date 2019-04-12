@@ -31,7 +31,7 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
 {
     use GatewayAwareTrait;
 
-    private const PUBLISH_CHANNEL = 'btc.request_status';
+    public const PUBLISH_CHANNEL = 'btc.request_status';
     private const BLOCKCHAIN_OK_RESPONSE = '*ok*';
 
     private $transactionRepository;
