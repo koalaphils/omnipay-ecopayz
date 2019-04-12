@@ -273,6 +273,7 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
             ];            
 
             $this->publisher->publishUsingWamp(self::PUBLISH_CHANNEL, $publishData);
+            $this->publisher->publishUsingWamp(self::PUBLISH_CHANNEL . '.' . $transaction->getCustomer()->getWebsocketChannel(), $publishData);
             $this->publisher->publishUsingWamp(self::PUBLISH_CHANNEL . '.' . $transaction->getId(), $publishData);
         } catch (Throwable $ex) {
             /* Do nothing must, even the publishing has an error it must still procceed as success */
