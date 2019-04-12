@@ -143,6 +143,12 @@ class AuthHandler
         ];
         $this->deleteUserAccessToken($accessToken->getUser()->getId(), [], [$accessToken->getToken()]);
 
+        if ($user->getCustomer()->getWebsocketChannel() === '') {
+            $user->getCustomer()->setWebsocketChannel(uniqid(generate_code(10, false, 'ld')));
+            $this->entityManager->persist($user->getCustomer());
+            $this->entityManager->flush($user->getCustomer());
+        }
+
         $this->loginUser($user);
         $this->customerManager->handleAudit('login');
 
