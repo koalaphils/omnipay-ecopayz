@@ -69,6 +69,7 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
             $payload['message'] = 'Transaction ' . $transactionNumber . ' ' . $type . ' has been ' . $status;
             $payload['id'] = $event->getTransaction()->getId();
             $payload['status'] = $status;
+            $payload['date'] = $event->getTransaction()->getDate()->format('c');
 
             if ($event->getTransaction()->isP2pTransfer()) {
                 $members = $event->getMembersInSubTransactions();
