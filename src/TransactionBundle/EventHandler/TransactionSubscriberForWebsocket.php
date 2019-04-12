@@ -82,7 +82,7 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
 
                 $this->createNotification($customer, $payload['message']);                
                 // zimi
-                // $this->publishWebsocketTopic($channel, $payload);
+                $this->publishWebsocketTopic($channel, $payload);
             }
         }
     }
@@ -100,7 +100,7 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
 
     protected function publishWebsocketTopic(string $channel, array $payload = []) :void
     {
-        $this->publisher->publish(WebsocketTopics::TOPIC_TRANSACTION_PROCESSED . '.' . $channel, json_encode($payload));
+        $this->publisher->publishUsingWamp(WebsocketTopics::TOPIC_TRANSACTION_PROCESSED . '.' . $channel, $payload);
     }
 
     /**
