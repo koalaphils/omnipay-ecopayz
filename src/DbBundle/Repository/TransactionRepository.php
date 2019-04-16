@@ -686,4 +686,25 @@ class TransactionRepository extends BaseRepository
 
         return $query->getQuery()->getSingleResult();
     }
+
+    public function findUserUnacknowledgedDepositBitcoinTransaction(int $memberId): ?Transaction
+    {
+        $queryBuilder = $this->createQueryBuilder('transaction');
+        $queryBuilder
+            ->select('transaction', 'paymentOptionType')
+            ->innerJoin('transaction.paymentOptionType', 'paymentOptionType')
+            ->where('transaction.customer = :customer')
+            ->andWhere('transaction.type = 1')
+            ->andWhere('transaction.status NOT IN (:status)')
+            ->andWhere('transaction.isVoided != true')
+            ->andWhere('paymentOptionType.paymentMode = :paymentMode')
+            ->andWhere("JSON_CONTAINS(transaction.details, 'false', '$.bitcoin.acknowledged_by_user') = true")
+            ->setParameter('customer', $memberId)
+            ->setParameter('paymentMode', PaymentOption::PAYMENT_MODE_BITCOIN)
+            ->setParameter('status', [Transaction::TRANSACTION_STATUS_END])
+            ->setMaxResults(1)
+        ;
+
+        return $queryBuilder->getQuery()->getOneOrNullResult();
+    }
 }

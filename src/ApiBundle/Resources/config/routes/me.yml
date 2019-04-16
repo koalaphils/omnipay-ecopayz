@@ -33,3 +33,9 @@ api_me_last_bitcoin_transaction:
   defaults:
     _controller: ApiBundle:Transaction:getLastBitcoinTransaction
   methods: [GET]
+
+api_customers.me_acknowledge_bitcoin_transaction:
+  path: me/transactions/acknowledge-bitcoin-transaction
+  defaults:
+    _controller: ApiBundle:Transaction:acknowledgeBitcoinTransaction
+  methods: [POST]

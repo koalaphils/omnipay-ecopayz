@@ -8,11 +8,15 @@ use ApiBundle\Request\Transaction\DepositRequest;
 use ApiBundle\Request\Transaction\GetLastBitcoinRequest;
 use ApiBundle\Request\Transaction\WithdrawRequest;
 use ApiBundle\RequestHandler\Transaction\DepositHandler;
+use ApiBundle\RequestHandler\Transaction\TransactionCommandHandler;
 use ApiBundle\RequestHandler\Transaction\TransactionQueryHandler;
 use ApiBundle\RequestHandler\Transaction\WithdrawHandler;
+use DbBundle\Entity\Transaction;
+use Doctrine\ORM\NoResultException;
 use FOS\RestBundle\View\View;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -127,5 +131,26 @@ class TransactionController extends AbstractController
         $view->getContext()->setGroups(['Default', 'details']);
 
         return $view;
+    }
+
+    /**
+     * @ApiDoc(
+     *     description="Acknowledge a bitcoin transaction.",
+     *     views={"piwi"},
+     *     section="Transaction",
+     *     headers={{ "name"="Authorization", "description"="Bearer <access_token>" }}
+     * )
+     */
+    public function acknowledgeBitcoinTransactionAction(TokenStorage $tokenStorage, TransactionCommandHandler $handler): View
+    {
+        $member = $tokenStorage->getToken()->getUser()->getCustomer();
+        try {
+            $handler->handleAcknowledgeBitcoin($member);
+
+            return $this->view(['success' => true]);
+        } catch (NoResultException $exception) {
+            return $this->view(['success' => false, 'error' => 'No active transaction to acknowledge.'], Response::HTTP_BAD_REQUEST);
+        }
+
     }
 }
