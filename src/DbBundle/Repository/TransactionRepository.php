@@ -675,6 +675,7 @@ class TransactionRepository extends BaseRepository
         $query = $this->createQueryBuilder('t')
             ->select('t')
             ->where('t.customer = :memberId AND t.paymentOptionType = :paymentOption AND t.isVoided = false AND t.status NOT IN (:statuses)')
+            ->andWhere('t.bitcoinIsAcknowledgeByMember <> TRUE')
             ->orderBy('t.id', 'DESC')
             ->setMaxResults(1)
             ->setParameters([
