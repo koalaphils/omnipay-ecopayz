@@ -102,3 +102,7 @@ parameters:
     twilio_from: '${TWILIO_FROM}'
 
     timezone: '${APP_TIMEZONE}'
+
+    redis.host: ${REDIS_HOST}
+    redis.port: ${REDIS_PORT}
+    redis.database_id: ${REDIS_DATABASE}

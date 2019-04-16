@@ -89,7 +89,11 @@ ENV UPLOAD_FOLDER=/uploads \
     TWILIO_SID= \
     TWILIO_TOKEN= \
     TWILIO_FROM= \
-    APP_TIMEZONE=UTC
+    APP_TIMEZONE=UTC \
+    REDIS_HOST=localhost \
+    REDIS_PORT=6379 \
+    REDIS_DATABASE=0
+
 
 RUN mkdir $UPLOAD_FOLDER
 COPY /opt/docker/php/entrypoint.sh /entrypoint.sh

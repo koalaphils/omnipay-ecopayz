@@ -1,0 +1,8 @@
+snc_redis:
+  clients:
+    default:
+      type: predis
+      alias: default
+      dsn: 'redis://%redis.host%:%redis.port%/%redis.database_id%'
+  session:
+    client: default

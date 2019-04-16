@@ -62,6 +62,7 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
         $token = $request->getToken();
 
         $memberId = $token->getDetails()['memberId'];
+
         try {
             $member = $this->memberRepository->getById($memberId);
         } catch (NoResultException $e) {
