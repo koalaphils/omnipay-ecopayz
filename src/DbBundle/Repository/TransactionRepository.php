@@ -701,7 +701,7 @@ class TransactionRepository extends BaseRepository
             ->andWhere("JSON_CONTAINS(transaction.details, 'false', '$.bitcoin.acknowledged_by_user') = true")
             ->setParameter('customer', $memberId)
             ->setParameter('paymentMode', PaymentOption::PAYMENT_MODE_BITCOIN)
-            ->setParameter('status', [Transaction::TRANSACTION_STATUS_END])
+            ->setParameter('status', [Transaction::TRANSACTION_STATUS_END, Transaction::TRANSACTION_STATUS_DECLINE])
             ->setMaxResults(1)
         ;
 
