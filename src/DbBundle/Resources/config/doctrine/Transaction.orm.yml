@@ -191,7 +191,7 @@ DbBundle\Entity\Transaction:
             type: boolean
             options:
                 generate: IF(transaction_other_details->>"$.bitcoin.acknowledged_by_user" = 'true', 1, 0)
-                readonly: true
+                readOnly: true
                 default: 0
             column: transaction_virtual_bitcoin_is_acknowledge_by_member
             nullable: true
