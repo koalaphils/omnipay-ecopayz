@@ -665,23 +665,26 @@ class TransactionRepository extends BaseRepository
     /**
      * @param int $memberId
      * @param string $paymentOption
+     * @param $transactionType
      * @return Transaction
      *
      * @throws \Doctrine\ORM\NoResultException
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function getLastTransactionForPaymentOption(int $memberId, string $paymentOption): Transaction
+    public function getLastTransactionForPaymentOption(int $memberId, string $paymentOption, int $transactionType): Transaction
     {
         $query = $this->createQueryBuilder('t')
             ->select('t')
             ->where('t.customer = :memberId AND t.paymentOptionType = :paymentOption AND t.isVoided = false AND t.status NOT IN (:statuses)')
             ->andWhere('t.bitcoinIsAcknowledgeByMember <> TRUE')
+            ->andWhere('t.type = :transactionType')
             ->orderBy('t.id', 'DESC')
             ->setMaxResults(1)
             ->setParameters([
                 'memberId' => $memberId,
                 'statuses' => [Transaction::TRANSACTION_STATUS_DECLINE, Transaction::TRANSACTION_STATUS_END],
                 'paymentOption' => $paymentOption,
+                'transactionType' => $transactionType
             ])
         ;
 
