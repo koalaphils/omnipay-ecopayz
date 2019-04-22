@@ -31,8 +31,22 @@ class TransactionQueryHandler
     public function handleGetLastBitcoin(GetLastBitcoinRequest $request): ?Transaction
     {
         $paymentOptionCode = $this->settingManager->getSetting('bitcoin.setting.paymentOption');
+        if ($paymentOptionCode === null) {
+            throw new \Exception('Unable to proceed due to bitcoin payment option is not yet configured');
+        }
         try {
-            return $this->transactionRepository->getLastTransactionForPaymentOption($request->getMemberId(), $paymentOptionCode);
+            $transactionType = '';
+            if ($request->getType() === 'deposit') {
+                $transactionType = Transaction::TRANSACTION_TYPE_DEPOSIT;
+            } elseif ($request->getType() === 'withdraw') {
+                $transactionType = Transaction::TRANSACTION_TYPE_WITHDRAW;
+            }
+
+            if ($transactionType === '') {
+                throw new \Exception(sprintf('Transaction %s is not supported for bitcoin transaction', $request->getType()));
+            }
+
+            return $this->transactionRepository->getLastTransactionForPaymentOption($request->getMemberId(), $paymentOptionCode, $transactionType);
         } catch (NoResultException $exception) {
             return null;
         }

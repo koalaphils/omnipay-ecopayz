@@ -29,7 +29,7 @@ api_me_withdraw:
   methods: [POST]
 
 api_me_last_bitcoin_transaction:
-  path: me/transaction/last-bitcoin
+  path: me/transaction/last-bitcoin/{type}
   defaults:
     _controller: ApiBundle:Transaction:getLastBitcoinTransaction
   methods: [GET]
