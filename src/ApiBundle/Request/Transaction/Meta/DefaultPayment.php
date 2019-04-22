@@ -6,7 +6,7 @@ namespace ApiBundle\Request\Transaction\Meta;
 
 class DefaultPayment implements PaymentInterface
 {
-    public static function createFromArray(array $data): self
+    public static function createFromArray(array $data, string $transactionType): self
     {
         return new static();
     }

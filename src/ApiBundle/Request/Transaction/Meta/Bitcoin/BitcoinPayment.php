@@ -25,12 +25,15 @@ class BitcoinPayment implements  PaymentInterface, GroupSequenceProviderInterfac
      */
     private $rateDetail;
 
-    public static function createFromArray(array $data): self
+    private $transactionType;
+
+    public static function createFromArray(array $data, string $transactionType): self
     {
         $instance = new static();
         $instance->blockchainRate = $data['blockchain_rate'] ?? '';
         $instance->rate = $data['rate'] ?? '';
         $instance->rateDetail = BitcoinRateDetail::createFromArray($data['rate_detail'] ?? []);
+        $instance->transactionType = $transactionType;
 
         return $instance;
     }
@@ -61,6 +64,6 @@ class BitcoinPayment implements  PaymentInterface, GroupSequenceProviderInterfac
 
     public function getGroupSequence()
     {
-        return ['BitcoinPayment', 'afterBlank', 'correctRate'];
+        return [['BitcoinPayment', $this->transactionType], 'afterBlank', 'correctRate'];
     }
 }

@@ -334,14 +334,6 @@
                         'choices': {
                             'deposit': "Deposit",
                             'withdraw': "Withdraw",
-                            'transfer': "Transfer",
-                            'p2ptransfer': "P2P Transfer",
-                            'dwl': "Win/Loss",
-                            'bet': "Bet",
-                            'bonus': "Bonus",
-                            'commission': "Commission",
-                            'debit_adjustment': "Debit",
-                            'credit_adjustment': "Credit",
                         },
                         'value': {{ app.request.get("type", [])|json_encode|raw }}
                     },

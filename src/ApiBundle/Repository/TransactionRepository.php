@@ -189,21 +189,20 @@ class TransactionRepository
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }
 
-    public function findActiveBitcoinTransactionByMemberId(int $memberId): ?Transaction
+    public function findActiveBitcoinTransactionByMemberId(int $memberId, int $transactionType): ?Transaction
     {
-        $nonActiveTypes = [Transaction::TRANSACTION_STATUS_END];
         $queryBuilder = $this->createQueryBuilder('transaction');
         $queryBuilder
             ->select('transaction', 'paymentOptionType')
             ->innerJoin('transaction.paymentOptionType', 'paymentOptionType')
             ->where('transaction.customer = :customer')
-            ->andWhere('transaction.type NOT IN (:nonActiveTypes)')
+            ->andWhere('transaction.type = :type')
             ->andWhere('transaction.status NOT IN (:status)')
             ->andWhere('transaction.isVoided != true')
             ->andWhere('paymentOptionType.paymentMode = :paymentMode')
-            ->andWhere("JSON_CONTAINS(transaction.details, 'false', '$.bitcoin.acknowledged_by_user') = true")
+            ->andWhere("IFNULL(JSON_CONTAINS(transaction.details, 'false', '$.bitcoin.acknowledged_by_user'), true) = true")
             ->setParameter('customer', $memberId)
-            ->setParameter('nonActiveTypes', $nonActiveTypes)
+            ->setParameter('type', $transactionType)
             ->setParameter('paymentMode', PaymentOption::PAYMENT_MODE_BITCOIN)
             ->setParameter('status', [Transaction::TRANSACTION_STATUS_END, Transaction::TRANSACTION_STATUS_DECLINE], Connection::PARAM_INT_ARRAY)
         ;

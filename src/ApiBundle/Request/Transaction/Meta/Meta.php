@@ -27,7 +27,7 @@ class Meta
             $class = '\\ApiBundle\\Request\\Transaction\Meta\\' . $classPrefix . '\\' . $classPrefix . 'Payment';
         }
         if ($withPaymentDetails && class_exists($class)) {
-            $instance->paymentDetails[strtolower($paymentOptionType)] = $class::createFromArray($data['payment_details'][strtolower($paymentOptionType)] ?? []);
+            $instance->paymentDetails[strtolower($paymentOptionType)] = $class::createFromArray($data['payment_details'][strtolower($paymentOptionType)] ?? [], $isDeposit ? 'deposit' : 'withdraw');
         } else {
             $instance->paymentDetails[strtolower($paymentOptionType)] = new DefaultPayment();
         }
