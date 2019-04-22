@@ -5,12 +5,19 @@ declare(strict_types = 1);
 namespace ApiBundle\Controller;
 
 use ApiBundle\Request\Transaction\DepositRequest;
+use ApiBundle\Request\Transaction\GetLastBitcoinRequest;
 use ApiBundle\Request\Transaction\WithdrawRequest;
 use ApiBundle\RequestHandler\Transaction\DepositHandler;
+use ApiBundle\RequestHandler\Transaction\TransactionCommandHandler;
+use ApiBundle\RequestHandler\Transaction\TransactionQueryHandler;
 use ApiBundle\RequestHandler\Transaction\WithdrawHandler;
+use DbBundle\Entity\Transaction;
+use Doctrine\ORM\NoResultException;
 use FOS\RestBundle\View\View;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class TransactionController extends AbstractController
@@ -68,11 +75,19 @@ class TransactionController extends AbstractController
      *         {"name"="payment_option_type", "dataType"="string"},
      *         {"name"="products[0][username]", "dataType"="string"},
      *         {"name"="products[0][product_code]", "dataType"="string"},
-     *         {"name"="products[0][amount]", "dataType"="string"},
-     *         {"name"="meta[field][email]", "dataType"="string"}
+     *         {"name"="products[0][amount]", "dataType"="string"}
      *     },
      *     parameters={
-     *         {"name"="payment_option", "dataType"="string", "required"=false}
+     *         {"name"="payment_option", "dataType"="string", "required"=false},
+     *         {"name"="meta[field][email]", "dataType"="string", "required"=false},
+     *         {"name"="meta[field][account_id]", "dataType"="string", "required"=false},
+     *         {"name"="meta[payment_details][bitcoin][rate_detail][range_start]", "dataType"="string", "required"=false},
+     *         {"name"="meta[payment_details][bitcoin][rate_detail][range_end]", "dataType"="string", "required"=false},
+     *         {"name"="meta[payment_details][bitcoin][rate_detail][adjustment]", "dataType"="string", "required"=false},
+     *         {"name"="meta[payment_details][bitcoin][rate_detail][adjustment_type]", "dataType"="string", "required"=false},
+     *         {"name"="meta[payment_details][bitcoin][blockchain_rate]", "dataType"="string", "required"=false},
+     *         {"name"="meta[payment_details][bitcoin][rate]", "dataType"="string", "required"=false},
+     *         {"name"="products[0][meta][payment_details][bitcoin][requested_btc]", "dataType"="string", "required"=false}
      *     },
      *     headers={
      *         { "name"="Authorization", "description"="Bearer <access_token>" }
@@ -91,5 +106,51 @@ class TransactionController extends AbstractController
         $transaction = $withdrawHandler->handle($withdrawRequest);
 
         return $this->view($transaction);
+    }
+
+    /**
+     * @ApiDoc(
+     *     views={"piwi"},
+     *     section="Transaction",
+     *     description="Get last bitcoin transaction",
+     *     headers={{ "name"="Authorization", "description"="Bearer <access_token>" }}
+     * )
+     *
+     * @param TokenStorage $tokenStorage
+     * @param TransactionQueryHandler $handler
+     * @return View
+     */
+    public function getLastBitcoinTransactionAction(TokenStorage $tokenStorage, TransactionQueryHandler $handler): View
+    {
+        $member = $tokenStorage->getToken()->getUser()->getCustomer();
+        $request = new GetLastBitcoinRequest((int) $member->getId());
+
+        $transaction = $handler->handleGetLastBitcoin($request);
+
+        $view = $this->view(['data' => $transaction]);
+        $view->getContext()->setGroups(['Default', 'details']);
+
+        return $view;
+    }
+
+    /**
+     * @ApiDoc(
+     *     description="Acknowledge a bitcoin transaction.",
+     *     views={"piwi"},
+     *     section="Transaction",
+     *     headers={{ "name"="Authorization", "description"="Bearer <access_token>" }}
+     * )
+     */
+    public function acknowledgeBitcoinTransactionAction(TokenStorage $tokenStorage, TransactionCommandHandler $handler): View
+    {
+        $member = $tokenStorage->getToken()->getUser()->getCustomer();
+        try {
+            $handler->handleAcknowledgeBitcoin($member);
+
+            return $this->view(['success' => true]);
+        } catch (NoResultException $exception) {
+            return $this->view(['success' => false, 'error' => 'No active transaction to acknowledge.'], Response::HTTP_BAD_REQUEST);
+        }
+
     }
 }

@@ -51,17 +51,27 @@ class PaymentOptionController extends AbstractController
         return $view;
     }
 
-     /**
+    /**
      * @ApiDoc(
-     *  description="Get Bitcoin Adjustment from Cache (Deposit)",
+     *     description="Get Bitcoin Adjustment from Cache (Deposit)",
+     *     section="Bitcoin Adjustment",
+     *     views={"piwi"},
+     *     headers={
+     *         { "name"="Authorization", "description"="Bearer <access_token>" }
+     *     }
      * )
      */
-    public function getCachedBitcoinAdjustmentAction()
+    public function getCachedBitcoinAdjustmentAction(string $type)
     {
-        $bitcoinManager = $this->get('payment.bitcoin_manager');
-        $bitcoinAdjustment = $bitcoinManager->createBitcoinAdjustment(Rate::RATE_EUR);
+        $typeId = Transaction::TRANSACTION_TYPE_DEPOSIT;
+        if ($type === 'withdraw') {
+            $typeId = Transaction::TRANSACTION_TYPE_WITHDRAW;
+        }
 
-        return new JsonResponse($bitcoinAdjustment->toArray(Transaction::TRANSACTION_TYPE_DEPOSIT));
+        $bitcoinManager = $this->get('payment.bitcoin_manager');
+        $bitcoinAdjustment = $bitcoinManager->createBitcoinAdjustment(Rate::RATE_EUR, $typeId);
+
+        return new JsonResponse($bitcoinAdjustment->toArray($typeId));
     }
 
     /**

@@ -16,10 +16,10 @@ class Meta
      */
     private $fields;
 
-    public static function createFromArray(array $data, string $paymentOptionType, bool $isProduct = false, bool $withPaymentDetails = true): self
+    public static function createFromArray(array $data, string $paymentOptionType, bool $isProduct = false, bool $withPaymentDetails = true, bool $isDeposit = true): self
     {
         $instance = new static();
-        $instance->fields = Fields::createFromArray($data['field'] ?? []);
+        $instance->fields = Fields::createFromArray($data['field'] ?? [], $paymentOptionType, $isDeposit);
         $classPrefix = ucwords(strtolower($paymentOptionType));
         if ($isProduct) {
             $class = '\\ApiBundle\\Request\\Transaction\Meta\\' . $classPrefix . '\\' . $classPrefix . 'ProductPayment';

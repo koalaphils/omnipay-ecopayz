@@ -23,9 +23,9 @@ ApiBundle\Request\Transaction\Meta\Bitcoin\BitcoinRateDetail:
 ApiBundle\Request\Transaction\Meta\Bitcoin\BitcoinPayment:
   group_sequence_provider: true
   constraints:
-    - Callback:
-        callback: [ApiBundle\Validator\Bitcoin\BitcoinValidatorCallback, validateConvertedAmount]
-        groups: [afterBlank]
+    #- Callback:
+    #    callback: [ApiBundle\Validator\Bitcoin\BitcoinValidatorCallback, validateConvertedAmount]
+    #    groups: [afterBlank]
     - ApiBundle\Validator\Bitcoin\BitcoinTransactionConstraint: ~
   getters:
     blockchainRate:

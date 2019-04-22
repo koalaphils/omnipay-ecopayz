@@ -626,28 +626,6 @@ class TransactionOldController extends AbstractController
         }  
     }
 
-    /**
-     * @ApiDoc(
-     *     views={"piwi"},
-     *     section="Transaction",
-     *     description="Get last bitcoin transaction",
-     *     headers={{ "name"="Authorization", "description"="Bearer <access_token>" }}
-     * )
-     *
-     * @param TokenStorage $tokenStorage
-     * @param TransactionQueryHandler $handler
-     * @return View
-     */
-    public function getLastBitcoinTransactionAction(TokenStorage $tokenStorage, TransactionQueryHandler $handler): View
-    {
-        $member = $tokenStorage->getToken()->getUser()->getCustomer();
-        $request = new GetLastBitcoinRequest($member->getId());
-
-        $transaction = $handler->handleGetLastBitcoin($request);
-
-        return $this->view(['data' => $transaction]);
-    }
-
     private function getTransactionRepository(): \ApiBundle\Repository\TransactionRepository
     {
         return $this->get('api.transaction_repository');

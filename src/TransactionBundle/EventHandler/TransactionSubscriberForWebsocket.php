@@ -69,6 +69,7 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
             $payload['message'] = 'Transaction ' . $transactionNumber . ' ' . $type . ' has been ' . $status;
             $payload['id'] = $event->getTransaction()->getId();
             $payload['status'] = $status;
+            $payload['date'] = $event->getTransaction()->getDate()->format('c');
 
             if ($event->getTransaction()->isP2pTransfer()) {
                 $members = $event->getMembersInSubTransactions();
@@ -82,7 +83,7 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
 
                 $this->createNotification($customer, $payload['message']);                
                 // zimi
-                // $this->publishWebsocketTopic($channel, $payload);
+                $this->publishWebsocketTopic($channel, $payload);
             }
         }
     }
@@ -100,7 +101,7 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
 
     protected function publishWebsocketTopic(string $channel, array $payload = []) :void
     {
-        $this->publisher->publish(WebsocketTopics::TOPIC_TRANSACTION_PROCESSED . '.' . $channel, json_encode($payload));
+        $this->publisher->publishUsingWamp(WebsocketTopics::TOPIC_TRANSACTION_PROCESSED . '.' . $channel, $payload);
     }
 
     /**

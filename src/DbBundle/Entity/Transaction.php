@@ -104,6 +104,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     private $bitcoinConfirmationCount;
     private $virtualBitcoinSenderAddress;
     private $virtualBitcoinReceiverUniqueAddress;
+    private $bitcoinIsAcknowledgeByMember;
     private $customerID;
     private $email;
     private $popup;
@@ -1538,5 +1539,20 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     public function getCustomerID()
     {
         return $this->customerID;
+    }
+
+    public function setBitcoinIsAcknowledgeByMember(bool $bitcoinIsAcknowledgeByMember): self
+    {
+        $this->bitcoinIsAcknowledgeByMember = $bitcoinIsAcknowledgeByMember;
+
+        return $this;
+    }
+
+    public function getBitcoinIsAcknowledgeByMember(): bool
+    {
+        if ($this->bitcoinIsAcknowledgeByMember === null) {
+            return false;
+        }
+        return $this->bitcoinIsAcknowledgeByMember;
     }
 }

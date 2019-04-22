@@ -31,7 +31,7 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
 {
     use GatewayAwareTrait;
 
-    private const PUBLISH_CHANNEL = 'btc.request_status';
+    public const PUBLISH_CHANNEL = 'btc.request_status';
     private const BLOCKCHAIN_OK_RESPONSE = '*ok*';
 
     private $transactionRepository;
@@ -62,6 +62,7 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
         $token = $request->getToken();
 
         $memberId = $token->getDetails()['memberId'];
+
         try {
             $member = $this->memberRepository->getById($memberId);
         } catch (NoResultException $e) {
@@ -273,6 +274,7 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
             ];            
 
             $this->publisher->publishUsingWamp(self::PUBLISH_CHANNEL, $publishData);
+            $this->publisher->publishUsingWamp(self::PUBLISH_CHANNEL . '.' . $transaction->getCustomer()->getWebsocketChannel(), $publishData);
             $this->publisher->publishUsingWamp(self::PUBLISH_CHANNEL . '.' . $transaction->getId(), $publishData);
         } catch (Throwable $ex) {
             /* Do nothing must, even the publishing has an error it must still procceed as success */

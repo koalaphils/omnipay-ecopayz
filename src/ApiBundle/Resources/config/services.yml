@@ -129,8 +129,15 @@ services:
 
     api.transaction.event_subscriber:
         class: ApiBundle\Subscriber\TransactionSubscriber
+        autowire: true
+        autoconfigure: true
+        public: true
         tags:
             - { name: kernel.event_subscriber }
+
+    ApiBundle\Subscriber\TransactionSubscriber:
+        alias: api.transaction.event_subscriber
+        public: false
 
     api.same_product_constraint_validator:
         class: ApiBundle\Validator\SameProductConstraintValidator

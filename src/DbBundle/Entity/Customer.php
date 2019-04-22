@@ -480,9 +480,9 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this->details;
     }
 
-    public function getDetail($key)
+    public function getDetail($key, $default = null)
     {
-        return array_get($this->getDetails(), $key);
+        return array_get($this->getDetails(), $key, $default);
     }
 
     /**
@@ -939,6 +939,18 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     public function getWebsocketDetails(): ?array
     {
         return $this->getDetail('websocket');
+    }
+
+    public function getWebsocketChannel(): string
+    {
+        return $this->getDetail('websocket.channel_id', '');
+    }
+
+    public function setWebsocketChannel(string $channelId): self
+    {
+        $this->setDetail('websocket.channel_id', $channelId);
+
+        return $this;
     }
 
     public function getReferrals()

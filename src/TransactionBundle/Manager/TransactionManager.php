@@ -3,6 +3,7 @@
 namespace TransactionBundle\Manager;
 
 use AppBundle\Exceptions\FormValidationException;
+use AppBundle\Helper\Publisher;
 use AppBundle\ValueObject\Number;
 use DbBundle\Entity\CommissionPeriod;
 use DbBundle\Entity\CustomerGroup;
@@ -15,6 +16,7 @@ use DbBundle\Entity\User;
 use DbBundle\Repository\CommissionPeriodRepository;
 use DbBundle\Repository\MemberRunningCommissionRepository;
 use Doctrine\ORM\Query;
+use PaymentBundle\Controller\Bitcoin\NotifyAction;
 use PDO;
 use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
@@ -36,9 +38,15 @@ class TransactionManager extends TransactionOldManager
      */
     private $pinnacleService;
 
-    public function __construct(PinnacleService $pinnacleService)
+    /**
+     * @var Publisher
+     */
+    private $publisher;
+
+    public function __construct(PinnacleService $pinnacleService, Publisher $publisher)
     {
         $this->pinnacleService = $pinnacleService;
+        $this->publisher = $publisher;
     }
 
     public function findTransactions(Request $request)
@@ -413,8 +421,7 @@ class TransactionManager extends TransactionOldManager
     {
         $form->handleRequest($request);
 
-        // zimi-comment:  && $form->isValid()
-        if ($form->isSubmitted()) {
+        if ($form->isSubmitted() && $form->isValid()) {
             $transaction = $form->getData();
             $transaction->retainImmutableData();
             $transaction->autoSetPaymentOptionType();
@@ -508,14 +515,15 @@ class TransactionManager extends TransactionOldManager
     }
 
     public function processTransaction(Transaction &$transaction, $action, bool $fromCustomer = false)
-    {        
-        // zimi-check $transaction !== null        
+    {
+        $isConfirm = false;
         if ($transaction !== null && $transaction->getId()) {
             if ($action === 'void') {
                 $action = ['label' => 'Void', 'status' => 'void'];
             } elseif ($action === 'decline') {
                 $action = ['label' => 'Decline', 'status' => Transaction::TRANSACTION_STATUS_DECLINE];
             } elseif ($action === 'confirm') {
+                $isConfirm = true;
                 $action = ['label' => 'Confirm', 'status' => Transaction::TRANSACTION_STATUS_ACKNOWLEDGE];
                 $transaction->setBitcoinConfirmation(3);
                 $transaction->setBitcoinAcknowledgedByUser(true);
@@ -555,6 +563,20 @@ class TransactionManager extends TransactionOldManager
             $this->getRepository()->rollback();
 
             throw $e;
+        }
+        try {
+            if ($isConfirm) {
+                $publishData = [
+                    'transaction_id' => $transaction->getId(),
+                    'member_id' => $transaction->getCustomer()->getId(),
+                    'confirmation_count' => $transaction->getBitcoinConfirmation(),
+                    'status' => $transaction->getBitcoinStatus(),
+                ];
+
+                $this->publisher->publishUsingWamp(NotifyAction::PUBLISH_CHANNEL . '.' . $transaction->getCustomer()->getWebsocketChannel(), $publishData);
+            }
+        } catch (\Exception $exception) {
+            // do nothing
         }
     }
 

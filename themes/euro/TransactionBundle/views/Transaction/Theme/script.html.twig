@@ -922,7 +922,7 @@
                 var actionType = $(this).html();
                 var submitButton = this;
 
-                if (actionType.toLowerCase() == 'decline' || actionType.toLowerCase() == 'void') {
+                if (actionType.toLowerCase() == 'decline' || actionType.toLowerCase() == 'void' || actionType.toLowerCase() == 'confirm') {
                    // Reason container is present if the transaction is either deposit / withdrawal.
                     if ($('#reasonContainer').length !== 0) {
                         var container =  document.getElementById('reasonContainer');
@@ -936,6 +936,11 @@
 
                         if (actionType.toLowerCase() === 'void') {
                             var temp = document.getElementById('voidReason');
+                            var clone = temp.content.cloneNode(true);
+                        }
+
+                        if(actionType.toLowerCase() === 'confirm'){
+                            var temp = document.getElementById('confirmReason');
                             var clone = temp.content.cloneNode(true);
                         }
 

@@ -674,15 +674,38 @@ class TransactionRepository extends BaseRepository
     {
         $query = $this->createQueryBuilder('t')
             ->select('t')
-            ->where('t.customer = :memberId AND t.paymentOptionType = :paymentOption AND t.isVoided = false')
+            ->where('t.customer = :memberId AND t.paymentOptionType = :paymentOption AND t.isVoided = false AND t.status NOT IN (:statuses)')
+            ->andWhere('t.bitcoinIsAcknowledgeByMember <> TRUE')
             ->orderBy('t.id', 'DESC')
             ->setMaxResults(1)
             ->setParameters([
                 'memberId' => $memberId,
+                'statuses' => [Transaction::TRANSACTION_STATUS_DECLINE, Transaction::TRANSACTION_STATUS_END],
                 'paymentOption' => $paymentOption,
             ])
         ;
 
         return $query->getQuery()->getSingleResult();
+    }
+
+    public function findUserUnacknowledgedDepositBitcoinTransaction(int $memberId): ?Transaction
+    {
+        $queryBuilder = $this->createQueryBuilder('transaction');
+        $queryBuilder
+            ->select('transaction', 'paymentOptionType')
+            ->innerJoin('transaction.paymentOptionType', 'paymentOptionType')
+            ->where('transaction.customer = :customer')
+            ->andWhere('transaction.type = 1')
+            ->andWhere('transaction.status NOT IN (:status)')
+            ->andWhere('transaction.isVoided != true')
+            ->andWhere('paymentOptionType.paymentMode = :paymentMode')
+            ->andWhere("JSON_CONTAINS(transaction.details, 'false', '$.bitcoin.acknowledged_by_user') = true")
+            ->setParameter('customer', $memberId)
+            ->setParameter('paymentMode', PaymentOption::PAYMENT_MODE_BITCOIN)
+            ->setParameter('status', [Transaction::TRANSACTION_STATUS_END, Transaction::TRANSACTION_STATUS_DECLINE])
+            ->setMaxResults(1)
+        ;
+
+        return $queryBuilder->getQuery()->getOneOrNullResult();
     }
 }

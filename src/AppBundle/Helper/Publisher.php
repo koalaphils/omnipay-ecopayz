@@ -2,25 +2,56 @@
 
 namespace AppBundle\Helper;
 
+use Doctrine\ORM\EntityManager;
 use Firebase\JWT\JWT;
+use JMS\JobQueueBundle\Entity\Job;
 use Rx\Observable;
 use React\Promise\Deferred;
+use Symfony\Component\Process\Process;
 use WebSocketBundle\Client\Client;
+use WebSocketBundle\Command\PublishCommand;
 
 class Publisher
 {
     const AUTH_ID = 'BACK_OFFICE';
 
+    /**
+     * @var string
+     */
     private $websocketUrl;
+
+    /**
+     * @var string
+     */
     private $websocketRealm;
+
+    /**
+     * @var string
+     */
     private $jwtKey;
+
+    /**
+     * @var string
+     */
     private $wampUrl;
 
-    public function __construct($websocketUrl, $websocketRealm, $jwtKey)
+    /**
+     * @var string
+     */
+    private $kernelEnvironment;
+
+    /**
+     * @var EntityManager
+     */
+    private $entityManager;
+
+    public function __construct(EntityManager $entityManager, string $websocketUrl, string $websocketRealm, string $jwtKey, string $kernelEnvironment)
     {
         $this->websocketUrl = $websocketUrl;
         $this->websocketRealm = $websocketRealm;
         $this->jwtKey = $jwtKey;
+        $this->kernelEnvironment = $kernelEnvironment;
+        $this->entityManager = $entityManager;
     }
     
     public function setWampUrl(string $wampUrl): void
@@ -60,15 +91,24 @@ class Publisher
     {
         $data = ['topic' => $topic, 'args' => [$args]];
         $encodedData = json_encode($data);
-        $encodedData = "'" . $encodedData . "'";
 
-        $command = [
-            'curl -H "Content-Type: application/json"',
-            '-d',
-            $encodedData,
-            $this->wampUrl . '/pub &'
-        ];
-        
-        shell_exec(implode(' ', $command));
+        $process = new Process([
+            'curl',
+            '-H', 'Content-Type: application/json',
+            '-d', $encodedData,
+            $this->wampUrl . '/pub'
+        ]);
+
+        $process->run();
+    }
+
+    public function addPublishToQueue(string $topic, array $args): void
+    {
+        $encodedData = json_encode($args);
+        $command = PublishCommand::COMMAND_NAME;
+        $job = new Job($command, [$topic, $encodedData, '--env', $this->kernelEnvironment]);
+
+        $this->entityManager->persist($job);
+        $this->entityManager->flush($job);
     }
 }

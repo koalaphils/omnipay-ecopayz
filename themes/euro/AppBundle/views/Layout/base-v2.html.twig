@@ -92,7 +92,8 @@
                     </div>
 
                     <footer class="footer text-right">
-                        © {{ "now"|date("Y") }}. {{ 'layout.All rights reserved'|trans({},"AppBundle") }}.
+                        © {{ "now"|date("Y") }}. {{ 'layout.All rights reserved'|trans({},"AppBundle") }}.<br />
+                        <em class="font-xs">{{ 'layout.UTC Timezone'|trans({}, "AppBundle") }}. <strong id="utcDateTime"></strong></em>
                    </footer>
                 </div>
             </div>
@@ -155,6 +156,13 @@
             var websocketUrl = "{{ parameter("websocket.url") }}";
             var websocketRealm = "{{ parameter("websocket.realm") }}";
             var websocketJwt = "{% if jwt is defined %}{{ jwt }}{% endif %}";
+
+            $(function () {
+                setInterval(function () {
+                    var dateTimeUtc = moment().format('MMMM Do YYYY, h:mm:ss a');
+                    $('#utcDateTime').text(dateTimeUtc);
+                }, 1000);
+            });
         </script>
         {% block javascript_plugins %}{% endblock %}
         {{ asset_render('js', 'default', [

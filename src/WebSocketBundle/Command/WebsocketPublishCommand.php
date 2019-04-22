@@ -12,7 +12,7 @@ class WebsocketPublishCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this
-            ->setName('websocket:publish')
+            ->setName('websocket:publishOld')
             ->setDescription('...')
             ->addArgument('topic', InputArgument::REQUIRED, 'Topic where it will publish')
             ->addArgument('data', InputArgument::REQUIRED, 'Data to be send')

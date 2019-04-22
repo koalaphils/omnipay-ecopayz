@@ -63,6 +63,11 @@ class Product implements GroupSequenceProviderInterface
         return $this->meta;
     }
 
+    public function getPaymentOptionType(): string
+    {
+        return $this->paymentOptionType;
+    }
+
     /**
      * @param string $key
      * @param mixed|null $default

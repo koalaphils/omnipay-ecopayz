@@ -48,6 +48,8 @@ DbBundle\Entity\Transaction:
         #    columns: [transaction_virtual_bitcoin_sender_address]
         bitcoin_confirmation:
             columns: [transaction_bitcoin_confirmation]
+        bitcoin_is_acknowledge_by_member:
+            columns: [transaction_virtual_bitcoin_is_acknowledge_by_member]
     fields:
         number:
             type: string
@@ -184,6 +186,14 @@ DbBundle\Entity\Transaction:
                 generate: transaction_other_details->"$.bitcoin.confirmation_count"
                 readOnly: true
             column: transaction_bitcoin_confirmation
+            nullable: true
+        bitcoinIsAcknowledgeByMember:
+            type: boolean
+            options:
+                generate: IF(transaction_other_details->>"$.bitcoin.acknowledged_by_user" = 'true', 1, 0)
+                readOnly: true
+                default: 0
+            column: transaction_virtual_bitcoin_is_acknowledge_by_member
             nullable: true
         # zimi
         email:

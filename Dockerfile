@@ -1,6 +1,7 @@
 FROM alpine:3.9 as base
 RUN apk add --update imagemagick \
     git \
+    curl \
     php7 \
     php7-cli \
     php7-curl \
@@ -88,13 +89,18 @@ ENV UPLOAD_FOLDER=/uploads \
     TWILIO_SID= \
     TWILIO_TOKEN= \
     TWILIO_FROM= \
-    APP_TIMEZONE=UTC
+    APP_TIMEZONE=UTC \
+    REDIS_HOST=localhost \
+    REDIS_PORT=6379 \
+    REDIS_DATABASE=0
+
 
 RUN mkdir $UPLOAD_FOLDER
 COPY /opt/docker/php/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 COPY /opt/docker/php/www.conf /etc/php7/php-fpm.d/www.conf
 COPY /opt/docker/php/php.ini /etc/php7/php.ini
+COPY /opt/docker/php/ssh_config /etc/ssh/ssh_config
 WORKDIR /var/www/html
 COPY --from=vendor /usr/bin/composer /usr/bin/composer
 COPY --from=vendor /app/vendor /var/www/html/vendor

@@ -36,7 +36,6 @@ class BitcoinTransactionConstraintValidator extends ConstraintValidator
 
         $request = $this->context->getRoot();
         $depositTransactionWithBitcoin = $this->transactionRepository->findActiveBitcoinTransactionByMemberId($request->getMemberId());
-
         if ($depositTransactionWithBitcoin instanceof Transaction) {
             $this->context->buildViolation($constraint->getMessage())->addViolation();
         }
