@@ -1,9 +1,9 @@
 ApiBundle\Request\Transaction\WithdrawRequest:
   group_sequence_provider: true
   getters:
-    verificationCode:
-      - TwoFactorBundle\Validator\Constraints\IsCodeCorrect:
-          payloadPath: 'object.getVerificationPayload()'
+    #verificationCode:
+    #  - TwoFactorBundle\Validator\Constraints\IsCodeCorrect:
+    #      payloadPath: 'object.getVerificationPayload()'
     paymentOptionType:
       - NotBlank: ~
       - AppBundle\Validator\Constraints\Exists:
