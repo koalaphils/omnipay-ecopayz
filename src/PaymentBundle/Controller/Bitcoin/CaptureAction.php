@@ -84,6 +84,8 @@ class CaptureAction implements ActionInterface
                     $message = json_decode($message);
                 }
 
+                $this->logger->critical($e->getMessage(), ['exception' => $e]);
+
                 throw new HttpResponse(new JsonResponse([
                     'error' => $message,
                     'thrown_message' => $e->getMessage(),

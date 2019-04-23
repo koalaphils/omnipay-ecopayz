@@ -76,6 +76,7 @@ services:
             - ['setTokenFactory', ['@payment.member_token_factory']]
             - ['setCycleFundRouteName', ['payment.cycle_fund_notify_bitcoin']]
             - ['setUrlGenerator', ['@=service("router").getGenerator()']]
+            - ['setLogger', ['@logger']]
 
     payment.bitcoin.notify:
         class: PaymentBundle\Controller\Bitcoin\NotifyAction
