@@ -77,6 +77,7 @@ services:
             - ['setCycleFundRouteName', ['payment.cycle_fund_notify_bitcoin']]
             - ['setUrlGenerator', ['@=service("router").getGenerator()']]
             - ['setLogger', ['@logger']]
+            - ['setCallbackHost', ['%blockchain.callback_host%']]
 
     payment.bitcoin.notify:
         class: PaymentBundle\Controller\Bitcoin\NotifyAction
