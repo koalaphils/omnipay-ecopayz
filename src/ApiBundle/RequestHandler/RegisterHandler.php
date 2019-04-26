@@ -14,6 +14,7 @@ use DbBundle\Entity\TwoFactorCode;
 use DbBundle\Entity\User;
 use DbBundle\Repository\CountryRepository;
 use DbBundle\Repository\CurrencyRepository;
+use DbBundle\Repository\CustomerGroupRepository;
 use DbBundle\Repository\ProductRepository;
 use DbBundle\Repository\TwoFactorCodeRepository;
 use Doctrine\ORM\EntityManager;
@@ -70,6 +71,11 @@ class RegisterHandler
     private $twoFactorCodeRepository;
 
     /**
+     * @var CustomerGroupRepository
+     */
+    private $memberGroupRepository;
+
+    /**
      * @var Publisher
      */
     private $publisher;
@@ -80,6 +86,7 @@ class RegisterHandler
         CurrencyRepository $currencyRepository,
         CountryRepository $countryRepository,
         ProductRepository $productRepository,
+        CustomerGroupRepository $memberGroupRepository,
         SettingManager $settingManager,
         EntityManager $entityManager,
         StorageInterface $codeStorage,
@@ -96,6 +103,7 @@ class RegisterHandler
         $this->codeStorage = $codeStorage;
         $this->twoFactorCodeRepository = $twoFactorCodeRepository;
         $this->publisher = $publisher;
+        $this->memberGroupRepository = $memberGroupRepository;
     }
 
     public function handle(RegisterRequest $registerRequest): Member
@@ -142,6 +150,7 @@ class RegisterHandler
         $user = $this->generateUser($registerRequest);
         $user->setActivationSentTimestamp($now);
         $user->setActivationTimestamp($now);
+        $defaultMemberGroup = $this->memberGroupRepository->getDefaultGroup();
         $currency = $this->currencyRepository->findByCode($registerRequest->getCurrency());
         $pinnacleProduct = $this->getPinnacleProduct();
         $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->createPlayer();
@@ -166,6 +175,7 @@ class RegisterHandler
         $member->setLName('');
         $member->setFullName('');
         $member->addProduct($memberProduct);
+        $member->addGroup($defaultMemberGroup);
         $member->setDetails([
             'websocket' => [
                 'channel_id' => uniqid(generate_code(10, false, 'ld')),
