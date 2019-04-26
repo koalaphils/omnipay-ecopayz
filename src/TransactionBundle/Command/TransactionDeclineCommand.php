@@ -2,6 +2,10 @@
 
 namespace TransactionBundle\Command;
 
+use JMS\JobQueueBundle\Console\CronCommand;
+use JMS\JobQueueBundle\Console\ScheduleEveryMinute;
+use JMS\JobQueueBundle\Console\ScheduleInSecondInterval;
+use JMS\JobQueueBundle\Entity\Job;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -10,8 +14,15 @@ use Symfony\Component\Console\Logger\ConsoleLogger;
 use DbBundle\Entity\User;
 use TransactionBundle\Service\TransactionDeclineService;
 
-class TransactionDeclineCommand extends ContainerAwareCommand
+class TransactionDeclineCommand extends ContainerAwareCommand implements CronCommand
 {
+    use ScheduleEveryMinute;
+
+    public function createCronJob(\DateTime $dateTime)
+    {
+        return new Job($this->getName(), [$this->getContainer()->getParameter('cron_user')]);
+    }
+
     protected function configure()
     {
         $this

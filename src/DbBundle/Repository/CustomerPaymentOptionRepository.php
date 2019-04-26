@@ -2,6 +2,7 @@
 
 namespace DbBundle\Repository;
 
+use DbBundle\Entity\CustomerPaymentOption;
 use DbBundle\Entity\Transaction;
 
 /**
@@ -113,5 +114,20 @@ class CustomerPaymentOptionRepository extends \Doctrine\ORM\EntityRepository
         $queryBuilder->setMaxResults(1);
 
         return $queryBuilder->getQuery()->getOneOrNullResult();
+    }
+
+    /**
+     * @param int $memberId
+     * @return CustomerPaymentOption[]
+     */
+    public function findActivePaymentOptionForMember(int $memberId): array
+    {
+        $queryBuilder = $this->createQueryBuilder('cpo');
+        $queryBuilder
+            ->where('cpo.customer = :memberId AND cpo.isActive = TRUE')
+            ->setParameters(['memberId' => $memberId])
+        ;
+
+        return $queryBuilder->getQuery()->getResult();
     }
 }

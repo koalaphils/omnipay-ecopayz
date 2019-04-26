@@ -79,10 +79,6 @@ class TransactionDeclineService extends AbstractTransactionService
     public function setLoggerForUser(User $user, ConsoleLogger $logger): void
     {
         $roles = $user->getRoles();
-
-        if (!in_array('role.bitcoin.setting', $roles)) {
-            throw new \Exception('Access Denied.');
-        }
         
         $logger->info(sprintf('Login User: %s [%s]', $user->getUsername(), $user->getId()));
     }

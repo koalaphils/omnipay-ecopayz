@@ -1,205 +1,203 @@
-# AC66 Back Office
+# Piwi Backoffice
 
-**AC66 Back Office** is a customer management system.
-It was use by Customer Support of ZimiTech to manage their customer.
-This system targeted Europe customers.
+**Piwi Backoffice**  is a customer management system.
+It was use by customer service of ZimiTech to manager their customer and track the transaction made by customer.
+
+The system was build using **Symfony 3.3**
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instruction will let you setup the project to your local environment.
 
-### Prerequisites
+### Technology used
 
-Before starting you need to install some services for your development.
+- PHP >= 7.2
+- MySQL >= 5.8
+- Nginx
+- Redis
 
-**PHP**
-Version 7.1
-Check the link on how to install PHP.
-[http://php.net/manual/en/install.php](http://php.net/manual/en/install.php)
+### Steps to run it
 
-**MySQL**
-Version >= 5.7
-Check the link on how to install MySQL.
-[https://dev.mysql.com/doc/refman/5.7/en/installing.html](https://dev.mysql.com/doc/refman/5.7/en/installing.html)
+Currently the system is ready use for docker container.
+> **Note:** This step is for development environment
 
-**Git**
-Check the link on how to install Git
-[https://www.atlassian.com/git/tutorials/install-git](https://www.atlassian.com/git/tutorials/install-git)
-
-**Composer**
-Check the link on how to install composer
-[https://getcomposer.org/doc](https://getcomposer.org/doc)
-
-### Installing
-
-Before installing the project make sure you have install all **Prerequisites**
-
-Clone the repository using SSH
-```
-$ git clone git@bitbucket.org:zimitech/ac66bo.git
+```bash
+$ mkdir PIWI
+$ cd PIWI
+$ git clone git@bitbucket.org:zimitech/piwibackoffice.git
+$ vim docker-compose.yml
 ```
 
-Or you can clone the repository using HTTPS
+docker-compose.yml
+```yaml
+version: "3.4"
+services:
+  database:
+    image: mysql:8.0.15
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - database:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=backofficepw
+      - MYSQL_PASSWORD=backofficepw
+      - MYSQL_DATABASE=backoffice2
+      - MYSQL_USER=backoffice
+  mailhog:
+    image: mailhog/mailhog
+    command:
+      - "-smtp-bind-addr"
+      - "0.0.0.0:25"
+    user: root
+    ports:
+      - 8025:8025
+  adminer:
+    image: adminer
+    ports:
+      - 9080:8080
+
+  piwibo-php:
+    build:
+      context: ./piwibackoffice/
+      target: prod
+    volumes:
+      - ./piwibackoffice/:/var/www/html
+      - uploads:/uploads
+    depends_on:
+      - database
+      - mailhog
+      - adminer
+    environment:
+      - SYMFONY_ENV=dev
+      - APP_SECRET=<value-here>
+      - CUSTOMER_TEMP_PASSWORD=super@c66p@$$w0rd
+      - JWT_KEY=YourSampleKeyHere
+      - SLACK_TOKEN=<value-here>
+      - SLACK_CHANNEL=<value-here>
+      - MAIL_TRANSPORT=smtp
+      - MAIL_HOST=mailhog
+      - MAIL_USER=~
+      - MAIL_PORT=25
+      - MAIL_PASSWORD=~
+      - MAIL_FROM=support@piwi247.com
+      - MAIL_ENCRYPTION=~
+      - PIN_API_URL=http://proxy.pinny88.com/b2b
+      - PIN_API_AGENT_KEY=<value-here>
+      - PIN_API_SECRET_KEY=<value-here>
+      - PIN_AGENT_CODE=<value-here>
+      - TWILIO_SID=<value-here>
+      - TWILIO_TOKEN=<value-here>
+      - TWILIO_FROM=<value-here>
+      - WS_URL=ws://localhost:83/ws/
+      - WS_WAMP_URL=http://websocket:9092
+      - DATABASE_DRIVER=pdo_mysql
+      - DATABASE_HOST=database
+      - DATABASE_NAME=backoffice2
+      - DATABASE_USER=backoffice
+      - DATABASE_PASSWORD=backofficepw
+      - ECOPAYZ_TEST_MODE=true
+      - BC_KEY=<value-here>
+      - BC_WALLET_URL=http://wallet:3000
+      - BC_XPUB__HOST=xpubscanner
+      - BC_XPUB_PORT=22
+      - BC_XPUB__USER=xpub
+      - BC_XPUB__PASSWORD=
+      - BC_CALLBACK_HOST=https://cydrick.serveo.net
+      - TRUSTED_PROXIES=172.0.0.0/8,10.0.0.0/8,192.0.0.0/8
+      - APP_TIMEZONE=Etc/GMT+4
+      - REDIS_HOST=redis
+  piwibo-scheduler:
+    build:
+      context: ./piwibackoffice/
+      target: prod
+    entrypoint: ""
+    restart: unless-stopped
+    command:
+      - php
+      - app/console
+      - jms-job-queue:schedule
+      - --env=dev
+    volumes:
+      - ./piwibackoffice/:/var/www/html
+    depends_on:
+      - database
+      - mailhog
+      - adminer
+  piwibo-jobs:
+    build:
+      context: ./piwibackoffice/
+      target: prod
+    restart: unless-stopped
+    entrypoint: ""
+    command:
+      - php
+      - app/console
+      - jms-job-queue:run
+      - --env=dev
+    volumes:
+      - ./piwibackoffice/:/var/www/html
+    depends_on:
+      - database
+      - mailhog
+      - adminer
+  piwibo-web:
+    build:
+      context: ./piwibackoffice/
+      target: webservice
+    depends_on:
+      - piwibo-php
+    ports:
+      - 81:80
+    volumes:
+      - ./piwibackoffice/:/var/www/html
+    environment:
+      - PHPHOST=piwibo-php
+      - PHPPORT=9000
+  websocket:
+    image: registry.zmtsys.com/websocket
+  
+  websocket-proxy:
+    image: registry.zmtsys.com/websocket-proxy
+    ports:
+    - '83:80'
+    depends_on:
+      - websocket
+  
+  wallet:
+    image: registry.zmtsys.com/blockchain-wallet
+    environment:
+    - BLOCKCHAIN_SSH_USER=xpub
+    - BLOCKCHAIN_SSH_PASS=zmtsysxpub
+
+  redis:
+    image: redis
+
+volumes:
+  database:
+  uploads:
 ```
-$ git clone https://your_username@bitbucket.org/zimitech/ac66bo.git
-```
 
-Run the installer
-```
-$ cd ac66bo
-$ sh install.sh
-```
+> Rember to replace all `<value-here>` this value are mostly third party inforamtion and sensetive.
 
-Migrate Database
+After saving the file
 
-```
-$ php app/console doctrine:migrations:migrate
-```
-
-> **Note:** Make sure you have created the database before running the above command.
-> If database is not yet exists. You can create a database manually in your mysql client or you can run the below command. ``` $ php app/console doctrine:database:create ```
-
-Create Upload Folder
-```
-$ mkdir your_storage_directory/upload
-```
-
-> **Note:** The *upload_folder* in your parameter must have your real path of the directory in your server and this folder must be writable.
-
-Run the app setup
-
-> We only recommend you to run this only once.
-
-```
-$ php app/console app:setup
-```
-
-Run the System
-
-```
-$ php app/console server:run
-```
-
-You are now done installing and running the system.
-Now open your browser and access `http://localhost:8000`
-
-## Updating to new build
-
-As a note for updating from new build.
-After you updated your old build to new build.
-You must run install.sh.
-
-Running install.sh
-```
-$ sh install.sh
-```
-
-## Installing using Docker
-
-The instruction below are for workstation
-
-```
-$ git clone git@bitbucket.org:zimitech/ac66bo.git && cd ac66bo
-$ # OR
-$ git clone https://your_username@bitbucket.org/zimitech/ac66bo.git && cd ac66bo
-
-$ cd .docker
-$ cp .env-dist .env
-$ vim .env
-# Change the necessary details like the database password.
-
-# Change to following
-
-from: COMPOSE_FILE=docker-compose.yml;docker-compose-test.yml
-to: COMPOSE_FILE=docker-compose.yml;docker-compose-dev.yml
-
-from: ${BASE_IMAGE}
-# the below is just example
-to: backoffice_base
-
-from: ${BASE_IMAGE_TAG}
-# the below is just example
-to: latest
-
-# Now save and exit
-
-$ docker build -t backoffice_base:latest -f DockerfileBase .
-
-$ docker-compose build --no-cache && docker-compose up -d
-# OR
-$ docker-compose up -d --build
-```
-
-Some commands you need to check.
-
-```
-# Command if there are changes in .docker/DockerfileBase
-$ docker build -t backoffice_base:latest -f DockerfileBase .
-$ docker-compose build --no-cache
-
-# Command to start the containers
-$ docker-compose start
-
-# Command to stop the containers
-$ docker-compose stop
-
-# Command to update and start a container
+```bash
 $ docker-compose up -d
-
-# Command to update, start a container and build the image
-# Only do this if there are changes in DockerfileBase or Dockerfile
-$ docker-compose up -d --build
-
 ```
 
+Wait for it, once everything was done, you can access backoffice thru http://localhost:81
 
 ## Deployment
 
-For deployment of the system in **Production** environment just follow this link [http://119.9.74.57/Main/AC66Deployment](http://119.9.74.57/Main/AC66Deployment).
+For deploying, we use image instead of build in docker-compose.yml.<br/>
+Bur remember the `piwibo-scheduler` and `piwibo-jobs` must have same environment to `piwibo-php`.<br/>
+To share environment in this three container you can use `env_files` instead of `environments`.<br/>
+Note, if you change the content of declared env_files and you do `docker-compose up -d`,
+this will not recreate the container, means the environment inside container will not be updated,
+so when you update the content you need to recreate the three containers `docker-compose up -d --force-recreate`.
 
-Run the Cron Job (every minute) for auto decline transaction
-```
-cmd>crontab -e
-* * * * * /usr/bin/php /usr/share/nginx/html/deployer/prod/cms/current/app/console transaction:decline system -vvv --env=prod >> /usr/share/nginx/html/deployer/prod/cms/current/var/logs/autoDecline-`date +\%Y\%m\%d`-cron.log 2>&1
-```
+### Images
 
-Add to supervisor configuration for commission computation and payout
-```
-[program:jms_job_queue_runner]
-command=/usr/bin/php {{change-this-to-root-dir}}/app/console jms-job-queue:run --env={environment} --verbose
-process_name=%(program_name)s
-numprocs=1
-autostart=true
-autorestart=true
-startsecs=5
-startretries=10
-stdout_logfile={{change-this-to-root-dir}}/var/logs/prod.jms_job_queue_runner.out.log
-stderr_logfile={{change-this-to-root-dir}}/var/logs/prod.jms_job_queue_runner.error.log
-environment=HOME="/home/{your-user}",USER="{your-user}"
-user={your-user}
+**piwibo-web** : Backoffice nginx<br/>
+**piwibo-php** : Backoffice php-fpm
 
-[program:jms_job_queue_schedule]
-command=/usr/bin/php {{change-this-to-root-dir}}/app/console jms-job-queue:schedule --env={environment} --verbose
-process_name=%(program_name)s
-numprocs=1
-autostart=true
-autorestart=true
-startsecs=5
-startretries=10
-stdout_logfile={{change-this-to-root-dir}}/var/logs/prod.jms_job_queue_schedule.out.log
-stderr_logfile={{change-this-to-root-dir}}/var/logs/prod.jms_job_queue_schedule.error.log
-environment=HOME="/home/{your-user}",USER="{your-user}"
-user={your-user}
-```
-
-## Running the Documentation
-
-To run the documentation
-
-```
-$ cd docs
-$ composer install
-$ vendor/bin/sculpin generate --env=prod
-```
-The generate file will be in `output_prod`.
-Now you can point it the web server to output_prod.
+For `piwibo-scheduler` and `piwibo-jobs`, this should use `piwibo-php` image.

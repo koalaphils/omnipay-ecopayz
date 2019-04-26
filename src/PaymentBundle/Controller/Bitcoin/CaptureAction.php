@@ -51,6 +51,8 @@ class CaptureAction implements ActionInterface
      */
     private $logger;
 
+    private $callbackHost;
+
     public function execute($request)
     {
         RequestNotSupportedException::assertSupports($this, $request);
@@ -83,6 +85,8 @@ class CaptureAction implements ActionInterface
                 if ($contentType === 'application/json') {
                     $message = json_decode($message);
                 }
+
+                $this->logger->critical($e->getMessage(), ['exception' => $e]);
 
                 throw new HttpResponse(new JsonResponse([
                     'error' => $message,
@@ -117,8 +121,16 @@ class CaptureAction implements ActionInterface
         $receiverXpub = $gateway->getConfig()['receiverXpub'];
         $sender = $this->blockchain->getWallet()->getSingleAccount($credentials, $gateway->getConfig()['senderXpub']);
 
+        $callback = rtrim($this->callbackHost, '\/');
+        $callbackUrl = '';
+
+        if ($callback !== '') {
+            $callbackUrl = $callback . $this->urlGenerator->generate($this->cycleFundRouteName, [], UrlGeneratorInterface::ABSOLUTE_PATH);
+        } else {
+            $callbackUrl = $this->urlGenerator->generate($this->cycleFundRouteName, [], UrlGeneratorInterface::ABSOLUTE_URL);
+        }
         $result = $this->blockchain->getReceivePayment()->generateReceivingAddress(
-            urlencode($this->urlGenerator->generate($this->cycleFundRouteName, [], UrlGeneratorInterface::ABSOLUTE_URL)),
+            urlencode($callbackUrl),
             $receiverXpub,
             100
         );
@@ -144,6 +156,11 @@ class CaptureAction implements ActionInterface
     public function setCycleFundRouteName(string $routeName): void
     {
         $this->cycleFundRouteName = $routeName;
+    }
+
+    public function setCallbackHost(string $callbackHost): void
+    {
+        $this->callbackHost = $callbackHost;
     }
 
     public function setUrlGenerator(UrlGeneratorInterface $urlGenerator): void
