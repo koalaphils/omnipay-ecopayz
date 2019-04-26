@@ -283,7 +283,7 @@ class CustomerRepository extends BaseRepository
         $qb = $this->createQueryBuilder('c');
         $qb->join('c.user', 'u');
         $qb->join('c.currency', 'ccu');
-        $qb->join('c.country', 'cco');
+        $qb->leftJoin('c.country', 'cco');
         $qb->leftjoin('c.groups', 'ccg');
 
         if (array_has($filters, 'isAffiliate')) {

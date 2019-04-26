@@ -50,6 +50,8 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
             $this->processSubtransactions($transaction);
         } elseif ($transaction->isWithdrawal() && $transaction->getStatus() == $this->settingManager->getSetting('pinnacle.transaction.withdraw.status')) {
             $this->processSubtransactions($transaction);
+        } elseif ($transaction->isWithdrawal() && $transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
+            $this->processSubtransactions($transaction);
         }
     }
 
@@ -65,7 +67,7 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
             $memberProduct = $subTransaction->getCustomerProduct();
             $subTransactionAmount = Number::round($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()), 2, Number::ROUND_DOWN);
             if (
-                ($subTransaction->isDeposit() && !$voided)
+                ($subTransaction->isDeposit() && !$voided && !$subTransaction->getDetail('pinnacle.transacted', false))
                 || ($subTransaction->isWithdrawal() && $voided && $subTransaction->getDetail('pinnacle.transacted', false))
             ) {
                 if ($pinnacleProduct->getCode() === $memberProduct->getProduct()->getCode()) {
@@ -73,7 +75,7 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
                     $subTransaction->setDetail('pinnacle.transacted', true);
                 }
             } elseif (
-                ($subTransaction->isWithdrawal() && !$voided)
+                ($subTransaction->isWithdrawal() && !$voided && !$subTransaction->getDetail('pinnacle.transacted', false))
                 || ($subTransaction->isDeposit() && $voided && $subTransaction->getDetail('pinnacle.transacted', false))
             ) {
                 if ($pinnacleProduct->getCode() === $memberProduct->getProduct()->getCode()) {
