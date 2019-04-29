@@ -35,8 +35,16 @@ class BitcoinTransactionConstraintValidator extends ConstraintValidator
         }
 
         $request = $this->context->getRoot();
-        $depositTransactionWithBitcoin = $this->transactionRepository->findActiveBitcoinTransactionByMemberId($request->getMemberId());
-        if ($depositTransactionWithBitcoin instanceof Transaction) {
+
+        $transactionType = '';
+        if ($constraint->getType() === 'deposit') {
+            $transactionType = Transaction::TRANSACTION_TYPE_DEPOSIT;
+        } elseif ($constraint->getType() === 'withdraw') {
+            $transactionType = Transaction::TRANSACTION_TYPE_WITHDRAW;
+        }
+
+        $transactionWithBitcoin = $this->transactionRepository->findActiveBitcoinTransactionByMemberId($request->getMemberId(), $transactionType);
+        if ($transactionWithBitcoin instanceof Transaction) {
             $this->context->buildViolation($constraint->getMessage())->addViolation();
         }
 

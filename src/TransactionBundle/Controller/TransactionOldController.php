@@ -77,7 +77,7 @@ class TransactionOldController extends AbstractController
     {
         $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_CREATE']);
         $transaction = new Transaction();
-        $transaction->setNumber(date('Ymd-His-') . $this->getManager()->getType($type));
+        $transaction->setNumber($this->getManager()->generateTransactionNumber($type));
         $transaction->setType($this->getManager()->getType($type));
         $transaction->setDate(new \DateTime());
 

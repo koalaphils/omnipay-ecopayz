@@ -330,7 +330,6 @@ abstract class AbstractPageWidget implements WidgetInterface
         if (!isset($this->includedTemplates[$twigPath])) {
             $this->includedTemplates[$twigPath] = $this->getTwig()->loadTemplate($twigPath);
         }
-
         return $this->includedTemplates[$twigPath];
     }
 

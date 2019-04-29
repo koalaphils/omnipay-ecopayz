@@ -234,3 +234,9 @@ services:
     app.referral_tool_generator:
         class: AppBundle\Helper\ReferralToolGenerator
         arguments: ["@app.setting_manager", "@media.manager", "@templating"]
+
+    AppBundle\Service\Scheduler:
+        autoconfigure: true
+        autowire: true
+        tags:
+            - { name:  jms_job_queue.scheduler, command: 'jms-job-queue:clean-up'}

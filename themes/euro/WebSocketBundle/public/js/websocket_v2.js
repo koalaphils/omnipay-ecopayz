@@ -12,17 +12,24 @@
     });
 
     var triggerNotification = function(args, notificationType, alertType, playSoundAlert) {
+        playSoundAlert();
         var details = args[0];
         var title = details.title;
         var message = details.message + ' Please proceed to pending tab to view.';
-        var url = Global.dummyTransactionUrl.replace('/__type__', '/'+ details.otherDetails.type).replace('/__id__', '/'+ details.otherDetails.id);
 
-        if (notificationType == 'registration' || notificationType == 'requestProduct') {
-            message = details.message + ' Please proceed to member list to view.';
-            url = Global.dummyCustomerProfileUrl.replace('/__id__', '/'+ details.otherDetails.id).replace('/__activeTab__', '/'+ details.otherDetails.type);
+        var url = "";
+        try {
+            url = Global.dummyTransactionUrl.replace('/__type__', '/'+ details.otherDetails.type).replace('/__id__', '/'+ details.otherDetails.id);
+            if (notificationType == 'registration' || notificationType == 'requestProduct') {
+                message = details.message + ' Please proceed to member list to view.';
+                url = Global.dummyCustomerProfileUrl.replace('/__id__', '/'+ details.otherDetails.id).replace('/__activeTab__', '/'+ details.otherDetails.type);
+            }
+        } catch (e) {
+
         }
 
-        playSoundAlert();
+
+
         prependToList(title, details.message, url);
         updateNotificationListCounter();
         notification(title, message, alertType, 'bottom right');
@@ -31,14 +38,26 @@
 
     var playDefaultSoundAlert = function() {
         var audioNotification = document.createElement('audio');
-        audioNotification.innerHTML = '<source src="/assets/audio/sound.mp3" />';
-        audioNotification.play();
+        var audio = $('<audio controls autoplay hidden="" src="/assets/audio/sound.mp3" type ="audio/mp3"">');
+        $(audio).on('ended', function () {
+            $(this).remove();
+        });
+        $('#wrapper').append(audio);
     }
 
     var playMemberCreationSoundAlert = function() {
-        var audioNotification = document.createElement('audio');
-        audioNotification.innerHTML = '<source src="/assets/audio/member_creation_sound.mp3" />';
-        audioNotification.play();
+        var audio = $('<audio controls autoplay hidden="" src="/assets/audio/member_creation_sound.mp3" type ="audio/mp3"">');
+        $(audio).on('ended', function () {
+            $(this).remove();
+        });
+        $('#wrapper').append(audio);
+    }
+
+    function guidGenerator() {
+        var S4 = function() {
+            return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+        };
+        return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
     }
 
     var prependToList = function(title, message, url) {

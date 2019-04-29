@@ -10,6 +10,12 @@ api_me_process_payment_options:
     _controller: ApiBundle:PaymentOption:getMemberProcessPaymentOptions
   methods: [POST, GET]
 
+api_me_active_paymentoptions:
+  path: me/payment-options/active
+  defaults:
+    _controller: ApiBundle:Member:getActivePaymentOption
+  methods: [GET]
+
 api_me_transactions:
   path: me/transactions
   defaults:
@@ -29,7 +35,7 @@ api_me_withdraw:
   methods: [POST]
 
 api_me_last_bitcoin_transaction:
-  path: me/transaction/last-bitcoin
+  path: me/transaction/last-bitcoin/{type}
   defaults:
     _controller: ApiBundle:Transaction:getLastBitcoinTransaction
   methods: [GET]

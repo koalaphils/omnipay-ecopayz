@@ -98,6 +98,11 @@ services:
         factory: ['@doctrine.orm.default_entity_manager', getRepository]
         arguments:
             - DbBundle\Entity\CustomerProduct
+    DbBundle\Repository\CustomerGroupRepository:
+        factory: ['@doctrine.orm.default_entity_manager', getRepository]
+        arguments:
+            - DbBundle\Entity\CustomerGroup
+
     Doctrine\ORM\EntityManager: '@Doctrine\ORM\EntityManagerInterface'
 
 imports:

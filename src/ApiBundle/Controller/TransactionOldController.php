@@ -77,12 +77,12 @@ class TransactionOldController extends AbstractController
      *         {"name"="orders[0][column]", "dataType"="array"},
      *         {"name"="orders[0][dir]", "dataType"="array"},
      *         {"name"="page", "dataType"="integer"},
-     *         {"name"="from", "dataType"="date"},
-     *         {"name"="to", "dataType"="date"},
-     *         {"name"="interval", "dataType"="string"},
-     *         {"name"="types", "dataType"="string"},
-     *         {"name"="status"},
-     *         {"name"="paymentOption", "dataType"="string"}
+     *         {"name"="filter[fromDate]", "dataType"="date"},
+     *         {"name"="filter[toDate]", "dataType"="date"},
+     *         {"name"="filter[type]", "dataType"="string"},
+     *         {"name"="filter[status][]"},
+     *         {"name"="filter[paymentOption]", "dataType"="string"},
+     *         {"name"="filter[isVoided]", "dataType"="integer"}
      *     }
      * )
      */

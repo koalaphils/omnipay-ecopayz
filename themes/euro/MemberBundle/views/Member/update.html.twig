@@ -65,7 +65,7 @@
                     <div class="col-md-6 m-b-20">
                     {{ widget_render(page.getWidget('transactionPasswordForm')) }}
                     </div>
-                    <div class="row">
+                    {#<div class="row">
                         <div class="col-md-6">
                             <h4 class="header-title">
                                 <b>{{ "activation.title"|trans({},'CustomerBundle') }}</b>
@@ -115,7 +115,8 @@
                             </div>
                         </div>
                         {% endif %}
-                    </div>
+                    </div>#}
+
                 </div>
                 <div class="tab-pane" id="payments">
                     {{ widget_render(page.getWidget('paymentOptions')) }}

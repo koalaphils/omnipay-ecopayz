@@ -153,7 +153,8 @@ class DepositHandler
         $memberPaymentOption->setCustomer($member);
         $memberPaymentOption->addField('account_id', array_get($depositRequest->getMeta()->toArray(), 'fields.account_id', ''));
         $memberPaymentOption->addField('email', array_get($depositRequest->getMeta()->toArray(), 'field.email', ''));
-        $memberPaymentOption->addField('is_withdrawal', 0);
+        $memberPaymentOption->setForWithdrawal();
+        $memberPaymentOption->setForDeposit();
 
         $this->entityManager->persist($memberPaymentOption);
         $this->entityManager->flush($memberPaymentOption);

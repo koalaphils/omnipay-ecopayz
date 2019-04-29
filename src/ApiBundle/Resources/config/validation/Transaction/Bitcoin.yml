@@ -26,7 +26,14 @@ ApiBundle\Request\Transaction\Meta\Bitcoin\BitcoinPayment:
     #- Callback:
     #    callback: [ApiBundle\Validator\Bitcoin\BitcoinValidatorCallback, validateConvertedAmount]
     #    groups: [afterBlank]
-    - ApiBundle\Validator\Bitcoin\BitcoinTransactionConstraint: ~
+    - ApiBundle\Validator\Bitcoin\BitcoinTransactionConstraint:
+        type: deposit
+        groups: [deposit]
+    - ApiBundle\Validator\Bitcoin\BitcoinTransactionConstraint:
+        type: withdraw
+        groups: [withdraw]
+        message: "You can only have one pending bitcoin withdraw transaction at a time."
+        minMaxDepositMessage: "You can withdraw a total of {{ min }} to {{ max }} bitcoin only"
   getters:
     blockchainRate:
       - NotBlank: ~

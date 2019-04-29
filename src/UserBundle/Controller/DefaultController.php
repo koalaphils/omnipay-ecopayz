@@ -49,6 +49,7 @@ class DefaultController extends AbstractController
             $this->denyAccessUnlessGranted(['ROLE_USER_CREATE']);
             $user = new User();
             $user->setAsAdmin();
+            $user->setSignupType(User::SIGNUP_TYPE_EMAIL);
         } else {
             $this->denyAccessUnlessGranted(['ROLE_USER_UPDATE']);
             $user = $this->getUserRepository()->find($id);
