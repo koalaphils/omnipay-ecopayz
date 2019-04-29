@@ -22,6 +22,13 @@ class BitcoinTransactionConstraint extends Constraint
         return $this->message;
     }
 
+    public function setMinMaxDepositMessage(string $message): self
+    {
+        $this->minMaxDepositMessage = $message;
+
+        return $this;
+    }
+
     public function getMinMaxDepositMessage(): string
     {
         return $this->minMaxDepositMessage;
