@@ -43,7 +43,7 @@ transaction.update_page:
 
 transaction.save:
     path:       /{type}/{id}/save
-    defaults:   { _controller: TransactionBundle:Transaction:save, id: 'new' }
+    defaults:   { _controller: TransactionBundle:TransactionOld:save, id: 'new' }
     condition:  "context.getMethod() in ['POST']"
 
 transaction.void:
