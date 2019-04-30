@@ -203,7 +203,11 @@ class BitcoinManager extends AbstractManager
 
     public function saveBitcoinSetting(array $configuration = []): void
     {
-        $this->settingManager->saveSetting('bitcoin.' . SettingModel::BITCOIN_SETTING, $configuration);
+        $setting = $this->settingManager->getSetting('bitcoin.' . SettingModel::BITCOIN_SETTING);
+        foreach ($configuration as $key => $value) {
+            array_set($setting, $key, $value);
+        }
+        $this->settingManager->saveSetting('bitcoin.' . SettingModel::BITCOIN_SETTING, $setting);
     }
     
     public function publishAdjustedBtcExchangeRate(string $exchangeRateData): void

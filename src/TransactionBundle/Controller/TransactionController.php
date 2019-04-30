@@ -8,6 +8,7 @@ use AppBundle\Controller\AbstractController;
 use AppBundle\Manager\SettingManager;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 use TransactionBundle\Manager\TransactionManager;
 
 class TransactionController extends AbstractController
@@ -74,6 +75,8 @@ class TransactionController extends AbstractController
     {
         if ($type === 'deposit') {
             $response = $this->forward('TransactionBundle:Deposit:save', ['id' => $id, 'type' => $type], $request->query->all());
+        } elseif ($type === 'withdraw') {
+            $response = $this->forward('TransactionBundle:Withdraw:save', ['id' => $id, 'type' => $type]);
         } else {
             throw $this->createNotFoundException();
         }

@@ -3,8 +3,9 @@
 namespace MemberBundle\Request;
 
 use DbBundle\Entity\Customer;
+use Symfony\Component\Validator\GroupSequenceProviderInterface;
 
-class CreateMemberRequest
+class CreateMemberRequest implements GroupSequenceProviderInterface
 {
     private $username;
     private $email;
@@ -19,6 +20,8 @@ class CreateMemberRequest
     private $currency;
     private $joinedAt;
     private $gender;
+    private $phoneNumber;
+    private $useEmail;
 
     public function __construct()
     {
@@ -30,6 +33,32 @@ class CreateMemberRequest
         $this->password = '';
         $this->confirmPassword = '';
         $this->gender = Customer::MEMBER_GENDER_NOT_SET;
+        $this->phoneNumber = '';
+        $this->useEmail = true;
+    }
+
+    public function isUseEmail(): bool
+    {
+        return $this->useEmail;
+    }
+
+    public function setUseEmail(bool $useEmail): void
+    {
+        $this->useEmail = $useEmail;
+    }
+
+    public function getPhoneNumber(): string
+    {
+        return $this->phoneNumber;
+    }
+
+    public function setPhoneNumber(?string $phoneNumber): void
+    {
+        if ($phoneNumber === null) {
+            $this->phoneNumber = '';
+        } else {
+            $this->phoneNumber = $phoneNumber;
+        }
     }
 
     public function getUsername(): string
@@ -47,9 +76,13 @@ class CreateMemberRequest
         return $this->email;
     }
 
-    public function setEmail(string $email): void
+    public function setEmail(?string $email): void
     {
-        $this->email = $email;
+        if ($email === null) {
+            $this->email = '';
+        } else {
+            $this->email = $email;
+        }
     }
 
     public function getPassword(): string
@@ -87,9 +120,13 @@ class CreateMemberRequest
         return $this->fullName;
     }
 
-    public function setFullName(string $fullName): void
+    public function setFullName(?string $fullName): void
     {
-        $this->fullName = $fullName;
+        if ($fullName === null) {
+            $this->fullName = '';
+        } else {
+            $this->fullName = $fullName;
+        }
     }
 
     public function getBirthDate(): ?\DateTimeInterface
@@ -97,7 +134,7 @@ class CreateMemberRequest
         return $this->birthDate;
     }
 
-    public function setBirthdate(\DateTimeInterface $birthdate): void
+    public function setBirthdate(?\DateTimeInterface $birthdate): void
     {
         $this->birthDate = $birthdate;
     }
@@ -107,7 +144,7 @@ class CreateMemberRequest
         return $this->country;
     }
 
-    public function setCountry(int $country): void
+    public function setCountry(?int $country): void
     {
         $this->country = $country;
     }
@@ -165,5 +202,14 @@ class CreateMemberRequest
     public function isConfirmPasswordCorrect(): bool
     {
         return $this->password === $this->confirmPassword;
+    }
+
+    public function getGroupSequence()
+    {
+        if ($this->isUseEmail()) {
+            return [['CreateMemberRequest', 'withEmail']];
+        } else {
+            return [['CreateMemberRequest', 'withPhone']];
+        }
     }
 }

@@ -43,7 +43,19 @@ class CreateMemberRequestHandler
     public function handle(CreateMemberRequest $request)
     {
         $user = new User();
-        $user->setUsername($request->getUsername());
+        $country = null;
+        if ($request->isUseEmail()) {
+            $username = $request->getEmail();
+            $user->setSignupType(User::SIGNUP_TYPE_EMAIL);
+        } else {
+            $country = $this->entityManager->getPartialReference(Country::class, $request->getCountry());
+            $username = str_replace('+', '', $country->getPhoneCode() . $request->getPhoneNumber());
+        }
+
+        if ($request->getCountry() !== null && $country === null) {
+            $country = $this->entityManager->getPartialReference(Country::class, $request->getCountry());
+        }
+        $user->setUsername($username);
         $user->setEmail($request->getEmail());
         $user->setIsActive($request->getStatus());
         $user->setType(User::USER_TYPE_MEMBER);
@@ -65,7 +77,7 @@ class CreateMemberRequestHandler
         if ($request->getReferal() !== null) {
             $member->setAffiliate($this->entityManager->getPartialReference(Customer::class, $request->getReferal()));
         }
-        $member->setCountry($this->entityManager->getPartialReference(Country::class, $request->getCountry()));
+        $member->setCountry($country);
         $member->setCurrency($this->entityManager->getPartialReference(Currency::class, $request->getCurrency()));
         $member->setBirthDate($request->getBirthDate());
         $member->setGender($request->getGender());
@@ -83,10 +95,10 @@ class CreateMemberRequestHandler
 
         $member->setUser($user);
         $user->setCustomer($member);
-        $this->memberManager->createAcWalletForMember($member);
+        # $this->memberManager->createAcWalletForMember($member);
         $member->setTags([Customer::ACRONYM_MEMBER]);
 
-        $this->userManager->sendActivationMail(
+        /*$this->userManager->sendActivationMail(
             [
                 'username' => $user->getUsername(),
                 'password' => $request->getPassword(),
@@ -95,7 +107,7 @@ class CreateMemberRequestHandler
                 'originFrom' => $this->asianconnectUrl,
                 'isAffiliate' => false,
             ]
-        );
+        );*/
 
         $this->entityManager->persist($member);
         $this->entityManager->flush($member);

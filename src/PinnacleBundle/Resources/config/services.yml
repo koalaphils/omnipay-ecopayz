@@ -7,3 +7,6 @@ services:
     resource: '../../EventHandler/'
     tags:
       - { name: kernel.event_subscriber }
+  PinnacleBundle\Validator\PinnacleHasEnoughBalanceConstraintValidator:
+    tags:
+      - { name: validator.constraint_validator }

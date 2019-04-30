@@ -5,6 +5,8 @@ namespace TransactionBundle\Controller;
 use AppBundle\Controller\AbstractController;
 use DbBundle\Entity\SubTransaction;
 use DbBundle\Entity\Transaction;
+use Doctrine\ORM\PersistentCollection;
+use PinnacleBundle\Component\Exceptions\PinnacleError;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -191,7 +193,7 @@ class TransactionOldController extends AbstractController
     public function saveAction(Request $request, $type, $id = 'new')
     {
         if ($id === 'new') {
-        $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_CREATE']);
+            $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_CREATE']);
             return $this->createAction($request, $type);
         }
 

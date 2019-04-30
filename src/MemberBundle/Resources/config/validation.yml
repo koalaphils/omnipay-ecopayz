@@ -22,35 +22,43 @@ MemberBundle\Request\UpdateMemberProductRequest:
             - NotBlank: ~
 
 MemberBundle\Request\CreateMemberRequest:
+    group_sequence_provider: true
     properties:
         email:
-            - NotBlank: ~
-            - Email: ~
+            - NotBlank:
+                  groups: [withEmail]
+            - Email:
+                  groups: [withEmail]
             - Length:
                 max: 72
+                groups: [withEmail]
             - AppBundle\Validator\Constraints\Unique:
                   entityClass: DbBundle\Entity\User
                   select: " e.email "
                   expression: " e.email = :value0 AND e.type = 1"
                   # 1 in e.type = 1 is Member
                   requiredKey: [email]
-        username:
-            - NotBlank: ~
-            - Regex:
-                pattern: '/^[A-Za-z0-9\_\-\@\.]*$/u'
-                match: true
-                message: username.regex
-            - Length:
-                min: 4
-                max: 50
-                minMessage: username.min
-                maxMessage: username.max
-            - AppBundle\Validator\Constraints\Unique:
-                  entityClass: DbBundle\Entity\User
-                  select: " e.username "
-                  expression: " e.username = :value0 AND e.type = 1"
-                  # 1 in e.type = 1 is Member
-                  requiredKey: [username]
+                  groups: [withEmail]
+        phoneNumber:
+            - NotBlank:
+                groups: [withPhone]
+#        username:
+#            - NotBlank: ~
+#            - Regex:
+#                pattern: '/^[A-Za-z0-9\_\-\@\.]*$/u'
+#                match: true
+#                message: username.regex
+#            - Length:
+#                min: 4
+#                max: 50
+#                minMessage: username.min
+#                maxMessage: username.max
+#            - AppBundle\Validator\Constraints\Unique:
+#                  entityClass: DbBundle\Entity\User
+#                  select: " e.username "
+#                  expression: " e.username = :value0 AND e.type = 1"
+#                  # 1 in e.type = 1 is Member
+#                  requiredKey: [username]
         password:
             - NotBlank: ~
         confirmPassword:
@@ -68,7 +76,6 @@ MemberBundle\Request\CreateMemberRequest:
         #         match: true
         #         message: customer.fullName.regex
         birthDate:
-            - NotBlank: ~
             - Date: ~
             - GreaterThanOrEqual:
                 value: -100 years
@@ -86,7 +93,8 @@ MemberBundle\Request\CreateMemberRequest:
         currency:
             - NotBlank: ~
         country:
-            - NotBlank: ~
+            - NotBlank:
+                  groups: [withPhone]
         groups:
             - Count:
                 min: 1
