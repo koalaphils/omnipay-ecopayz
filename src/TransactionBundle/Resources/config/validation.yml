@@ -95,7 +95,7 @@ DbBundle\Entity\SubTransaction:
                 groups: ['default']
                 message: customer.balance.type
             - PinnacleBundle\Validator\PinnacleHasEnoughBalanceConstraint:
-                  groups: ['default']
+                  groups: ['withdraw']
                   userCode: 'object.getCustomerProduct().getUsername()'
                   isUserCodeExpression: true
         type:

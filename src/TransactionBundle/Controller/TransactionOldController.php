@@ -408,6 +408,7 @@ class TransactionOldController extends AbstractController
             $isForVoidingOrDecline = $this->isRequestToVoidOrDecline($transaction, $request);
             $form = $this->getManager()->createForm($transaction, true, [
                 'isForVoidingOrDecline' => $isForVoidingOrDecline,
+                'validation_groups' => ['default', $type]
             ]);
 
             $response = ['success' => true];
