@@ -77,6 +77,7 @@ class CreateMemberRequestHandler
         $user->setPreference('ipAddress', $this->getClientIp());
         $user->setActivationSentTimestamp(new \DateTime('now'));
         $user->setActivationTimestamp(new \DateTime('now'));
+        $user->setRoles(['ROLE_MEMBER' => 2]);
 
         $member = new Customer();
         $member->setFullName($request->getFullName());
