@@ -32,7 +32,7 @@ class TransactionOldController extends AbstractController
             $nonPendingStatuses = $this->getManager()->getNonPendingTransactionStatus($statuses);
         }
 
-        return $this->render('TransactionBundle:Default:index.html.twig', [
+        return $this->render('TransactionBundle:Default:indfex.html.twig', [
             'statuses' => $statuses,
             'nonPendingStatuses' => $nonPendingStatuses,
             'filter' => $filter,
@@ -406,9 +406,13 @@ class TransactionOldController extends AbstractController
             $this->getManager()->beginTransaction();
             $transaction = $this->getRepository('DbBundle:Transaction')->findByIdAndType($id, $this->getManager()->getType($type), \Doctrine\ORM\Query::HYDRATE_OBJECT, LockMode::PESSIMISTIC_WRITE);
             $isForVoidingOrDecline = $this->isRequestToVoidOrDecline($transaction, $request);
+            $validationGroups = ['default', $type];
+            if ($type === 'withdraw') {
+                $validationGroups[] = 'withGateway';
+            }
             $form = $this->getManager()->createForm($transaction, true, [
                 'isForVoidingOrDecline' => $isForVoidingOrDecline,
-                'validation_groups' => ['default', $type]
+                'validation_groups' => $validationGroups,
             ]);
 
             $response = ['success' => true];
