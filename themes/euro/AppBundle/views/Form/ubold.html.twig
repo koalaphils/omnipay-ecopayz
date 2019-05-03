@@ -356,7 +356,9 @@
                     },
                     'useCurrent': false
                 });
+                {% if data is not null %}
                 $('#{{ id }}').data('DateTimePicker').date(moment('{{ data.format('c') }}'));
+                {% endif %}
             });
         </script>
         {% endif %}

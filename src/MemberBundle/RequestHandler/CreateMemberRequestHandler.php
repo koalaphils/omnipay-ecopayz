@@ -6,11 +6,13 @@ use DbBundle\Entity\Country;
 use DbBundle\Entity\Currency;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerGroup;
+use DbBundle\Entity\CustomerProduct;
 use DbBundle\Entity\User;
 use DbBundle\Repository\CustomerGroupRepository;
 use Doctrine\ORM\EntityManager;
 use MemberBundle\Manager\MemberManager;
 use MemberBundle\Request\CreateMemberRequest;
+use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoder;
 use UserBundle\Manager\UserManager;
@@ -23,6 +25,7 @@ class CreateMemberRequestHandler
     private $memberManager;
     private $userManager;
     private $asianconnectUrl;
+    private $pinnacleService;
 
     public function __construct(
         EntityManager $entityManager,
@@ -30,6 +33,7 @@ class CreateMemberRequestHandler
         UserPasswordEncoder $passwordEncoder,
         MemberManager $memberManager,
         UserManager $userManager,
+        PinnacleService $pinnacleService,
         string $asianconnectUrl
     ) {
         $this->entityManager = $entityManager;
@@ -38,12 +42,34 @@ class CreateMemberRequestHandler
         $this->memberManager = $memberManager;
         $this->userManager = $userManager;
         $this->asianconnectUrl = $asianconnectUrl;
+        $this->pinnacleService = $pinnacleService;
     }
 
     public function handle(CreateMemberRequest $request)
     {
         $user = new User();
-        $user->setUsername($request->getUsername());
+        $country = null;
+        if ($request->isUseEmail()) {
+            $username = $request->getEmail();
+            $user->setSignupType(User::SIGNUP_TYPE_EMAIL);
+        } else {
+            $country = $this->entityManager->getPartialReference(Country::class, $request->getCountry());
+            $username = str_replace('+', '', $country->getPhoneCode() . $request->getPhoneNumber());
+        }
+
+        if ($request->getCountry() !== null && $country === null) {
+            $country = $this->entityManager->getPartialReference(Country::class, $request->getCountry());
+        }
+
+        $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
+        $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->createPlayer();
+        $memberProduct = new CustomerProduct();
+        $memberProduct->setProduct($pinnacleProduct);
+        $memberProduct->setUserName($pinnaclePlayer->userCode());
+        $memberProduct->setBalance('0.00');
+        $memberProduct->setIsActive(true);
+
+        $user->setUsername($username);
         $user->setEmail($request->getEmail());
         $user->setIsActive($request->getStatus());
         $user->setType(User::USER_TYPE_MEMBER);
@@ -51,6 +77,7 @@ class CreateMemberRequestHandler
         $user->setPreference('ipAddress', $this->getClientIp());
         $user->setActivationSentTimestamp(new \DateTime('now'));
         $user->setActivationTimestamp(new \DateTime('now'));
+        $user->setRoles(['ROLE_MEMBER' => 2]);
 
         $member = new Customer();
         $member->setFullName($request->getFullName());
@@ -65,7 +92,7 @@ class CreateMemberRequestHandler
         if ($request->getReferal() !== null) {
             $member->setAffiliate($this->entityManager->getPartialReference(Customer::class, $request->getReferal()));
         }
-        $member->setCountry($this->entityManager->getPartialReference(Country::class, $request->getCountry()));
+        $member->setCountry($country);
         $member->setCurrency($this->entityManager->getPartialReference(Currency::class, $request->getCurrency()));
         $member->setBirthDate($request->getBirthDate());
         $member->setGender($request->getGender());
@@ -80,22 +107,12 @@ class CreateMemberRequestHandler
             'enabled' => false,
         ]);
         $member->setTags([]);
-
+        $member->setPinLoginId($pinnaclePlayer->loginId());
+        $member->setPinUserCode($pinnaclePlayer->userCode());
         $member->setUser($user);
         $user->setCustomer($member);
-        $this->memberManager->createAcWalletForMember($member);
         $member->setTags([Customer::ACRONYM_MEMBER]);
-
-        $this->userManager->sendActivationMail(
-            [
-                'username' => $user->getUsername(),
-                'password' => $request->getPassword(),
-                'email' => $request->getEmail(),
-                'fullName' => $request->getFullName(),
-                'originFrom' => $this->asianconnectUrl,
-                'isAffiliate' => false,
-            ]
-        );
+        $member->addProduct($memberProduct);
 
         $this->entityManager->persist($member);
         $this->entityManager->flush($member);

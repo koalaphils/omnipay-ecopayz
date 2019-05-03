@@ -62,6 +62,7 @@ DbBundle\Entity\Transaction:
                             pattern: '/^[a-zA-Z0-9\.\,\#\s\-]+/'
                             message: 'Only accepts Alphanumeric, space, dot, dash, comma and hash'
         subTransactions:
+            - Valid: ~
             - Count:
                 groups: ['default']
                 min: 1
@@ -81,10 +82,10 @@ DbBundle\Entity\SubTransaction:
                 value: 0
                 groups: ['default']
                 message: Amount should be greater than 0
-            - Regex:
-                pattern: '/^(?:\d+|\d*\.\d{1,2}+)$/'
-                groups: ['withDecimalPlacesValidation']
-                message: Max of 2 decimal places
+            #- Regex:
+            #    pattern: '/^(?:\d+|\d*\.\d{1,2}+)$/'
+            #    groups: ['withDecimalPlacesValidation']
+            #    message: Max of 2 decimal places
             - Regex:
                 pattern: '/^(?:\d+|\d*\.\d{1,10}+)$/'
                 groups: ['withBitcoin']
@@ -93,6 +94,10 @@ DbBundle\Entity\SubTransaction:
                 type: numeric
                 groups: ['default']
                 message: customer.balance.type
+            - PinnacleBundle\Validator\PinnacleHasEnoughBalanceConstraint:
+                  groups: ['withdraw']
+                  userCode: 'object.getCustomerProduct().getUsername()'
+                  isUserCodeExpression: true
         type:
             - NotBlank:
                 groups: ['default']
