@@ -29,16 +29,36 @@ widgets:
                     message: You have successfully added new member
                     title: Success
             fields:
-                username:
-                    type: text
+                useEmail:
                     options:
-                        label: Username
-                    size: 12
+                        label: Use email as username
+                        required: false
+                    type: switch
                     group: Left
                 email:
                     options:
                         label: Email
+                        required: false
                     type: email
+                    size: 12
+                    group: Left
+                country:
+                    options:
+                        label: Country
+                        required: false
+                    type: choices
+                    group: Left
+                    size: 12
+                    choicesFrom:
+                        function: '@country.manager::getCountryList'
+                        label: "'(' ~ result['phoneCode'] ~ ') ' ~ result['name'] ~ ' [' ~ result['code'] ~ ']'"
+                        value: result['id']
+                        preselect: false
+                phoneNumber:
+                    type: text
+                    options:
+                        label: Phone Number
+                        required: false
                     size: 12
                     group: Left
                 password:
@@ -60,6 +80,7 @@ widgets:
                 fullName:
                     options:
                         label: Full Name
+                        required: false
                     type: text
                     group: Left
                     size: 12
@@ -81,6 +102,7 @@ widgets:
                         label: Birth Date
                         widget: 'single_text'
                         format: 'M/dd/yyyy'
+                        required: false
                     group: Right
                     size: 12
                 gender:
@@ -91,21 +113,10 @@ widgets:
                             Male: 1
                             Female: 2
                         label: Gender
-                        required: true
+                        required: false
                     group: Right
                     size: 12
                     type: dropdown
-                country:
-                    options:
-                        label: Country
-                    type: choices
-                    group: Right
-                    size: 12
-                    choicesFrom:
-                        function: '@country.manager::getCountryList'
-                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
-                        value: result['id']
-                        preselect: false
                 currency:
                     options:
                         label: Currency

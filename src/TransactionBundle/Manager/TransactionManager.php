@@ -420,7 +420,6 @@ class TransactionManager extends TransactionOldManager
     public function handleFormTransaction(Form $form, Request $request)
     {
         $form->handleRequest($request);
-
         if ($form->isSubmitted() && $form->isValid()) {
             $transaction = $form->getData();
             $transaction->retainImmutableData();

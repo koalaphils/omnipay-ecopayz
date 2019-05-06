@@ -42,4 +42,17 @@ class WithdrawController extends AbstractController
             'transaction' => $transaction,
         ]);
     }
+
+    public function saveAction(Request $request, TransactionRepository $transactionRepository, TransactionManager $transactionManager, int $id): Response
+    {
+        $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_UPDATE']);
+        $this->saveSession();
+
+        $transaction = $transactionRepository->findByIdAndType($id, Transaction::TRANSACTION_TYPE_WITHDRAW);
+        $form = $transactionManager->createForm($transaction, true);
+        dump($form);
+        //$form->submit($request);
+
+        return new Response();
+    }
 }

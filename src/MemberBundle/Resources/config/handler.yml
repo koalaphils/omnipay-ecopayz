@@ -2,7 +2,12 @@ services:
     member.handler.create_member:
         class: MemberBundle\RequestHandler\CreateMemberRequestHandler
         lazy: true
-        arguments: ["@doctrine.orm.entity_manager", "@request_stack", "@security.password_encoder", "@member.manager", "@user.manager", "%asianconnect_url%"]
+        autowire: true
+        autoconfigure: true
+        public: true
+        arguments:
+            $asianconnectUrl: '%asianconnect_url%'
+        # arguments: ["@doctrine.orm.entity_manager", "@request_stack", "@security.password_encoder", "@member.manager", "@user.manager", "%asianconnect_url%"]
     member.handler.update_profile:
         class: MemberBundle\RequestHandler\UpdateProfileRequestHandler
         lazy: true

@@ -24,7 +24,7 @@ abstract class PinnacleComponent
     {
         $response = $this->pinnacle->get($path, $query, $params)->getBody()->getContents();
         $data = json_decode($response, true);
-        $this->checkResponse($data);
+        $this->checkResponse($data, $query);
 
         return $data;
     }
@@ -32,7 +32,7 @@ abstract class PinnacleComponent
     protected function post(string $path, array $postData = [], array $params = []): array
     {
         $data = json_decode($this->pinnacle->post($path, $postData, $params)->getBody()->getContents(), true);
-        $this->checkResponse($data);
+        $this->checkResponse($data, $postData);
 
         return $data;
     }
@@ -42,10 +42,10 @@ abstract class PinnacleComponent
         return $this->pinnacle;
     }
 
-    protected function checkResponse(array $response): void
+    protected function checkResponse(array $response, array $data): void
     {
         if (array_has($response, 'code') && array_has($response, 'message')) {
-            throw new PinnacleError($response['message'], (int) $response['code']);
+            throw new PinnacleError($data, $response['message'], (int) $response['code']);
         } elseif (array_has($response, 'trace')) {
             throw new PinnacleException($response['trace']);
         }

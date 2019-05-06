@@ -116,9 +116,11 @@ DbBundle\Entity\Customer:
         pinUserCode:
             type: string
             column: customer_pin_user_code
+            nullable: true
         pinLoginId:
             type: string
             column: customer_pin_login_id
+            nullable: true
     manyToOne:
         currency:
             targetEntity: DbBundle\Entity\Currency
