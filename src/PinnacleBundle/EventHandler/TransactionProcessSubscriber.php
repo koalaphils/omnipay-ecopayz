@@ -52,6 +52,8 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
             $this->processSubtransactions($transaction);
         } elseif ($transaction->isWithdrawal() && $transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
             $this->processSubtransactions($transaction);
+        } elseif ($transaction->isDeclined()) {
+            $this->processSubtransactions($transaction, true);
         }
     }
 

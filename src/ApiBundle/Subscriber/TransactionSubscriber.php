@@ -33,7 +33,7 @@ class TransactionSubscriber implements EventSubscriberInterface
     public function onTransactionCreated(TransactionCreatedEvent $event)
     {
         $transaction = $event->getTransaction();
-        $this->publisher->publishUsingWamp('transaction.created', [
+        $this->publisher->publishUsingWamp('created.transaction', [
             'title' => 'Transaction Requested',
             'message' => 'Transaction ' . $transaction->getNumber() . ' has been requested.',
             'otherDetails' => [
