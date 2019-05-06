@@ -406,10 +406,18 @@ class TransactionOldController extends AbstractController
             $this->getManager()->beginTransaction();
             $transaction = $this->getRepository('DbBundle:Transaction')->findByIdAndType($id, $this->getManager()->getType($type), \Doctrine\ORM\Query::HYDRATE_OBJECT, LockMode::PESSIMISTIC_WRITE);
             $isForVoidingOrDecline = $this->isRequestToVoidOrDecline($transaction, $request);
-            $validationGroups = ['default', $type];
+
+            if (array_has($request->get('Transaction'), 'actions.btn_decline')) {
+                $validationGroups = ['default'];
+            } else {
+                $validationGroups = ['default', $type];
+            }
+
+
             if ($type === 'withdraw') {
                 $validationGroups[] = 'withGateway';
             }
+
             $form = $this->getManager()->createForm($transaction, true, [
                 'isForVoidingOrDecline' => $isForVoidingOrDecline,
                 'validation_groups' => $validationGroups,
