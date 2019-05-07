@@ -414,7 +414,7 @@ class TransactionOldController extends AbstractController
             }
 
 
-            if ($type === 'withdraw') {
+            if ($type === 'withdraw' && !array_has($request->get('Transaction'), 'actions.btn_decline')) {
                 $validationGroups[] = 'withGateway';
             }
 
