@@ -28,7 +28,7 @@ class EmailMessenger implements MessengerInterface
     public function sendCode(string $code, string $to, array $payload = []): void
     {
         $this->mailerManager->send(
-            'Verification Code',
+            'Your PIWI247 Verification Code',
             $to,
             $this->template,
             array_merge(['code' => $code], $payload)
