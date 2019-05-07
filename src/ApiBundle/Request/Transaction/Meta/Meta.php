@@ -55,7 +55,7 @@ class Meta
     public function toArray(): array
     {
         return [
-            'field' => $this->fields->toArray(),
+            'fields' => $this->fields->toArray(),
             'payment_details' => array_map(function ($paymentDetails) {
                 return $paymentDetails->toArray();
             }, $this->paymentDetails)

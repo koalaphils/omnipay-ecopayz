@@ -47,6 +47,7 @@ doctrine:
         JSON_EXTRACT: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonExtract
         JSON_MERGE: AppBundle\DoctrineExtension\ORM\Query\AST\Functions\Mysql\JsonMerge
         JSON_UNQUOTE: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonUnquote
+        JSON_QUOTE: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonQuote
         CAST: Oro\ORM\Query\AST\Functions\Cast
         FIND_IN_SET: AppBundle\DoctrineExtension\ORM\Query\AST\Functions\Mysql\FindInSet
         IFNULL: AppBundle\DoctrineExtension\ORM\Query\AST\Functions\Mysql\IfNull

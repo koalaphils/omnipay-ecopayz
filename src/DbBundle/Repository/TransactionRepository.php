@@ -676,7 +676,6 @@ class TransactionRepository extends BaseRepository
         $query = $this->createQueryBuilder('t')
             ->select('t')
             ->where('t.customer = :memberId AND t.paymentOptionType = :paymentOption AND t.isVoided = false AND t.status NOT IN (:statuses)')
-            ->andWhere('t.bitcoinIsAcknowledgeByMember <> TRUE')
             ->andWhere('t.type = :transactionType')
             ->orderBy('t.id', 'DESC')
             ->setMaxResults(1)
@@ -687,6 +686,10 @@ class TransactionRepository extends BaseRepository
                 'transactionType' => $transactionType
             ])
         ;
+
+        if ($transactionType === Transaction::TRANSACTION_TYPE_WITHDRAW) {
+            $query->andWhere('t.bitcoinIsAcknowledgeByMember <> TRUE');
+        }
 
         return $query->getQuery()->getSingleResult();
     }
