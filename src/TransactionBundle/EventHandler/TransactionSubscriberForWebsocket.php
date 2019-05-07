@@ -70,6 +70,18 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
             $payload['id'] = $event->getTransaction()->getId();
             $payload['status'] = $status;
             $payload['date'] = $event->getTransaction()->getDate()->format('c');
+            $payload['type'] = strtolower($event->getTransaction()->getTypeAsText());
+            if ($event->getTransaction()->getPaymentOptionType() !== null) {
+                $payload['payment_option'] = $event->getTransaction()->getPaymentOptionType()->getCode();
+            } else {
+                $payload['payment_option'] = null;
+            }
+            $payload['reason'] = '';
+            if ($event->getTransaction()->isVoided() || $event->getTransaction()->isDeclined()) {
+                $payload['reason'] = $event->getTransaction()->getVoidingReason();
+            }
+
+
 
             if ($event->getTransaction()->isP2pTransfer()) {
                 $members = $event->getMembersInSubTransactions();
