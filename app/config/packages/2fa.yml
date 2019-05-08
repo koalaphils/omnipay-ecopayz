@@ -7,9 +7,14 @@ services:
 
 two_factor:
     messenger:
+        template_provider: 'TwoFactorBundle\Provider\Message\TemplateProvider\TemplateProvider'
         sms:
             sms_messenger_service: 'TwoFactorBundle\Provider\Message\Sms\TwilioSmsMessenger'
-            template: '%sms_template%'
+            templates:
+                default: 'default.plain'
+                register: 'account_activation.plain'
         email:
-            template: '%email_template%'
+            templates:
+                default: 'default.html'
+                register: 'account_activation.html'
     storage: 'DbBundle\Repository\TwoFactorCodeRepository'

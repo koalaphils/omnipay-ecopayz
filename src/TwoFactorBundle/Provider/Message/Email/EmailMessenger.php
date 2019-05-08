@@ -6,31 +6,44 @@ namespace TwoFactorBundle\Provider\Message\Email;
 
 use AppBundle\Manager\MailerManager;
 use TwoFactorBundle\Provider\Message\MessengerInterface;
+use TwoFactorBundle\Provider\Message\TemplateProvider\TemplateProviderInterface;
 
 class EmailMessenger implements MessengerInterface
 {
     /**
-     * @var string
+     * @var string[]
      */
-    private $template;
+    private $templates;
 
     /**
      * @var MailerManager
      */
     private $mailerManager;
 
-    public function __construct(MailerManager $mailerManager, string $template)
+    /**
+     * @var TemplateProviderInterface
+     */
+    private $templateProvider;
+
+    public function __construct(MailerManager $mailerManager, TemplateProviderInterface $templateProvider, array $templates)
     {
-        $this->template = $template;
+        $this->templates = $templates;
         $this->mailerManager = $mailerManager;
+        $this->templateProvider = $templateProvider;
     }
 
     public function sendCode(string $code, string $to, array $payload = []): void
     {
+        if (array_has($this->templates, $payload['purpose'])) {
+            $template = $this->templateProvider->getTemplateInfo($this->templates[$payload['purpose']]);
+        } else {
+            $template = $this->templateProvider->getTemplateInfo($this->templates['default']);
+        }
+
         $this->mailerManager->send(
-            'Your PIWI247 Verification Code',
+            $template['subject'],
             $to,
-            $this->template,
+            $template['file'],
             array_merge(['code' => $code], $payload)
         );
     }
