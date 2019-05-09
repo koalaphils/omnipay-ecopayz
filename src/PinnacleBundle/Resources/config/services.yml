@@ -10,3 +10,10 @@ services:
   PinnacleBundle\Validator\PinnacleHasEnoughBalanceConstraintValidator:
     tags:
       - { name: validator.constraint_validator }
+  PinnacleBundle\Service\PinnacleService:
+    arguments:
+      $apiUrl: '%pinnacle_api_url%'
+      $agentCode: '%pinnacle_agent_code%'
+      $agentKey: '%pinnacle_api_agent_key%'
+      $secretKey: '%pinnacle_api_secret_key%'
+      $logger: '@monolog.logger.pinnacle'
