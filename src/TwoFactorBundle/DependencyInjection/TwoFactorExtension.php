@@ -10,6 +10,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use TwoFactorBundle\Provider\Message\Sms\SmsMessengerInterface;
 use TwoFactorBundle\Provider\Message\StorageInterface;
+use TwoFactorBundle\Provider\Message\TemplateProvider\TemplateProviderInterface;
 
 class TwoFactorExtension extends Extension
 {
@@ -18,13 +19,14 @@ class TwoFactorExtension extends Extension
         $configuration = $this->getConfiguration($configs, $container);
         $config = $this->processConfiguration($configuration, $configs);
 
-        $container->setParameter('2fa.email_template', $config['messenger']['email']['template']);
-        $container->setParameter('2fa.sms_template', $config['messenger']['sms']['template']);
+        $container->setParameter('2fa.email_templates', $config['messenger']['email']['templates']);
+        $container->setParameter('2fa.sms_templates', $config['messenger']['sms']['templates']);
 
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yml');
 
         $container->setAlias(SmsMessengerInterface::class, $config['messenger']['sms']['sms_messenger_service']);
         $container->setAlias(StorageInterface::class, $config['storage']);
+        $container->setAlias(TemplateProviderInterface::class, $config['messenger']['template_provider']);
     }
 }

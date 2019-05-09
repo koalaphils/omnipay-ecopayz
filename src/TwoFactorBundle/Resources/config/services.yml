@@ -4,20 +4,22 @@ services:
         autoconfigure: true
         public: false
 
+    TwoFactorBundle\Provider\Message\TemplateProvider\TemplateProvider: ~
+
     TwoFactorBundle\Provider\:
         resource: '../../Provider/*'
         exclude: '../../Provider/Message/Exceptions'
 
     TwoFactorBundle\Provider\Message\Email\EmailMessenger:
         arguments:
-            $template: '%2fa.email_template%'
+            $templates: '%2fa.email_templates%'
     TwoFactorBundle\Provider\Message\Email\EmailProvider:
         tags:
             - { name: '2fa.provider', alias: 'email' }
 
     TwoFactorBundle\Provider\Message\Sms\SmsMessenger:
         arguments:
-            $template: '%2fa.sms_template%'
+            $templates: '%2fa.sms_templates%'
     TwoFactorBundle\Provider\Message\Sms\SmsProvider:
         tags:
             - { name: '2fa.provider', alias: 'sms' }

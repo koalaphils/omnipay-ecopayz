@@ -92,6 +92,26 @@ class AppBundle extends Bundle
     public function registerDefaultSetting()
     {
         return [
+            'email.templates' => [
+                'default' => [
+                    'html' => [
+                        'subject' => 'Your PIWI247 Verification Code',
+                        'file' => 'code-request.html.twig',
+                    ],
+                    'plain' => [
+                        'file' => 'code-request-sms.html.twig',
+                    ]
+                ],
+                'account_activation' => [
+                    'html' => [
+                        'subject' => 'PIWI247 Account Activation Code',
+                        'file' => 'code-request-activation.html.twig',
+                    ],
+                    'plain' => [
+                        'file' => 'code-request-sms-activation.html.twig',
+                    ]
+                ],
+            ],
             'code' => [
                 'expiration' => '30 minutes'
             ],
@@ -235,7 +255,7 @@ class AppBundle extends Bundle
 
     public function registerSettingCodes()
     {
-        return ['maintenance.enabled', 'scheduler.task'];
+        return ['maintenance.enabled', 'scheduler.task', 'email'];
     }
 
     public function registerThemetViews()

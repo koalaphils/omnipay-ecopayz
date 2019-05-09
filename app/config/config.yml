@@ -57,12 +57,6 @@ framework:
     serializer: { enabled: true }
     trusted_proxies:  "%trusted_proxies%"
 
-doctrine_migrations:
-    dir_name: "%kernel.root_dir%/DoctrineMigrations"
-    namespace: Application\Migrations
-    table_name: migrations
-    name: Application Migrations
-
 swiftmailer:
     transport: "%mailer_transport%"
     host:      "%mailer_host%"
@@ -163,20 +157,6 @@ jms_job_queue:
     queue_options:
         payout:
             max_concurrent_jobs: 1
-
-monolog:
-    channels: ['dwl_submit', 'blockchain_callback', 'blockchain_request']
-    handlers:
-        blockchain_callback:
-            level: debug
-            type: stream
-            path: '%kernel.logs_dir%/blockchain/callback.log'
-            channels: ['blockchain_callback']
-        blockchain_request:
-            level: debug
-            type: stream
-            path: '%kernel.logs_dir%/blockchain/request.log'
-            channels: ['blockchain_request']
 
 #sensio_framework_extra:
 #    view:

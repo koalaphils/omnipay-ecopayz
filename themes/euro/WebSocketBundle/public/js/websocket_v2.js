@@ -83,7 +83,7 @@
             triggerNotification(args, 'registration', 'success', playMemberCreationSoundAlert);
         });
 
-        session.subscribe('transaction.created', function (args) {
+        session.subscribe('created.transaction', function (args) {
             triggerNotification(args, 'transaction', 'success', playDefaultSoundAlert);
         });
 

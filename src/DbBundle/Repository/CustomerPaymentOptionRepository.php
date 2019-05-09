@@ -52,6 +52,33 @@ class CustomerPaymentOptionRepository extends \Doctrine\ORM\EntityRepository
         return $qb->getQuery()->getOneOrNullResult();
     }
 
+    public function findByFields(int $memberId, string $paymentOption, array $fields): ?CustomerPaymentOption
+    {
+        $queryBuilder = $this->createQueryBuilder('cpo');
+        $conditions = $queryBuilder->expr()->andX()->addMultiple([
+            'cpo.customer = :memberId',
+            'cpo.paymentOption = :paymentOption',
+            'cpo.isActive = 1'
+        ]);
+        $parameters = ['memberId' => $memberId, 'paymentOption' => $paymentOption];
+
+        foreach ($fields as $field => $value) {
+
+            if (is_string($value)) {
+                $conditions->add("JSON_CONTAINS(cpo.fields, JSON_QUOTE(:${field}Value), :${field}Key) = 1");
+            } else {
+                $conditions->add("JSON_CONTAINS(cpo.fields, :${field}Value, :${field}Key) = 1");
+            }
+            $parameters[$field . 'Value'] = (string) $value;
+            $parameters[$field . 'Key'] = '$.' . $field;
+        }
+
+        $queryBuilder->where($conditions);
+        $queryBuilder->setParameters($parameters);
+
+        return $queryBuilder->getQuery()->getOneOrNullResult();
+    }
+
     public function findByMemberPaymentOptionAccountId(int $memberId, string $accountId, int $transactionType)
     {
         $qb = $this->createQueryBuilder('cpo');

@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace ApiBundle\RequestHandler\Transaction;
 
 use ApiBundle\Request\Transaction\WithdrawRequest;
+use AppBundle\Manager\SettingManager;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerPaymentOption;
 use DbBundle\Entity\PaymentOption;
@@ -55,6 +56,11 @@ class WithdrawHandler
      */
     private $eventDispatcher;
 
+    /**
+     * @var SettingManager
+     */
+    private $settingManager;
+
     public function __construct(
         TokenStorageInterface $tokenStorage,
         TransactionManager $transactionManager,
@@ -62,7 +68,8 @@ class WithdrawHandler
         PaymentOptionRepository $paymentOptionRepository,
         CustomerProductRepository $customerProductRepository,
         EntityManager $entityManager,
-        EventDispatcherInterface $eventDispatcher
+        EventDispatcherInterface $eventDispatcher,
+        SettingManager $settingManager
     ) {
         $this->tokenStorage = $tokenStorage;
         $this->memberPaymentOptionRepository = $memberPaymentOptionRepository;
@@ -71,6 +78,7 @@ class WithdrawHandler
         $this->customerProductRepository = $customerProductRepository;
         $this->entityManager = $entityManager;
         $this->eventDispatcher = $eventDispatcher;
+        $this->settingManager = $settingManager;
     }
 
     public function handle(WithdrawRequest $withdrawRequest): Transaction
@@ -92,6 +100,10 @@ class WithdrawHandler
             $transaction->setDetail('email', $email);
             foreach ($withdrawRequest->getMeta()->getPaymentDetailsAsArray() as $key => $value) {
                 $transaction->setDetail($key, $value);
+            }
+
+            if ($withdrawRequest->getPaymentOptionType() === $this->settingManager->getSetting('bitcoin.setting.paymentOption')) {
+                $transaction->setBitcoinAddress($withdrawRequest->getMeta()->getFields()->getAccountId());
             }
 
             foreach ($withdrawRequest->getProducts() as $productInfo) {
@@ -131,11 +143,10 @@ class WithdrawHandler
         if ($withdrawRequest->getPaymentOption() !== ''){
             return $this->memberPaymentOptionRepository->find($withdrawRequest->getPaymentOption());
         }
+        $fields = array_get($withdrawRequest->getMeta()->toArray(), 'fields', []);
+        $fields['is_withdrawal'] = 1;
 
-        $memberPaymentOption = $this
-            ->memberPaymentOptionRepository
-            ->findByCustomerPaymentOptionAndEmail($member->getId(), $withdrawRequest->getPaymentOptionType(), $withdrawRequest->getMeta()->getFields()->getEmail())
-        ;
+        $memberPaymentOption = $this->memberPaymentOptionRepository->findByFields((int) $member->getId(), $withdrawRequest->getPaymentOptionType(), $fields);
         if ($memberPaymentOption instanceof CustomerPaymentOption) {
             return $memberPaymentOption;
         }
