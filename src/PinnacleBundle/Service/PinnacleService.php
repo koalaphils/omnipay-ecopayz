@@ -129,10 +129,11 @@ class PinnacleService implements PinnacleInterface
 
             $request = $this->requestMessageFactory->createRequest('GET', $endpoint . '?' . urldecode(http_build_query($query)), $headers);
             $response = $this->client->sendRequest($request);
-
+            
+	    $this->logger->info('PIN API:'. __CLASS__ . ':' . __METHOD__, ['REQUEST' => print_r($request, true), 'RESPONSE' => print_r($response, true)]);
             return $response;
         } catch (HttpException $ex) {
-            $this->logger->critical($ex->getMessage(), [$request]);
+            $this->logger->critical($ex->getMessage(), [print_r($request, true)]);
 
             throw new PinnacleException($ex->getMessage(), $ex->getCode(), $ex);
         }
@@ -154,8 +155,9 @@ class PinnacleService implements PinnacleInterface
 
             $request = $this->requestMessageFactory->createRequest('POST', $endpoint, $headers, urldecode(http_build_query($postData)));
             $response = $this->client->sendRequest($request);
-        } catch (HttpException $ex) {
-            $this->logger->critical($ex->getMessage(), [$request]);
+ 	    $this->logger->info('PIN API:'. __CLASS__ . ':' . __METHOD__, ['REQUEST' => print_r($request, true), 'RESPONSE' => print_r($response, true)]);
+       } catch (HttpException $ex) {
+            $this->logger->critical($ex->getMessage(), [print_r($request, true)]);
 
             throw new PinnacleException($ex->getMessage(), $ex->getCode(), $ex);
         }
