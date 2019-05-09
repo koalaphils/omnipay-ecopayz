@@ -57,7 +57,8 @@ class CustomerPaymentOptionRepository extends \Doctrine\ORM\EntityRepository
         $queryBuilder = $this->createQueryBuilder('cpo');
         $conditions = $queryBuilder->expr()->andX()->addMultiple([
             'cpo.customer = :memberId',
-            'cpo.paymentOption = :paymentOption'
+            'cpo.paymentOption = :paymentOption',
+            'cpo.isActive = 1'
         ]);
         $parameters = ['memberId' => $memberId, 'paymentOption' => $paymentOption];
 

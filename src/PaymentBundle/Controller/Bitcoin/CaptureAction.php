@@ -57,6 +57,7 @@ class CaptureAction implements ActionInterface
     {
         RequestNotSupportedException::assertSupports($this, $request);
         $model = $request->getModel();
+        /* @var $transaction Transaction */
         $transaction = $model['transaction'];
 
         /* @var $member \DbBundle\Entity\Customer */
@@ -78,6 +79,7 @@ class CaptureAction implements ActionInterface
             try {
                 $result = $this->generateReceivingAddress($callback, $xpub, $gateway);
                 $member->setBitcoinDetails($result);
+                // $transaction->getPaymentOption()->setBitcoinAddress($member->getBitcoinAddress());
             } catch (HttpException $e) {
                 $response = $e->getResponse();
                 $contentType = $response->getHeader('Content-Type')[0];
@@ -100,6 +102,9 @@ class CaptureAction implements ActionInterface
         $transaction->setBitcoinIndex($member->getBitcoinIndex());
         $transaction->setBitcoinRateExpiration(false);
         $transaction->setBitcoinAcknowledgedByUser(false);
+        if ($transaction->getPaymentOption()->getField('account_id', '') === '') {
+            $transaction->getPaymentOption()->setField('account_id', $member->getBitcoinAddress());
+        }
     }
 
     public function supports($request): bool
