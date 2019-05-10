@@ -18,6 +18,8 @@ use PinnacleBundle\Component\PinnacleInterface;
 use PinnacleBundle\Component\PlayerComponent;
 use PinnacleBundle\Component\TokenGenerator;
 use PinnacleBundle\Component\TransactionComponent;
+use PinnacleBundle\Component\Wrapper\RequestWrapper;
+use PinnacleBundle\Component\Wrapper\ResponseWrapper;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 
@@ -129,11 +131,12 @@ class PinnacleService implements PinnacleInterface
 
             $request = $this->requestMessageFactory->createRequest('GET', $endpoint . '?' . urldecode(http_build_query($query)), $headers);
             $response = $this->client->sendRequest($request);
-            
-	    $this->logger->info('PIN API:'. __CLASS__ . ':' . __METHOD__, ['REQUEST' => print_r($request, true), 'RESPONSE' => print_r($response, true)]);
+
+            $this->logger->debug('PIN API:'. __CLASS__ . ':' . __METHOD__, ['REQUEST' => new RequestWrapper($request), 'RESPONSE' => new ResponseWrapper($response)]);
+
             return $response;
         } catch (HttpException $ex) {
-            $this->logger->critical($ex->getMessage(), [print_r($request, true)]);
+            $this->logger->critical($ex->getMessage(), ['REQUEST' => new RequestWrapper($ex->getRequest()), 'RESPONSE' => new ResponseWrapper($ex->getResponse())]);
 
             throw new PinnacleException($ex->getMessage(), $ex->getCode(), $ex);
         }
@@ -155,9 +158,10 @@ class PinnacleService implements PinnacleInterface
 
             $request = $this->requestMessageFactory->createRequest('POST', $endpoint, $headers, urldecode(http_build_query($postData)));
             $response = $this->client->sendRequest($request);
- 	    $this->logger->info('PIN API:'. __CLASS__ . ':' . __METHOD__, ['REQUEST' => print_r($request, true), 'RESPONSE' => print_r($response, true)]);
+
+            $this->logger->debug('PIN API:'. __CLASS__ . ':' . __METHOD__, ['REQUEST' => new RequestWrapper($request), 'RESPONSE' => new ResponseWrapper($response)]);
        } catch (HttpException $ex) {
-            $this->logger->critical($ex->getMessage(), [print_r($request, true)]);
+            $this->logger->critical($ex->getMessage(), ['REQUEST' => new RequestWrapper($ex->getRequest()), 'RESPONSE' => new ResponseWrapper($ex->getResponse())]);
 
             throw new PinnacleException($ex->getMessage(), $ex->getCode(), $ex);
         }

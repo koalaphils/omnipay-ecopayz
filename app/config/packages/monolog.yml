@@ -1,0 +1,22 @@
+services:
+  Monolog\Formatter\JsonFormatter: ~
+
+monolog:
+  channels: ['dwl_submit', 'blockchain_callback', 'blockchain_request', 'pinnacle']
+  handlers:
+    blockchain_callback:
+      level: debug
+      type: stream
+      path: '%kernel.logs_dir%/blockchain/callback.log'
+      channels: ['blockchain_callback']
+    blockchain_request:
+      level: debug
+      type: stream
+      path: '%kernel.logs_dir%/blockchain/request.log'
+      channels: ['blockchain_request']
+    pinnacle:
+      level: debug
+      type: stream
+      path: '%kernel.logs_dir%/pinnacle.log'
+      channels: ['pinnacle']
+      formatter: 'Monolog\Formatter\JsonFormatter'

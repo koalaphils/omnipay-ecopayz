@@ -6,6 +6,7 @@ namespace ApiBundle\RequestHandler\Transaction;
 
 use ApiBundle\Event\TransactionCreatedEvent;
 use ApiBundle\Request\Transaction\DepositRequest;
+use AppBundle\Manager\SettingManager;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerPaymentOption;
 use DbBundle\Entity\SubTransaction;
@@ -55,6 +56,11 @@ class DepositHandler
      */
     private $eventDispatcher;
 
+    /**
+     * @var SettingManager
+     */
+    private $settingManager;
+
     public function __construct(
         TokenStorageInterface $tokenStorage,
         TransactionManager $transactionManager,
@@ -62,7 +68,8 @@ class DepositHandler
         PaymentOptionRepository $paymentOptionRepository,
         CustomerProductRepository $customerProductRepository,
         EntityManager $entityManager,
-        EventDispatcherInterface $eventDispatcher
+        EventDispatcherInterface $eventDispatcher,
+        SettingManager $settingManager
     ) {
         $this->tokenStorage = $tokenStorage;
         $this->memberPaymentOptionRepository = $memberPaymentOptionRepository;
@@ -71,6 +78,7 @@ class DepositHandler
         $this->customerProductRepository = $customerProductRepository;
         $this->entityManager = $entityManager;
         $this->eventDispatcher = $eventDispatcher;
+        $this->settingManager = $settingManager;
     }
 
     public function handle(DepositRequest $depositRequest): Transaction
@@ -138,10 +146,14 @@ class DepositHandler
             return $this->memberPaymentOptionRepository->find($depositRequest->getPaymentOption());
         }
 
-        $memberPaymentOption = $this
-            ->memberPaymentOptionRepository
-            ->findByCustomerPaymentOptionAndEmail($member->getId(), $depositRequest->getPaymentOptionType(), $depositRequest->getMeta()->getFields()->getEmail())
-        ;
+        $fields = array_get($depositRequest->getMeta()->toArray(), 'fields', []);
+        $fields['is_deposit'] = 1;
+        if ($depositRequest->getPaymentOptionType() === $this->settingManager->getSetting('bitcoin.setting.paymentOption')) {
+            unset($fields['account_id']);
+            unset($fields['email']);
+        }
+
+        $memberPaymentOption = $this->memberPaymentOptionRepository->findByFields((int) $member->getId(), $depositRequest->getPaymentOptionType(), $fields);
 
         if ($memberPaymentOption instanceof CustomerPaymentOption) {
             return $memberPaymentOption;
@@ -152,7 +164,7 @@ class DepositHandler
         $memberPaymentOption->setPaymentOption($paymentOption);
         $memberPaymentOption->setCustomer($member);
         $memberPaymentOption->addField('account_id', array_get($depositRequest->getMeta()->toArray(), 'fields.account_id', ''));
-        $memberPaymentOption->addField('email', array_get($depositRequest->getMeta()->toArray(), 'field.email', ''));
+        $memberPaymentOption->addField('email', array_get($depositRequest->getMeta()->toArray(), 'fields.email', ''));
         $memberPaymentOption->setForWithdrawal();
         $memberPaymentOption->setForDeposit();
 
