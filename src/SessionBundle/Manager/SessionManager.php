@@ -29,6 +29,7 @@ class SessionManager extends AbstractManager
         $session->setSessionId($params['sessionId']);
         $session->setKey($this->_encodeToken($params['key']));
         $session->setUser($params['user']);
+        $session->setDetails([]);
 
         $this->getRepository()->save($session);
     }
