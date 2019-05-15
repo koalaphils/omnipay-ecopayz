@@ -28,6 +28,9 @@ DbBundle\Entity\Session:
         createdAt:
             type: datetime
             column: session_created_at
+        details:
+            type: json
+            column: session_details
     manyToOne:
         user:
             targetEntity: DbBundle\Entity\User

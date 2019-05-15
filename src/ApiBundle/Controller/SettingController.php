@@ -28,6 +28,7 @@ class SettingController extends AbstractController
             'bitcoin.setting' => $settingManager->getSetting('bitcoin.setting'),
             'transaction.validate' => $settingManager->getSetting('transaction.validate'),
             'pinnacle' => $settingManager->getSetting('pinnacle'),
+            'session' => $settingManager->getSetting('session'),
         ];
 
         return $this->view([

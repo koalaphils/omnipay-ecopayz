@@ -32,6 +32,11 @@ class Session extends Entity
     protected $createdAt;
 
     /**
+     * @var array
+     */
+    protected $details;
+
+    /**
      * Set userId.
      *
      * @param int $userId
@@ -156,5 +161,43 @@ class Session extends Entity
     public function getCreatedAt()
     {
         return $this->createdAt;
+    }
+
+    public function getDetails(): array
+    {
+        if ($this->details === null) {
+            $this->details = [];
+        }
+
+        return $this->details;
+    }
+
+    public function setDetails(array $details): self
+    {
+        $this->details = $details;
+
+        return $this;
+    }
+
+    /**
+     * @param string $key
+     * @param mixed|null $default
+     * @return mixed|null
+     */
+    public function getDetail(string $key, $default = null)
+    {
+        return array_get($this->details, $key, $default);
+    }
+
+    /**
+     * @param string $key
+     * @param mixed $value
+     * @return Session
+     */
+    public function setDetail(string $key, $value): self
+    {
+        array_set($this->details, $key, $value);
+
+        return $this;
     }
 }

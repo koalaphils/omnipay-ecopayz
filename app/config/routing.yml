@@ -228,6 +228,10 @@ commission:
     defaults:
         _locale: "%locale%"
 
+session:
+    resource: "@SessionBundle/Resources/config/routing.yml"
+    prefix: /{_locale}/session
+
 root:
     path: /{path}
     defaults:

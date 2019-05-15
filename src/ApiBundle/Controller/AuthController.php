@@ -20,14 +20,22 @@ class AuthController extends AbstractController
      *     description="Check if token can still login",
      *     section="Auth",
      *     views={"piwi"},
+     *     requirements={
+     *         {
+     *             "name"="pinnacle_token",
+     *             "dataType"="string"
+     *         }
+     *     },
      *     headers={
      *         { "name"="Authorization", "description"="Bearer <access_token>" }
      *     }
      * )
      */
-    public function checkIfAuthenticatedAction(Request $request): View
+    public function checkIfAuthenticatedAction(Request $request, AuthHandler $handler): View
     {
-        return $this->view(["success" => true]);
+        ;
+
+        return $this->view($handler->handleCheckSession($request));
     }
 
     /**

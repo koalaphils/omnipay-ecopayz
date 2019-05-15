@@ -9,7 +9,6 @@ services:
     ApiBundle\RequestHandler\AuthHandler:
         arguments:
             $jwtKey: "%jwt_key%"
-            $sessionExpiration: '%session.expiration_time%'
 
     api.member.create_banner.request_handler: '@ApiBundle\RequestHandler\CreateMemberBannerRequestHandler'
     api.member_product.create.request_handler: '@ApiBundle\RequestHandler\CreateMemberProductRequestHandler'
