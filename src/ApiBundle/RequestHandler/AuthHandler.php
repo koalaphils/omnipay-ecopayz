@@ -310,7 +310,7 @@ class AuthHandler
         $queryBuilder->getQuery()->execute();
 
         if ($userId === null && !empty($accessTokens)) {
-            $this->sessionRepository->deleteUserSessionBySessionId($accessTokens);
+            $this->sessionRepository->deleteUserSessionBySessionIds($accessTokens);
         } else {
             $this->sessionRepository->deleteUserSessionExcept($userId, $except);
         }

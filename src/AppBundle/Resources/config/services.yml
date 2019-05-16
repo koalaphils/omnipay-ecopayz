@@ -239,4 +239,5 @@ services:
         autoconfigure: true
         autowire: true
         tags:
-            - { name:  jms_job_queue.scheduler, command: 'jms-job-queue:clean-up'}
+            - { name:  jms_job_queue.scheduler, command: 'jms-job-queue:clean-up' }
+            - { name:  jms_job_queue.scheduler, command: 'fos:oauth-server:clean' }
