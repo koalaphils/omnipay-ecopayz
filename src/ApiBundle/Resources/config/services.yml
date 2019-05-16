@@ -4,6 +4,14 @@ imports:
     - { resource: forms.yml }
     - { resource: controller.yml }
 services:
+    ApiBundle\Factory\:
+        resource: ../../Factory
+        autowire: true
+        autoconfigure: true
+        public: false
+    fos_oauth_server.server:
+        factory: 'ApiBundle\Factory\OAuth2Factory:generate'
+        arguments: ['@fos_oauth_server.storage', '%fos_oauth_server.server.options%']
     api.jms_parser:
         class: ApiBundle\Parser\JmsMetadataParser
         arguments: [ '@jms_serializer.metadata_factory', '@jms_serializer.naming_strategy', '@nelmio_api_doc.doc_comment_extractor' ]

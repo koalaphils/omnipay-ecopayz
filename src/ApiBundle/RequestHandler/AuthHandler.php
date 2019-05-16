@@ -309,7 +309,11 @@ class AuthHandler
 
         $queryBuilder->getQuery()->execute();
 
-        $this->sessionRepository->deleteUserSessionExcept($userId, $except);
+        if ($userId === null && !empty($accessTokens)) {
+            $this->sessionRepository->deleteUserSessionBySessionId($accessTokens);
+        } else {
+            $this->sessionRepository->deleteUserSessionExcept($userId, $except);
+        }
     }
 
     private function loginUser(User $user): void

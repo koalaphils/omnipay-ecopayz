@@ -42,7 +42,7 @@ class SessionRepository extends BaseRepository
         return $qb->getQuery()->getOneOrNullResult();
     }
 
-    public function deleteUserSessionExcept(int $userId, array $exceptSessionId = []): void
+    public function deleteUserSessionExcept(?int $userId, array $exceptSessionId = []): void
     {
         $qb = $this->getEntityManager()->createQueryBuilder()->delete(Session::class, 's');
         $qb
@@ -58,5 +58,16 @@ class SessionRepository extends BaseRepository
         }
 
         $qb->getQuery()->execute();
+    }
+
+    public function deleteUserSessionBySessionIds(array $sessionId): void
+    {
+        $this
+            ->getEntityManager()->createQueryBuilder()->delete(Session::class, 's')
+            ->where('s.sessionId IN (:sessionId)')
+            ->setParameter('sessionId', $sessionId)
+            ->getQuery()
+            ->execute()
+        ;
     }
 }

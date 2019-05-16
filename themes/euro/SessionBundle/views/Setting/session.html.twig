@@ -1,0 +1,43 @@
+{% extends "@App/Layout/base-v2.html.twig" %}
+
+{% block title %}Session | Setting{% endblock title %}
+
+{% block pageTitle -%} {{ "Session Configuration"|trans({},"SessionBundle") }} {%- endblock %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.setting"|trans({},"AppBundle") }}</li>
+    <li class="active">{{ "Session Configuration"|trans({},"SessionBundle") }}</li>
+{%- endblock %}
+
+{% block page %}
+    <div class="col-md-12">
+        <div class="card-box">
+            {{ form_start(form) }}
+            <div class="row">
+                {{ form_row(form.sessionTimeout) }}
+                {{ form_row(form.pinnacleTimeout) }}
+                <div class="col-md-12">
+                    {{ form_row(form.saveBtn) }}
+                </div>
+            </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock page %}
+
+{% block javascripts %}
+    <script src="{{ asset('assets/plugins/jquery-form/jquery.form.min.js') }}"></script>
+    <script type="text/javascript">
+        $(function () {
+           $('#{{ form.vars.id }}').ajaxForm({
+               'statusCode': {
+                   200: function (data) {
+                       if (data.success) {
+                           notification('Saved', 'You have successfully saved gateway session configurations', 'success');
+                       }
+                   }
+               }
+           });
+        });
+    </script>
+{% endblock javascripts %}
