@@ -10,6 +10,8 @@ use DbBundle\Repository\TransactionRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use PaymentBundle\Component\Blockchain\BitcoinConverter;
+use PaymentBundle\Event\NotifyEvent;
+use PaymentBundle\Manager\BitcoinManager;
 use PaymentBundle\Service\Blockchain;
 use Payum\Core\Action\ActionInterface;
 use Payum\Core\Exception\RequestNotSupportedException;
@@ -23,6 +25,7 @@ use Payum\Core\Security\TokenInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use RuntimeException;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Throwable;
@@ -41,6 +44,16 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
     private $publisher;
     private $blockchain;
     private $confirmations = [];
+
+    /**
+     * @var EventDispatcherInterface
+     */
+    private $eventDispatcher;
+
+    /**
+     * @var BitcoinManager
+     */
+    private $bitcoinManager;
 
     /**
      * @var LoggerInterface
@@ -143,10 +156,21 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
         } else if ($confirmations < min(array_keys($this->confirmations))) {
             $transaction->setStatus($this->confirmations[min(array_keys($this->confirmations))]->getConfirmationTransactionStatus());
         }
-
+        $notifyEvent = new NotifyEvent(
+            $transaction,
+            [
+                'transactionHash' => $transactionHash,
+                'satoshiValue' => $satoshiValue,
+                'btcValue' => $btcValue,
+                'address' => $address,
+                'confirmations' => $confirmations,
+            ]
+        );
+        $this->eventDispatcher->dispatch(NotifyEvent::EVENT_NAME, $notifyEvent);
         $this->save($transaction);
 
-        if ($confirmations >= 3) {
+        $maxConfirmation = count($this->bitcoinManager->getListOfConfirmations()) - 1;
+        if ($confirmations >= $maxConfirmation) {
             $this->logWithHttpRequest(
                 LogLevel::INFO,
                 sprintf('Callback done, from %s confirmation', $confirmations),
@@ -167,7 +191,6 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
         }
 
         $this->publishTransactionStatus($transaction);
-        // $this->publishNoneUsingWampTransactionStatus($transaction);
         
         throw $response;
     }
@@ -209,6 +232,16 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
     public function setLogger(LoggerInterface $logger): void
     {
         $this->logger = $logger;
+    }
+
+    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher): void
+    {
+        $this->eventDispatcher = $eventDispatcher;
+    }
+
+    public function setBitcoinManager(BitcoinManager $bitcoinManager): void
+    {
+        $this->bitcoinManager = $bitcoinManager;
     }
 
     protected function getSenderAddresses(string $hash, string $address): array
