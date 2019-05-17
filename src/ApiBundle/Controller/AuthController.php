@@ -11,6 +11,7 @@ use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use OAuth2\OAuth2ServerException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class AuthController extends AbstractController
@@ -78,8 +79,10 @@ class AuthController extends AbstractController
             $view->getContext()->setGroups(['Default', 'API', 'paymentOptions', 'details']);
 
             return $view;
+        } catch (UsernameNotFoundException $exception) {
+            return $this->view(['success' => false, 'error' => $exception->getMessage(), 'usernameExists' => false], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (OAuth2ServerException $exception) {
-            return $this->view(['success' => false, 'error' => $exception->getDescription()], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->view(['success' => false, 'error' => $exception->getDescription(), 'usernameExists' => true], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
     }
 

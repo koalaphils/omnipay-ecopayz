@@ -31,6 +31,7 @@ use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use UserBundle\Manager\UserManager;
 
 class AuthHandler
@@ -144,6 +145,11 @@ class AuthHandler
      */
     public function handleLogin(Request $request): array
     {
+        $user = $this->userRepository->loadUserByUsername($request->get('username'));
+        if ($user === null) {
+            throw new UsernameNotFoundException('Username does not exists');
+        }
+
         $response = $this->oauthService->grantAccessToken($request);
 
         $data = json_decode($response->getContent(), true);
