@@ -241,6 +241,11 @@ class BitcoinManager extends AbstractManager
         }, $confirmations);
     }
 
+    public function getMaxConfirmation(): int
+    {
+        return count($this->getSettingManager()->getSetting('bitcoin.confirmations', [])) - 1;
+    }
+
     public function setPublisher(Publisher $publisher): void
     {
         $this->publisher = $publisher;

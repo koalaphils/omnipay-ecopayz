@@ -182,7 +182,7 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
         } else {
             $this->logWithHttpRequest(
                 LogLevel::INFO,
-                'Need 3 or more confirmation to finish the callback',
+                'Need ' . $maxConfirmation . ' or more confirmation to finish the callback',
                 $httpRequest,
                 ['transactionId' => $transaction->getId()]
             );
