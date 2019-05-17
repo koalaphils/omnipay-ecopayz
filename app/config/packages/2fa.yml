@@ -1,6 +1,7 @@
 services:
     TwoFactorBundle\Provider\Message\Sms\TwilioSmsMessenger:
         arguments:
+            - '@monolog.logger.twilio'
             - '%twilio_sid%'
             - '%twilio_token%'
             - '%twilio_from%'
