@@ -28,6 +28,8 @@ services:
             - [ setBlockchain, ['@payment.blockchain'] ]
         parent: app.base_manager
 
+    PaymentBundle\Manager\BitcoinManager: '@payment.bitcoin_manager'
+
 
     payment.bitcoin_adjustment:
         class: PaymentBundle\Component\Bitcoin\BitcoinAdjustmentComponent
@@ -92,6 +94,8 @@ services:
             - ['setConfirmations', ['@=service("payment.bitcoin_manager").getListOfConfirmations()']]
             - ['setBlockchain', ['@payment.blockchain']]
             - ['setLogger', ['@monolog.logger.blockchain_callback']]
+            - ['setEventDispatcher', ['@event_dispatcher']]
+            - ['setBitcoinManager', ['@payment.bitcoin_manager']]
 
     payment.payum.blockchain.gateway_factory_builder:
         class: Payum\Core\Bridge\Symfony\Builder\GatewayFactoryBuilder

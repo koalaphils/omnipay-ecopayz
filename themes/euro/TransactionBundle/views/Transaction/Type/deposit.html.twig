@@ -128,11 +128,13 @@
                         </div>
                         <div class='col-md-7 col-sm-12 col-xs-12'>
                             {% if transaction.hasDepositUsingBitcoin() and not transaction.isBitcoinRequestedOnConfirmation() and not transaction.isVoided() and not transaction.hasEnded() and not transaction.isDeclined() %}
-                                {% if transaction.isBitcoinPendingOnConfirmation() %}
-                                    <span class="label label-warning">{{ "Pending Confirmation"|trans({}, "TransactionBundle") }}</span>
-                                {% elseif transaction.isBitcoinConfirmedOnConfirmation() %}
-                                    <span class="label label-success">{{ "Confirmed"|trans({}, "TransactionBundle") }}</span>
-                                {% endif %}
+                                <xsl:choose>
+                                    {% for confirmationDetail in bitcoinConfirmations  %}
+                                    <xsl:when test="details/bitcoin/confirmation_count = {{ confirmationDetail.confirmationNumber }}">
+                                        <span class="label label-success">{{ confirmationDetail.confirmationLabel }}</span>
+                                    </xsl:when>
+                                    {% endfor %}
+                                </xsl:choose>
                             {% else %}
                                 <xsl:choose>
                                     <xsl:when test="statusinfo/id = 2 and voided = 1">
@@ -154,11 +156,17 @@
                                 <b>{{ "Confirmation Status"|trans({},"TransactionBundle") }}</b>
                             </div>
                             <div class='col-md-7 col-sm-12 col-xs-12'>
-                                {% if transaction.isBitcoinPendingOnConfirmation() %}
-                                    <span class="text-warning">{{transaction.getBitcoinConfirmation() | default('0') }}/3 {{ "confirmation(s) received"|trans({},"TransactionBundle") }}</span>
-                                {% elseif transaction.isBitcoinConfirmedOnConfirmation() %}
-                                    <span class="text-success">{{transaction.getBitcoinConfirmation() | default('0') }}/3 {{ "confirmation(s) received"|trans({},"TransactionBundle") }}</span>
-                                {% endif %}
+                                <xsl:choose>
+                                    <xsl:when test="details/bitcoin/manual_confirmation">
+                                        <span class="text-success">Manual Confirmation</span>
+                                    </xsl:when>
+                                    <xsl:when test="details/bitcoin/confirmation_count = {{ (bitcoinConfirmations|length)-1 }}">
+                                        <span class="text-success">{{transaction.getBitcoinConfirmation() | default('0') }}/{{ (bitcoinConfirmations|length)-1 }} {{ "confirmation(s) received"|trans({},"TransactionBundle") }}</span>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <span class="text-warning">{{transaction.getBitcoinConfirmation() | default('0') }}/{{ (bitcoinConfirmations|length)-1 }} {{ "confirmation(s) received"|trans({},"TransactionBundle") }}</span>
+                                    </xsl:otherwise>
+                                </xsl:choose>
                             </div>
                         </div>
                     {% endif %}

@@ -65,58 +65,6 @@
                     <div class="col-md-6 m-b-20">
                     {{ widget_render(page.getWidget('transactionPasswordForm')) }}
                     </div>
-                    {#<div class="row">
-                        <div class="col-md-6">
-                            <h4 class="header-title">
-                                <b>{{ "activation.title"|trans({},'CustomerBundle') }}</b>
-                            </h4>
-                            <p>
-                                {% if customer.user.activationSentTimestamp %}
-                                    <em>
-                                    {{ "activation.sentOn"|trans({},'CustomerBundle') }}
-                                    {{ customer.user.activationSentTimestamp|date('m/d/Y H:i:s') }}
-                                    </em>
-                                {% endif %}
-
-                                {% if customer.user.activationTimestamp %}
-                                    <br/>
-                                    <em>{{ "activation.activatedOn"|trans({},'CustomerBundle') }} {{ customer.user.activationTimestamp|date('m/d/Y H:i:s') }}.</em>
-                                {% endif %}
-                            </p>
-
-                            {% if customer.user.activationSentTimestamp %}
-                                {% if customer.user.activationSentTimestamp == customer.user.activationTimestamp %}
-                                    <hr>
-                                    <small>{{ "activation.note"|trans({},'CustomerBundle') }}.</small>
-                                    <br>
-                                    <a href="#activate" id="activate" class="btn btn-success">{{ "activation.button"|trans({},'CustomerBundle') }}</a>
-                                {% endif %}
-                            {% endif %}
-
-                            {% if not customer.user.activationTimestamp %}
-                                <a href="#activate" id="activate" class="btn btn-success">{{ "activation.button"|trans({},'CustomerBundle') }}</a>
-                                <button id="activateCustomer" class="btn btn-primary">{{ "activation.buttonActivate"|trans({},'CustomerBundle') }}</button>
-                            {% endif %}
-                        </div>
-                        {% if customer.user.activationTimestamp %}
-                        <div class="col-md-6">
-                            <div class="card-box">
-                                <h4 class="header-title">
-                                    <b>{{ "resetPassword.title"|trans({},'CustomerBundle') }}</b>
-                                </h4>
-                                {% if customer.user.resetPasswordSentTimestamp %}
-                                    <p>
-                                        <em>{{ "resetPassword.sentOn"|trans({},'CustomerBundle') }} {{ customer.user.resetPasswordSentTimestamp|date('m/d/Y H:i:s') }}.</em>
-                                    </p>
-                                {% endif %}
-                                <div class="row">
-                                    {{ widget_render(page.getWidget('sendResetPasswordForm')) }}
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>#}
-
                 </div>
                 <div class="tab-pane" id="payments">
                     {{ widget_render(page.getWidget('paymentOptions')) }}
@@ -152,29 +100,6 @@
                                             </a>
                                         </li>
                                     </ul>
-
-                                    {#<div class="tab-content" style="display: block">#}
-                                        {#<div class="tab-pane active" id="running-commission">#}
-                                            {#<div class="card-box table-responsive">#}
-                                               {#{{ widget_render(page.getWidget('runningCommissionList')) }}#}
-                                            {#</div>#}
-                                        {#</div>#}
-                                        {#<div class="tab-pane" id="commission-setting">#}
-                                            {#<div class="card-box table-responsive">#}
-                                                {#{{ widget_render(page.getWidget('commissions')) }}#}
-                                            {#</div>#}
-                                        {#</div>#}
-                                        {#<div class="tab-pane" id="turnover-commission-product">#}
-                                            {#<div class="card-box table-responsive">#}
-                                                {#{{ widget_render(page.getWidget('turnoverCommissionByProductList')) }}#}
-                                            {#</div>#}
-                                        {#</div>#}
-                                        {#<div class="tab-pane" id="turnover-commission-member">#}
-                                            {#<div class="card-box table-responsive">#}
-                                                {#{{ widget_render(page.getWidget('turnoverCommissionByMemberList')) }}#}
-                                            {#</div>#}
-                                        {#</div>#}
-                                    {#</div>#}
                                 </div>
                             </div>
                         </div>
@@ -335,92 +260,6 @@
 
             return location;
         }
-
-        {#function turnoverCommissionDwlAmount(data, type, full) {#}
-            {#return full.currencyCode + ' ' + data.rounded;#}
-        {#}#}
-
-        {#function turnoverCommissionAffiliateAmount(data, type, full) {#}
-            {#return '{{ customer.currencyCode }} ' + data.rounded;#}
-        {#}#}
-
-        {#function turnoverCommissionTotalTurnover(totals) {#}
-            {#var value = '';#}
-
-            {#$.each(totals, function(key, total) {#}
-                {#value += total.currencyCode + ' ' + total.totalTurnover.rounded + "<br/>";#}
-            {#});#}
-
-            {#return value;#}
-        {#}#}
-
-        {#function turnoverCommissionTotalWinLoss(totals) {#}
-            {#var value = '';#}
-
-            {#$.each(totals, function(key, total) {#}
-                {#value += total.currencyCode + ' ' + total.totalWinLoss.rounded + "<br/>";#}
-            {#});#}
-
-            {#return value;#}
-        {#}#}
-
-        {#function turnoverCommissionTotalCommission(totals) {#}
-            {#var memberCurrencyCode = '{{ customer.currencyCode }}';#}
-
-            {#try {#}
-                {#var total = totals[0];#}
-                {#return memberCurrencyCode + ' ' + total.totalAffiliateCommission.rounded;#}
-            {#} catch (err) {#}
-                {#return memberCurrencyCode;#}
-            {#}#}
-        {#}#}
-
-        {#function turnoverCommissionPeriod(period) {#}
-            {#return 'Date Covered: ' +#}
-            {#moment(period.dwlDateFrom).format('MMM D, YYYY') + ' - ' +#}
-            {#moment(period.dwlDateTo).format('MMM D, YYYY');#}
-        {#}#}
-
-        {#function {{ widgets.turnoverCommissionByMemberList.getId() }}_extendCreatedRow(row, data, dataIndex) {#}
-            {#if (data.memberProductId === null) {#}
-                {#$('td:eq(1)', row).attr('colspan', 4);#}
-                {#$('td:eq(1)', row).attr('align', 'center');#}
-                {#$('td:eq(2)', row).css('display', 'none');#}
-                {#$('td:eq(3)', row).css('display', 'none');#}
-                {#$('td:eq(4)', row).css('display', 'none');#}
-                {#{{ widgets.turnoverCommissionByMemberList.getFullId() }}Table.dataTable.api().cell($('td:eq(1)', row)).data('No products');#}
-            {#}#}
-        {#}#}
-
-        {#$('#{{ widgets.turnoverCommissionByMemberList.getFullId() }}_container, #{{ widgets.turnoverCommissionByProductList.getFullId() }}_container')#}
-            {#.on('xhr.dt', function (e, settings, json, xhr) {#}
-                {#if (typeof xhr.responseText !== 'undefined') {#}
-                    {#var table = $(this);#}
-                    {#var response = JSON.parse(xhr.responseText);#}
-                    {#var period = response.period;#}
-
-                    {#turnoverCommissionReport.filters[response.filters.orderBy] = response.filters;#}
-
-                    {#table.find('input[name=dwlDateFrom]').val(moment(period.dwlDateFrom).format('L'));#}
-                    {#table.find('input[name=dwlDateTo]').val(moment(period.dwlDateTo).format('L'));#}
-                {#}#}
-            {#});#}
-
-        {#$('#{{ widgets.turnoverCommissionByProductList.getFullId() }}_container').on('click', 'button[name=btnExportCsv]', function () {#}
-            {#exportTurnoverCommissionToCsv('productName');#}
-        {#});#}
-
-        {#$('#{{ widgets.turnoverCommissionByMemberList.getFullId() }}_container').on('click', 'button[name=btnExportCsv]', function () {#}
-            {#exportTurnoverCommissionToCsv('memberId');#}
-        {#});#}
-
-        {#function exportTurnoverCommissionToCsv(orderBy) {#}
-            {#var filters = { 'filters': turnoverCommissionReport.filters[orderBy] };#}
-            {#var exportUrl = turnoverCommissionReport.exportUrl.replace('__orderBy__', orderBy);#}
-            {#exportUrl = exportUrl.replace('__id__', '{{ customer.id }}');#}
-
-            {#window.open(exportUrl + '?' + $.param(filters), '_blank');#}
-        {#}#}
 
         $(function () {
             $('.page-widget-list').on('ztable.created', function () {
@@ -877,9 +716,12 @@
 
                 $(this).closest('li').addClass('active');
                 $($(this).attr('href') + '.tab-pane').addClass('active');
+                try {
+                    $($(this).attr('href') + '.tab-pane .page-widget-list').data('ztable').initialize();
+                    $($(this).attr('href') + '.tab-pane .page-widget-list').data('ztable').dataTable.api().ajax.reload();
+                } catch (e) {
 
-                $($(this).attr('href') + '.tab-pane .page-widget-list').data('ztable').initialize();
-                $($(this).attr('href') + '.tab-pane .page-widget-list').data('ztable').dataTable.api().ajax.reload();
+                }
                 history.pushState({}, null, customerTab.replace("#",''));
             });
         });

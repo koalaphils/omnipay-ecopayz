@@ -149,6 +149,8 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
                 return 'Processed';
             case 'Save':
                 return 'Saved';
+            case 'Confirm':
+                return 'Confirmed';
             default:
                 return $status;
         }

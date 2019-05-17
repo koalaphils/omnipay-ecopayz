@@ -17,6 +17,7 @@ use DbBundle\Repository\CommissionPeriodRepository;
 use DbBundle\Repository\MemberRunningCommissionRepository;
 use Doctrine\ORM\Query;
 use PaymentBundle\Controller\Bitcoin\NotifyAction;
+use PaymentBundle\Manager\BitcoinManager;
 use PDO;
 use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
@@ -43,10 +44,16 @@ class TransactionManager extends TransactionOldManager
      */
     private $publisher;
 
-    public function __construct(PinnacleService $pinnacleService, Publisher $publisher)
+    /**
+     * @var BitcoinManager
+     */
+    private $bitcoinManager;
+
+    public function __construct(PinnacleService $pinnacleService, Publisher $publisher, BitcoinManager $bitcoinManager)
     {
         $this->pinnacleService = $pinnacleService;
         $this->publisher = $publisher;
+        $this->bitcoinManager = $bitcoinManager;
     }
 
     public function findTransactions(Request $request)
@@ -524,8 +531,9 @@ class TransactionManager extends TransactionOldManager
             } elseif ($action === 'confirm') {
                 $isConfirm = true;
                 $action = ['label' => 'Confirm', 'status' => Transaction::TRANSACTION_STATUS_ACKNOWLEDGE];
-                $transaction->setBitcoinConfirmation(3);
+                $transaction->setBitcoinConfirmation($this->bitcoinManager->getMaxConfirmation());
                 $transaction->setBitcoinAcknowledgedByUser(true);
+                $transaction->setToBitcoinManualConfirmation();
             } else {
                 $action = $this->getAction($transaction->getStatus(), $action, $transaction->getTypeText());
             }

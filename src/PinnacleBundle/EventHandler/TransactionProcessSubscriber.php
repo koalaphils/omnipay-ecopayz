@@ -9,6 +9,7 @@ use AppBundle\ValueObject\Number;
 use DbBundle\Entity\SubTransaction;
 use DbBundle\Entity\Transaction;
 use Doctrine\Common\Collections\Collection;
+use PaymentBundle\Event\NotifyEvent;
 use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Workflow\Event\Event as WorkflowEvent;
@@ -31,6 +32,7 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
             'workflow.transaction.entered' => [
                 ['onTransitionEntered', 90],
             ],
+            NotifyEvent::EVENT_NAME => [['onBitcoinNotified', 100]],
         ];
     }
 
@@ -38,6 +40,17 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
     {
         $this->settingManager = $settingManager;
         $this->pinnacleService = $pinnacleService;
+    }
+
+    public function onBitcoinNotified(NotifyEvent $event): void
+    {
+        $transaction = $event->getTransaction();
+        if (!$transaction->isVoided()
+            && $transaction->isDeposit()
+            && $transaction->getStatus() == $this->settingManager->getSetting('pinnacle.transaction.deposit.status')
+        ) {
+            $this->processSubtransactions($transaction);
+        }
     }
 
     public function onTransitionEntered(WorkflowEvent $event)

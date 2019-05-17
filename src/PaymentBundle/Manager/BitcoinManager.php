@@ -169,12 +169,14 @@ class BitcoinManager extends AbstractManager
         }
         if (array_key_exists('minutesLockDownInterval', $bitcoinSetting)) {
             $bitcoinSettingModel->setMinutesLockDownInterval($bitcoinSetting['minutesLockDownInterval']);
-        } 
+        }
+
+        dump($bitcoinSetting);
         if (array_key_exists('maximumAllowedWithdrawal', $bitcoinSetting)) {
-            $bitcoinSettingModel->setMinutesLockDownInterval($bitcoinSetting['maximumAllowedWithdrawal']);
+            $bitcoinSettingModel->setMaximumAllowedWithdrawal($bitcoinSetting['maximumAllowedWithdrawal']);
         } 
         if (array_key_exists('minimumAllowedWithdrawal', $bitcoinSetting)) {
-            $bitcoinSettingModel->setMinutesLockDownInterval($bitcoinSetting['minimumAllowedWithdrawal']);
+            $bitcoinSettingModel->setMinimumAllowedWithdrawal($bitcoinSetting['minimumAllowedWithdrawal']);
         }        
         
         return $bitcoinSettingModel;
@@ -239,6 +241,11 @@ class BitcoinManager extends AbstractManager
         return array_map(function ($confirmation) {
             return BitcoinConfirmation::create($confirmation['num'], $confirmation['label'], $confirmation['transactionStatus']);
         }, $confirmations);
+    }
+
+    public function getMaxConfirmation(): int
+    {
+        return count($this->getSettingManager()->getSetting('bitcoin.confirmations', [])) - 1;
     }
 
     public function setPublisher(Publisher $publisher): void

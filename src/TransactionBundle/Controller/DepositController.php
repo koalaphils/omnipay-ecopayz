@@ -7,6 +7,7 @@ namespace TransactionBundle\Controller;
 use AppBundle\Controller\AbstractController;
 use DbBundle\Entity\Transaction;
 use DbBundle\Repository\TransactionRepository;
+use PaymentBundle\Manager\BitcoinManager;
 use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,6 +20,7 @@ class DepositController extends  AbstractController
         TransactionRepository $transactionRepository,
         TransactionManager $transactionManager,
         PinnacleService $pinnacleService,
+        BitcoinManager $bitcoinManager,
         int $id
     ): Response {
         $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_UPDATE']);
@@ -34,12 +36,13 @@ class DepositController extends  AbstractController
             }
         }
         $form = $transactionManager->createForm($transaction, false);
-
+        $confirmations = $bitcoinManager->getListOfConfirmations();
         return $this->render("TransactionBundle:Transaction/Type:deposit.html.twig", [
             'form' => $form->createView(),
             'type' => 'deposit',
             'gateway' => $transaction->getGateway(),
             'transaction' => $transaction,
+            'bitcoinConfirmations' => $confirmations,
         ]);
     }
 

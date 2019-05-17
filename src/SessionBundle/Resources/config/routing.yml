@@ -1,0 +1,11 @@
+session_setting:
+  path: /setting
+  defaults:
+    _controller: SessionBundle:Setting:sessionPage
+  methods: [GET]
+
+session_setting_save:
+  path: /setting
+  defaults:
+    _controller: SessionBundle:Setting:sessionSave
+  methods: [POST]

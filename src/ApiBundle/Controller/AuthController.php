@@ -11,6 +11,7 @@ use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use OAuth2\OAuth2ServerException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class AuthController extends AbstractController
@@ -20,14 +21,22 @@ class AuthController extends AbstractController
      *     description="Check if token can still login",
      *     section="Auth",
      *     views={"piwi"},
+     *     requirements={
+     *         {
+     *             "name"="pinnacle_token",
+     *             "dataType"="string"
+     *         }
+     *     },
      *     headers={
      *         { "name"="Authorization", "description"="Bearer <access_token>" }
      *     }
      * )
      */
-    public function checkIfAuthenticatedAction(Request $request): View
+    public function checkIfAuthenticatedAction(Request $request, AuthHandler $handler): View
     {
-        return $this->view(["success" => true]);
+        ;
+
+        return $this->view($handler->handleCheckSession($request));
     }
 
     /**
@@ -70,8 +79,10 @@ class AuthController extends AbstractController
             $view->getContext()->setGroups(['Default', 'API', 'paymentOptions', 'details']);
 
             return $view;
+        } catch (UsernameNotFoundException $exception) {
+            return $this->view(['success' => false, 'error' => $exception->getMessage(), 'usernameExists' => false], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (OAuth2ServerException $exception) {
-            return $this->view(['success' => false, 'error' => $exception->getDescription()], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->view(['success' => false, 'error' => $exception->getDescription(), 'usernameExists' => true], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
     }
 

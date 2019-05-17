@@ -70,8 +70,8 @@ class TransactionDeclineService extends AbstractTransactionService
         $token = new UsernamePasswordToken($user, null, 'main', $user->getRoles());
         $this->getSecurityToken()->setToken($token);
 
-        $event = new InteractiveLoginEvent(new Request(), $token);
-        $this->getEventDispatcher()->dispatch('security.interactive_login', $event);
+        #$event = new InteractiveLoginEvent(new Request(), $token);
+        #$this->getEventDispatcher()->dispatch('security.interactive_login', $event);
 
         return $user;
     }

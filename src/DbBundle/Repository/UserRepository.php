@@ -25,6 +25,18 @@ class UserRepository extends BaseRepository implements \Symfony\Bridge\Doctrine\
             ->getQuery()->getOneOrNullResult();
     }
 
+    public function loadUserByUsernameAndType(string $username, int $type): ?User
+    {
+        return $this->createQueryBuilder('u')
+            ->select('u')
+            ->where(
+                'u.username = :login AND u.deletedAt IS NULL AND u.type = :type'
+            )
+            ->setParameter('login', $username)
+            ->setParameter('type', $type)
+            ->getQuery()->getOneOrNullResult();
+    }
+
     public function getUserByZendeskId($id)
     {
         return $this->createQueryBuilder('u')

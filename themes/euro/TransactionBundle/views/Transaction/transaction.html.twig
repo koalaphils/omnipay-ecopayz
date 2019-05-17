@@ -508,7 +508,8 @@
             },
             'immutable': {
                 'customer': {{ (transaction.details.customer|default([]))|json_encode()|raw  }}
-            }
+            },
+            'details': {{ (transaction.details|default([]))|json_encode()|raw }}
         }, {
             'status': {{ form.vars.data.status  }},
             'equations': {{ setting('transaction.equations.' ~ (app.request.get('type')), false)|json_encode()|raw }}

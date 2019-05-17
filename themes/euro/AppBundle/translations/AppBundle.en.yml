@@ -98,6 +98,8 @@ settings:
             minutesInterval: Minutes Of Interval
             minimumDeposit: Minimum Allowed Deposit
             maximumDeposit: Maximum Allowed Deposit
+            minimumWithdrawal: Minimum Allowed Withraw
+            maximumWithdrawal: Maximum Allowed Withraw
             autoLock: Auto Lock
             minutesLockDownInterval: Minutes of Lock down period
 

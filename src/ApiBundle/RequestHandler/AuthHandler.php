@@ -8,16 +8,22 @@
 
 namespace ApiBundle\RequestHandler;
 
+use ApiBundle\Exceptions\NoSessionExistsException;
 use ApiBundle\Manager\CustomerManager;
+use ApiBundle\Request\Auth\CheckSessionRequest;
 use ApiBundle\Request\ForgotPasswordRequest;
 use AppBundle\Helper\Publisher;
+use AppBundle\Manager\SettingManager;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\OAuth2\AccessToken;
+use DbBundle\Entity\Session;
 use DbBundle\Entity\User;
 use DbBundle\Repository\PaymentOptionRepository;
+use DbBundle\Repository\SessionRepository;
 use DbBundle\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Firebase\JWT\JWT;
+use FOS\OAuthServerBundle\Security\Authentication\Token\OAuthToken;
 use OAuth2\OAuth2;
 use OAuth2\OAuth2AuthenticateException;
 use OAuth2\OAuth2ServerException;
@@ -25,6 +31,7 @@ use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use UserBundle\Manager\UserManager;
 
 class AuthHandler
@@ -84,6 +91,21 @@ class AuthHandler
      */
     private $sessionExpiration;
 
+    /**
+     * @var SettingManager
+     */
+    private $settingManager;
+
+    /**
+     * @var SessionRepository
+     */
+    private $sessionRepository;
+
+    /**
+     * @var string
+     */
+    private $pinnacleExpiration;
+
     public function __construct(
         OAuth2 $oauthService,
         PinnacleService $pinnacleService,
@@ -94,8 +116,9 @@ class AuthHandler
         UserRepository $userRepository,
         PaymentOptionRepository $paymentOptionRepository,
         UserManager $userManager,
-        string $jwtKey,
-        string $sessionExpiration
+        SettingManager $settingManager,
+        SessionRepository $sessionRepository,
+        string $jwtKey
     ) {
         $this->oauthService = $oauthService;
         $this->pinnacleService = $pinnacleService;
@@ -107,7 +130,10 @@ class AuthHandler
         $this->userManager = $userManager;
         $this->paymentOptionRepository = $paymentOptionRepository;
         $this->jwtKey = $jwtKey;
-        $this->sessionExpiration = $sessionExpiration;
+        $this->settingManager = $settingManager;
+        $this->sessionExpiration = $this->settingManager->getSetting('session.timeout');
+        $this->pinnacleExpiration = $this->settingManager->getSetting('session.pinnacle_timeout');
+        $this->sessionRepository = $sessionRepository;
     }
 
     /**
@@ -119,6 +145,11 @@ class AuthHandler
      */
     public function handleLogin(Request $request): array
     {
+        $user = $this->userRepository->loadUserByUsernameAndType($request->get('username'), User::USER_TYPE_MEMBER);
+        if ($user === null) {
+            throw new UsernameNotFoundException('Account does not exist.');
+        }
+
         $response = $this->oauthService->grantAccessToken($request);
 
         $data = json_decode($response->getContent(), true);
@@ -149,6 +180,8 @@ class AuthHandler
             $this->entityManager->flush($user->getCustomer());
         }
 
+        $this->saveSession($user, $data, $pinLoginResponse->toArray());
+
         $this->loginUser($user);
         $this->customerManager->handleAudit('login');
 
@@ -156,6 +189,51 @@ class AuthHandler
         $this->publisher->publishUsingWamp('login.' . $channel, ['access_token' => $accessToken->getToken()]);
 
         return $loginResponse;
+    }
+
+    public function handleCheckSession(Request $request): array
+    {
+        $now = new \DateTimeImmutable('now');
+        /* @var $user \DbBundle\Entity\User */
+        $user = $this->tokenStorage->getToken()->getUser();
+        $pinnacleToken = $request->get('pinnacle_token');
+        $token = $this->tokenStorage->getToken();
+        $session = $this->sessionRepository->findBySessionId($token->getToken());
+        $updatePinnacleLogin = false;
+        if ($session === null) {
+            return ['success' => false];
+        }
+        $pinnacleInfo = $session->getDetail('pinnacle', ['token' => '']);
+
+        if ($pinnacleInfo['token'] !== $pinnacleToken) {
+            $pinnacleInfo = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode())->toArray();
+            $session->setDetail('pinnacle', $pinnacleInfo);
+            $this->entityManager->persist($session);
+            $this->entityManager->flush($session);
+            $updatePinnacleLogin = true;
+        }
+
+        $updatedDate = \DateTimeImmutable::createFromFormat(\DateTimeImmutable::ISO8601, $pinnacleInfo['updated_date']);
+        $expirationDate = $updatedDate->modify('+' . $this->pinnacleExpiration . ' seconds')->setTimezone($now->getTimezone());
+
+        if ($expirationDate <= $now) {
+            $pinnacleInfo = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode())->toArray();
+            $session->setDetail('pinnacle', $pinnacleInfo);
+            $this->entityManager->persist($session);
+            $this->entityManager->flush($session);
+            $updatePinnacleLogin = true;
+        }
+
+        if ($updatePinnacleLogin) {
+            $channel = $user->getCustomer()->getWebsocketDetails()['channel_id'];
+            $this->publisher->publishUsingWamp('pinnacle.update.' . $channel, ['login_url' => $pinnacleInfo['login_url']]);
+        }
+
+        return [
+            'success' => true,
+            'pinnacle_updated' => $updatePinnacleLogin,
+            'pinnacle' => $pinnacleInfo
+        ];
     }
 
     private function generateJwtToken(Customer $member): string
@@ -236,11 +314,32 @@ class AuthHandler
         }
 
         $queryBuilder->getQuery()->execute();
+
+        if ($userId === null && !empty($accessTokens)) {
+            $this->sessionRepository->deleteUserSessionBySessionIds($accessTokens);
+        } else {
+            $this->sessionRepository->deleteUserSessionExcept($userId, $except);
+        }
     }
 
     private function loginUser(User $user): void
     {
         $token = new UsernamePasswordToken($user, null, 'main', $user->getRoles());
         $this->tokenStorage->setToken($token);
+    }
+
+    private function saveSession(User $user, array $accessToken, array $pinnacleInfo)
+    {
+        $session = new Session();
+        $session->setDetails([
+            'token' => $accessToken,
+            'pinnacle' => $pinnacleInfo,
+        ]);
+        $session->setUser($user);
+        $session->setSessionId($accessToken['access_token']);
+        $session->setKey(generate_code(16, false, 'luds'));
+
+        $this->entityManager->persist($session);
+        $this->entityManager->flush($session);
     }
 }

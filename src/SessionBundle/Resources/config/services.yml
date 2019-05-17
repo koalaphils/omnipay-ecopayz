@@ -1,5 +1,13 @@
 services:
+    _defaults:
+        autoconfigure: true
+        autowire: true
+        public: false
+    SessionBundle\Controller\:
+        resource: "../../Controller"
+        tags: ['controller.service_arguments']
     session.session_manager:
         class: SessionBundle\Manager\SessionManager
+        public: true
         calls:
             - [ setContainer, [ '@service_container' ] ]
