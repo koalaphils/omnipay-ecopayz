@@ -48,6 +48,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     public const DETAIL_BITCOIN_RATE_EXPIRED = 'bitcoin.rate_expired';
     private const DETAIL_BITCOIN_TRANSACTION_SENDER_ADDRESS = 'bitcoin.transaction.sender_address';
     private const DETAIL_BITCOIN_STATUS_NO_CONFIRMATION = 'no_confirmation';
+    private const DETAIL_BITCOIN_MANUAL_CONFIRMATION = 'bitcoin.manual_confirmation';
 
     private const DETAIL_COMMISSION_CONVERTION_RATE = 'commission.convertion.rate';
     private const DETAIL_COMMISSION_PRODUCT_PERCENTAGE = 'commission.product.percentage';
@@ -1554,5 +1555,17 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
             return false;
         }
         return $this->bitcoinIsAcknowledgeByMember;
+    }
+
+    public function isBitcoinManualConfirmation(): bool
+    {
+        return $this->getDetail(self::DETAIL_BITCOIN_MANUAL_CONFIRMATION, false);
+    }
+
+    public function setToBitcoinManualConfirmation(): self
+    {
+        $this->setDetail(self::DETAIL_BITCOIN_MANUAL_CONFIRMATION, true);
+
+        return $this;
     }
 }

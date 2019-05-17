@@ -533,6 +533,7 @@ class TransactionManager extends TransactionOldManager
                 $action = ['label' => 'Confirm', 'status' => Transaction::TRANSACTION_STATUS_ACKNOWLEDGE];
                 $transaction->setBitcoinConfirmation($this->bitcoinManager->getMaxConfirmation());
                 $transaction->setBitcoinAcknowledgedByUser(true);
+                $transaction->setToBitcoinManualConfirmation();
             } else {
                 $action = $this->getAction($transaction->getStatus(), $action, $transaction->getTypeText());
             }

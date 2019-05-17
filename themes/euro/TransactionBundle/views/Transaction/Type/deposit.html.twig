@@ -157,6 +157,9 @@
                             </div>
                             <div class='col-md-7 col-sm-12 col-xs-12'>
                                 <xsl:choose>
+                                    <xsl:when test="details/bitcoin/manual_confirmation">
+                                        <span class="text-success">Manual Confirmation</span>
+                                    </xsl:when>
                                     <xsl:when test="details/bitcoin/confirmation_count = {{ (bitcoinConfirmations|length)-1 }}">
                                         <span class="text-success">{{transaction.getBitcoinConfirmation() | default('0') }}/{{ (bitcoinConfirmations|length)-1 }} {{ "confirmation(s) received"|trans({},"TransactionBundle") }}</span>
                                     </xsl:when>
