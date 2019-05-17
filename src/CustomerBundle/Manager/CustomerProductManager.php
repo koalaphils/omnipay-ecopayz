@@ -78,7 +78,7 @@ class CustomerProductManager
                 $results = $this->getRepository()->getCustomerProductList($filters);
             }
             $results = array_map(function ($record) use($pinnacleProduct) {
-                if ($pinnacleProduct->getId() == $record['id']) {
+                if ($pinnacleProduct->getId() == $record['product']['id']) {
                     try {
                         $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->getPlayer($record['userName']);
                         $record['balance'] = $pinnaclePlayer->availableBalance();
