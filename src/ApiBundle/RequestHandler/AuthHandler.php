@@ -145,7 +145,7 @@ class AuthHandler
      */
     public function handleLogin(Request $request): array
     {
-        $user = $this->userRepository->loadUserByUsername($request->get('username'));
+        $user = $this->userRepository->loadUserByUsernameAndType($request->get('username'), User::USER_TYPE_MEMBER);
         if ($user === null) {
             throw new UsernameNotFoundException('Account does not exist.');
         }
