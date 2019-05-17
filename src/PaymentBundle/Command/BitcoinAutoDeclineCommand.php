@@ -2,6 +2,9 @@
 
 namespace PaymentBundle\Command;
 
+use AppBundle\Manager\SettingManager;
+use JMS\JobQueueBundle\Console\CronCommand;
+use JMS\JobQueueBundle\Entity\Job;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -10,8 +13,28 @@ use Symfony\Component\Console\Logger\ConsoleLogger;
 use DbBundle\Entity\User;
 use TransactionBundle\Service\TransactionDeclineService;
 
-class BitcoinAutoDeclineCommand extends ContainerAwareCommand
+class BitcoinAutoDeclineCommand extends ContainerAwareCommand implements CronCommand
 {
+    public function createCronJob(\DateTime $lastRunAt)
+    {
+        $cronUser = $this->getContainer()->getParameter('cron_user');
+
+        return new Job($this->getName(), [$cronUser]);
+    }
+
+    public function shouldBeScheduled(\DateTime $lastRunAt)
+    {
+        /* @var $settingManager SettingManager */
+        $settingManager = $this->getContainer()->get(SettingManager::class);
+        if ($settingManager->getSetting('bitcoin.setting.configuration.autoDecline')) {
+            $interval = $settingManager->getSetting('bitcoin.setting.configuration.minutesInterval') * 60;
+
+            return time() - $lastRunAt->getTimestamp() >= $interval;
+        }
+
+        return false;
+    }
+
     protected function configure()
     {
         $this

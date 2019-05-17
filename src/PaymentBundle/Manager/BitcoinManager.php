@@ -169,12 +169,14 @@ class BitcoinManager extends AbstractManager
         }
         if (array_key_exists('minutesLockDownInterval', $bitcoinSetting)) {
             $bitcoinSettingModel->setMinutesLockDownInterval($bitcoinSetting['minutesLockDownInterval']);
-        } 
+        }
+
+        dump($bitcoinSetting);
         if (array_key_exists('maximumAllowedWithdrawal', $bitcoinSetting)) {
-            $bitcoinSettingModel->setMinutesLockDownInterval($bitcoinSetting['maximumAllowedWithdrawal']);
+            $bitcoinSettingModel->setMaximumAllowedWithdrawal($bitcoinSetting['maximumAllowedWithdrawal']);
         } 
         if (array_key_exists('minimumAllowedWithdrawal', $bitcoinSetting)) {
-            $bitcoinSettingModel->setMinutesLockDownInterval($bitcoinSetting['minimumAllowedWithdrawal']);
+            $bitcoinSettingModel->setMinimumAllowedWithdrawal($bitcoinSetting['minimumAllowedWithdrawal']);
         }        
         
         return $bitcoinSettingModel;
