@@ -147,7 +147,7 @@ class AuthHandler
     {
         $user = $this->userRepository->loadUserByUsername($request->get('username'));
         if ($user === null) {
-            throw new UsernameNotFoundException('Username does not exists');
+            throw new UsernameNotFoundException('Account does not exist.');
         }
 
         $response = $this->oauthService->grantAccessToken($request);
