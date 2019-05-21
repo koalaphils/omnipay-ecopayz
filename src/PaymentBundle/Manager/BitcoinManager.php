@@ -171,7 +171,6 @@ class BitcoinManager extends AbstractManager
             $bitcoinSettingModel->setMinutesLockDownInterval($bitcoinSetting['minutesLockDownInterval']);
         }
 
-        dump($bitcoinSetting);
         if (array_key_exists('maximumAllowedWithdrawal', $bitcoinSetting)) {
             $bitcoinSettingModel->setMaximumAllowedWithdrawal($bitcoinSetting['maximumAllowedWithdrawal']);
         } 
