@@ -98,6 +98,7 @@ DbBundle\Entity\SubTransaction:
                   groups: ['withdraw']
                   userCode: 'object.getCustomerProduct().getUsername()'
                   isUserCodeExpression: true
+                  transactedExpression: 'object.getDetail("pinnacle.transacted")'
         type:
             - NotBlank:
                 groups: ['default']

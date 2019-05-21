@@ -11,6 +11,11 @@ DbBundle\Entity\GatewayLog:
             column: gateway_log_id
             options:
                 unsigned: true
+    indexes:
+        reference_class_index:
+            columns: [gateway_log_reference_class]
+        reference_indentifier_index:
+            columns: [gateway_log_reference_identifier]
     fields:
         timestamp:
             type: datetime
@@ -40,6 +45,20 @@ DbBundle\Entity\GatewayLog:
             type: json
             nullable: true
             column: gateway_log_details
+        referenceClass:
+            type: string
+            options:
+                generate: gateway_log_details->>"$.reference_class"
+                readOnly: true
+            column: gateway_log_reference_class
+            nullable: true
+        referenceIdentifier:
+            type: string
+            options:
+                generate: gateway_log_details->>"$.identifier"
+                readOnly: true
+            column: gateway_log_reference_identifier
+            nullable: true
     manyToOne:
         gateway:
             targetEntity: DbBundle\Entity\Gateway

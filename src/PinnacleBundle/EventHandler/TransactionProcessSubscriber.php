@@ -9,6 +9,7 @@ use AppBundle\ValueObject\Number;
 use DbBundle\Entity\SubTransaction;
 use DbBundle\Entity\Transaction;
 use Doctrine\Common\Collections\Collection;
+use GatewayTransactionBundle\Manager\GatewayMemberTransaction;
 use PaymentBundle\Event\NotifyEvent;
 use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -26,6 +27,11 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
      */
     private $pinnacleService;
 
+    /**
+     * @var GatewayMemberTransaction
+     */
+    private $gatewayMemberTransaction;
+
     public static function getSubscribedEvents()
     {
         return [
@@ -36,10 +42,11 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
         ];
     }
 
-    public function __construct(SettingManager $settingManager, PinnacleService $pinnacleService)
+    public function __construct(SettingManager $settingManager, PinnacleService $pinnacleService, GatewayMemberTransaction $gatewayMemberTransaction)
     {
         $this->settingManager = $settingManager;
         $this->pinnacleService = $pinnacleService;
+        $this->gatewayMemberTransaction = $gatewayMemberTransaction;
     }
 
     public function onBitcoinNotified(NotifyEvent $event): void
@@ -98,6 +105,12 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
                     $subTransaction->setDetail('pinnacle.transacted', true);
                 }
             }
+        }
+
+        if ($voided && ($transaction->isDeposit() || $transaction->isWithdrawal())) {
+            $this->gatewayMemberTransaction->voidMemberTransaction($transaction);
+        } elseif (!$voided && ($transaction->isDeposit() || $transaction->isWithdrawal())) {
+            $this->gatewayMemberTransaction->processMemberTransaction($transaction);
         }
     }
 }

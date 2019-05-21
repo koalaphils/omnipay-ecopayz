@@ -28,6 +28,14 @@ class PinnacleHasEnoughBalanceConstraintValidator extends ConstraintValidator
             return;
         }
 
+        if ($constraint->getTransactedExpression() !== null) {
+            $expLang = new ExpressionLanguage();
+            $transacted = $expLang->evaluate($constraint->getTransactedExpression(), ['object' => $this->context->getObject()]);
+            if ($transacted) {
+                return;
+            }
+        }
+
         $userCode = $constraint->getUserCode();
         if ($constraint->getIsUserCodeExpression()) {
             $expLang = new ExpressionLanguage();

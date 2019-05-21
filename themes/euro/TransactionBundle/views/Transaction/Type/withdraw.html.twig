@@ -199,7 +199,7 @@
                             <span><xsl:value-of select="gateway/balance"/></span>
                         </div>
                     </div>
-                    <xsl:if test='not ((status = 2) or (status = 3))'>
+                    <xsl:if test='(pinnacletransacted = 0 and not (status = 2 or status = 3))'>
                         <div class='row'>
                             <div class='col-md-6 col-sm-6 col-xs-6'>
                                 <b>{{ "After Balance"|trans({},"TransactionBundle") }}</b>
@@ -212,10 +212,11 @@
                     </xsl:if>
                 </div>
                 <div class='card-box'>
+
                     <h4 class="header-title m-t-0">{{ "Products"|trans({}, "TransactionBundle") }}</h4>
                     <hr />
                     <xsl:choose>
-                        <xsl:when test='not ((status = 2) or (status = 3))'>
+                        <xsl:when test='(pinnacletransacted = 0 and not (status = 2 or status = 3))'>
                             <div class='row'>
                                 <div class='col-sm-5 col-xs-5'><b>{{ "Product"|trans({}, "TransactionBundle") }}</b></div>
                                 <div class='col-sm-4 col-xs-4'><b>{{ "Current"|trans({}, "TransactionBundle") }}</b></div>

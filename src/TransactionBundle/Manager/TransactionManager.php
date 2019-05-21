@@ -205,13 +205,6 @@ class TransactionManager extends TransactionOldManager
             $transaction->getCustomer()->setEnabled();
             $this->getRepository()->save($transaction->getCustomer());
         }
-
-        if ($transaction->isDeposit() || $transaction->isWithdrawal() || $transaction->isBonus()) {
-            if ($transaction->getGateway()) {
-                $this->processPaymentGatewayBalance($transaction);
-                $this->save($transaction->getGateway());
-            }
-        }
     }
 
     public function voidTransaction(&$transaction)
@@ -234,44 +227,6 @@ class TransactionManager extends TransactionOldManager
                     $customerProductBalance = $customerProductBalance->plus($subTransactionAmount);
                     $customerProduct->setBalance($customerProductBalance . '');
                 }
-            }
-
-            // Payment Gateway
-            $gateway = $transaction->getGateway();
-            if ($gateway) {
-                if ($transaction->isBonus()) {
-                    $method = ['equation' => '-x', 'variables' => [['var' => 'x', 'value' => 'total_amount']]];
-                } else {
-                    $method = $gateway->getDetail('methods.' . $this->getType($transaction->getType(), true));
-                }
-                $equation = array_get($method, 'equation');
-
-                switch ($equation[0]) {
-                    case '+':
-                        $equation[0] = '-';
-                        break;
-                    case '-':
-                        $equation[0] = '+';
-                        break;
-                    case '*':
-                        $equation[0] = '/';
-                        break;
-                    case '/':
-                        $equation[0] = '*';
-                        break;
-                }
-
-                $equation = $gateway->getBalance() . $equation;
-
-                $variables = [];
-                foreach (array_get($method, 'variables') as $var) {
-                    $variables[$var['var']] = $var['value'];
-                }
-                $predefineValues = $transaction->getDetail('summary', []);
-                $newBalance = $this->processEquation($equation, $variables, $predefineValues) . '';
-                $this->auditGateway($transaction, $gateway, $gateway->getBalance(), $newBalance);
-                $transaction->getGateway()->setBalance($newBalance);
-                $this->getRepository()->save($transaction->getGateway());
             }
         }
     }
