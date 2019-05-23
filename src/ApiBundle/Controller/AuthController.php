@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace ApiBundle\Controller;
 
+use ApiBundle\Request\ChangePasswordRequest;
 use ApiBundle\Request\ForgotPasswordRequest;
 use ApiBundle\RequestHandler\AuthHandler;
 use FOS\RestBundle\View\View;
@@ -164,6 +165,36 @@ class AuthController extends AbstractController
         }
 
         $authHandler->handleForgotPassword($forgotPasswordRequest);
+
+        return $this->view(['success' => true]);
+    }
+
+    /**
+     * @ApiDoc(
+     *     section="Auth",
+     *     description="Change password",
+     *     views={"piwi"},
+     *     requirements={
+     *         { "name"="verification_code", "dataType"="string" },
+     *         { "name"="current_password", "dataType"="string" },
+     *         { "name"="password", "dataType"="string" },
+     *         { "name"="repeat_password", "dataType"="string" }
+     *     },
+     *     headers={
+     *         { "name"="Authorization", "description"="Bearer <access_token>" }
+     *     }
+     * )
+     */
+    public function changePasswordAction(Request $request, AuthHandler $authHandler, ValidatorInterface $validator): View
+    {
+        $changePasswordRequest = ChangePasswordRequest::createFromRequestWithUser($request, $this->getUser());
+
+        $violations = $validator->validate($changePasswordRequest, null);
+        if ($violations->count() > 0) {
+            return $this->view($violations);
+        }
+
+        $authHandler->handleChangePassword($changePasswordRequest);
 
         return $this->view(['success' => true]);
     }

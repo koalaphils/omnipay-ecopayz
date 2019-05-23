@@ -28,6 +28,16 @@ class GatewayLog extends Entity
 
     private $paymentOption;
 
+    /**
+     * @var string
+     */
+    private $referenceClass;
+
+    /**
+     * @var string
+     */
+    private $referenceIdentifier;
+
     public function __construct()
     {
         $this->timestamp = new \DateTime();
@@ -217,5 +227,29 @@ class GatewayLog extends Entity
         }
 
         return $origin;
+    }
+
+    public function getReferenceIdentifier(): ?string
+    {
+        return $this->referenceIdentifier;
+    }
+
+    public function setReferenceIdentifier(?string $referenceIdentifier): self
+    {
+        $this->referenceIdentifier = $referenceIdentifier;
+
+        return $this;
+    }
+
+    public function getReferenceClass(): ?string
+    {
+        return $this->referenceClass;
+    }
+
+    public function setReferenceClass(?string $referenceClass): self
+    {
+        $this->referenceClass = $referenceClass;
+
+        return $this;
     }
 }

@@ -29,7 +29,11 @@ class DepositController extends  AbstractController
         $pinnacleProduct = $pinnacleService->getPinnacleProduct();
 
         $transaction = $transactionRepository->findByIdAndType($id, Transaction::TRANSACTION_TYPE_DEPOSIT);
+        $pinnacleTransacted = 0;
         foreach ($transaction->getSubTransactions() as $subTransaction) {
+            if ($subTransaction->getDetail('pinnacle.transacted')) {
+                $pinnacleTransacted++;
+            }
             if ($subTransaction->getCustomerProduct()->getProduct()->getCode() === $pinnacleProduct->getCode()) {
                 $playerInfo = $pinnacleService->getPlayerComponent()->getPlayer($subTransaction->getCustomerProduct()->getUserName());
                 $subTransaction->getCustomerProduct()->setBalance($playerInfo->availableBalance());
@@ -43,6 +47,7 @@ class DepositController extends  AbstractController
             'gateway' => $transaction->getGateway(),
             'transaction' => $transaction,
             'bitcoinConfirmations' => $confirmations,
+            'pinnacleTransacted' => $pinnacleTransacted === count($transaction->getSubTransactions()),
         ]);
     }
 

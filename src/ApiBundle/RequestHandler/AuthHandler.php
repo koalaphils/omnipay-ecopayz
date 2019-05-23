@@ -11,6 +11,7 @@ namespace ApiBundle\RequestHandler;
 use ApiBundle\Exceptions\NoSessionExistsException;
 use ApiBundle\Manager\CustomerManager;
 use ApiBundle\Request\Auth\CheckSessionRequest;
+use ApiBundle\Request\ChangePasswordRequest;
 use ApiBundle\Request\ForgotPasswordRequest;
 use AppBundle\Helper\Publisher;
 use AppBundle\Manager\SettingManager;
@@ -292,6 +293,15 @@ class AuthHandler
         }
 
         $user->setPassword($this->userManager->encodePassword($user, $forgotPasswordRequest->getPassword()));
+        $this->entityManager->persist($user);
+        $this->entityManager->flush($user);
+    }
+
+    public function handleChangePassword(ChangePasswordRequest $changePasswordRequest): void
+    {
+        $user = $changePasswordRequest->getUser();
+
+        $user->setPassword($this->userManager->encodePassword($user, $changePasswordRequest->getPassword()));
         $this->entityManager->persist($user);
         $this->entityManager->flush($user);
     }

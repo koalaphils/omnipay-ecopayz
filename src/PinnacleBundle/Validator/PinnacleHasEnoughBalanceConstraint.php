@@ -11,6 +11,7 @@ class PinnacleHasEnoughBalanceConstraint extends Constraint
     protected $message = "Balance not enough";
     protected $userCode;
     protected $isUserCodeExpression = false;
+    protected $transactedExpression;
 
     public function getTargets()
     {
@@ -54,6 +55,18 @@ class PinnacleHasEnoughBalanceConstraint extends Constraint
     public function setIsUserCodeExpression(bool $isUserCodeExpression): self
     {
         $this->isUserCodeExpression = $isUserCodeExpression;
+
+        return $this;
+    }
+
+    public function getTransactedExpression(): ?string
+    {
+        return $this->transactedExpression;
+    }
+
+    public function setTransactedExpression(?string $transactedExpression): self
+    {
+        $this->transactedExpression = $transactedExpression;
 
         return $this;
     }

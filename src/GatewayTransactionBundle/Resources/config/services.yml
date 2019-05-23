@@ -1,15 +1,35 @@
 services:
-    gateway_transaction.manager:
-        class: GatewayTransactionBundle\Manager\GatewayTransactionManager
-        parent: app.base_manager
+  _defaults:
+    autoconfigure: true
+    autowire: true
+    public: false
+  gateway_transaction.manager:
+    class: GatewayTransactionBundle\Manager\GatewayTransactionManager
+    parent: app.base_manager
+    autoconfigure: false
+    autowire: false
+    public: true
 
-    gateway_log.manager:
-        class: GatewayTransactionBundle\Manager\GatewayLogManager
-        parent: app.base_manager
-        
-    # form type
-    gateway_transaction.form_type.gateway_transaction:
-            class: GatewayTransactionBundle\Form\GatewayTransactionType
-            arguments: [ "@doctrine", "@router" ]
-            tags:
-                - { name: form.type }
+  gateway_log.manager:
+    class: GatewayTransactionBundle\Manager\GatewayLogManager
+    parent: app.base_manager
+    autoconfigure: false
+    autowire: false
+    public: true
+
+  # form type
+  gateway_transaction.form_type.gateway_transaction:
+    class: GatewayTransactionBundle\Form\GatewayTransactionType
+    arguments: [ "@doctrine", "@router" ]
+    autoconfigure: false
+    autowire: false
+    public: true
+    tags:
+      - { name: form.type }
+
+  GatewayTransactionBundle\Manager\GatewayLogManager: '@gateway_log.manager'
+  GatewayTransactionBundle\Listener\:
+    resource: '../../Listener'
+    tags:
+      - { name: kernel.event_subscriber }
+  GatewayTransactionBundle\Manager\GatewayMemberTransaction: ~

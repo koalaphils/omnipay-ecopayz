@@ -45,3 +45,9 @@ api_customers.me_acknowledge_bitcoin_transaction:
   defaults:
     _controller: ApiBundle:Transaction:acknowledgeBitcoinTransaction
   methods: [POST]
+
+api_member.change_password:
+  path: me/change-password
+  defaults:
+    _controller: ApiBundle:Auth:changePassword
+  methods: [POST]

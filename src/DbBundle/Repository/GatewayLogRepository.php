@@ -2,6 +2,7 @@
 
 namespace DbBundle\Repository;
 
+use DbBundle\Entity\GatewayLog;
 use Doctrine\ORM\Query;
 
 class GatewayLogRepository extends BaseRepository
@@ -81,6 +82,23 @@ class GatewayLogRepository extends BaseRepository
         }
 
         return $qb->getQuery()->getResult($hydrationMode);
+    }
+
+    public function findLastGatewayLogByIdentifierAndClass(string $class, string $identifier): ?GatewayLog
+    {
+        $qb = $this->createQueryBuilder('g');
+        $qb
+            ->where('g.referenceIdentifier = :identifier')
+            ->andWhere('g.referenceClass = :class')
+            ->setMaxResults(1)
+            ->orderBy('g.timestamp', 'desc')
+            ->setParameters([
+                'identifier' => $identifier,
+                'class' => $class,
+            ])
+        ;
+
+        return $qb->getQuery()->getOneOrNullResult();
     }
 
     public function getListFilterCount($filters = null)

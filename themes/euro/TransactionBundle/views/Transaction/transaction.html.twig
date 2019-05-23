@@ -332,7 +332,7 @@
     <script type="text/javascript" src="{{ asset("bundles/app/js/equation_parser.js") }}"></script>
     <script type="text/javascript" src="{{ asset("bundles/app/js/currency_exchangeRate.js") }}"></script>
     <script type="text/javascript" src="{{ asset("assets/plugins/magnific-popup/js/jquery.magnific-popup.min.js") }}"></script>
-    <script type="text/javascript">
+    <script type="text/javascript" id="summaryScript">
         var transactionData = {{ form.vars.data|serialize('json', serialization_context().setSerializeNull(true).setGroups(['Default', 'details']))|raw }};
 
         // reload page if accessed from history (to regen transaction#)
@@ -502,6 +502,7 @@
             'statusInfo': {{ (setting('transaction.status.' ~ transaction.status, {})|merge({"id": transaction.status}))|json_encode()|raw }},
             'voided': {{ transaction.isVoided == 0 ? '0' : '1'  }},
             'subtransactions': [],
+            'pinnacletransacted': {{ pinnacleTransacted ? '1' : '0'  }},
             'fees': {
                 'customerFee': {{ form.customerFee.vars.value|default(null) == null ? "null" : form.customerFee.vars.value }},
                 'companyFee': {{ form.companyFee.vars.value|default(null) == null ? "null" : form.companyFee.vars.value }}

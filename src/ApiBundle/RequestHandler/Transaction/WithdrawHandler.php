@@ -156,7 +156,7 @@ class WithdrawHandler
         $memberPaymentOption->setPaymentOption($paymentOption);
         $memberPaymentOption->setCustomer($member);
         $memberPaymentOption->addField('account_id', array_get($withdrawRequest->getMeta()->toArray(), 'fields.account_id', ''));
-        $memberPaymentOption->addField('email', array_get($withdrawRequest->getMeta()->toArray(), 'field.email', ''));
+        $memberPaymentOption->addField('email', array_get($withdrawRequest->getMeta()->toArray(), 'fields.email', ''));
         $memberPaymentOption->addField('is_withdrawal', 1);
 
         $this->entityManager->persist($memberPaymentOption);
