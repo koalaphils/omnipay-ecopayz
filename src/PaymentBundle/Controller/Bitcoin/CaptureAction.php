@@ -118,29 +118,13 @@ class CaptureAction implements ActionInterface
         ;
     }
 
-    public function cycleFund(Gateway $gateway): void
+    public function cycleFund(Gateway $gateway, string $address): void
     {
         $configs = $gateway->getConfig();
         $credentials = Credentials::create($configs['guid'], $configs['password'], $configs['secondPassword'] ?? '');
 
-        $receiverXpub = $gateway->getConfig()['receiverXpub'];
         $sender = $this->blockchain->getWallet()->getSingleAccount($credentials, $gateway->getConfig()['senderXpub']);
-
-        $callback = rtrim($this->callbackHost, '\/');
-        $callbackUrl = '';
-
-        if ($callback !== '') {
-            $callbackUrl = $callback . $this->urlGenerator->generate($this->cycleFundRouteName, [], UrlGeneratorInterface::ABSOLUTE_PATH);
-        } else {
-            $callbackUrl = $this->urlGenerator->generate($this->cycleFundRouteName, [], UrlGeneratorInterface::ABSOLUTE_URL);
-        }
-        $result = $this->blockchain->getReceivePayment()->generateReceivingAddress(
-            urlencode($callbackUrl),
-            $receiverXpub,
-            100
-        );
-
-        $this->blockchain->getWallet()->payment($credentials, $result['address'], '0.00001', (string) $sender->getIndex());
+        $this->blockchain->getWallet()->payment($credentials, $address, '0.00001', (string) $sender->getIndex());
     }
 
     public function setBlockchain(Blockchain $blockchain): void
@@ -180,18 +164,18 @@ class CaptureAction implements ActionInterface
 
     private function generateReceivingAddress(string $callback, string $xpub, Gateway $gateway): array
     {
-        // zimi-bypass        
-        // return ['bitcoin' => ['bitcoin.address' => 'sfdasfasfasdf']];
-
-        $currentGap = $this->blockchain->getReceivePayment()->checkGap($xpub);
-        if ($currentGap === 19) {
-            $this->cycleFund($gateway);
-        }
-
         $receivingAddress = $this->blockchain->getReceivePayment()->generateReceivingAddress(
             urlencode($callback),
             $xpub
         );
+
+        if(intval(substr($receivingAddress['index'], -4)) % 20 == 0){
+            $this->cycleFund($gateway, $receivingAddress['address']);
+            $receivingAddress = $this->blockchain->getReceivePayment()->generateReceivingAddress(
+                urlencode($callback),
+                $xpub
+            );
+        }
 
         return $receivingAddress;
     }
