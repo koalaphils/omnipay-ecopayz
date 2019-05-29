@@ -5,6 +5,7 @@ namespace AppBundle\Listener;
 use SessionBundle\Manager\SessionManager;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 
 /**
  * Class AppBundle\Listener\SessionListener.
@@ -32,26 +33,22 @@ class SessionListener
         $this->sessionManager = $sessionManager;
     }
 
-    /**
-     * @param GetResponseEvent $event
-     *
-     * @return Symfony\Component\HttpFoundation\RedirectResponse
-     */
-    public function onKernelRequest(GetResponseEvent $event)
+    public function onKernelRequest(FilterControllerEvent $event)
     {
         if ($event->isMasterRequest()) {
             if ($this->expirationTime > 0) {
                 $request = $event->getRequest();
                 $session = $request->getSession();
-                $session->start();
-                $metaData = $session->getMetadataBag();
-                $timeDifference = time() - $metaData->getLastUsed();
+                if ($session->isStarted()) {
+                    $metaData = $session->getMetadataBag();
+                    $timeDifference = time() - $metaData->getLastUsed();
 
-                if ($timeDifference > $this->expirationTime) {
-                    $logoutPath = $this->sessionManager->logout();
-                    $response = new RedirectResponse($logoutPath);
+                    if ($timeDifference > $this->expirationTime) {
+                        $logoutPath = $this->sessionManager->logout();
+                        $response = new RedirectResponse($logoutPath);
 
-                    $event->setResponse($response);
+                        $event->setResponse($response);
+                    }
                 }
             }
         }
