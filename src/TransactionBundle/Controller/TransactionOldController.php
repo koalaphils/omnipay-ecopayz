@@ -109,6 +109,9 @@ class TransactionOldController extends AbstractController
             'type' => $type,
             'transaction' => $transaction,
             'toCustomer' => $toCustomer,
+            'pinnacleTransacted' => false,
+            'transactionDates' => [],
+            'pinnacleTransactionDates' => [],
         ]);
     }
 
