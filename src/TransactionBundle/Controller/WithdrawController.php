@@ -28,6 +28,7 @@ class WithdrawController extends AbstractController
 
         $transaction = $transactionRepository->findByIdAndType($id, Transaction::TRANSACTION_TYPE_WITHDRAW);
         $pinnacleTransacted = 0;
+        $pinnacleTransactionDates = [];
         foreach ($transaction->getSubTransactions() as $subTransaction) {
             if ($subTransaction->getDetail('pinnacle.transacted')) {
                 $pinnacleTransacted++;
@@ -35,9 +36,30 @@ class WithdrawController extends AbstractController
             if ($subTransaction->getCustomerProduct()->getProduct()->getCode() === $pinnacleProduct->getCode()) {
                 $playerInfo = $pinnacleService->getPlayerComponent()->getPlayer($subTransaction->getCustomerProduct()->getUserName());
                 $subTransaction->getCustomerProduct()->setBalance($playerInfo->availableBalance());
+                $pinnacleTransactionDate = $subTransaction->getDetail('pinnacle.transaction_dates', []);
+                foreach ($pinnacleTransactionDate as $type => $info) {
+                    if ($info['status'] === 'voided') {
+                        $statusText = "Voided";
+                    } else {
+                        $statusText = $transactionManager->getStatus($info['status'])['label'];
+                    }
+
+                    $pinnacleTransactionDates[$type] = $info['date'];
+                }
             }
         }
         $form = $transactionManager->createForm($transaction, false);
+
+        $transactionDates = [];
+        foreach ($transaction->getDetail('transaction_dates', []) as $statusId => $transactionDate) {
+            if ($statusId === 'void') {
+                $transactionDates['Voided'] = $transactionDate;
+            } else {
+                $transactionDates[$transactionManager->getStatus($statusId)['label']] = $transactionDate;
+            }
+        }
+        asort($transactionDates);
+        asort($pinnacleTransactionDates);
 
         return $this->render("TransactionBundle:Transaction/Type:withdraw.html.twig", [
             'form' => $form->createView(),
@@ -45,6 +67,8 @@ class WithdrawController extends AbstractController
             'gateway' => $transaction->getGateway(),
             'transaction' => $transaction,
             'pinnacleTransacted' => $pinnacleTransacted === count($transaction->getSubTransactions()),
+            'transactionDates' => $transactionDates,
+            'pinnacleTransactionDates' => $pinnacleTransactionDates,
         ]);
     }
 

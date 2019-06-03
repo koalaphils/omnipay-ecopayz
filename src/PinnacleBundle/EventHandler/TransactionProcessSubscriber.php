@@ -14,6 +14,7 @@ use PaymentBundle\Event\NotifyEvent;
 use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Workflow\Event\Event as WorkflowEvent;
+use TransactionBundle\Event\TransactionProcessEvent;
 
 class TransactionProcessSubscriber implements EventSubscriberInterface
 {
@@ -83,6 +84,7 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
     private function processSubtransactions(Transaction $transaction, bool $voided = false): void
     {
         $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
+        $transactionDate = null;
 
         $subTransactions = $transaction->getSubTransactions();
         foreach ($subTransactions as $subTransaction) {
@@ -95,6 +97,14 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
                 if ($pinnacleProduct->getCode() === $memberProduct->getProduct()->getCode()) {
                     $this->pinnacleService->getTransactionComponent()->deposit($memberProduct->getUsername(), $subTransactionAmount);
                     $subTransaction->setDetail('pinnacle.transacted', true);
+                    $subTransactionDate = new \DateTimeImmutable('now');
+                    $subTransactionDate->setTimezone(new \DateTimeZone('UTC'));
+                    $subTransaction->setDetail('pinnacle.transaction_dates.deposit.date', $subTransactionDate->format('c'));
+                    if ($transaction->isVoided()) {
+                        $subTransaction->setDetail('pinnacle.transaction_dates.deposit.status', 'voided');
+                    } else {
+                        $subTransaction->setDetail('pinnacle.transaction_dates.deposit.status', $transaction->getStatus());
+                    }
                 }
             } elseif (
                 ($subTransaction->isWithdrawal() && !$voided && !$subTransaction->getDetail('pinnacle.transacted', false))
@@ -103,6 +113,15 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
                 if ($pinnacleProduct->getCode() === $memberProduct->getProduct()->getCode()) {
                     $this->pinnacleService->getTransactionComponent()->withdraw($memberProduct->getUsername(), $subTransactionAmount);
                     $subTransaction->setDetail('pinnacle.transacted', true);
+                    $subTransaction->setDetail('pinnacle.transacted', true);
+                    $subTransactionDate = new \DateTimeImmutable('now');
+                    $subTransactionDate->setTimezone(new \DateTimeZone('UTC'));
+                    $subTransaction->setDetail('pinnacle.transaction_dates.withdraw.date', $subTransactionDate->format('c'));
+                    if ($transaction->isVoided()) {
+                        $subTransaction->setDetail('pinnacle.transaction_dates.withdraw.status', 'voided');
+                    } else {
+                        $subTransaction->setDetail('pinnacle.transaction_dates.withdraw.status', $transaction->getStatus());
+                    }
                 }
             }
         }

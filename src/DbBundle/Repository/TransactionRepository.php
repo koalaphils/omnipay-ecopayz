@@ -354,6 +354,9 @@ class TransactionRepository extends BaseRepository
 
     public function getTransactionsToDecline(string $interval, int $status, int $type, array $paymentOptionType): array
     {
+        $dateInterval = new \DateTime("-" . $interval);
+        $dateInterval->setTimezone(new \DateTimeZone('UTC'));
+
         $queryBuilder = $this->createQueryBuilder('t');
         $queryBuilder
             ->select('t.id')
@@ -362,7 +365,7 @@ class TransactionRepository extends BaseRepository
             ->andWhere('t.type = :type')
             ->andWhere('t.paymentOptionType IN (:paymentOptionType)')
             ->andWhere("JSON_EXTRACT(t.details, '$.bitcoin.confirmation_count') IS NULL")
-            ->setParameter('interval', new \DateTime("-" . $interval))
+            ->setParameter('interval', $dateInterval)
             ->setParameter('status', $status)
             ->setParameter('type', $type)
             ->setParameter('paymentOptionType', $paymentOptionType);

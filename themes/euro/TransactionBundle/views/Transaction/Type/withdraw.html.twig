@@ -10,6 +10,13 @@
     <li class="active">{{ "menus.Withdraw"|trans({},"TransactionBundle") }}</li>
 {%- endblock %}
 
+{% block _Transaction_date_label %}
+    {{ form_label(form) }}
+    <div class="pull-right">
+        <i id="dateInfo" class="fa fa-info-circle" data-html="true" data-placement="bottom"></i>
+    </div>
+{% endblock _Transaction_date_label %}
+
 {% block subTransaction_widget -%}
     <div id="{{ form.vars.id }}" class="row customer-product">
         {{ form_widget(form.type, {"attr": {"class":"subtransaction-type"}}) }}
@@ -73,6 +80,29 @@
     {{ parent() }}
     <script type="text/javascript">
         var products = null;
+
+        $(function () {
+            {% if transactionDates|length > 0 %}
+                var data = '<div style="border-bottom: 1px solid; border-color: white"><b>Status Changes</b></div>';
+                {% for status,transactionDate in transactionDates %}
+                data += "<div><b>{{ status }}</b>: {{ transactionDate | date("M j, Y h:i:s A") }}</div>";
+                {% endfor %}
+                {% if (pinnacleTransactionDates | length) > 0 %}
+                    data += "<br/><div style=\"border-bottom: 1px solid; border-color: white\"><b>Pinnacle Transaction</b></div>"
+                    {% for type,pinnacleDate in pinnacleTransactionDates %}
+                    data += "<div><b>{{ type|capitalize }}</b>: {{ pinnacleDate | date("M j, Y h:i:s A") }}</div>";
+                    {% endfor %}
+                {% endif %}
+
+                $('#dateInfo').tooltip({
+                    'title': data,
+                    'template': '<div class="tooltip no-wrap" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
+                });
+            {% else %}
+                $('#dateInfo').remove();
+            {% endif %}
+        });
+
         function customerProductLoad(data) {
             products.clear();
             products.setProducts(data);

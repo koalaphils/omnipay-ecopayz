@@ -21,13 +21,21 @@ use PaymentBundle\Model\Bitcoin\SettingModel;
 use TransactionBundle\Event\TransactionProcessEvent;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
+use TransactionBundle\Manager\TransactionManager;
 
 class TransactionDeclineService extends AbstractTransactionService
 {
     private $interval;
-    public function __construct()
+
+    /**
+     * @var TransactionManager
+     */
+    private $transactionManager;
+
+    public function __construct(TransactionManager $transactionManager)
     {
         $this->interval = null;
+        $this->transactionManager = $transactionManager;
     }
 
     public function setAutoDeclineLogger($logger): void
@@ -154,8 +162,8 @@ class TransactionDeclineService extends AbstractTransactionService
             $transaction = $this->getTransactionRepository()->find($index['id']);
             $this->log('Decline transaction number: ' . $transaction->getNumber());
             $transaction->setReasonToVoidOrDecline('No deposit received in payment gateway');
-            $transaction->decline();
-            
+            $this->transactionManager->processTransaction($transaction, 'decline');
+
             $eventTransactionDecline = new TransactionProcessEvent($transaction);
             $this->getEventDispatcher()->dispatch('transaction.autoDeclined', $eventTransactionDecline);
 

@@ -6,6 +6,7 @@ use ApiBundle\Request\Transaction\DepositRequest;
 use ApiBundle\Request\Transaction\GetLastBitcoinRequest;
 use ApiBundle\RequestHandler\Transaction\DepositHandler;
 use ApiBundle\RequestHandler\Transaction\TransactionQueryHandler;
+use DbBundle\Entity\SubTransaction;
 use FOS\RestBundle\View\View;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -46,6 +47,7 @@ class TransactionOldController extends AbstractController
         $trans = [];
         foreach($transactions as $t){
             $tran = [];
+            $tran['id'] = $t->getId();
             $tran['number'] = $t->getNumber();
             $tran['type'] = $t->getTypeText();
             $tran['status'] = $t->getStatusText();
@@ -56,7 +58,22 @@ class TransactionOldController extends AbstractController
             $tran['amount'] = number_format((float)$t->getAmount(), 2, '.', '');
 
             // DateTime
-            $tran['date'] = $t->getDate()->format('c');
+            foreach ($t->getSubTransactions() as $subTransaction) {
+                /* @var $subTransaction SubTransaction */
+                foreach ($subTransaction->getDetail('pinnacle.transaction_dates', []) as $data) {
+                    $newDate = new \DateTimeImmutable($data['date']);
+                    if (!array_has($tran, 'date')) {
+                        $tran['date'] = $newDate;
+                    } elseif ($newDate > $tran['date']) {
+                        $tran['date'] = $newDate;
+                    }
+                }
+            }
+            if (!array_has($tran, 'date')) {
+                $tran['date'] = $t->getDate();
+            }
+            $tran['date'] = $tran['date']->format('c');
+
             $tran['currency'] = $t->getCurrency()->getCode();
 
             $trans[] = $tran;
