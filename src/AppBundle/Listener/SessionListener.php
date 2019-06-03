@@ -45,9 +45,9 @@ class SessionListener
 
                     if ($timeDifference > $this->expirationTime) {
                         $logoutPath = $this->sessionManager->logout();
-                        $response = new RedirectResponse($logoutPath);
-
-                        $event->setResponse($response);
+                        $event->setController(function () use ($logoutPath) {
+                            return new RedirectResponse($logoutPath);
+                        });
                     }
                 }
             }
