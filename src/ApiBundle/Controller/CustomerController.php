@@ -138,6 +138,20 @@ class CustomerController extends AbstractController
         return $this->view($user->getCustomer()->getNotifications());
     }
 
+    /**
+     * @ApiDoc(
+     *     description="Get customer notifications",
+     *     section="Member",
+     *     views={"piwi"},
+     *     statusCodes={
+     *      200="Returned successful",
+     *      401="Returned when the user is not authorized",
+     *  },
+     *  headers={
+     *      { "name"="Authorization", "description"="Bearer <access_token>" }
+     *  }
+     * )
+     */
     public function readNotificationsAction()
     {
         $em = $this->getDoctrine()->getManager();
