@@ -30,3 +30,8 @@ api_customers.me_notifications:
     path: notifications
     defaults: { _controller: ApiBundle:Customer:notifications }
     methods: [GET]
+
+api_customers.me_read_notifications:
+    path: read-notifications
+    defaults: { _controller: ApiBundle:Customer:readNotifications }
+    methods: [PUT]
