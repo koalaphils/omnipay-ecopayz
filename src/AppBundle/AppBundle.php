@@ -92,6 +92,7 @@ class AppBundle extends Bundle
     public function registerDefaultSetting()
     {
         return [
+            'locale' => ['list' => ['en', 'zh_CN', 'zh_TW', 'id', 'vi', 'ja', 'ko', 'th', 'km', 'fr', 'de', 'es', 'he']],
             'email.templates' => [
                 'default' => [
                     'html' => [

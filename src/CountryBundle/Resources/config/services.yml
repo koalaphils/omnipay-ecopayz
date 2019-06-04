@@ -1,4 +1,10 @@
 services:
+    CountryBundle\Controller\:
+        resource: '../../Controller'
+        tags: ['controller.service_arguments']
+        calls:
+            - ['setContainer', ['@service_container']]
+
     country.manager:
         class: CountryBundle\Manager\CountryManager
         parent: app.base_manager
@@ -6,6 +12,7 @@ services:
     # form type
     country.form_type.country:
         class: CountryBundle\Form\CountryType
-        arguments: [ "@doctrine", "@router" ]
+        autowire: true
+        autoconfigure: true
         tags:
             - { name: form.type }

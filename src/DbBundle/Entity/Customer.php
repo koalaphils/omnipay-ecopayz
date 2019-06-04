@@ -157,7 +157,13 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     private $tags;
 
     private $referrerByCode;
+
     private $gender;
+
+    /**
+     * @var string
+     */
+    private $locale;
 
     public function __construct()
     {
@@ -182,6 +188,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         $this->notifications = [];
         $this->setBalance(0);
         $this->tags = [];
+        $this->locale = '';
     }
 
     /**
@@ -1360,5 +1367,24 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         }
 
         return $this->getBitcoinCallback() === $callback;
+    }
+
+    public function getLocale(): ?string
+    {
+        if ($this->locale === null) {
+            if ($this->getCountry() === null) {
+                return '';
+            }
+            return $this->getCountry()->getLocale();
+        }
+
+        return $this->locale;
+    }
+
+    public function setLocale(string $locale): self
+    {
+        $this->locale = $locale;
+
+        return $this;
     }
 }

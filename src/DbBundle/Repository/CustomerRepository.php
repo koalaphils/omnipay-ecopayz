@@ -34,7 +34,7 @@ class CustomerRepository extends BaseRepository
         $qb->join('c.currency', 'ccu');
         $qb->leftJoin('c.country', 'cco');
         $qb->select(
-            'PARTIAL c.{id, fName, mName, lName, fullName, country, currency, balance, gender, socials, joinedAt, birthDate, socials, details, contacts, verifiedAt, isAffiliate, isCustomer, transactionPassword, files, riskSetting, tags, notifications}'
+            'c'
             . ', PARTIAL u.{username, id, email, isActive, activationCode, activationSentTimestamp, activationTimestamp, preferences, password, resetPasswordCode, resetPasswordSentTimestamp}'
             . ', PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}'
         );

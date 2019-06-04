@@ -16,6 +16,7 @@ class MemberBundle extends Bundle
                 'website' => [
                     'max' => 50
                 ],
+                'locale' => ['default' => 'en']
             ]
         ];
     }

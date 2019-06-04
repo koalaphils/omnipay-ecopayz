@@ -2,8 +2,12 @@
 
 namespace CountryBundle\Form;
 
+use AppBundle\Form\Type\Select2Type;
+use AppBundle\Manager\AppManager;
+use AppBundle\Manager\SettingManager;
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\CallbackTransformer;
@@ -24,10 +28,16 @@ class CountryType extends AbstractType
      */
     protected $router;
 
-    public function __construct(Registry $doctrine, Router $router)
+    /**
+     * @var AppManager
+     */
+    protected $appManager;
+
+    public function __construct(Registry $doctrine, Router $router, AppManager $appManager)
     {
         $this->doctrine = $doctrine;
         $this->router = $router;
+        $this->appManager = $appManager;
     }
 
     /**
@@ -35,6 +45,12 @@ class CountryType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        $locales = $this->appManager->getAvailableLocales();
+        $choicesLocales = [];
+        foreach ($locales as $locale) {
+            $choicesLocales[$locale['name'] . ' (' . $locale['code'] . ')'] = $locale['code'];
+        }
+
         $builder
             ->add('code', TextType::class, [
                 'label' => 'fields.code',
@@ -69,6 +85,11 @@ class CountryType extends AbstractType
                 ],
                 'multiple' => true,
                 'required' => false,
+            ])
+            ->add('locale', ChoiceType::class, [
+                'label' => 'fields.locale',
+                'required' => true,
+                'choices' => $choicesLocales,
             ])
             ->add('save', SubmitType::class, [
                 'label' => 'form.save',

@@ -16,7 +16,8 @@ fields:
     currency: Currency
     tags: Tags
     phoneCode: Phone Code
-    
+    locale: Locale
+
 notification:
     title: Success
     created: %name% was successfully created

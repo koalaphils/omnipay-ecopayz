@@ -6,6 +6,7 @@ namespace ApiBundle\RequestHandler;
 
 use DbBundle\Entity\Customer;
 use DbBundle\Repository\CustomerPaymentOptionRepository;
+use Doctrine\ORM\EntityManager;
 use PinnacleBundle\Service\PinnacleService;
 
 class MemberHandler
@@ -20,10 +21,16 @@ class MemberHandler
      */
     private $memberPaymentOptionRepository;
 
-    public function __construct(PinnacleService $pinnacleService, CustomerPaymentOptionRepository $memberPaymentOptionRepository)
+    /**
+     * @var EntityManager
+     */
+    private $entityManager;
+
+    public function __construct(PinnacleService $pinnacleService, CustomerPaymentOptionRepository $memberPaymentOptionRepository, EntityManager $entityManager)
     {
         $this->pinnacleService = $pinnacleService;
         $this->memberPaymentOptionRepository = $memberPaymentOptionRepository;
+        $this->entityManager = $entityManager;
     }
 
     public function handleGetBalance(Customer $member): array
@@ -51,5 +58,15 @@ class MemberHandler
         }
 
         return $groupPaymentOptions;
+    }
+
+    public function changeMemberLocale(Customer $member, string $locale): array
+    {
+        $member->setLocale($locale);
+
+        $this->entityManager->persist($member);
+        $this->entityManager->flush($member);
+
+        return ['success' => true];
     }
 }

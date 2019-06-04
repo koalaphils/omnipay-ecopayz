@@ -50,6 +50,8 @@ DbBundle\Entity\Customer:
             groups: ['paymentOptions']
         tags:
             expose: true
+        locale:
+            expose: true
     virtual_properties:
         websocket:
             exp: object.getWebsocketDetails()
