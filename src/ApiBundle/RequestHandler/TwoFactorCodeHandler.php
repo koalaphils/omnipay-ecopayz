@@ -89,6 +89,9 @@ class TwoFactorCodeHandler
         $this->storage->saveCode($code);
 
         $messenger->sendCode($code->getCode(), $to, $code->getPayload());
+        if ($payload['purpose'] === 'register') {
+            $this->emailMessenger->sendEmailToAdmin('leads', $code->getPayload());
+        }
 
         return $code;
     }
