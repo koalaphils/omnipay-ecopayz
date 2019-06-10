@@ -22,6 +22,13 @@ class MemberBundle extends Bundle
                     'expiration' => 2592000,
                     'unit' => 'seconds'
                 ]
+            ],
+            'registration' => [
+                'mail' => [
+                    'subject' => 'New customer Signup: {{ from }}',
+                    'lead_subject' => 'New lead: {{ from }}',
+                    'to' => 'support@piwi247.com'
+                ]
             ]
         ];
     }

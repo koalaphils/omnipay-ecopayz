@@ -6,13 +6,13 @@ namespace ApiBundle\RequestHandler;
 
 use ApiBundle\Request\RegisterRequest;
 use AppBundle\Helper\Publisher;
+use AppBundle\Manager\MailerManager;
 use AppBundle\Manager\SettingManager;
 use DbBundle\Entity\Customer as Member;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerProduct as MemberProduct;
 use DbBundle\Entity\MemberWebsite;
 use DbBundle\Entity\Product;
-use DbBundle\Entity\TwoFactorCode;
 use DbBundle\Entity\User;
 use DbBundle\Repository\CountryRepository;
 use DbBundle\Repository\CurrencyRepository;
@@ -21,9 +21,7 @@ use DbBundle\Repository\MemberWebsiteRepository;
 use DbBundle\Repository\ProductRepository;
 use DbBundle\Repository\TwoFactorCodeRepository;
 use Doctrine\ORM\EntityManager;
-use PinnacleBundle\Component\Exceptions\PinnacleException;
 use PinnacleBundle\Service\PinnacleService;
-use TwoFactorBundle\Provider\Message\Email\EmailMessenger;
 use TwoFactorBundle\Provider\Message\StorageInterface;
 use UserBundle\Manager\UserManager;
 
@@ -90,9 +88,9 @@ class RegisterHandler
     private $memberWebsiteRepository;
 
     /**
-     * @var EmailMessenger
+     * @var MailerManager
      */
-    private $emailMessenger;
+    private $mailerManager;
 
     public function __construct(
         PinnacleService $pinnacleService,
@@ -107,7 +105,7 @@ class RegisterHandler
         TwoFactorCodeRepository $twoFactorCodeRepository,
         Publisher $publisher,
         MemberWebsiteRepository $memberWebsiteRepository,
-        EmailMessenger $emailMessenger
+        MailerManager $mailerManager
     ) {
         $this->pinnacleService = $pinnacleService;
         $this->userManager = $userManager;
@@ -121,7 +119,7 @@ class RegisterHandler
         $this->publisher = $publisher;
         $this->memberGroupRepository = $memberGroupRepository;
         $this->memberWebsiteRepository = $memberWebsiteRepository;
-        $this->emailMessenger = $emailMessenger;
+        $this->mailerManager = $mailerManager;
     }
 
     public function handle(RegisterRequest $registerRequest): Member
@@ -134,9 +132,10 @@ class RegisterHandler
             $this->entityManager->flush($member);
 
             $this->entityManager->commit();
-            $this->sendEmail($registerRequest);
 
             try {
+                $this->sendEmail($registerRequest);
+
                 $this->publisher->publishUsingWamp('member.registered', [
                     'message' => $member->getUser()->getUsername() . ' was registered',
                     'title' => 'New Member',
@@ -169,10 +168,14 @@ class RegisterHandler
             'provider' => $registerRequest->getEmail() === '' ?  'phone' : 'email',
             'phone' => $registerRequest->getEmail() === '' ?  $registerRequest->getCountryPhoneCode() . $registerRequest->getPhoneNumber() : '',
             'email' => $registerRequest->getEmail() !== '' ? $registerRequest->getEmail() : '',
-            'ip' => $registerRequest->getIpAddress()
+            'ip' => $registerRequest->getIpAddress(),
+            'from' => $registerRequest->getEmail() === '' ?   $registerRequest->getCountryPhoneCode() . $registerRequest->getPhoneNumber() : $registerRequest->getEmail(),
         ];
 
-        $this->emailMessenger->sendEmailToAdmin('registered', $payload);
+        $subject = $this->settingManager->getSetting('registration.mail.subject');
+        $to = $this->settingManager->getSetting('registration.mail.to');
+
+        $this->mailerManager->send($subject, $to, 'registered.html.twig', $payload);
     }
 
     private function generateMember(RegisterRequest $registerRequest): Member

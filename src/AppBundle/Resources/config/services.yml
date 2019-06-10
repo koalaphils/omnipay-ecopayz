@@ -190,7 +190,7 @@ services:
 
     app.mailer_manager:
         class: AppBundle\Manager\MailerManager
-        arguments: ["@mailer", "@templating", "%mailer_email_from%", "%email_spool_command%", "@media.manager"]
+        arguments: ["@mailer", "@templating", "%mailer_email_from%", "%email_spool_command%", "@media.manager", '@twig']
 
     AppBundle\Manager\MailerManager: '@app.mailer_manager'
 
