@@ -47,4 +47,28 @@ class EmailMessenger implements MessengerInterface
             array_merge(['code' => $code], $payload)
         );
     }
+
+    public function sendEmailToAdmin(string $type, array $payload): void
+    {
+        $from = $payload['provider'] === 'email' ? $payload['email'] : $payload['phone'];
+        $subject = 'New lead: ' . $from;
+        $template = 'leads.html.twig';
+        $ip = '';
+
+        if ($type === 'registered') {
+            $subject = 'New customer Signup: ' . $from;
+            $template = 'registered.html.twig';
+            $ip = $payload['ip'];
+        }
+
+        $this->mailerManager->send(
+            $subject,
+            'support@piwi247.com',
+            $template,
+            [
+                'from' => $from,
+                'ip' => $ip
+            ]
+        );
+    }
 }

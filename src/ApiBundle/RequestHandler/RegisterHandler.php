@@ -23,6 +23,7 @@ use DbBundle\Repository\TwoFactorCodeRepository;
 use Doctrine\ORM\EntityManager;
 use PinnacleBundle\Component\Exceptions\PinnacleException;
 use PinnacleBundle\Service\PinnacleService;
+use TwoFactorBundle\Provider\Message\Email\EmailMessenger;
 use TwoFactorBundle\Provider\Message\StorageInterface;
 use UserBundle\Manager\UserManager;
 
@@ -88,6 +89,11 @@ class RegisterHandler
      */
     private $memberWebsiteRepository;
 
+    /**
+     * @var EmailMessenger
+     */
+    private $emailMessenger;
+
     public function __construct(
         PinnacleService $pinnacleService,
         UserManager $userManager,
@@ -100,7 +106,8 @@ class RegisterHandler
         StorageInterface $codeStorage,
         TwoFactorCodeRepository $twoFactorCodeRepository,
         Publisher $publisher,
-        MemberWebsiteRepository $memberWebsiteRepository
+        MemberWebsiteRepository $memberWebsiteRepository,
+        EmailMessenger $emailMessenger
     ) {
         $this->pinnacleService = $pinnacleService;
         $this->userManager = $userManager;
@@ -114,6 +121,7 @@ class RegisterHandler
         $this->publisher = $publisher;
         $this->memberGroupRepository = $memberGroupRepository;
         $this->memberWebsiteRepository = $memberWebsiteRepository;
+        $this->emailMessenger = $emailMessenger;
     }
 
     public function handle(RegisterRequest $registerRequest): Member
@@ -126,6 +134,7 @@ class RegisterHandler
             $this->entityManager->flush($member);
 
             $this->entityManager->commit();
+            $this->sendEmail($registerRequest);
 
             try {
                 $this->publisher->publishUsingWamp('member.registered', [
@@ -152,6 +161,18 @@ class RegisterHandler
         $codeModel = $this->twoFactorCodeRepository->getCode($code);
         $codeModel->setToUsed();
         $this->codeStorage->saveCode($codeModel);
+    }
+
+    private function sendEmail(RegisterRequest $registerRequest): void
+    {
+        $payload = [
+            'provider' => $registerRequest->getEmail() === '' ?  'phone' : 'email',
+            'phone' => $registerRequest->getEmail() === '' ?  $registerRequest->getCountryPhoneCode() . $registerRequest->getPhoneNumber() : '',
+            'email' => $registerRequest->getEmail() !== '' ? $registerRequest->getEmail() : '',
+            'ip' => $registerRequest->getIpAddress()
+        ];
+
+        $this->emailMessenger->sendEmailToAdmin('registered', $payload);
     }
 
     private function generateMember(RegisterRequest $registerRequest): Member
