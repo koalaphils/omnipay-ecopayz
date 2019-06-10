@@ -106,6 +106,10 @@ services:
         factory: ['@doctrine.orm.default_entity_manager', getRepository]
         arguments:
             - DbBundle\Entity\Session
+    DbBundle\Repository\MemberWebsiteRepository:
+        factory: ['@doctrine.orm.default_entity_manager', getRepository]
+        arguments:
+            - DbBundle\Entity\MemberWebsite
 
     Doctrine\ORM\EntityManager: '@Doctrine\ORM\EntityManagerInterface'
 

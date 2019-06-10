@@ -16,7 +16,18 @@ class MemberBundle extends Bundle
                 'website' => [
                     'max' => 50
                 ],
+            ],
+            'referral' => [
+                'cookie' => [
+                    'expiration' => 2592000,
+                    'unit' => 'seconds'
+                ]
             ]
         ];
+    }
+
+    public function registerSettingCodes(): array
+    {
+        return ['referral'];
     }
 }

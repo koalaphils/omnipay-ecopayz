@@ -33,6 +33,7 @@ class SettingController extends AbstractController
             'session' => $settingManager->getSetting('session'),
             'bitcoin.confirmations' => $confirmations,
             'bitcoin.max_confirmations' => count($confirmations) - 1,
+            'referral.expiration' => $settingManager->getSetting('referral.cookie.expiration'),
         ];
 
         return $this->view([
