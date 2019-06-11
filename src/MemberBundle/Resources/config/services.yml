@@ -3,6 +3,12 @@ imports:
     - { resource: widgets.yml }
 
 services:
+    MemberBundle\Controller\SettingController:
+        autoconfigure: true
+        autowire: true
+        public: false
+        tags: ['controller.service_arguments']
+
     MemberBundle\Manager\MemberProductManager:
         autoconfigure: true
         autowire: true

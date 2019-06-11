@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace ApiBundle\RequestHandler;
 
 use ApiBundle\Request\TwoFactorCodeRequest;
+use AppBundle\Manager\MailerManager;
 use AppBundle\Manager\SettingManager;
 use DbBundle\Entity\TwoFactorCode;
 use TwoFactorBundle\Provider\Message\Email\EmailCodeGenerator;
@@ -45,13 +46,19 @@ class TwoFactorCodeHandler
      */
     private $settingManager;
 
+    /**
+     * @var MailerManager
+     */
+    private $mailerManager;
+
     public function __construct(
         StorageInterface $storage,
         EmailMessenger $emailMessenger,
         SmsMessenger $smsMessenger,
         EmailCodeGenerator $emailCodeGenerator,
         SmsCodeGenerator $smsCodeGenerator,
-        SettingManager $settingManager
+        SettingManager $settingManager,
+        MailerManager $mailerManager
     ) {
         $this->settingManager = $settingManager;
         $this->storage = $storage;
@@ -59,6 +66,7 @@ class TwoFactorCodeHandler
         $this->smsMessenger = $smsMessenger;
         $this->emailCodeGenerator = $emailCodeGenerator;
         $this->smsCodeGenerator = $smsCodeGenerator;
+        $this->mailerManager = $mailerManager;
     }
 
     public function handle(TwoFactorCodeRequest $codeRequest): TwoFactorCode
@@ -90,7 +98,15 @@ class TwoFactorCodeHandler
 
         $messenger->sendCode($code->getCode(), $to, $code->getPayload());
         if ($payload['purpose'] === 'register') {
-            $this->emailMessenger->sendEmailToAdmin('leads', $code->getPayload());
+            $subject = $this->settingManager->getSetting('registration.mail.lead_subject');
+            $to = $this->settingManager->getSetting('registration.mail.to');
+            if ($codeRequest->usePhone()) {
+                $payload['from'] = $codeRequest->getCountryPhoneCode() . $codeRequest->getPhoneNumber();
+            } else {
+                $payload['from'] = $codeRequest->getEmail();
+            }
+
+            $this->mailerManager->send($subject, $to, 'leads.html.twig', $payload);
         }
 
         return $code;
