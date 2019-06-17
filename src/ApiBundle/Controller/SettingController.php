@@ -35,6 +35,7 @@ class SettingController extends AbstractController
             'bitcoin.confirmations' => $confirmations,
             'bitcoin.max_confirmations' => count($confirmations) - 1,
             'locales' => $appManager->getAvailableLocales(),
+            'referral.expiration' => $settingManager->getSetting('referral.cookie.expiration'),
         ];
 
         return $this->view([

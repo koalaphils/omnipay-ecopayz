@@ -1,0 +1,50 @@
+{% extends 'AppBundle:Layout:base-v2.html.twig' %}
+
+{% block title %}{{ "page.title.referralSetting"|trans({},"MemberBundle") }}{% endblock %}
+
+{% block pageTitle -%}{{ "Referral Setting"|trans({},"MemberBundle") }}{%- endblock %}
+
+{% block stylesheet_plugins %}
+    {{ form_assetcss(form) }}
+{% endblock %}
+
+{% block stylesheets %}
+    {{ form_stylesheet(form) }}
+{% endblock stylesheets %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.setting"|trans({},"AppBundle") }}</li>
+    <li class="active">{{ "Referral Setting"|trans({},"MemberBundle") }}</li>
+{%- endblock %}
+
+{% block page %}
+    <div class="col-sm-12">
+        <div class="card-box">
+            {{ form_start(form) }}
+            <div class="form-group">
+                {{ form_label(form.cookieExpiration) }}
+                <div class="input-group">
+                    {{ form_widget(form.cookieExpiration) }}
+                    <span class="input-group-addon">Days</span>
+                </div>
+                {{ form_errors(form.cookieExpiration) }}
+            </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascript_plugins %}
+    <script type="text/javascript" src="{{ asset('assets/plugins/jquery-form/jquery.form.min.js') }}"></script>
+    {{ form_assetjs(form) }}
+{% endblock %}
+
+{% block javascripts %}
+    {{ form_javascript(form) }}
+    <script type="text/javascript">
+        $(function () {
+            $('#{{ form.vars.id }}').ajaxForm();
+        })
+    </script>
+{% endblock javascripts %}
+

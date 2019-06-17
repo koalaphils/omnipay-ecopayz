@@ -1,4 +1,8 @@
 services:
+    MemberBundle\RequestHandler\SettingRequestHandler:
+        autowire: true
+        autoconfigure: true
+        public: false
     member.handler.create_member:
         class: MemberBundle\RequestHandler\CreateMemberRequestHandler
         lazy: true

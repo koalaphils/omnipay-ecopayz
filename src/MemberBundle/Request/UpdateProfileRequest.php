@@ -52,8 +52,8 @@ class UpdateProfileRequest
         $request->referrer = $customer->getReferral();
         $request->joinedAt = $customer->getJoinedAt();
         $request->affiliateLink = $customer->getUser()->getPreference('affiliateCode');
-        $request->referrerSite = $customer->getUser()->getPreference('referrer');
-        $request->registrationSite = $customer->getUser()->getPreference('originUrl');
+        $request->referrerSite = $customer->getDetail('registration.referrer_url');
+        $request->registrationSite = $customer->getDetail('registration.referrer_origin_url');
         $request->promoCode = $customer->getUser()->getPreference('promoCode', '');
         $request->riskSetting = $customer->getRiskSetting();
         $request->tags = $customer->getTags();

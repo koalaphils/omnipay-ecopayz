@@ -5,6 +5,7 @@ page:
         list: Member | List
         create: Member | Create
         update: Member | Update %fullName%
+        referralSetting: Setting | Referral Setting
     text:
         Member: Members
     tab:
@@ -53,6 +54,7 @@ Update Member: Update Member
 Member Group: Member Group
 Member: Member
 Member List: Member List
+Referral Setting: Referral Setting
 
 quickLinks:
     addMember: Add Member

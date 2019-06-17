@@ -6,19 +6,21 @@ namespace ApiBundle\RequestHandler;
 
 use ApiBundle\Request\RegisterRequest;
 use AppBundle\Helper\Publisher;
+use AppBundle\Manager\MailerManager;
 use AppBundle\Manager\SettingManager;
 use DbBundle\Entity\Customer as Member;
+use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerProduct as MemberProduct;
+use DbBundle\Entity\MemberWebsite;
 use DbBundle\Entity\Product;
-use DbBundle\Entity\TwoFactorCode;
 use DbBundle\Entity\User;
 use DbBundle\Repository\CountryRepository;
 use DbBundle\Repository\CurrencyRepository;
 use DbBundle\Repository\CustomerGroupRepository;
+use DbBundle\Repository\MemberWebsiteRepository;
 use DbBundle\Repository\ProductRepository;
 use DbBundle\Repository\TwoFactorCodeRepository;
 use Doctrine\ORM\EntityManager;
-use PinnacleBundle\Component\Exceptions\PinnacleException;
 use PinnacleBundle\Service\PinnacleService;
 use TwoFactorBundle\Provider\Message\StorageInterface;
 use UserBundle\Manager\UserManager;
@@ -80,6 +82,16 @@ class RegisterHandler
      */
     private $publisher;
 
+    /**
+     * @var MemberWebsiteRepository
+     */
+    private $memberWebsiteRepository;
+
+    /**
+     * @var MailerManager
+     */
+    private $mailerManager;
+
     public function __construct(
         PinnacleService $pinnacleService,
         UserManager $userManager,
@@ -91,7 +103,9 @@ class RegisterHandler
         EntityManager $entityManager,
         StorageInterface $codeStorage,
         TwoFactorCodeRepository $twoFactorCodeRepository,
-        Publisher $publisher
+        Publisher $publisher,
+        MemberWebsiteRepository $memberWebsiteRepository,
+        MailerManager $mailerManager
     ) {
         $this->pinnacleService = $pinnacleService;
         $this->userManager = $userManager;
@@ -104,6 +118,8 @@ class RegisterHandler
         $this->twoFactorCodeRepository = $twoFactorCodeRepository;
         $this->publisher = $publisher;
         $this->memberGroupRepository = $memberGroupRepository;
+        $this->memberWebsiteRepository = $memberWebsiteRepository;
+        $this->mailerManager = $mailerManager;
     }
 
     public function handle(RegisterRequest $registerRequest): Member
@@ -118,6 +134,8 @@ class RegisterHandler
             $this->entityManager->commit();
 
             try {
+                $this->sendEmail($registerRequest);
+
                 $this->publisher->publishUsingWamp('member.registered', [
                     'message' => $member->getUser()->getUsername() . ' was registered',
                     'title' => 'New Member',
@@ -142,6 +160,22 @@ class RegisterHandler
         $codeModel = $this->twoFactorCodeRepository->getCode($code);
         $codeModel->setToUsed();
         $this->codeStorage->saveCode($codeModel);
+    }
+
+    private function sendEmail(RegisterRequest $registerRequest): void
+    {
+        $payload = [
+            'provider' => $registerRequest->getEmail() === '' ?  'phone' : 'email',
+            'phone' => $registerRequest->getEmail() === '' ?  $registerRequest->getCountryPhoneCode() . $registerRequest->getPhoneNumber() : '',
+            'email' => $registerRequest->getEmail() !== '' ? $registerRequest->getEmail() : '',
+            'ip' => $registerRequest->getIpAddress(),
+            'from' => $registerRequest->getEmail() === '' ?   $registerRequest->getCountryPhoneCode() . $registerRequest->getPhoneNumber() : $registerRequest->getEmail(),
+        ];
+
+        $subject = $this->settingManager->getSetting('registration.mail.subject');
+        $to = $this->settingManager->getSetting('registration.mail.to');
+
+        $this->mailerManager->send($subject, $to, 'registered.html.twig', $payload);
     }
 
     private function generateMember(RegisterRequest $registerRequest): Member
@@ -180,7 +214,20 @@ class RegisterHandler
             'websocket' => [
                 'channel_id' => uniqid(generate_code(10, false, 'ld')),
             ],
+            'registration' => [
+                'ip' => $registerRequest->getIpAddress(),
+                'locale' => $registerRequest->getLocale(),
+                'referrer_url' => $registerRequest->getReferrerUrl(),
+                'referrer_origin_url' => $registerRequest->getOriginUrl(),
+            ]
         ]);
+
+        /*if ($registerRequest->getReferrerUrl() !== '') {
+            $affiliate = $this->getAffiliateByWebsite($registerRequest->getReferrerUrl());
+            if ($affiliate instanceof Customer) {
+                $member->setAffiliate($affiliate);
+            }
+        }*/
 
         if ($registerRequest->getCountryPhoneCode() !== '') {
             $country = $this->countryRepository->findByPhoneCode($registerRequest->getCountryPhoneCode());
@@ -188,6 +235,16 @@ class RegisterHandler
         }
 
         return $member;
+    }
+
+    private function getAffiliateByWebsite(string $website): ?Customer
+    {
+        $memberWebsite = $this->memberWebsiteRepository->findOneByWebsite($website);
+        if ($memberWebsite instanceof MemberWebsite) {
+          return $memberWebsite->getMember();
+        }
+
+        return null;
     }
 
     private function generateUser(RegisterRequest $registerRequest): User
@@ -204,12 +261,6 @@ class RegisterHandler
         }
         $user->setType(User::USER_TYPE_MEMBER);
         $user->setRoles(['ROLE_MEMBER' => 2]);
-        $user->setPreferences([
-            'locale' => $registerRequest->getLocale(),
-            'ipAddress' => $registerRequest->getIpAddress(),
-            'referrer' => $registerRequest->getReferrerUrl(),
-            'originUrl' => $registerRequest->getOriginUrl(),
-        ]);
 
         $user->setActivationCode($this->userManager->encodeActivationCode($user));
         $user->setIsActive(true);
