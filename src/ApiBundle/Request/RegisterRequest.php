@@ -64,6 +64,11 @@ class RegisterRequest implements GroupSequenceProviderInterface
      */
     private $originUrl;
 
+    /**
+     * @var string
+     */
+    private $registrationSite;
+
     public static function createFromRequest(Request $request): self
     {
         $instance = new static();
@@ -79,6 +84,7 @@ class RegisterRequest implements GroupSequenceProviderInterface
         $instance->ipAddress = $request->getClientIp();
         $instance->referrerUrl = $request->get('referrer_site', '');
         $instance->originUrl = $request->get('referrer_origin_site', '');
+        $instance->registrationSite = $request->get('registration_site', '');
 
         return $instance;
     }
@@ -136,6 +142,11 @@ class RegisterRequest implements GroupSequenceProviderInterface
     public function getOriginUrl(): string
     {
         return $this->originUrl;
+    }
+
+    public function getRegistrationSite(): string
+    {
+        return $this->registrationSite;
     }
 
     public function getPhoneWithCountryCode(): string

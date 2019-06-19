@@ -163,6 +163,10 @@ class MemberController extends AbstractController
      *          {
      *              "name"="referrer_origin_site",
      *              "dataType"="string"
+     *          },
+     *          {
+     *              "name"="registration_site",
+     *              "dataType"="string"
      *          }
      *     },
      *     headers={
