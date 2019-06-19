@@ -219,6 +219,7 @@ class RegisterHandler
                 'locale' => $registerRequest->getLocale(),
                 'referrer_url' => $registerRequest->getReferrerUrl(),
                 'referrer_origin_url' => $registerRequest->getOriginUrl(),
+                'site' => $registerRequest->getRegistrationSite(),
             ]
         ]);
 
