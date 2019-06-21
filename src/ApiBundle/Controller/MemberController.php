@@ -167,6 +167,10 @@ class MemberController extends AbstractController
      *          {
      *              "name"="registration_site",
      *              "dataType"="string"
+     *          },
+     *          {
+     *              "name"="registration_locale",
+     *              "dataType"="string"
      *          }
      *     },
      *     headers={

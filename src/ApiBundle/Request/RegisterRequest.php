@@ -81,6 +81,9 @@ class RegisterRequest implements GroupSequenceProviderInterface
         $instance->countryPhoneCode = $request->get('country_phone_code', '');
 
         $instance->locale = $request->getLocale();
+        if ($request->request->has('registration_locale')) {
+            $instance->locale = $request->get('registration_locale');
+        }
         $instance->ipAddress = $request->getClientIp();
         $instance->referrerUrl = $request->get('referrer_site', '');
         $instance->originUrl = $request->get('referrer_origin_site', '');
