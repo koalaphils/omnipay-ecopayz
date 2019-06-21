@@ -1371,10 +1371,15 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
 
     public function getLocale(): ?string
     {
-        if ($this->locale === null) {
+        if ($this->locale === null || $this->locale === '') {
+            if ($this->hasDetail('registration.locale')) {
+                return $this->getDetail('registration.locale');
+            }
+
             if ($this->getCountry() === null) {
                 return '';
             }
+
             return $this->getCountry()->getLocale();
         }
 
