@@ -50,12 +50,15 @@ class UpdateProfileRequest
         $request->referrer = $customer->getReferral();
         $request->joinedAt = $customer->getJoinedAt();
         $request->affiliateLink = $customer->getUser()->getPreference('affiliateCode');
-        $request->referrerSite = $customer->getDetail('registration.referrer_url');
-        $request->registrationSite = $customer->getDetail('registration.site');
+        $request->referrerSite = $customer->getDetail('registration.referrer_url', '');
+        if ($request->referrerSite === '') {
+            $request->referrerSite = 'Direct';
+        }
+        $request->registrationSite = $customer->getDetail('registration.site', '');
         $request->promoCode = $customer->getUser()->getPreference('promoCode', '');
         $request->riskSetting = $customer->getRiskSetting();
         $request->tags = $customer->getTags();
-        $request->clientIp = $customer->getUser()->getPreference('ipAddress');
+        $request->clientIp = $customer->getDetail('registration.ip');
 
         foreach ($customer->getGroups() as $group) {
             $request->groups[] = $group->getId();
