@@ -147,13 +147,16 @@ class CustomerPaymentOptionRepository extends \Doctrine\ORM\EntityRepository
      * @param int $memberId
      * @return CustomerPaymentOption[]
      */
-    public function findActivePaymentOptionForMember(int $memberId): array
+    public function findActivePaymentOptionForMember(int $memberId, ?string $transactionType = null): array
     {
         $queryBuilder = $this->createQueryBuilder('cpo');
         $queryBuilder
             ->where('cpo.customer = :memberId AND cpo.isActive = TRUE')
             ->setParameters(['memberId' => $memberId])
         ;
+        if (in_array($transactionType, ['deposit', 'withdrawal'])) {
+            $queryBuilder->andWhere('JSON_UNQUOTE(JSON_EXTRACT(cpo.fields, \'$.is_' . $transactionType . '\')) = 1');
+        }
 
         return $queryBuilder->getQuery()->getResult();
     }

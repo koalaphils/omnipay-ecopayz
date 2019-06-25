@@ -216,16 +216,19 @@ class MemberController extends AbstractController
      *     section="Current Login Member",
      *     description="Get active payment options",
      *     views={"piwi"},
+     *     filters={
+     *          {"name"="type", "dataType"="string"}
+     *     },
      *     headers={
      *         { "name"="Authorization", "description"="Bearer <access_token>" }
      *     }
      * )
      */
-    public function getActivePaymentOptionAction(MemberHandler $memberHandler): View
+    public function getActivePaymentOptionAction(Request $request, MemberHandler $memberHandler): View
     {
         $user = $this->getUser();
 
-        return $this->view($memberHandler->handleGetActivePaymentOptionGroupByType($user->getCustomer()));
+        return $this->view($memberHandler->handleGetActivePaymentOptionGroupByType($user->getCustomer(), $request->get('type', null)));
     }
 
     private function getMemberManager(): MemberManager
