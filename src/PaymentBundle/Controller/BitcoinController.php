@@ -42,18 +42,17 @@ class BitcoinController extends AbstractController
         return new Response('*ok*');
     }
 
-    public function saveBitcoinSettingAction(Request $request): Response
+    public function saveBitcoinSettingAction(Request $request, string $code): Response
     {
         $bitcoinManager = $this->getBitcoinManager();
         $validationGroups = ['default', 'bitcoinSetting'];
-        $bitcoinConfigurations = $bitcoinManager->getBitcoinConfigurations();
-        $bitcoinSettingModel = $bitcoinManager->prepareBitcoinSetting($bitcoinConfigurations);
+        $bitcoinSettingModel = $bitcoinManager->prepareBitcoinSetting($code);
         $formBitcoinSetting = $this->createForm(BitcoinSettingType::class, $bitcoinSettingModel, [
             'validation_groups' => $validationGroups,
         ]);
         $response = ['success' => false];
         try {
-            $bitcoinSetting = $this->getBitcoinManager()->handleCreateBitcoinSettingForm($formBitcoinSetting, $request);
+            $bitcoinSetting = $this->getBitcoinManager()->handleCreateBitcoinSettingForm($formBitcoinSetting, $request, $code);
             $response['success'] = true;
             $response['data'] = $bitcoinSetting;
         } catch (FormValidationException $e) {

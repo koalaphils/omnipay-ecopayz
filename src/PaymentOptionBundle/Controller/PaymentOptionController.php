@@ -68,10 +68,9 @@ class PaymentOptionController extends AbstractController
         if ($isPaymentBitcoin) {
             $bitcoinManager = $this->getBitcoinManager();
             $validationGroups = ['default', 'bitcoinSetting'];
-            $bitcoinConfigurations = $bitcoinManager->getBitcoinConfigurations();
-            $bitcoinSettingModel = $bitcoinManager->prepareBitcoinSetting($bitcoinConfigurations);
+            $bitcoinSettingModel = $bitcoinManager->prepareBitcoinSetting($id);
             $formBitcoinSetting = $this->createForm(BitcoinSettingType::class, $bitcoinSettingModel, [
-                'action' => $this->generateUrl('payment.bitcoin_save'),
+                'action' => $this->generateUrl('payment.bitcoin_save', ['code' => $paymentOption->getCode()]),
                 'method' => 'POST',
                 'validation_groups' => $validationGroups,
             ]);

@@ -1,5 +1,5 @@
 payment.bitcoin_save:
-    path: /configuration/save
+    path: /paymentoptions/{code}/configuration/save
     defaults:
         _controller: PaymentBundle:Bitcoin:saveBitcoinSetting
     methods: [POST]

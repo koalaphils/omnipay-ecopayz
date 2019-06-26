@@ -24,6 +24,7 @@ class SettingModel
     protected $minutesLockDownInterval;
     protected $minimumAllowedWithdrawal;
     protected $maximumAllowedWithdrawal;
+    protected $status;
 
     public function getAutoDecline(): bool
     {
@@ -117,6 +118,18 @@ class SettingModel
     public function setMinutesLockDownInterval(int $minutesLockDownInterval): self
     {
         $this->minutesLockDownInterval = $minutesLockDownInterval;
+
+        return $this;
+    }
+
+    public function getStatus(): ?int
+    {
+        return $this->status;
+    }
+
+    public function setStatus(?int $status): self
+    {
+        $this->status = $status;
 
         return $this;
     }

@@ -48,7 +48,8 @@ services:
 
     transaction.transaction_subscriber_for_websocket:
         class: TransactionBundle\EventHandler\TransactionSubscriberForWebsocket
-        arguments: ['@app.publisher']
+        autowire: true
+        autoconfigure: true
         tags:
             - { name: kernel.event_subscriber }
             
@@ -65,3 +66,16 @@ services:
         calls:
             - [ "setContainer", ["@service_container"] ]
         shared: false
+
+    TransactionBundle\Service\DeclineTransactionService:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    TransactionBundle\Command\:
+        resource: '../../Command/'
+        autowire: true
+        autoconfigure: true
+        public: false
+        tags:
+            - { name: 'console.command' }

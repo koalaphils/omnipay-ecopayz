@@ -7,9 +7,11 @@ use AppBundle\Helper\Publisher;
 use AppBundle\Manager\AbstractManager;
 use AppBundle\Manager\SettingManager;
 use DbBundle\Entity\BitcoinRateSetting;
+use DbBundle\Entity\PaymentOption;
 use DbBundle\Entity\User;
 use DbBundle\Entity\Setting;
 use DbBundle\Entity\Transaction;
+use DbBundle\Repository\PaymentOptionRepository;
 use DbBundle\Utils\CollectionUtils;
 use Doctrine\ORM\EntityManagerInterface;
 use PaymentBundle\Component\Bitcoin\BitcoinAdjustmentInterface;
@@ -37,30 +39,45 @@ class BitcoinManager extends AbstractManager
     private $userRepository;
     private $transactionRepository;
 
+    /**
+     * @var PaymentOptionRepository
+     */
+    private $paymentOptionRepository;
+
     private $bitcoinAdjustmentComponent;
     private $blockchain;
     private $publisher;
 
-    public function __construct(SettingManager $settingManager, EntityManagerInterface $em, EventDispatcherInterface $dispatcher, TransactionRepository $transactionRepository)
-    {
+    public function __construct(
+        SettingManager $settingManager,
+        EntityManagerInterface $em,
+        EventDispatcherInterface $dispatcher,
+        TransactionRepository $transactionRepository
+    ) {
         $this->settingManager = $settingManager;
         $this->em = $em;
         $this->dispatcher = $dispatcher;
 
         $this->transactionRepository = $transactionRepository;
+        $this->paymentOptionRepository = $this->em->getRepository(PaymentOption::class);
         $this->userRepository = $this->em->getRepository(User::class);
     }
 
     public function getRepository() {}
 
-    public function handleCreateBitcoinSettingForm(Form $form, Request $request)
+    public function handleCreateBitcoinSettingForm(Form $form, Request $request, string $code)
     {
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
+            $paymentOption = $this->paymentOptionRepository->findPaymentOptionByCode($code);
+
+            /* @var $data SettingModel */
             $data = $form->getData();
+
+            $paymentOption->setConfiguration(PaymentOption::CONFIG_AUTODECLINE_INTERVAL, $data->getMinutesInterval());
+            $paymentOption->setConfiguration(PaymentOption::CONFIG_AUTODECLINE_STATUS, $data->getStatus());
+
             $bitcoinConfiguration[SettingModel::BITCOIN_DEPOSIT_CONFIGURATION] = [
-                'autoDecline' => $data->getAutoDecline(),
-                'minutesInterval' => $data->getMinutesInterval(),
                 'minimumAllowedDeposit' => $data->getMinimumAllowedDeposit(),
                 'maximumAllowedDeposit' => $data->getMaximumAllowedDeposit(),
             ];
@@ -73,6 +90,8 @@ class BitcoinManager extends AbstractManager
                 'maximumAllowedWithdrawal' => $data->getMaximumAllowedWithdrawal(),
             ];
             $this->saveBitcoinSetting($bitcoinConfiguration);
+            $this->getEntityManager()->persist($paymentOption);
+            $this->getEntityManager()->flush($paymentOption);
 
             return $data;
         }
@@ -156,11 +175,16 @@ class BitcoinManager extends AbstractManager
         return $bitcoinLockConfiguration['autoLock'];
     }
 
-    public function prepareBitcoinSetting(array $bitcoinSetting = []): SettingModel
+    public function prepareBitcoinSetting(string $code): SettingModel
     {
+        $paymentOption = $this->paymentOptionRepository->findPaymentOptionByCode($code);
+        $defaultConfiguration = $this->settingManager->getSetting('scheduler.task.auto_decline');
+        $bitcoinSetting = $this->getBitcoinConfigurations();
+
         $bitcoinSettingModel = new SettingModel();
-        $bitcoinSettingModel->setAutoDecline($bitcoinSetting['autoDecline']);
-        $bitcoinSettingModel->setMinutesInterval($bitcoinSetting['minutesInterval']);
+        // $bitcoinSettingModel->setMinutesInterval($bitcoinSetting['minutesInterval']);
+        $bitcoinSettingModel->setMinutesInterval($paymentOption->getConfiguration(PaymentOption::CONFIG_AUTODECLINE_INTERVAL, $defaultConfiguration['minutesInterval']));
+        $bitcoinSettingModel->setStatus($paymentOption->getConfiguration(PaymentOption::CONFIG_AUTODECLINE_STATUS, $defaultConfiguration['status']));
         $bitcoinSettingModel->setMinimumAllowedDeposit($bitcoinSetting['minimumAllowedDeposit']);
         $bitcoinSettingModel->setMaximumAllowedDeposit($bitcoinSetting['maximumAllowedDeposit']);
         // zimi-fix
