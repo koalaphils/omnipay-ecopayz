@@ -407,8 +407,11 @@ class TransactionOldController extends AbstractController
 
         try {
             $this->getManager()->beginTransaction();
+            /* @var $transaction Transaction */
             $transaction = $this->getRepository('DbBundle:Transaction')->findByIdAndType($id, $this->getManager()->getType($type), \Doctrine\ORM\Query::HYDRATE_OBJECT, LockMode::PESSIMISTIC_WRITE);
             $isForVoidingOrDecline = $this->isRequestToVoidOrDecline($transaction, $request);
+
+            $formAction = $this->getManager()->getAction($transaction->getStatus(), $request->get('btn_value'), $transaction->getTypeText());
 
             if (array_has($request->get('Transaction'), 'actions.btn_decline')) {
                 $validationGroups = ['default'];
@@ -418,6 +421,14 @@ class TransactionOldController extends AbstractController
 
 
             if ($type === 'withdraw' && !array_has($request->get('Transaction'), 'actions.btn_decline')) {
+                $validationGroups[] = 'withGateway';
+            }
+
+            if ($transaction->isDeposit() && $this->getSetting('pinnacle.transaction.deposit.status') == $formAction['status']) {
+                $validationGroups[] = 'withGateway';
+            }
+
+            if ($transaction->isWithdrawal() && $this->getSetting('pinnacle.transaction.withdraw.status') == $formAction['status']) {
                 $validationGroups[] = 'withGateway';
             }
 

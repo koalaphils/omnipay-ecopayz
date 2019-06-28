@@ -278,10 +278,10 @@ abstract class AbstractController extends Controller
     }
 
     /**
-     * @param stirng $key
+     * @param string $key
      * @param mixed|null $default
      */
-    protected function getSetting(stirng $key, $default = null)
+    protected function getSetting(string $key, $default = null)
     {
         return $this->getSettingManager()->getSetting($key, $default);
     }
