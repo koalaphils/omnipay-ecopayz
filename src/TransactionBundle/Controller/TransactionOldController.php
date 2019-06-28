@@ -121,17 +121,17 @@ class TransactionOldController extends AbstractController
         $this->getSession()->save();
         $this->getMenuManager()->setActive('transaction.list');
 
-        $transaction = $this->getRepository('DbBundle:Transaction')->findByIdAndType($id, $this->getManager()->getType($type));        
+        $transaction = $this->getRepository('DbBundle:Transaction')->findByIdAndType($id, $this->getManager()->getType($type));
         // zimi
-        $customer = $transaction->getCustomer();        
+        $customer = $transaction->getCustomer();
         $username = $customer->getUsername();
         $user = $customer->getUser();
-                
+
         // zimi# 1: email, 2: phone
         $userType = $user->getType();
         if ($userType == 1) {
             $username = $user->getEmail();
-        } else {            
+        } else {
             $username = $user->getPhoneNumber();
         }
 
@@ -153,30 +153,30 @@ class TransactionOldController extends AbstractController
         } else {
             $toCustomer = null;
         }
-        
+
         // zimi
         $template = $this->get('twig');
         $template->addGlobal('trans', $transaction);
         $template->addGlobal('customer', $customer);
-        
+
         $userCode = $customer->getPinUserCode();
         $apiTran = new ApiTransaction();
-        $balance = $apiTran->getAvailableBalance($userCode); 
+        $balance = $apiTran->getAvailableBalance($userCode);
 
         if ($transaction->isDeposit() == true) {
-            $afterBalance = (float)$balance + (float)$transaction->getAmount();    
+            $afterBalance = (float)$balance + (float)$transaction->getAmount();
         }
 
         if ($transaction->isWithdrawal() == true) {
-            $afterBalance = (float)$balance - (float)$transaction->getAmount();    
+            $afterBalance = (float)$balance - (float)$transaction->getAmount();
         }
 
         // check $balance failure
         if ($balance == -1) {
             $balance = '<i class="fa fa-exclamation"></i>';
             $afterBalance = '<i class="fa fa-exclamation"></i>';
-        } 
-                  
+        }
+
         $template->addGlobal('currentBalance', $balance);
         $template->addGlobal('afterBalance', $afterBalance);
 
@@ -189,7 +189,7 @@ class TransactionOldController extends AbstractController
             'dwl' => $dwl,
             'memberRunningCommission' => $memberRunningCommission,
             'commissionPeriod' => $commissionPeriod,
-            'memberUsername' => $username,            
+            'memberUsername' => $username,
         ]);
     }
 
@@ -284,7 +284,7 @@ class TransactionOldController extends AbstractController
             }
         } catch (Exception $e) {
             $this->getManager()->rollBack();
-            
+
             throw $e;
         }
     }
@@ -348,7 +348,7 @@ class TransactionOldController extends AbstractController
             }
 
             if (array_has($transactionRequest, 'paymentOption')) {
-                $isPaymentOptionIdBitcoin = $this->getMemberManager()->isPaymentOptionIdBitcoin($transactionRequest['paymentOption']);  
+                $isPaymentOptionIdBitcoin = $this->getMemberManager()->isPaymentOptionIdBitcoin($transactionRequest['paymentOption']);
             }
 
             if ($transaction->isNew() && $transaction->isDeposit() && $isPaymentOptionIdBitcoin) {
@@ -383,7 +383,7 @@ class TransactionOldController extends AbstractController
             }
         } catch (Exception $e) {
             $this->getManager()->rollBack();
-            
+
             throw $e;
         }
 
@@ -411,8 +411,6 @@ class TransactionOldController extends AbstractController
             $transaction = $this->getRepository('DbBundle:Transaction')->findByIdAndType($id, $this->getManager()->getType($type), \Doctrine\ORM\Query::HYDRATE_OBJECT, LockMode::PESSIMISTIC_WRITE);
             $isForVoidingOrDecline = $this->isRequestToVoidOrDecline($transaction, $request);
 
-            $formAction = $this->getManager()->getAction($transaction->getStatus(), $request->get('btn_value'), $transaction->getTypeText());
-
             if (array_has($request->get('Transaction'), 'actions.btn_decline')) {
                 $validationGroups = ['default'];
             } else {
@@ -424,12 +422,16 @@ class TransactionOldController extends AbstractController
                 $validationGroups[] = 'withGateway';
             }
 
-            if ($transaction->isDeposit() && $this->getSetting('pinnacle.transaction.deposit.status') == $formAction['status']) {
-                $validationGroups[] = 'withGateway';
-            }
+            if ($request->get('btn_value') !== 'void') {
+                $formAction = $this->getManager()->getAction($transaction->getStatus(), $request->get('btn_value'), $transaction->getTypeText());
 
-            if ($transaction->isWithdrawal() && $this->getSetting('pinnacle.transaction.withdraw.status') == $formAction['status']) {
-                $validationGroups[] = 'withGateway';
+                if ($transaction->isDeposit() && $this->getSetting('pinnacle.transaction.deposit.status') == $formAction['status']) {
+                    $validationGroups[] = 'withGateway';
+                }
+
+                if ($transaction->isWithdrawal() && $this->getSetting('pinnacle.transaction.withdraw.status') == $formAction['status']) {
+                    $validationGroups[] = 'withGateway';
+                }
             }
 
             $form = $this->getManager()->createForm($transaction, true, [
@@ -443,7 +445,7 @@ class TransactionOldController extends AbstractController
                 $transaction = $this->getManager()->handleFormTransaction($form, $request);
                 $this->getManager()->insertTransactionLog($transaction, $old_status, $this->getUser()->getId());
                 $this->getManager()->insertNotificationByTransaction($transaction);
-                
+
                 $response['data'] = $transaction;
             } catch (\AppBundle\Exceptions\FormValidationException $e) {
                 $response['success'] = false;
@@ -462,7 +464,7 @@ class TransactionOldController extends AbstractController
             }
         } catch (Exception $e) {
             $this->getManager()->rollBack();
-            
+
             throw $e;
         }
 
