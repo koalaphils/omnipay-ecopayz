@@ -516,8 +516,8 @@ class TransactionManager extends TransactionOldManager
 
             $this->getEventDispatcher()->dispatch('transaction.pre_save', $event);
             $this->getRepository()->reconnectToDatabase();
-            // $this->updateBitcoinPaymentOption($transaction);
             $this->getRepository()->save($event->getTransaction());
+            $this->getEventDispatcher()->dispatch('transaction.post_save', $event);
             $this->getRepository()->commit();
             $this->getEventDispatcher()->dispatch('transaction.saved', $event);
 
