@@ -422,9 +422,9 @@ class TransactionOldController extends AbstractController
                 $validationGroups[] = 'withGateway';
             }
 
-            if ($request->get('btn_value') !== 'void') {
-                $formAction = $this->getManager()->getAction($transaction->getStatus(), $request->get('btn_value'), $transaction->getTypeText());
+            $formAction = $this->getManager()->getAction($transaction->getStatus(), $request->get('btn_value'), $transaction->getTypeText());
 
+            if ($formAction !== null) {
                 if ($transaction->isDeposit() && $this->getSetting('pinnacle.transaction.deposit.status') == $formAction['status']) {
                     $validationGroups[] = 'withGateway';
                 }

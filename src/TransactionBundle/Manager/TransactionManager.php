@@ -601,7 +601,7 @@ class TransactionManager extends TransactionOldManager
         return $this->createNewForm($transaction, $forSave, $args);
     }
 
-    public function getAction($status, $action, $type = null): array
+    public function getAction($status, $action, $type = null): ?array
     {
         if ($type !== null) {
             $path = 'transaction.type.workflow.' . $type . '.' . $status . '.actions.' . $action;
