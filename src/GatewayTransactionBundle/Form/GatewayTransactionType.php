@@ -35,7 +35,7 @@ class GatewayTransactionType extends AbstractType
                 'model_transformer' => new CallbackTransformer(
                     function ($data) {
                         if ($data instanceof \DateTime) {
-                            $data = $data->format('Y-m-d H:i:s');
+                            $data = $data->format('c');
                         }
 
                         return base64_encode($data);
@@ -43,7 +43,7 @@ class GatewayTransactionType extends AbstractType
                     function ($data) {
                         if (is_string($data)) {
                             $data = base64_decode($data);
-                            $data = \DateTime::createFromFormat('Y-m-d H:i:s', $data);
+                            $data = new \DateTime($data);
                         }
 
                         return $data;
