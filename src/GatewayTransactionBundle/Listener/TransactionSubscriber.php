@@ -5,9 +5,11 @@ declare(strict_types = 1);
 namespace GatewayTransactionBundle\Listener;
 
 use AppBundle\Manager\SettingManager;
+use DbBundle\Entity\Transaction;
 use GatewayTransactionBundle\Manager\GatewayMemberTransaction;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Workflow\Event\Event;
+use TransactionBundle\Event\TransactionProcessEvent;
 
 class TransactionSubscriber implements EventSubscriberInterface
 {
@@ -27,6 +29,9 @@ class TransactionSubscriber implements EventSubscriberInterface
             'workflow.transaction.entered' => [
                 ['onTransitionEntered', 80],
             ],
+            'transaction.post_save' => [
+                ['onTransactionPostSave', 80],
+            ],
         ];
     }
 
@@ -34,6 +39,15 @@ class TransactionSubscriber implements EventSubscriberInterface
     {
         $this->gatewayMemberTransaction = $gatewayMemberTransaction;
         $this->settingManager = $settingManager;
+    }
+
+    public function onTransactionPostSave(TransactionProcessEvent $event): void
+    {
+        $this->gatewayMemberTransaction->updateIdentifierByNumberAndClass(
+            Transaction::class,
+            $event->getTransaction()->getNumber(),
+            (string) $event->getTransaction()->getId()
+        );
     }
 
     public function onTransitionEntered(Event $event): void

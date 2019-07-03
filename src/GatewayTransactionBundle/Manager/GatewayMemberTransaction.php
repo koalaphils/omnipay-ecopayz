@@ -28,9 +28,22 @@ class GatewayMemberTransaction
         $this->entityManager = $entityManager;
     }
 
+    public function updateIdentifierByNumberAndClass(string $class, string $number, string $identifier): void
+    {
+        $gatewayLogs = $this->gatewayLogManager->getGatewayLogsByNumberAndClass($class, $number);
+        foreach ($gatewayLogs as $gatewayLog) {
+            if ($gatewayLog->getReferenceIdentifier() === null || $gatewayLog->getReferenceIdentifier() === 'null') {
+                $gatewayLog->setDetail('identifier', $identifier);
+                $this->entityManager->persist($gatewayLog);
+                $this->entityManager->flush($gatewayLog);
+            }
+        }
+    }
+
     public function processMemberTransaction(Transaction $transaction): void
     {
-        $gatewayLog = $this->gatewayLogManager->findLastGatewayLogByIdentifierAndClass(Transaction::class, (string)$transaction->getId());
+        $gatewayLog = $this->gatewayLogManager->findLastGatewayLogByClassAndNumberOrIdentifier(Transaction::class, (string) $transaction->getId(), $transaction->getNumber());
+
         if ($gatewayLog !== null) {
             return;
         }
@@ -64,7 +77,8 @@ class GatewayMemberTransaction
 
     public function voidMemberTransaction(Transaction $transaction): void
     {
-        $gatewayLog = $this->gatewayLogManager->findLastGatewayLogByIdentifierAndClass(Transaction::class, (string)$transaction->getId());
+        $gatewayLog = $this->gatewayLogManager->findLastGatewayLogByClassAndNumberOrIdentifier(Transaction::class, (string) $transaction->getId(), $transaction->getNumber());
+
         if ($gatewayLog === null) {
             return;
         } elseif ($transaction->getType() != $gatewayLog->getType()) {
