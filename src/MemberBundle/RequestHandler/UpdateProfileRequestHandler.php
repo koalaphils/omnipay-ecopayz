@@ -58,7 +58,9 @@ class UpdateProfileRequestHandler
 
         $customer->setFullName($request->getFullName());
         $customer->setFName($request->getFullName());
-        $customer->setCountry($this->entityManager->getPartialReference(Country::class, $request->getCountry()));
+        if ($request->getCountry() !== null) {
+            $customer->setCountry($this->entityManager->getPartialReference(Country::class, $request->getCountry()));
+        }
         $customer->setCurrency($this->entityManager->getPartialReference(Currency::class, $request->getCurrency()));
         $customer->setBirthDate($request->getBirthDate());
         $customer->setGender($request->getGender());
@@ -103,9 +105,11 @@ class UpdateProfileRequestHandler
         $customer->getUser()->setPreference('affiliateCode', $request->getAffiliateLink());
         $customer->getUser()->setPreference('promoCode', $request->getPromoCode());
 
+        $memberGroups = [];
         foreach ($request->getGroups() as $groupId) {
-            $customer->addGroup($this->entityManager->getPartialReference(CustomerGroup::class, $groupId));
+            $memberGroups[] = $this->entityManager->getPartialReference(CustomerGroup::class, $groupId);
         }
+        $customer->setGroups($memberGroups);
 
         $this->dispatchAffiliateLinkingEvent($customer, $request->getReferrer());
         if (!is_null($request->getReferrer())) {
