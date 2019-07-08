@@ -269,6 +269,10 @@
                     ztable.dataTable.api().ajax.reload();
                 }
             });
+            $('.page-widget-list').on('ztable.initialized', function () {
+                $(this).find('.selectpicker').selectpicker()
+            })
+
             $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
                 $($(e.target).attr('href')).find('.page-widget-list:visible').each(function () {
                     let ztable = $(this).data('ztable');
