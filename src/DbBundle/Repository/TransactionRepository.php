@@ -222,7 +222,7 @@ class TransactionRepository extends BaseRepository
         $queryBuilder->leftJoin(CustomerProduct::class, 'customerProduct','WITH','subtransaction.customerProduct = customerProduct.id');
         $queryBuilder->leftJoin(Product::class, 'product','WITH','customerProduct.product = product.id');
 
-        $queryBuilder->select('transaction.id as transactionId, transaction.number as number, transaction.date as date, customer.fullName as customerFullName, transaction.amount as amount,transaction.status as statusId, transaction.type as typeId, transaction.isVoided');
+        $queryBuilder->select('transaction.id as transactionId, transaction.number as number, transaction.date as date, user.username as customerUsername, customer.fullName as customerFullName, transaction.amount as amount,transaction.status as statusId, transaction.type as typeId, transaction.isVoided');
         $queryBuilder->addSelect('IFNULL(JSON_UNQUOTE(JSON_EXTRACT(transaction.fees, \'$.total_company_fee\')), 0) as companyFee');
         $queryBuilder->addSelect('IFNULL(JSON_UNQUOTE(JSON_EXTRACT(transaction.fees, \'$.total_customer_fee\')), 0) as memberFee');
         $queryBuilder->addSelect("CONCAT(
