@@ -113,6 +113,13 @@ class GatewayLog extends Entity
         return $this;
     }
 
+    public function setDetail(string $key, string $value): self
+    {
+        array_set($this->details, $key, $value);
+
+        return $this;
+    }
+
     public function getDetails(): array
     {
         return $this->details;

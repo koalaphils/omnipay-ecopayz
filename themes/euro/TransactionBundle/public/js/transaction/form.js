@@ -26,7 +26,7 @@
         },
         'submit': function (e, btn) {
             var form = this;
-            var data = form.$el.serialize() + "&" + $(btn).attr('name') + $(btn).attr('value');
+            var data = form.$el.serialize() + "&" + $(btn).attr('name') + '&btn_value=' + $(btn).attr('value');
             $.ajax({
                 'url': form.url,
                 'context': form,
