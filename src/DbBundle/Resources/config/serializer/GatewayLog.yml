@@ -5,7 +5,7 @@ DbBundle\Entity\GatewayLog:
             expose: true
         timestamp:
             expose: true
-            type: DateTime<'Y-m-d H:i:s'>
+            type: DateTime<'c'>
         amount:
             expose: true
         referenceNumber:

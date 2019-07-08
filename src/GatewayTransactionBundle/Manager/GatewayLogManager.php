@@ -68,6 +68,36 @@ class GatewayLogManager extends AbstractManager
         return $this->getRepository()->findLastGatewayLogByIdentifierAndClass($class, $identifier);
     }
 
+    public function findLastGatewayLogByNumberAndClass(string $class, string $number): ?GatewayLog
+    {
+        return $this->getRepository()->findLastGatewayLogByNumberAndClass($class, $number);
+    }
+
+    /**
+     * @param string $class
+     * @param string $number
+     * @return GatewayLog[]
+     */
+    public function getGatewayLogsByNumberAndClass(string $class, string $number): array
+    {
+        return $this->getRepository()->getGatewayLogsByNumberAndClass($class, $number);
+    }
+
+    public function findLastGatewayLogByClassAndNumberOrIdentifier(string $class, ?string $identifier = null, ?string $number = null): ?GatewayLog
+    {
+        $gatewayLog = null;
+
+        if ($gatewayLog === null && $identifier !== null) {
+            $gatewayLog = $this->getRepository()->findLastGatewayLogByIdentifierAndClass($class, $identifier);
+        }
+
+        if ($gatewayLog === null && $number !== null) {
+            $gatewayLog = $this->getRepository()->findLastGatewayLogByNumberAndClass($class, $number);
+        }
+
+        return $gatewayLog;
+    }
+
     public function redirect($id)
     {
         $gatewayLog = $this->getRepository()->find($id);

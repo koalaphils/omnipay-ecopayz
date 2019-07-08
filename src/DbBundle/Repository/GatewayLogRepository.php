@@ -101,6 +101,44 @@ class GatewayLogRepository extends BaseRepository
         return $qb->getQuery()->getOneOrNullResult();
     }
 
+    public function findLastGatewayLogByNumberAndClass(string $class, string $number): ?GatewayLog
+    {
+        $qb = $this->createQueryBuilder('g');
+        $qb
+            ->where('g.referenceNumber = :number')
+            ->andWhere('g.referenceClass = :class')
+            ->setMaxResults(1)
+            ->orderBy('g.timestamp', 'desc')
+            ->setParameters([
+                'number' => $number,
+                'class' => $class,
+            ])
+        ;
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
+
+    /**
+     * @param string $class
+     * @param string $number
+     * @return GatewayLog[]
+     */
+    public function getGatewayLogsByNumberAndClass(string $class, string $number): array
+    {
+        $qb = $this->createQueryBuilder('g');
+        $qb
+            ->where('g.referenceNumber = :number')
+            ->andWhere('g.referenceClass = :class')
+            ->orderBy('g.timestamp', 'desc')
+            ->setParameters([
+                'number' => $number,
+                'class' => $class,
+            ])
+        ;
+
+        return $qb->getQuery()->getResult();
+    }
+
     public function getListFilterCount($filters = null)
     {
         $qb = $this->getListQb($filters);
