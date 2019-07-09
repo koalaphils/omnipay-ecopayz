@@ -49,6 +49,11 @@ class TransactionManager extends TransactionOldManager
      */
     private $bitcoinManager;
 
+    /**
+     * @var \DateTimeZone
+     */
+    private $timezone;
+
     public function __construct(PinnacleService $pinnacleService, Publisher $publisher, BitcoinManager $bitcoinManager)
     {
         $this->pinnacleService = $pinnacleService;
@@ -147,13 +152,15 @@ class TransactionManager extends TransactionOldManager
         $csvReport .= "\n";
         echo $csvReport;
 
+        $timezone = new \DateTimeZone(date_default_timezone_get());
+
         foreach ($iterableResult as $row) {
             $csvReport = '';
             $transaction = $row;
             $transaction = array_pop($transaction);
             $csvReport .= $transaction['number'] . ($transaction['wasCreatedFromAms'] ? ' (AMS)' : '') . $separator;
-            $csvReport .= $transaction['date']->format('Y-m-d H:i:s') . $separator;
-            $csvReport .= '"' . $transaction['customerFullName'] . '"'. $separator;
+            $csvReport .= \DateTimeImmutable::createFromMutable($transaction['date'])->setTimezone($timezone)->format('Y-m-d H:i:s') . $separator;
+            $csvReport .= '"' . ($transaction['customerFullName'] == '' ? $transaction['customerUsername'] : $transaction['customerFullName']) . '"'. $separator;
             $csvReport .= '"' . ltrim(ltrim(trim(trim(trim(str_replace('()', '' ,$transaction['productsAndUsernames'])), ',')),',')) . '"' . $separator;
             $csvReport .= '"' . $transaction['immutablePaymentOptionDataOnTransaction'] . '"' . $separator;
             $csvReport .= $transaction['currencyCode'] . $separator;
