@@ -145,7 +145,10 @@
                     'dom': "{{ widget.property('dom', "<'row m-b-10'<'col-md-12'<'pull-right'C>F>><'row form-inline'<'col-md-6 col-sm-6 col-xs-6'l><'col-md-6 col-sm-6 col-xs-6 text-right's>>t")|raw('js') }}",
                     'columns': {{ id }}_generateColumns(),
                     'featuresDom': "{{ widget.property('filtersDom', '')|raw('js') }}",
-                    'features': {{ id }}_generateFeatures()
+                    'features': {{ id }}_generateFeatures(),
+                    'initialized': function (ztable) {
+                        $('#{{ id }}_container').trigger('ztable.initialized');
+                    }
                 });
             });
         }

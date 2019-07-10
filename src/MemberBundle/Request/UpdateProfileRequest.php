@@ -126,9 +126,14 @@ class UpdateProfileRequest
         return $this->fullName;
     }
 
-    public function setFullName(string $fullName = ''): void
+    public function setFullName(?string $fullName = null): void
     {
-        $this->fullName = $fullName;
+        if ($fullName === null) {
+            $this->fullName = '';
+        } else {
+            $this->fullName = $fullName;
+        }
+
     }
 
     public function getBirthDate(): ?\DateTimeInterface
@@ -136,7 +141,7 @@ class UpdateProfileRequest
         return $this->birthDate;
     }
 
-    public function setBirthDate(\DateTimeInterface $birthDate): void
+    public function setBirthDate(?\DateTimeInterface $birthDate): void
     {
         $this->birthDate = $birthDate;
     }

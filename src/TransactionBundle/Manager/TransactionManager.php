@@ -49,6 +49,11 @@ class TransactionManager extends TransactionOldManager
      */
     private $bitcoinManager;
 
+    /**
+     * @var \DateTimeZone
+     */
+    private $timezone;
+
     public function __construct(PinnacleService $pinnacleService, Publisher $publisher, BitcoinManager $bitcoinManager)
     {
         $this->pinnacleService = $pinnacleService;
@@ -147,13 +152,15 @@ class TransactionManager extends TransactionOldManager
         $csvReport .= "\n";
         echo $csvReport;
 
+        $timezone = new \DateTimeZone(date_default_timezone_get());
+
         foreach ($iterableResult as $row) {
             $csvReport = '';
             $transaction = $row;
             $transaction = array_pop($transaction);
             $csvReport .= $transaction['number'] . ($transaction['wasCreatedFromAms'] ? ' (AMS)' : '') . $separator;
-            $csvReport .= $transaction['date']->format('Y-m-d H:i:s') . $separator;
-            $csvReport .= '"' . $transaction['customerFullName'] . '"'. $separator;
+            $csvReport .= \DateTimeImmutable::createFromMutable($transaction['date'])->setTimezone($timezone)->format('Y-m-d H:i:s') . $separator;
+            $csvReport .= '"' . $transaction['customerUsername'] . '"'. $separator;
             $csvReport .= '"' . ltrim(ltrim(trim(trim(trim(str_replace('()', '' ,$transaction['productsAndUsernames'])), ',')),',')) . '"' . $separator;
             $csvReport .= '"' . $transaction['immutablePaymentOptionDataOnTransaction'] . '"' . $separator;
             $csvReport .= $transaction['currencyCode'] . $separator;
@@ -344,7 +351,7 @@ class TransactionManager extends TransactionOldManager
         $page = (int) $request->get('page', 1);
         $offset = ($page - 1) * $limit;
         $filters['isUsingExport'] = true;
-        
+
         if (array_has($filters, 'search') && trim($filters['search']) !== '') {
             if (!$this->isTransactionNumber($filters['search'])) {
                 $customerIds = [];
@@ -389,7 +396,7 @@ class TransactionManager extends TransactionOldManager
             $btn = $form->getClickedButton();
 
             $action = array_get($btn->getConfig()->getOption('attr', []), 'value', 'process');
-            
+
             if ($request->request->has('toCustomer')) {
                 $transaction->setDetail('toCustomer', $request->request->get('toCustomer'));
             }
@@ -401,7 +408,7 @@ class TransactionManager extends TransactionOldManager
 
         throw new FormValidationException($form);
     }
-    
+
     public function insertTransactionLog($transaction, $old_status, $created_by){
         $log = new TransactionLog();
         $log->setTransactionId($transaction->getId());
@@ -410,10 +417,10 @@ class TransactionManager extends TransactionOldManager
         $log->setIsVoided($transaction->getIsVoided());
         $log->setCreatedBy($created_by);
         $log->setCreatedAt(new \Datetime());
-        
+
         $this->getTransactionLogRepository()->save($log);
     }
-    
+
     public function insertNotificationByTransaction($transaction){
         $type_text = $transaction->getTypeText();
         $status_text = $transaction->getIsVoided() ? "Voided" : ucfirst($transaction->getStatusText());
@@ -424,7 +431,7 @@ class TransactionManager extends TransactionOldManager
             $style = "red";
         }
         $message = "<b>Transaction $number</b> $type_text has been <b>$status_text</b>";
-        
+
         $user = $this->getUserRepository()->findByCustomerID($transaction->getCustomerId());
         if($user){
             $item = new Notification();
@@ -432,9 +439,9 @@ class TransactionManager extends TransactionOldManager
             $item->setMessage($message);
             $item->setStyle($style);
             $item->setCreatedAt(new \Datetime());
-            $this->save($item);  
+            $this->save($item);
         }
-        
+
         $url = "notification_" . $transaction->getCustomerId();
         WampHelper::publish($url, ['msg' => $message]);
     }
@@ -508,7 +515,7 @@ class TransactionManager extends TransactionOldManager
         $event = new TransactionProcessEvent($transaction, $action, $fromCustomer);
         try {
             $this->getRepository()->beginTransaction();
-            
+
             $this->getEventDispatcher()->dispatch('transaction.saving', $event);
             if ($event->isPropagationStopped()) {
                 return;
@@ -915,7 +922,7 @@ class TransactionManager extends TransactionOldManager
 
         return $statuses;
     }
-    
+
     public function getTransactionById(int $id): Transaction
     {
         $transaction = $this->getRepository()->findById($id);
