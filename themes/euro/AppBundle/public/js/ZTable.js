@@ -409,7 +409,11 @@ class ZTable
 
         for (var i in hidden) {
             if (!isNaN(hidden[i])) {
-                this.dataTable.api().column(hidden[i]).visible(false);
+                try {
+                    this.dataTable.api().column(hidden[i]).visible(false);
+                } catch (e) {
+                }
+
             } else {
                 var name = hidden[i] + ':name';
                 this.dataTable.api().column(name).visible(false);

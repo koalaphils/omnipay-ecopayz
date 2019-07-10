@@ -333,7 +333,7 @@
                     var btcAmount = new Number(full.bitcoin_total_amount);
                     return full.customer_amount + ' (' + btcAmount.toFixed(5) + ' BTC)';
                 }
-                
+
                 return full.customer_amount;
             }
 
@@ -376,7 +376,7 @@
         {
             var action = "<button class='btn btn-xs btn-primary btn-edit'>Edit</button>";
             var productDetails = JSON.parse(full.product.details);
-            
+
             if (productDetails == null || typeof productDetails['ac_wallet']  == 'undefined') {
                 if (full.isActive == 1) {
                     action += " <button class='btn btn-xs btn-danger btn-suspend'>Suspend</button>";
@@ -546,7 +546,7 @@
             });
 
             $('#{{ widgets.transactionList.getFullId() }}_container').on('ztable.change.column.visible', function (e, colvis, ztable) {
-                saveUserPreferences({'ui.transaction.list.column.visibility': ztable.getColumnVisibility()});
+                saveUserPreferences({'ui.member.transaction.list.column.visibility': ztable.getColumnVisibility()});
             });
 
             $('#{{ widgets.productList.getFullId() }}_container').on('click', '.btn-edit', function () {
@@ -994,7 +994,7 @@
         }
 
         function {{ widgets.transactionList.getId() }}_extendColvisHidden() {
-            var userPreferences = {{ app.user.getPreference('ui.transaction.list.column.visibility')|json_encode()|raw }};
+            var userPreferences = {{ app.user.getPreference('ui.member.transaction.list.column.visibility')|json_encode()|raw }};
             var hidden = [];
 
             for (var i in userPreferences) {
