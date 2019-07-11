@@ -10,8 +10,8 @@ doctrine:
     server_version: 5.7
     platform_service: custom_mysql_platform
     wrapper_class: AppBundle\DoctrineExtension\DBAL\Connection
-    #options:
-    #    20: false # Turn off PDO::ATTR_EMULATE_PREPARES
+    options:
+      1002: "SET @@session.time_zone = '+00:00'"
     types:
       json:
         class: AppBundle\DoctrineExtension\Types\JsonType
