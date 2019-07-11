@@ -5,13 +5,16 @@ namespace PaymentBundle\Controller;
 use AppBundle\Controller\AbstractController;
 use AppBundle\Exceptions\FormValidationException;
 use DbBundle\Entity\Customer as Member;
+use DbBundle\Entity\Transaction;
 use DbBundle\Repository\CustomerRepository as MemberRepository;
+use PaymentBundle\Component\Blockchain\Rate;
 use PaymentBundle\Form\BitcoinConfirmationType;
 use PaymentBundle\Form\BitcoinRateSettingsDTOType;
 use PaymentBundle\Form\BitcoinWithdrawalRateSettingsDTOType;
 use PaymentBundle\Form\BitcoinSettingType;
 use PaymentBundle\Manager\BitcoinManager;
 use PaymentBundle\Model\Bitcoin\BitcoinConfirmation;
+use PaymentBundle\Model\Bitcoin\BitcoinRateSettingsDTO;
 use PaymentBundle\Model\MemberToken;
 use Payum\Core\Payum;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
@@ -42,17 +45,82 @@ class BitcoinController extends AbstractController
         return new Response('*ok*');
     }
 
-    public function saveBitcoinSettingAction(Request $request, string $code): Response
+    public function settingAction(): Response
     {
         $bitcoinManager = $this->getBitcoinManager();
         $validationGroups = ['default', 'bitcoinSetting'];
-        $bitcoinSettingModel = $bitcoinManager->prepareBitcoinSetting($code);
+        $bitcoinSettingModel = $bitcoinManager->prepareBitcoinSetting();
+
+        $formConfiguration = $this->createForm(BitcoinSettingType::class, $bitcoinSettingModel, [
+            'action' => $this->generateUrl('payment.bitcoin_configuration_save'),
+            'method' => 'POST',
+            'validation_groups' => $validationGroups,
+        ]);
+
+
+        $dto = $bitcoinManager->createRateSettingsDTO();
+        $dto->preserveOriginal();
+        $bitcoinDepositRateSettingForm = $this->createForm(BitcoinRateSettingsDTOType::class, $dto, [
+            'action' => $this->generateUrl('payment.bitcoin_rate_save'),
+            'method' => 'POST',
+        ]);
+        $bitcoinDepositAdjustment = $bitcoinManager->createBitcoinAdjustment(Rate::RATE_EUR, Transaction::TRANSACTION_TYPE_DEPOSIT);
+
+        $withdrawalRateDto = $bitcoinManager->createWithdrawalRateSettingsDTO();
+        $withdrawalRateDto->preserveOriginal();
+        $bitcoinWithdrawalRateSettingForm = $this->createForm(BitcoinWithdrawalRateSettingsDTOType::class, $withdrawalRateDto, [
+            'action' => $this->generateUrl('payment.bitcoin_withdrawal_rate_save'),
+            'method' => 'POST',
+        ]);
+        $bitcoinManager->prepareWithdrawalRateSettingForm($bitcoinWithdrawalRateSettingForm);
+        $bitcoinWithdrawalAdjustment = $bitcoinManager->createBitcoinAdjustment(Rate::RATE_EUR, Transaction::TRANSACTION_TYPE_WITHDRAW);
+
+        $choiceStatuses = [];
+        foreach ($this->getSettingManager()->getSetting('transaction.status') as $statusKey => $status) {
+            $choiceStatuses[$status['label']] = $statusKey;
+        }
+
+        $formBitcoinConfirmations = $this->createNamedFormTypeBuilder(
+            'confirmations',
+            \Symfony\Component\Form\Extension\Core\Type\CollectionType::class,
+            $this->getBitcoinManager()->getListOfConfirmations(),
+            [
+                'entry_type' => \PaymentBundle\Form\BitcoinConfirmationType::class,
+                'allow_add' => true,
+                'allow_delete' => true,
+                'prototype' => true,
+                'prototype_name' => '__fieldname__',
+                'entry_options' => [
+                    'transactionStatuses' => $choiceStatuses
+                ],
+                'csrf_protection' => false,
+                'action' => $this->generateUrl('payment.bitcoin_confirmations_save'),
+                'method' => 'POST'
+            ]
+        )->getForm();
+
+        return $this->render('PaymentBundle:Bitcoin:setting.html.twig', [
+            'configurationForm' => $formConfiguration->createView(),
+            'formDepositRateSetting' => $bitcoinDepositRateSettingForm->createView(),
+            'formWithdrawalRateSetting' => $bitcoinWithdrawalRateSettingForm->createView(),
+            'bitcoinAdjustment' => $bitcoinDepositAdjustment,
+            'bitcoinWithdrawalAdjustment' => $bitcoinWithdrawalAdjustment,
+            'bitcoinConfiguration' => $bitcoinManager->getBitcoinConfigurations(),
+            'formBitcoinConfirmation' => $formBitcoinConfirmations->createView(),
+        ]);
+    }
+
+    public function saveBitcoinSettingAction(Request $request): Response
+    {
+        $bitcoinManager = $this->getBitcoinManager();
+        $validationGroups = ['default', 'bitcoinSetting'];
+        $bitcoinSettingModel = $bitcoinManager->prepareBitcoinSetting();
         $formBitcoinSetting = $this->createForm(BitcoinSettingType::class, $bitcoinSettingModel, [
             'validation_groups' => $validationGroups,
         ]);
         $response = ['success' => false];
         try {
-            $bitcoinSetting = $this->getBitcoinManager()->handleCreateBitcoinSettingForm($formBitcoinSetting, $request, $code);
+            $bitcoinSetting = $this->getBitcoinManager()->handleCreateBitcoinSettingForm($formBitcoinSetting, $request);
             $response['success'] = true;
             $response['data'] = $bitcoinSetting;
         } catch (FormValidationException $e) {

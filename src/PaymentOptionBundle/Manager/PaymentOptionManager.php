@@ -24,6 +24,21 @@ class PaymentOptionManager extends AbstractManager
         throw new FormValidationException($form);
     }
 
+    public function handleConfigurationForm(PaymentOption $paymentOption, Form $form, Request $request): void
+    {
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
+            $paymentOption->setConfigurations($data);
+
+            $this->getEntityManager()->persist($paymentOption);
+            $this->getEntityManager()->flush($paymentOption);
+        } else {
+            throw new FormValidationException($form);
+        }
+    }
+
     public function filter(array $params = [])
     {
         $filters = array_get($params, 'filters', []);

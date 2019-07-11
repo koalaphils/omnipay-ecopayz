@@ -3,7 +3,7 @@
 {% endblock %}
 
 {% block _paymentOption_fields_row %}
-    <div class="col-md-12">
+    <div class="col-md-12" id="{{ form.vars.id }}">
         {{ form_label(form) }}
         <div class="fields">
             <div class="row m-b-20">
@@ -22,7 +22,7 @@
                 <div class="col-md-1 col-sm-2 col-xs-2">
                     <b>Unique</b>
                 </div>
-                <div class="col-md-1 col-sm-2 col-xs-2">
+                <div class="col-md-2 col-sm-3 col-xs-3">
                     <b>Action</b>
                 </div>
             </div>
@@ -40,20 +40,36 @@
 
 {% block _paymentOption_fields_javascript %}
     <script type="text/javascript">
-        $(function () {
-            function recalculateOrder()
-            {
-                var i = 1;
-                $('.field-order').each(function () {
-                    $(this).val(i);
-                    ++i;
-                });
-            }
+        function recalculateOrder()
+        {
+            var i = 1;
+            $('.field-order').each(function () {
+                $(this).val(i);
+                ++i;
+            });
+        }
 
+        $(function () {
+            recalculateOrder()
             $('.btn-sort-asc').click(function () {
                 var order = $(this).parent().find('.field-order').val();
                 $(this).closest('.field').insertBefore($(this).closest('.field').prev('.field'));
                 recalculateOrder();
+            });
+
+            $('#{{ form.vars.id }}').on('click', '.btn-add-field', function(e) {
+                var newField = fieldPrototype;
+                newField = $(newField.replace(/{{ form.vars.prototype.vars.name }}/g, newId));
+                $('.fields').append(newField)
+                newId++;
+
+                $(newField).find('.js-switch').each(function () {
+                    new Switchery(this, {color: $(this).data('color'), 'secondaryColor': $(this).data('secondaryColor')});
+                })
+            });
+
+            $('#{{ form.vars.id }}').on('click','.btn-remove-field', function() {
+                $(this).closest('.field').remove();
             });
         });
     </script>
@@ -78,15 +94,15 @@
         </div>
         <div class="col-md-1 col-sm-2 col-xs-2">
             <div class="form-group">
-                {{ form_widget(form.isRequired) }}
+                {{ form_widget(form.isRequired, {'attr': {'class': 'js-switch'}}) }}
             </div>
         </div>
         <div class="col-md-1 col-sm-2 col-xs-2">
             <div class="form-group">
-                {{ form_widget(form.isUnique) }}
+                {{ form_widget(form.isUnique, {'attr': {'class': 'js-switch'}}) }}
             </div>
         </div>
-        <div class="col-md-1 col-sm-2 col-xs-2">
+        <div class="col-md-2 col-sm-3 col-xs-3">
             {{ form_widget(form.order, {'attr': {'class': 'hidden field-order'}}) }}
             <button class="btn btn-danger btn-remove-field" type="button"><i class="fa fa-close"></i></button>
             <button class="btn btn-white btn-sort-asc" type="button"><i class="fa fa-sort-asc"></i></button>

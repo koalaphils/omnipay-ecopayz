@@ -28,6 +28,12 @@ paymentoption.create_page:
         _controller: PaymentOptionBundle:PaymentOption:createPage
     methods: [GET]
 
+paymentoption.configuration_save:
+    path: /{code}/configuration/save
+    defaults:
+        _controller: PaymentOptionBundle:PaymentOption:saveConfiguration
+    methods: [POST]
+
 paymentoption.update_page:
     path: /{id}/{activeTab}
     defaults:

@@ -65,17 +65,11 @@ class BitcoinManager extends AbstractManager
 
     public function getRepository() {}
 
-    public function handleCreateBitcoinSettingForm(Form $form, Request $request, string $code)
+    public function handleCreateBitcoinSettingForm(Form $form, Request $request)
     {
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $paymentOption = $this->paymentOptionRepository->findPaymentOptionByCode($code);
-
-            /* @var $data SettingModel */
             $data = $form->getData();
-
-            $paymentOption->setConfiguration(PaymentOption::CONFIG_AUTODECLINE_INTERVAL, $data->getMinutesInterval());
-            $paymentOption->setConfiguration(PaymentOption::CONFIG_AUTODECLINE_STATUS, $data->getStatus());
 
             $bitcoinConfiguration[SettingModel::BITCOIN_DEPOSIT_CONFIGURATION] = [
                 'minimumAllowedDeposit' => $data->getMinimumAllowedDeposit(),
@@ -90,8 +84,6 @@ class BitcoinManager extends AbstractManager
                 'maximumAllowedWithdrawal' => $data->getMaximumAllowedWithdrawal(),
             ];
             $this->saveBitcoinSetting($bitcoinConfiguration);
-            $this->getEntityManager()->persist($paymentOption);
-            $this->getEntityManager()->flush($paymentOption);
 
             return $data;
         }
@@ -175,16 +167,10 @@ class BitcoinManager extends AbstractManager
         return $bitcoinLockConfiguration['autoLock'];
     }
 
-    public function prepareBitcoinSetting(string $code): SettingModel
+    public function prepareBitcoinSetting(): SettingModel
     {
-        $paymentOption = $this->paymentOptionRepository->findPaymentOptionByCode($code);
-        $defaultConfiguration = $this->settingManager->getSetting('scheduler.task.auto_decline');
         $bitcoinSetting = $this->getBitcoinConfigurations();
-
         $bitcoinSettingModel = new SettingModel();
-        // $bitcoinSettingModel->setMinutesInterval($bitcoinSetting['minutesInterval']);
-        $bitcoinSettingModel->setMinutesInterval($paymentOption->getConfiguration(PaymentOption::CONFIG_AUTODECLINE_INTERVAL, $defaultConfiguration['minutesInterval']));
-        $bitcoinSettingModel->setStatus($paymentOption->getConfiguration(PaymentOption::CONFIG_AUTODECLINE_STATUS, $defaultConfiguration['status']));
         $bitcoinSettingModel->setMinimumAllowedDeposit($bitcoinSetting['minimumAllowedDeposit']);
         $bitcoinSettingModel->setMaximumAllowedDeposit($bitcoinSetting['maximumAllowedDeposit']);
         // zimi-fix

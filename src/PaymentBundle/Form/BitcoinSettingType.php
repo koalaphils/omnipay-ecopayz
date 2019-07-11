@@ -18,36 +18,9 @@ use Symfony\Component\Validator\Constraints\Valid;
  */
 class BitcoinSettingType extends AbstractType
 {
-    /**
-     * @var SettingManager
-     */
-    private $settingManager;
-
-    public function __construct(SettingManager $settingManager)
-    {
-        $this->settingManager = $settingManager;
-    }
-
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $statuses = $this->settingManager->getSetting('transaction.status');
-        $statusChoices = [];
-        foreach ($statuses as $key => $value) {
-            $statusChoices[$value['label']] = $key;
-        }
-
         $builder
-            ->add('minutesInterval', Type\IntegerType::class, [
-                'label' => 'settings.bitcoin.fields.minutesInterval',
-                'required' => true,
-                'translation_domain' => 'AppBundle',
-            ])
-            ->add('status', Type\ChoiceType::class, [
-                'label' => 'settings.scheduler.fields.status',
-                'required' => true,
-                'translation_domain' => 'AppBundle',
-                'choices' => $statusChoices,
-            ])
             ->add('minimumAllowedDeposit', Type\TextType::class, [
                 'label' => 'settings.bitcoin.fields.minimumDeposit',
                 'required' => true,
