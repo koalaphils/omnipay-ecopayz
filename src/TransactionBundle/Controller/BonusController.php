@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use TransactionBundle\Manager\TransactionManager;
 
-class WithdrawController extends AbstractController
+class BonusController extends AbstractController
 {
     public function updatePageAction(
         Request $request,
@@ -24,11 +24,13 @@ class WithdrawController extends AbstractController
         $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_UPDATE']);
         $this->saveSession();
         $this->setMenu('transaction.list');
+
         $pinnacleProduct = $pinnacleService->getPinnacleProduct();
 
-        $transaction = $transactionRepository->findByIdAndType($id, Transaction::TRANSACTION_TYPE_WITHDRAW);
+        $transaction = $transactionRepository->findByIdAndType($id, Transaction::TRANSACTION_TYPE_BONUS);
         $pinnacleTransacted = 0;
         $pinnacleTransactionDates = [];
+
         foreach ($transaction->getSubTransactions() as $subTransaction) {
             if ($subTransaction->getDetail('pinnacle.transacted')) {
                 $pinnacleTransacted++;
@@ -61,25 +63,14 @@ class WithdrawController extends AbstractController
         asort($transactionDates);
         asort($pinnacleTransactionDates);
 
-        return $this->render("TransactionBundle:Transaction/Type:withdraw.html.twig", [
+        return $this->render("TransactionBundle:Transaction/Type:bonus.html.twig", [
             'form' => $form->createView(),
-            'type' => 'withdraw',
+            'type' => 'bonus',
             'gateway' => $transaction->getGateway(),
             'transaction' => $transaction,
             'pinnacleTransacted' => $pinnacleTransacted === count($transaction->getSubTransactions()),
             'transactionDates' => $transactionDates,
             'pinnacleTransactionDates' => $pinnacleTransactionDates,
         ]);
-    }
-
-    public function saveAction(Request $request, TransactionRepository $transactionRepository, TransactionManager $transactionManager, int $id): Response
-    {
-        $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_UPDATE']);
-        $this->saveSession();
-
-        $transaction = $transactionRepository->findByIdAndType($id, Transaction::TRANSACTION_TYPE_WITHDRAW);
-        $form = $transactionManager->createForm($transaction, true);
-
-        return new Response();
     }
 }

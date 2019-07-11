@@ -81,7 +81,9 @@ class GatewayMemberTransaction
 
         if ($gatewayLog === null) {
             return;
-        } elseif ($transaction->getType() != $gatewayLog->getType()) {
+        } elseif ($transaction->isBonus() && !$gatewayLog->isWithdraw()) {
+            return;
+        } elseif (!$transaction->isBonus() && $transaction->getType() != $gatewayLog->getType()) {
             return;
         }
 

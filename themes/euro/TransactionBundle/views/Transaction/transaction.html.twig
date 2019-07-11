@@ -25,7 +25,13 @@
     </style>
 {% endblock %}
 
-{% block pageTitle %}{{ "page.create_title"|trans({'{type}': ('types.' ~ type)|trans({}, 'TransactionBundle')}, 'TransactionBundle') }}{% endblock pageTitle %}
+{% block pageTitle %}
+    {% if transaction.isNew() %}
+        {{ "page.create_title"|trans({'{type}': ('types.' ~ type)|trans({}, 'TransactionBundle')}, 'TransactionBundle') }}
+    {% else %}
+        {{ "page.update_title"|trans({'{type}': ('types.' ~ type)|trans({}, 'TransactionBundle')}, 'TransactionBundle') }}
+    {% endif %}
+{% endblock pageTitle %}
 
 {% block pageHeaderExtra %}
     <div class="pull-right">
@@ -38,9 +44,8 @@
             <li>Quick Links:</li>
             {% if is_granted('ROLE_TRANSACTION_CREATE') %}
             <li><a href="{{ path("transaction.create_page", {'type': 'deposit'}) }}">Deposit</a></li>|
-            {% endif %}
-            {% if is_granted('ROLE_TRANSACTION_CREATE') %}
             <li><a href="{{ path("transaction.create_page", {'type': 'withdraw'}) }}">Withdrawal</a></li>|
+            <li><a href="{{ path("transaction.create_page", {'type': 'bonus'}) }}">Bonus</a></li>|
             {% endif %}
         </ul>
     </div>

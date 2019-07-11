@@ -65,9 +65,12 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
     {
         /* @var $transaction Transaction */
         $transaction = $event->getSubject();
+
         if ($event->getTransition()->getName() === 'void') {
             $this->processSubtransactions($transaction, true);
         } elseif ($transaction->isDeposit() && $transaction->getStatus() == $this->settingManager->getSetting('pinnacle.transaction.deposit.status')) {
+            $this->processSubtransactions($transaction);
+        } elseif ($transaction->isBonus() && $transaction->getStatus() == $this->settingManager->getSetting('pinnacle.transaction.bonus.status')) {
             $this->processSubtransactions($transaction);
         } elseif ($transaction->isWithdrawal() && $transaction->getStatus() == $this->settingManager->getSetting('pinnacle.transaction.withdraw.status')) {
             $this->processSubtransactions($transaction);
@@ -78,9 +81,6 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
         }
     }
 
-    /**
-     * @param SubTransaction[] $subTransactions
-     */
     private function processSubtransactions(Transaction $transaction, bool $voided = false): void
     {
         $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
@@ -126,9 +126,9 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
             }
         }
 
-        if ($voided && ($transaction->isDeposit() || $transaction->isWithdrawal())) {
+        if ($voided && ($transaction->isDeposit() || $transaction->isWithdrawal() || $transaction->isBonus())) {
             $this->gatewayMemberTransaction->voidMemberTransaction($transaction);
-        } elseif (!$voided && ($transaction->isDeposit() || $transaction->isWithdrawal())) {
+        } elseif (!$voided && ($transaction->isDeposit() || $transaction->isWithdrawal() || $transaction->isBonus())) {
             $this->gatewayMemberTransaction->processMemberTransaction($transaction);
         }
     }
