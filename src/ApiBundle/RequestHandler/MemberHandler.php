@@ -37,9 +37,9 @@ class MemberHandler
         ];
     }
 
-    public function handleGetActivePaymentOptionGroupByType(Customer $member): array
+    public function handleGetActivePaymentOptionGroupByType(Customer $member, ?string $transactionType): array
     {
-        $paymentOptions = $this->memberPaymentOptionRepository->findActivePaymentOptionForMember((int) $member->getId());
+        $paymentOptions = $this->memberPaymentOptionRepository->findActivePaymentOptionForMember((int) $member->getId(), $transactionType);
         $groupPaymentOptions = [];
         foreach ($paymentOptions as $paymentOption) {
             $type = $paymentOption->getPaymentOption()->getCode();

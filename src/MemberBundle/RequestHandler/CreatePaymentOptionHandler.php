@@ -27,6 +27,8 @@ class CreatePaymentOptionHandler
         $paymentOption = $this->getPaymentOptionRepository()->find($request->getType());
         $memberPaymentOption->setPaymentOption($paymentOption);
         $memberPaymentOption->setType($request->getType());
+        $memberPaymentOption->setForDeposit();
+        $memberPaymentOption->setForWithdrawal();
 
         $this->getEntityManager()->persist($memberPaymentOption);
         $this->getEntityManager()->flush($memberPaymentOption);

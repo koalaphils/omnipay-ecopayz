@@ -19,6 +19,8 @@ class UpdatePaymentOptionHandler
         $memberPaymentOption = $request->getMemberPaymentOption();
         $memberPaymentOption->setFields($request->getFields());
         $memberPaymentOption->setIsActive($request->isActive());
+        $memberPaymentOption->setForDeposit();
+        $memberPaymentOption->setForWithdrawal();
 
         $this->getEntityManager()->persist($memberPaymentOption);
         $this->getEntityManager()->flush($memberPaymentOption);
