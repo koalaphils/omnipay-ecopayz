@@ -88,7 +88,7 @@ class TransactionDeclineCommand extends Command
         }
 
         $this->eventDispatcher->addListener('transaction.autoDeclined.pre', function (TransactionPreDeclineEvent $event) use ($output) {
-            if ($event->getTransaction()->getPaymentOptionType()->isPaymentBitcoin() && $event->getTransaction()->getBitcoinConfirmation() === null) {
+            if ($event->getTransaction()->getPaymentOptionType()->isPaymentBitcoin() && $event->getTransaction()->getBitcoinConfirmation() !== null) {
                 $event->stopPropagation();
 
                 return;
