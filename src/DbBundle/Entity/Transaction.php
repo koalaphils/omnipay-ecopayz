@@ -889,7 +889,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     public function isBitcoinStatusPendingConfirmation(): bool
     {
         if ( !$this->isDeclined() && !$this->isVoided()){
-           return $this->hasDepositUsingBitcoin()  && $this->isBitcoinPendingOnConfirmation();
+           return $this->hasDepositUsingBitcoin()  && $this->isBitcoinPendingOnConfirmation() && !$this->isBitcoinManualConfirmation();
         }
 
         return false;
