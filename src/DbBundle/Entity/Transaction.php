@@ -435,7 +435,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     /**
      * Get sub transaction.
      *
-     * @return Collection
+     * @return Collection|SubTransaction[]
      */
     public function getSubTransactions(): Collection
     {

@@ -112,6 +112,20 @@ class PaymentOptionRepository extends BaseRepository
         return $qb->getQuery()->getArrayResult();
     }
 
+    /**
+     * @return PaymentOption[]
+     */
+    public function getPaymentOptionForAutoDecline(): array
+    {
+        $qb = $this->createQueryBuilder('po');
+
+        $qb->select('po')
+            ->where('po.autoDecline = :hasAutoDecline')
+            ->setParameter('hasAutoDecline', 1);
+
+        return $qb->getQuery()->getResult();
+    }
+
     public function getBitcoinPaymentOptionCodeHasWithAutoDeclineEnabled(): array
     {
         $queryBuilder = $this->createQueryBuilder('po');
@@ -134,5 +148,16 @@ class PaymentOptionRepository extends BaseRepository
             ->setParameter('bitcoin', 'BITCOIN');
 
         return $queryBuilder->getQuery()->getArrayResult();
+    }
+
+    public function findPaymentOptionByCode(string $code): ?PaymentOption
+    {
+        $queryBuilder = $this->createQueryBuilder('po');
+        $queryBuilder
+            ->where('po.code = :code')
+            ->setParameter('code', $code)
+        ;
+
+        return $queryBuilder->getQuery()->getOneOrNullResult();
     }
 }

@@ -21,6 +21,7 @@ class PaymentOptionFieldType extends AbstractType
             ->add('code', Type\TextType::class, [
                 'label' => 'settings.paymentOptionField.fields.code',
                 'translation_domain' => 'AppBundle',
+                'required' => true
             ])
             ->add('label', Type\TextType::class, [
                 'label' => 'settings.paymentOptionField.fields.label',
@@ -33,10 +34,12 @@ class PaymentOptionFieldType extends AbstractType
             ->add('isRequired', CType\SwitchType::class, [
                 'label' => 'settings.paymentOptionField.fields.isRequired',
                 'translation_domain' => 'AppBundle',
+                'required' => false
             ])
             ->add('isUnique', CType\SwitchType::class, [
                 'label' => 'settings.paymentOptionField.fields.isUnique',
                 'translation_domain' => 'AppBundle',
+                'required' => false
             ])
             ->add('order', Type\NumberType::class, [])
         ;

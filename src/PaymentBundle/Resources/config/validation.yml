@@ -1,13 +1,5 @@
 PaymentBundle\Model\Bitcoin\SettingModel:
     properties:
-        minutesInterval:
-            - NotNull: 
-                message: "Minutes of interval cannot be empty."
-                groups: [bitcoinSetting]
-            - NotEqualTo:
-                value: 0
-                message: "Minutes of interval should not be 0."
-                groups: [bitcoinSetting]
         minimumAllowedDeposit:
             - NotNull: 
                 message: "Minimum allowed deposit cannot be empty."

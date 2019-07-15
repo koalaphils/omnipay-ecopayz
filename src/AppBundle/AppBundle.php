@@ -2,6 +2,7 @@
 
 namespace AppBundle;
 
+use DbBundle\Entity\Transaction;
 use Doctrine\DBAL\Types\Type;
 use MongoDB\BSON\UTCDateTime;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
@@ -119,6 +120,9 @@ class AppBundle extends Bundle
                 'auto_decline' => [
                     'autoDecline' => Setting::ENABLE_AUTO_DECLINE,
                     'minutesInterval' => Setting::SCHEDULER_DEFAULT_MIN,
+                    'status' => Transaction::TRANSACTION_STATUS_START,
+                    'types' => [Transaction::TRANSACTION_TYPE_DEPOSIT],
+                    'reason' => [Transaction::TRANSACTION_TYPE_DEPOSIT => 'No deposit received in payment gateway']
                 ],
             ],
             'bitcoin.setting' => [

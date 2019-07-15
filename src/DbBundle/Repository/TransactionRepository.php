@@ -373,6 +373,33 @@ class TransactionRepository extends BaseRepository
         return $queryBuilder->getQuery()->getArrayResult();
     }
 
+    /**
+     * @param \DateTimeImmutable $expiration
+     * @param int $status
+     * @param array $types
+     * @return Transaction[]
+     */
+    public function getTransactionsByStatusAndType(array $statuses, array $types, array $paymentOptionCodes): array
+    {
+        $queryBuilder = $this->createQueryBuilder('t');
+        $queryBuilder
+            ->select('t')
+            ->where($queryBuilder->expr()->andX()->addMultiple([
+                't.status IN (:statuses)',
+                't.isVoided = 0',
+                't.type IN (:types)',
+                't.paymentOptionType IN (:paymentOptionCodes)'
+            ]))
+            ->setParameters([
+                'statuses' => $statuses,
+                'types' => $types,
+                'paymentOptionCodes' => $paymentOptionCodes,
+            ])
+        ;
+
+        return $queryBuilder->getQuery()->getResult();
+    }
+
     public function getBitcoinTransactionsToLock(string $interval): array
     {
         $queryBuilder = $this->createQueryBuilder('t');

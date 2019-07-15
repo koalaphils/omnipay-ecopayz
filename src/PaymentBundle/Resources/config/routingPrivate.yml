@@ -1,8 +1,20 @@
-payment.bitcoin_save:
-    path: /configuration/save
+#payment.bitcoin_save:
+#    path: /paymentoptions/{code}/configuration/save
+#    defaults:
+#        _controller: PaymentBundle:Bitcoin:saveBitcoinSetting
+#    methods: [POST]
+
+payment.bitcoin_configuration_save:
+    path: /setting/bitcoin/configuration/save
     defaults:
         _controller: PaymentBundle:Bitcoin:saveBitcoinSetting
     methods: [POST]
+
+payment.bitcoin.setting_page:
+    path: /setting/bitcoin
+    defaults:
+        _controller: PaymentBundle:Bitcoin:setting
+    methods: [GET]
 
 payment.bitcoin_rate_save:
     path: /rate/save

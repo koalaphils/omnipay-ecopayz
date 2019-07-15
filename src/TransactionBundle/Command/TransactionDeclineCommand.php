@@ -1,106 +1,119 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace TransactionBundle\Command;
 
-use JMS\JobQueueBundle\Console\CronCommand;
-use JMS\JobQueueBundle\Console\ScheduleEveryMinute;
-use JMS\JobQueueBundle\Console\ScheduleInSecondInterval;
-use JMS\JobQueueBundle\Entity\Job;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use AppBundle\Manager\SettingManager;
+use DbBundle\Entity\User;
+use DbBundle\Repository\UserRepository;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Logger\ConsoleLogger;
-use DbBundle\Entity\User;
-use TransactionBundle\Service\TransactionDeclineService;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
+use TransactionBundle\Event\TransactionPostDeclineEvent;
+use TransactionBundle\Event\TransactionPreDeclineEvent;
+use TransactionBundle\Service\DeclineTransactionService;
 
-class TransactionDeclineCommand extends ContainerAwareCommand implements CronCommand
+class TransactionDeclineCommand extends Command
 {
-    use ScheduleEveryMinute;
+    protected static $defaultName = 'transaction:decline';
 
-    public function createCronJob(\DateTime $dateTime)
-    {
-        return new Job($this->getName(), [$this->getContainer()->getParameter('cron_user')]);
+    /**
+     * @var UserRepository
+     */
+    private $userRepository;
+
+    /**
+     * @var TokenStorageInterface
+     */
+    private $tokenStorage;
+
+    /**
+     * @var AuthorizationCheckerInterface
+     */
+    private $authorizationChecker;
+
+    /**
+     * @var DeclineTransactionService
+     */
+    private $declineTransactionService;
+
+    /**
+     * @var EventDispatcherInterface
+     */
+    private $eventDispatcher;
+
+    public function __construct(
+        UserRepository $userRepository,
+        TokenStorageInterface $tokenStorage,
+        AuthorizationCheckerInterface $authorizationChecker,
+        DeclineTransactionService $declineTransactionService,
+        EventDispatcherInterface $eventDispatcher
+    ) {
+        $this->userRepository = $userRepository;
+        $this->tokenStorage = $tokenStorage;
+        $this->authorizationChecker = $authorizationChecker;
+        $this->declineTransactionService = $declineTransactionService;
+        $this->eventDispatcher = $eventDispatcher;
+
+        parent::__construct();
     }
 
     protected function configure()
     {
         $this
-            ->setName('transaction:decline')
-            ->setDescription('Decline Transaction')
-            ->setHelp('This will help the CS to decline transaction automatically due to no deposit received in payment gateway')
-            ->addArgument('username', InputArgument::REQUIRED, 'user username')
+            ->setName(self::$defaultName)
+            ->setDescription('Auto decline transaction')
+            ->addArgument('user', InputArgument::REQUIRED)
         ;
     }
-    
+
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $logger = new ConsoleLogger($output);
-        try {
-            $transactionAutoDeclineService = $this->getTransactionAutoDeclineService();
-            $transactionAutoDeclineService->createHttpRequest();
-            $user = $transactionAutoDeclineService->loginUserByUsername($input->getArgument('username'));
-            
-            if ($user instanceof User) {
-                $transactionAutoDeclineService->setLoggerForUser($user, $logger);
-            }
+        $this->loginUser($input->getArgument('user'));
+        $autoDeclineConfiguration = $this->declineTransactionService->getAutoDeclineConfiguration();
 
-            if ($transactionAutoDeclineService->getAutoDeclineStatus()) {
-                $transactionAutoDeclineService->setAutoDeclineLogger($logger);
-                $transactionAutoDeclineService->declineTransactions();
-            } else {
-                throw new \Exception('Auto decline service was not active.');
-            }
-        } catch (\Exception $e) {
-            $logger->error(sprintf("%s\n%s:%s\n%s", $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTraceAsString()), [
-                'class' => get_class($e),
-            ]);
+        if (!$autoDeclineConfiguration['autoDecline']) {
+            $output->writeln('Auto decline of transaction is disabled');
+
+            return;
         }
 
-        $runTime = round((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT']) * 1000, 4);
-        $logger->info(sprintf('Runtime: %s ms', $runTime));
+        $this->eventDispatcher->addListener('transaction.autoDeclined.pre', function (TransactionPreDeclineEvent $event) use ($output) {
+            if ($event->getTransaction()->getPaymentOptionType()->isPaymentBitcoin() && $event->getTransaction()->getBitcoinConfirmation() !== null) {
+                $event->stopPropagation();
+
+                return;
+            }
+            $output->writeln('Decline transaction number: ' . $event->getTransaction()->getNumber());
+        }, 100);
+
+        $this->eventDispatcher->addListener('transaction.autoDeclined.post', function (TransactionPostDeclineEvent $event) use ($output) {
+            $output->writeln('Completed Declining transaction number: ' . $event->getTransaction()->getNumber());
+        }, 100);
+
+        $this->declineTransactionService->declineTransactions();
     }
 
-    protected function executes(InputInterface $input, OutputInterface $output)
+    private function loginUser(string $username): void
     {
-        $logger = new ConsoleLogger($output);
-
-        try {
-            $this->createRequest();
-            $user = $this->loginUser($input->getArgument('username'));
-            $roles = $user->getRoles();
-
-            if (!in_array('role.scheduler', $roles)) {
-                throw new \Exception('Access Denied.');
-            }
-            $logger->info(sprintf('Login User: %s [%s]', $user->getUsername(), $user->getId()));
-
-            $service = $this->getTransactionDeclineService();
-
-            $isReadyToDecline = $service->getAutoDeclineStatus();
-            if (!$isReadyToDecline) {
-                throw new \Exception('Task scheduler not active.');
-            }
-
-            $service->setLogger($logger);
-            $returnedResult = $service->processDeclining();
-            if (!empty($returnedResult['result'])) {
-                $logger->info('Declined Ids: ' . json_encode($returnedResult['result']));
-            } else {
-                $logger->info('Nothing to decline');
-            }
-        } catch (\Exception $e) {
-            $logger->error($this->getErrorMessage($e), [
-                'class' => get_class($e),
-            ]);
+        $user = $this->userRepository->findByUsername($username, User::USER_TYPE_ADMIN);
+        if ($user === null) {
+            throw new UsernameNotFoundException('User not found');
         }
+        $token = new UsernamePasswordToken($user, null, 'main', $user->getRoles());
+        $this->tokenStorage->setToken($token);
 
-        $runTime = round((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT']) * 1000, 4);
-        $logger->info(sprintf('Runtime: %s ms', $runTime));
-    }
-
-    private function getTransactionAutoDeclineService(): TransactionDeclineService
-    {
-        return $this->getContainer()->get('transaction.decline.service');
+        if (!$this->authorizationChecker->isGranted('ROLE_SCHEDULER')) {
+            throw new AccessDeniedException('Access Denied.');
+        }
     }
 }

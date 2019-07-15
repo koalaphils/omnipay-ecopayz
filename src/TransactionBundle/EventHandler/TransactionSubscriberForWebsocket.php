@@ -7,6 +7,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 use ApiBundle\Event\CustomerCreatedEvent;
 use AppBundle\Helper\Publisher;
+use TransactionBundle\Event\TransactionPostDeclineEvent;
 use TransactionBundle\Event\TransactionProcessEvent;
 use TransactionBundle\WebsocketTopics;
 use DbBundle\Entity\Customer;
@@ -19,9 +20,15 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
 {
     private $publisher;
 
-    public function __construct(Publisher $publisher)
+    /**
+     * @var EntityManager
+     */
+    private $entityManager;
+
+    public function __construct(Publisher $publisher, EntityManager $entityManager)
     {
         $this->publisher = $publisher;
+        $this->entityManager = $entityManager;
     }
 
     public static function getSubscribedEvents(): array
@@ -32,9 +39,6 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
             ],
             'customer.created' => [
                 ['onCustomerCreated', 100],
-            ],
-            'transaction.autoDeclined' => [
-                ['onTransactionAutoDecline', 50],
             ],
             BitcoinRateExpiredEvent::NAME => [
                 ['onTransactionBitcoinRateExpired', 50],
@@ -53,11 +57,6 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
         ];
         
         $this->publisher->publish(WebsocketTopics::TOPIC_BITCOIN_RATE_TRANSACTION_EXPIRED . '.' . $channel, json_encode($payload));
-    }
-
-    public function onTransactionAutoDecline(TransactionProcessEvent $event): void
-    { 
-        $this->onTransactionPreSave($event);
     }
 
     public function onTransactionPreSave(TransactionProcessEvent $event): void
@@ -161,9 +160,9 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
         return $this->getEntityManager()->getRepository(Transaction::class);
     }
 
-    protected function getEntityManager(string $name = 'default'): EntityManager
+    protected function getEntityManager(): EntityManager
     {
-        return $this->getDoctrine()->getManager($name);
+        return $this->entityManager;
     }
 
     protected function getDoctrine(): RegistryInterface
