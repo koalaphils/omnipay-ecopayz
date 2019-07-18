@@ -27,6 +27,8 @@ class UpdateProfileRequest
     private $tags;
     private $clientIp;
 
+    private $locale;
+
     private function __construct() {
         $this->groups = [];
     }
@@ -67,6 +69,8 @@ class UpdateProfileRequest
         if ($customer->getAffiliate() !== null) {
             $request->referrer = $customer->getAffiliate()->getId();
         }
+
+        $request->locale = $customer->getLocale();
 
         return $request;
     }
@@ -275,5 +279,15 @@ class UpdateProfileRequest
     public function getClientIp(): ?string
     {
         return $this->clientIp;
+    }
+
+    public function getLocale(): ?string
+    {
+        return $this->locale;
+    }
+
+    public function setLocale(string $locale): void
+    {
+        $this->locale = $locale;
     }
 }

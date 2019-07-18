@@ -235,6 +235,13 @@ services:
         class: AppBundle\Helper\ReferralToolGenerator
         arguments: ["@app.setting_manager", "@media.manager", "@templating"]
 
+    AppBundle\Manager\AppManager:
+        autoconfigure: true
+        autowire: true
+        public: false
+
+    app.manager: '@AppBundle\Manager\AppManager'
+
     AppBundle\Service\Scheduler:
         autoconfigure: true
         autowire: true

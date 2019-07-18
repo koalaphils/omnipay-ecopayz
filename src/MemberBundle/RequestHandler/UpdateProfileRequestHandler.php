@@ -67,6 +67,7 @@ class UpdateProfileRequestHandler
         $customer->setJoinedAt($request->getJoinedAt());
         $customer->setRiskSetting($request->getRiskSetting());
         $customer->setTags($request->getTags());
+        $customer->setLocale($request->getLocale());
 
         $this->setReferrerByCode($request->getAffiliateLink(), $customer);
 
@@ -122,7 +123,7 @@ class UpdateProfileRequestHandler
         $this->entityManager->flush($customer->getUser());
         $this->entityManager->persist($customer);
         $this->entityManager->flush($customer);
-
+        dump($customer);
         return $customer;
     }
 

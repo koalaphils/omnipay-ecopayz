@@ -159,7 +159,11 @@ class AuthHandler
         /* @var $user \DbBundle\Entity\User */
         $user = $accessToken->getUser();
         $this->pinnacleService->getAuthComponent()->logout($user->getCustomer()->getPinUserCode());
-        $pinLoginResponse = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode());
+
+        $memberLocale = $user->getCustomer()->getLocale();
+        $memberLocale = strtolower(str_replace('_', '-', $memberLocale));
+
+        $pinLoginResponse = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode(), $memberLocale);
         $paymentOptionTypes = $this->paymentOptionRepository->getMemberProcessedPaymentOption($user->getCustomer()->getId());
         $processPaymentOptionTypes = [];
         foreach ($paymentOptionTypes as $paymentOption) {
@@ -197,6 +201,9 @@ class AuthHandler
         $now = new \DateTimeImmutable('now');
         /* @var $user \DbBundle\Entity\User */
         $user = $this->tokenStorage->getToken()->getUser();
+        $memberLocale = $user->getCustomer()->getLocale();
+        $memberLocale = strtolower(str_replace('_', '-', $memberLocale));
+
         $pinnacleToken = $request->get('pinnacle_token');
         $token = $this->tokenStorage->getToken();
         $session = $this->sessionRepository->findBySessionId($token->getToken());
@@ -207,7 +214,7 @@ class AuthHandler
         $pinnacleInfo = $session->getDetail('pinnacle', ['token' => '']);
 
         if ($pinnacleInfo['token'] !== $pinnacleToken) {
-            $pinnacleInfo = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode())->toArray();
+            $pinnacleInfo = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode(), $memberLocale)->toArray();
             $session->setDetail('pinnacle', $pinnacleInfo);
             $this->entityManager->persist($session);
             $this->entityManager->flush($session);
@@ -218,7 +225,7 @@ class AuthHandler
         $expirationDate = $updatedDate->modify('+' . $this->pinnacleExpiration . ' seconds')->setTimezone($now->getTimezone());
 
         if ($expirationDate <= $now) {
-            $pinnacleInfo = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode())->toArray();
+            $pinnacleInfo = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode(), $memberLocale)->toArray();
             $session->setDetail('pinnacle', $pinnacleInfo);
             $this->entityManager->persist($session);
             $this->entityManager->flush($session);

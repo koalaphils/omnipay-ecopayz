@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace ApiBundle\Controller;
 
+use AppBundle\Manager\AppManager;
 use AppBundle\Manager\SettingManager;
 use FOS\RestBundle\View\View;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
@@ -21,7 +22,7 @@ class SettingController extends AbstractController
      *     }
      * )
      */
-    public function getSettingAction(Request $request, SettingManager $settingManager): View
+    public function getSettingAction(Request $request, SettingManager $settingManager, AppManager $appManager): View
     {
         $confirmations = $settingManager->getSetting('bitcoin.confirmations');
 
@@ -33,6 +34,7 @@ class SettingController extends AbstractController
             'session' => $settingManager->getSetting('session'),
             'bitcoin.confirmations' => $confirmations,
             'bitcoin.max_confirmations' => count($confirmations) - 1,
+            'locales' => $appManager->getAvailableLocales(),
             'referral.expiration' => $settingManager->getSetting('referral.cookie.expiration'),
         ];
 

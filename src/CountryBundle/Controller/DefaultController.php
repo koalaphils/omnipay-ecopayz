@@ -3,6 +3,7 @@
 namespace CountryBundle\Controller;
 
 use AppBundle\Controller\AbstractController;
+use AppBundle\Manager\AppManager;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,7 +12,7 @@ use DbBundle\Entity\Country;
 
 class DefaultController extends AbstractController
 {
-    public function indexAction()
+    public function indexAction(AppManager $appManager)
     {
         $this->denyAccessUnlessGranted(['ROLE_COUNTRY_VIEW']);
         
@@ -19,7 +20,10 @@ class DefaultController extends AbstractController
             'action' => $this->getRouter()->generate('country.save'),
         ]);
 
-        return $this->render('CountryBundle:Default:index.html.twig', ['form' => $countryForm->createView()]);
+        return $this->render('CountryBundle:Default:index.html.twig', [
+            'form' => $countryForm->createView(),
+            'locales' => $appManager->getAvailableLocales(),
+        ]);
     }
 
     public function searchAction(Request $request)

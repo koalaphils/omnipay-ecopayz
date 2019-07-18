@@ -30,7 +30,15 @@ class Country extends Entity implements ActionInterface, TimestampInterface, Aud
      */
     private $currency;
 
+    /**
+     * @var string[]
+     */
     private $tags;
+
+    /**
+     * @var string
+     */
+    private $locale;
 
     /**
      * Set code.
@@ -193,5 +201,21 @@ class Country extends Entity implements ActionInterface, TimestampInterface, Aud
     public function getPhoneCode()
     {
         return $this->phoneCode;
+    }
+
+    public function getLocale(): string
+    {
+        if ($this->locale === null) {
+            return '';
+        }
+
+        return $this->locale;
+    }
+
+    public function setLocale(?string $locale): self
+    {
+        $this->locale = $locale;
+
+        return $this;
     }
 }

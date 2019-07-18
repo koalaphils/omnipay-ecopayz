@@ -51,6 +51,10 @@ DbBundle\Entity\Customer:
         tags:
             expose: true
     virtual_properties:
+        getLocale:
+            type: string
+            expose: true
+            serialized_name: locale
         websocket:
             exp: object.getWebsocketDetails()
             groups: ['websocket']

@@ -211,6 +211,17 @@ widgets:
                         function: '@customer.manager::getTagList'
                         label: result['text']
                         value: result['code']
+                locale:
+                    options:
+                        label: Locale
+                        required: true
+                    type: dropdown
+                    size: 12
+                    group: Right
+                    choicesFrom:
+                        function: '@app.manager::getAvailableLocales'
+                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
+                        value: result['code']
     passwordForm:
         type: AppBundle\Widget\Page\FormWidget
         properties:
