@@ -123,7 +123,7 @@ class UpdateProfileRequestHandler
         $this->entityManager->flush($customer->getUser());
         $this->entityManager->persist($customer);
         $this->entityManager->flush($customer);
-        dump($customer);
+
         return $customer;
     }
 
@@ -152,7 +152,7 @@ class UpdateProfileRequestHandler
     }
 
     private function dispatchAffiliateLinkingEvent(Customer $member,  ?string $currentReferrerId): void
-    {   
+    {
         $oldReferrer = $member->getReferral();
 
         if ($oldReferrer === null && $currentReferrerId !== null) {
