@@ -79,7 +79,6 @@ class WithdrawController extends AbstractController
 
         $transaction = $transactionRepository->findByIdAndType($id, Transaction::TRANSACTION_TYPE_WITHDRAW);
         $form = $transactionManager->createForm($transaction, true);
-        dump($form);
         //$form->submit($request);
 
         return new Response();
