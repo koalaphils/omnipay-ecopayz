@@ -44,6 +44,10 @@ DbBundle\Entity\PaymentOption:
             column: payment_option_has_auto_decline
             options:
                 default: 0
+        configurations:
+            type: json
+            column: payment_option_configs
+            nullable: true
         createdBy:
             type: bigint
             column: payment_option_created_by

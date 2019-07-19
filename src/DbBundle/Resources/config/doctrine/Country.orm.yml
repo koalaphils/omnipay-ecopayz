@@ -24,6 +24,10 @@ DbBundle\Entity\Country:
             column: country_name
         tags:
             type: json
+        locale:
+            type: string
+            column: country_locale
+            length: 12
         createdBy:
             type: bigint
             column: country_created_by

@@ -4,6 +4,11 @@ services:
         arguments: [ "@payum" ]
         tags:
             - { name: form.type }
+    PaymentOptionBundle\Form\Configuration\AutoDeclineType:
+        autoconfigure: true
+        autowire: true
+        tags:
+            - { name: form.type }
 
     paymentoption.manager:
         class: PaymentOptionBundle\Manager\PaymentOptionManager

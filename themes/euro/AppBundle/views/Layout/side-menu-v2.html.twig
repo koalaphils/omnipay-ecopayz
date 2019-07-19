@@ -177,6 +177,7 @@
                         {% endif %}
                         {% if is_granted('ROLE_PAYMENTOPTION_VIEW') %}
                         <li><a href="{{ path("paymentoption.list_page") }}">Payment Options</a></li>
+                        <li><a href="{{ path('payment.bitcoin.setting_page') }}">Bitcoin Setting</a></li>
                         {% endif %}
                         {% if is_granted('ROLE_TRANSACTION_SETTING_PROCESS') %}
                         <li><a href="{{ path("transaction.setting.transaction_page") }}">Transactions</a></li>

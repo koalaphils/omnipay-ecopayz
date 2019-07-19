@@ -2,6 +2,7 @@
 
 namespace PaymentBundle\Form;
 
+use AppBundle\Manager\SettingManager;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -20,16 +21,6 @@ class BitcoinSettingType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('autoDecline', CType\SwitchType::class, [
-                'label' => 'settings.bitcoin.fields.autoDecline',
-                'required' => false,
-                'translation_domain' => 'AppBundle',
-            ])
-            ->add('minutesInterval', Type\IntegerType::class, [
-                'label' => 'settings.bitcoin.fields.minutesInterval',
-                'required' => true,
-                'translation_domain' => 'AppBundle',
-            ])
             ->add('minimumAllowedDeposit', Type\TextType::class, [
                 'label' => 'settings.bitcoin.fields.minimumDeposit',
                 'required' => true,

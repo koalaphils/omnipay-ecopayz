@@ -540,6 +540,12 @@ class MemberManager extends AbstractManager
         $this->memberPaymentOptionRepository = $memberPaymentOptionRepository;
     }
 
+    public function getMemberLocale(Member $member): string
+    {
+        $defaultLocale = $this->settingManager->getSetting('member.locale.default');
+        $memberLocale = $member->getDetail('locale');
+    }
+
     protected function getRepository(): MemberRepository
     {
         return $this->getDoctrine()->getRepository(Member::class);

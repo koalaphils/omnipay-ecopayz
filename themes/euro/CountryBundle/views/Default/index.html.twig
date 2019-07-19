@@ -61,6 +61,7 @@
                             <th>{{ "fields.code"|trans({}, "CountryBundle") }}</th>
                             <th>{{ "fields.name"|trans({}, "CountryBundle") }}</th>
                             <th>{{ "fields.currency"|trans({}, "CountryBundle") }}</th>
+                            <th>{{ "fields.locale"|trans({}, "CountryBundle") }}</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -87,6 +88,7 @@
                             {{ form_row(form.currency) }}
                             {{ form_row(form.phoneCode) }}
                             {{ form_row(form.tags) }}
+                            {{ form_row(form.locale) }}
                         </div>
                     </div>
                     <div class="panel-footer text-right">
@@ -129,6 +131,7 @@
     
     <script type="text/javascript" >
         var userPreferences = {{ app.user.getPreference('ui.country.list.column.visibility')|json_encode()|raw }};
+        var locales = {{ locales|json_encode|raw }};
         $(function(){
             var listTable = new ZTable('#countryList',  {
                 'ajax': {
@@ -269,7 +272,15 @@
                         }
                     },
                     { 'data': 'country.name', 'defaultContent': '', 'name': 'country.name' },
-                    { 'data': 'country.currency.code', 'defaultContent': '', 'name': 'currency.code' }
+                    { 'data': 'country.currency.code', 'defaultContent': '', 'name': 'currency.code' },
+                    {
+                        'data': 'country.locale',
+                        'defaultContent': '',
+                        'name': 'country.locale',
+                        'render': function (data) {
+                            return locales[data].name + " (" + data + ")";
+                        }
+                    }
                 ],
                 'ordering': true,
                 'columnDefs': [

@@ -91,6 +91,8 @@ settings:
         fields:
             enabled: Auto Decline
             minutesInterval: Interval in minutes
+            status: Status
+            types: Types
     bitcoin:
         label: Bitcoin
         fields:

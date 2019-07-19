@@ -7,9 +7,11 @@ use AppBundle\Helper\Publisher;
 use AppBundle\Manager\AbstractManager;
 use AppBundle\Manager\SettingManager;
 use DbBundle\Entity\BitcoinRateSetting;
+use DbBundle\Entity\PaymentOption;
 use DbBundle\Entity\User;
 use DbBundle\Entity\Setting;
 use DbBundle\Entity\Transaction;
+use DbBundle\Repository\PaymentOptionRepository;
 use DbBundle\Utils\CollectionUtils;
 use Doctrine\ORM\EntityManagerInterface;
 use PaymentBundle\Component\Bitcoin\BitcoinAdjustmentInterface;
@@ -37,17 +39,27 @@ class BitcoinManager extends AbstractManager
     private $userRepository;
     private $transactionRepository;
 
+    /**
+     * @var PaymentOptionRepository
+     */
+    private $paymentOptionRepository;
+
     private $bitcoinAdjustmentComponent;
     private $blockchain;
     private $publisher;
 
-    public function __construct(SettingManager $settingManager, EntityManagerInterface $em, EventDispatcherInterface $dispatcher, TransactionRepository $transactionRepository)
-    {
+    public function __construct(
+        SettingManager $settingManager,
+        EntityManagerInterface $em,
+        EventDispatcherInterface $dispatcher,
+        TransactionRepository $transactionRepository
+    ) {
         $this->settingManager = $settingManager;
         $this->em = $em;
         $this->dispatcher = $dispatcher;
 
         $this->transactionRepository = $transactionRepository;
+        $this->paymentOptionRepository = $this->em->getRepository(PaymentOption::class);
         $this->userRepository = $this->em->getRepository(User::class);
     }
 
@@ -58,9 +70,8 @@ class BitcoinManager extends AbstractManager
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
+
             $bitcoinConfiguration[SettingModel::BITCOIN_DEPOSIT_CONFIGURATION] = [
-                'autoDecline' => $data->getAutoDecline(),
-                'minutesInterval' => $data->getMinutesInterval(),
                 'minimumAllowedDeposit' => $data->getMinimumAllowedDeposit(),
                 'maximumAllowedDeposit' => $data->getMaximumAllowedDeposit(),
             ];
@@ -156,11 +167,10 @@ class BitcoinManager extends AbstractManager
         return $bitcoinLockConfiguration['autoLock'];
     }
 
-    public function prepareBitcoinSetting(array $bitcoinSetting = []): SettingModel
+    public function prepareBitcoinSetting(): SettingModel
     {
+        $bitcoinSetting = $this->getBitcoinConfigurations();
         $bitcoinSettingModel = new SettingModel();
-        $bitcoinSettingModel->setAutoDecline($bitcoinSetting['autoDecline']);
-        $bitcoinSettingModel->setMinutesInterval($bitcoinSetting['minutesInterval']);
         $bitcoinSettingModel->setMinimumAllowedDeposit($bitcoinSetting['minimumAllowedDeposit']);
         $bitcoinSettingModel->setMaximumAllowedDeposit($bitcoinSetting['maximumAllowedDeposit']);
         // zimi-fix

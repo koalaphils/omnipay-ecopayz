@@ -14,19 +14,56 @@ class PaymentOption extends Entity implements ActionInterface, TimestampInterfac
 {
     use Traits\ActionTrait;
     use Traits\TimestampTrait;
+
     const PAYMENT_MODE_ECOPAYZ = 'ecopayz';
     const PAYMENT_MODE_BITCOIN = 'bitcoin';
     const PAYMENT_MODE_OFFLINE = 'offline';
     const FIELD_CODE_REQUIRED = 'isRequired';
     const FIELD_CODE_UNIQUE = 'isUnique';
 
+    const CONFIG_AUTODECLINE_STATUS= 'autoDecline.status';
+    const CONFIG_AUTODECLINE_TYPES= 'autoDecline.types';
+    const CONFIG_AUTODECLINE_INTERVAL= 'autoDecline.interval';
+
+    /**
+     * @var string
+     */
     private $code;
+
+    /**
+     * @var string
+     */
     private $name;
+
+    /**
+     * @var array
+     */
     private $fields;
+
+    /**
+     * @var string
+     */
     private $image;
+
+    /**
+     * @var bool
+     */
     private $isActive;
+
+    /**
+     * @var bool
+     */
     private $autoDecline;
+
+    /**
+     * @var string
+     */
     private $sort;
+
+    /**
+     * @var array
+     */
+    private $configurations;
 
     /**
      * payment mode will be use for geting the
@@ -44,6 +81,7 @@ class PaymentOption extends Entity implements ActionInterface, TimestampInterfac
         $this->setImage(null);
         $this->setIsActive(false);
         $this->setAutoDecline(false);
+        $this->configurations = [];
     }
 
     public function getCode(): string
@@ -283,5 +321,55 @@ class PaymentOption extends Entity implements ActionInterface, TimestampInterfac
         }
         
         return $codeField;
+    }
+
+    public function getConfigurations(): array
+    {
+        if ($this->configurations === null) {
+            $this->configurations = [];
+        }
+
+        return $this->configurations;
+    }
+
+    public function setConfigurations(?array $configurations): self
+    {
+        if ($configurations === null) {
+            $this->configurations = [];
+        } else {
+            $this->configurations = $configurations;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param string $key
+     * @param mixed|null $default
+     * @return mixed|null
+     */
+    public function getConfiguration(string $key, $default = null)
+    {
+        if ($this->configurations === null) {
+            $this->configurations = [];
+        }
+
+        return array_get($this->configurations, $key, $default);
+    }
+
+    /**
+     * @param string $key
+     * @param mixed|null $value
+     * @return PaymentOption
+     */
+    public function setConfiguration(string $key, $value): self
+    {
+        if ($this->configurations === null) {
+            $this->configurations = [];
+        }
+
+        array_set($this->configurations, $key, $value);
+
+        return $this;
     }
 }

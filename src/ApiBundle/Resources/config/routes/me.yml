@@ -51,3 +51,9 @@ api_member.change_password:
   defaults:
     _controller: ApiBundle:Auth:changePassword
   methods: [POST]
+
+api_member.change_locale:
+  path: me/change-locale
+  defaults:
+    _controller: ApiBundle:Member:changeLocale
+  methods: [POST]

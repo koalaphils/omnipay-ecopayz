@@ -167,6 +167,10 @@ class MemberController extends AbstractController
      *          {
      *              "name"="registration_site",
      *              "dataType"="string"
+     *          },
+     *          {
+     *              "name"="registration_locale",
+     *              "dataType"="string"
      *          }
      *     },
      *     headers={
@@ -229,6 +233,29 @@ class MemberController extends AbstractController
         $user = $this->getUser();
 
         return $this->view($memberHandler->handleGetActivePaymentOptionGroupByType($user->getCustomer(), $request->get('type', null)));
+    }
+
+    /**
+     * @ApiDoc(
+     *     section="Current Login Member",
+     *     description="Change member locale",
+     *     views={"piwi"},
+     *     requirements={
+     *          {
+     *             "name"="locale",
+     *             "dataType"="string"
+     *         }
+     *     },
+     *     headers={
+     *         { "name"="Authorization", "description"="Bearer <access_token>" }
+     *     }
+     * )
+     */
+    public function changeLocaleAction(Request $request, MemberHandler $memberHandler): View
+    {
+        $member = $this->getUser()->getCustomer();
+
+        return $this->view($memberHandler->changeMemberLocale($request, $member, $request->get('locale')));
     }
 
     private function getMemberManager(): MemberManager

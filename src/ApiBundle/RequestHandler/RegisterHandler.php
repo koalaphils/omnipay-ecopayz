@@ -222,6 +222,7 @@ class RegisterHandler
                 'site' => $registerRequest->getRegistrationSite(),
             ]
         ]);
+        $member->setLocale($registerRequest->getLocale());
 
         /*if ($registerRequest->getReferrerUrl() !== '') {
             $affiliate = $this->getAffiliateByWebsite($registerRequest->getReferrerUrl());

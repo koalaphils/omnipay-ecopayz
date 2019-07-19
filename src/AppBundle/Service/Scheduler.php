@@ -16,14 +16,25 @@ class Scheduler implements JobScheduler
     {
         $args = explode(' ', $command);
         $commandName = array_shift($args);
+        $queue = Job::DEFAULT_QUEUE;
 
-        return new Job($commandName, $args);
+        if ($commandName === 'transaction:decline') {
+            $queue = 'autoDecline';
+        }
+
+        return new Job($commandName, $args, true, $queue);
     }
 
     public function shouldSchedule($command, \DateTime $lastRunAt)
     {
-        if ($command === 'fos:oauth-server:clean') {
+        $args = explode(' ', $command);
+        $commandName = $args[0];
+        if ($commandName === 'fos:oauth-server:clean') {
             return time() - $lastRunAt->getTimestamp() >= 86400;
+        }
+
+        if ($commandName === 'transaction:decline') {
+            return time() - $lastRunAt->getTimestamp() >= 60;
         }
 
         return time() - $lastRunAt->getTimestamp() >= (60*60);

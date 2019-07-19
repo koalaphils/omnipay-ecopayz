@@ -15,6 +15,7 @@ class CommissionSettingController extends PageController
 {
     public function recomputeAndPayoutAction(Request $request, int $commissionPeriodId)
     {
+        $this->denyAccessUnlessGranted();
         $commissionManager = $this->get('commission.manager');
         $loggedInUser = $this->container->get('security.token_storage')->getToken()->getUser();
 

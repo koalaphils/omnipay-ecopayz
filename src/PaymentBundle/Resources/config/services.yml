@@ -103,3 +103,10 @@ services:
             - PaymentBundle\Component\Blockchain\BlockchainGatewayFactory
         tags:
             - { name: payum.gateway_factory_builder, factory: blockchain }
+
+    PaymentBundle\Form\BitcoinSettingType:
+        autoconfigure: true
+        autowire: true
+        public: false
+        tags:
+            - { name: form.type }

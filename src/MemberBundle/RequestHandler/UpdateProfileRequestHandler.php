@@ -67,6 +67,7 @@ class UpdateProfileRequestHandler
         $customer->setJoinedAt($request->getJoinedAt());
         $customer->setRiskSetting($request->getRiskSetting());
         $customer->setTags($request->getTags());
+        $customer->setLocale($request->getLocale());
 
         $this->setReferrerByCode($request->getAffiliateLink(), $customer);
 
@@ -151,7 +152,7 @@ class UpdateProfileRequestHandler
     }
 
     private function dispatchAffiliateLinkingEvent(Customer $member,  ?string $currentReferrerId): void
-    {   
+    {
         $oldReferrer = $member->getReferral();
 
         if ($oldReferrer === null && $currentReferrerId !== null) {
