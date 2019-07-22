@@ -28,7 +28,8 @@
             {% endif %}
             <ul class="dropdown-menu pull-right" role="menu">
                 <li><a href="{{ path("transaction.create_page", {'type': 'deposit'}) }}">{{ "menus.Deposit"|trans({},"TransactionBundle") }}</a></li>
-                <li><a href="{{ path("transaction.create_page", {'type': 'withdraw'}) }}">{{ "menus.Withdraw"|trans({},"TransactionBundle") }}</a></li>                
+                <li><a href="{{ path("transaction.create_page", {'type': 'withdraw'}) }}">{{ "menus.Withdraw"|trans({},"TransactionBundle") }}</a></li>
+                <li><a href="{{ path("transaction.create_page", {'type': 'bonus'}) }}">{{ "menus.Bonus"|trans({},"TransactionBundle") }}</a></li>
             </ul>
         </div>
         <ul class="list-inline quicklinks font-13 font-normal text-right m-t-10">
@@ -334,6 +335,7 @@
                         'choices': {
                             'deposit': "Deposit",
                             'withdraw': "Withdraw",
+                            'bonus': "Bonus"
                         },
                         'value': {{ app.request.get("type", [])|json_encode|raw }}
                     },

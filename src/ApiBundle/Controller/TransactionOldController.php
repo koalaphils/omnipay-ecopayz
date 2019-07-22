@@ -52,8 +52,13 @@ class TransactionOldController extends AbstractController
             $tran['type'] = $t->getTypeText();
             $tran['status'] = $t->getStatusText();
 
-            // DbBundle\Entity\PaymentOption     
-            $tran['paymentOptionType'] = $t->getPaymentOptionType()->getCode();            
+            // DbBundle\Entity\PaymentOption
+            if ($t->getPaymentOptionType() !== null) {
+                $tran['paymentOptionType'] = $t->getPaymentOptionType()->getCode();
+            } else {
+                $tran['paymentOptionType'] = '';
+            }
+
             $tran['isVoided'] = $t->isVoided();
             $tran['amount'] = number_format((float)$t->getAmount(), 2, '.', '');
 
@@ -135,7 +140,11 @@ class TransactionOldController extends AbstractController
         }
 
         if (array_has($post, 'filter.type') && !empty($post['filter']['type']) && $post['filter']['type'] != -1) {
-            $filters['types'] = $post['filter']['type'];
+            if (is_string($post['filter']['type'])) {
+                $filters['types'] = explode(',', $post['filter']['type']);
+            } else {
+                $filters['types'] = $post['filter']['type'];
+            }
         }
 
         if (array_has($post, 'filter.status') && count($post['filter']['status']) != 0 && $post['filter']['status'] != -1) {

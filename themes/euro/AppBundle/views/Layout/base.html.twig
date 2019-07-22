@@ -187,15 +187,7 @@
 
         <!-- Floating Widgets -->
         {% if is_granted('ROLE_TRANSACTION_CREATE') %}
-        <div class="float-sm">
-          <div class="fl-fl float-widgets">
-            <i class="widgets-holder fa fa-money"></i>
-              <ul>
-                <a href="{{ path("transaction.create_page", {'type': 'deposit'}) }}"><li>Deposit</li></a>
-                <a href="{{ path("transaction.create_page", {'type': 'withdraw'}) }}"><li>Withdrawal</li></a>
-              </ul>
-          </div>
-        </div>
+            {% include "AppBundle:Layout/partials:floating-widget.html.twig" %}
         {% endif %}
 
 

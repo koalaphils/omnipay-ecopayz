@@ -15,6 +15,7 @@ class PinnacleBundle extends Bundle
                 'transaction' => [
                     'deposit' => ['status' => Transaction::TRANSACTION_STATUS_END],
                     'withdraw' => ['status' => Transaction::TRANSACTION_STATUS_END],
+                    'bonus' => ['status' => Transaction::TRANSACTION_STATUS_END],
                 ]
             ],
         ];

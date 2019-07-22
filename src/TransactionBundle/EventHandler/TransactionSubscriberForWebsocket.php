@@ -79,6 +79,7 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
             if ($payload['payment_option'] === 'BITCOIN') {
                 $payload['btc_address'] = $event->getTransaction()->getBitcoinAddress();
             }
+            $payload['number'] = $transactionNumber;
             $payload['reason'] = '';
             if ($event->getTransaction()->isVoided() || $event->getTransaction()->isDeclined()) {
                 $payload['reason'] = $event->getTransaction()->getVoidingReason();
