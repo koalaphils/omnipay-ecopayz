@@ -702,6 +702,26 @@
                 $('#{{ id }}_container').modal('hide');
                 return false;
             });
+
+        function referralNameAction(data, type, full)
+        {
+            if (full.is_active) {
+                return '<button class="btn btn-xs btn-danger btn-referral-name-suspend">Suspend</button>';
+            } else {
+                return '<button class="btn btn-xs btn-success btn-referral-name-enable">Enable</button>';
+            }
+        }
+
+        $(function () {
+            $('#{{ widgets.memberReferralName.getFullId() }}_container').on('click', '.btn-referral-name-suspend', function (e) {
+                var tr = $(this).closest('tr');
+                var data = {{ widgets.memberReferralName.getFullId() }}Table.dataTable.api().row(tr).data();
+
+                confirm2('Are you sure you want to suspend '+ data.name, 'Suspend Referral Code', {
+                    'type': null,
+                    'confirmButtonClass': 'btn-success btn-md',
+                    'confirmButtonText': 'Yes',
+                    'html': true,
             $('#btnCreateReferralName').click(function () {
                 $('#{{ id }}_container').modal('show');
             });

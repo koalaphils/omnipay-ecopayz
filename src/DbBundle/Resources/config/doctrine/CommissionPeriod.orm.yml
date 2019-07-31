@@ -13,12 +13,12 @@ DbBundle\Entity\CommissionPeriod:
                 unsigned: true
     fields:
         dwlDateFrom:
-            type: date
+            type: datetime
             column: commission_period_date_from
             nullable: false
             unique: true
         dwlDateTo:
-            type: date
+            type: datetime
             column: commission_period_date_to
             nullable: false
             unique: true
