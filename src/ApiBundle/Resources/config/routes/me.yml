@@ -1,3 +1,9 @@
+api_customers.me:
+  path: me
+  defaults:
+    _controller: ApiBundle:Customer:me
+  methods: [GET]
+
 api_me_pinnacle_balance:
   path: me/pinnacle/balance
   defaults:
