@@ -97,17 +97,33 @@
         updateCounters();
 
         function updateCounters(args) {
-            getMSActiveSessions().then(function (result) {
+            getMSActiveSessionCount().then(function (result) {
                 $('#msCount').text(result);
             }).catch(function(error) {
                 console.log(error);
             });
 
-            getBOActiveSessions().then(function (result) {
-            $('#boCount').text(result);
+            getBOActiveSessionCount().then(function (result) {
+                $('#boCount').text(result);
             }).catch(function(error) {
                 console.log(error);
             });
+
+            getBOActiveSessions().then(function (result){
+                console.log(result);
+            });
+
+            getMSActiveSessions().then(function (result){
+                console.log(result);
+            });
+        }
+
+        function getMSActiveSessionCount() {
+            return session.call('zimiwebsockets.counter.ms_active_session_count', []);
+        }
+
+        function getBOActiveSessionCount() {
+            return session.call('zimiwebsockets.counter.bo_active_session_count', []);
         }
 
         function getMSActiveSessions() {
