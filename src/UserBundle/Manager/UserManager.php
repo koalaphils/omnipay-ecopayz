@@ -71,6 +71,21 @@ class UserManager extends AbstractManager
         return $results;
     }
 
+    public function getUserTypes(): array
+    {
+        $result[0] = [
+            'id' => User::USER_TYPE_MEMBER,
+            'name' => User::USER_TYPE_NAME_MEMBER
+        ];
+
+        $result[1] = [
+            'id' => User::USER_TYPE_AFFILIATE,
+            'name' => User::USER_TYPE_NAME_AFFILIATE
+        ];
+
+        return $result;
+    }
+
     public function checkSuperAdmin($currRoles, $selectedRoles)
     {
         $status = true;

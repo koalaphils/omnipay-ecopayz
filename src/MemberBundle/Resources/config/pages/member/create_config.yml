@@ -150,3 +150,14 @@ widgets:
                     defaultFrom:
                         label: result.getName()
                         value: result.getId()
+                userType:
+                    options:
+                        label: Type
+                    type: choices
+                    group: Right
+                    size: 12
+                    choicesFrom:
+                        function: '@user.manager::getUserTypes'
+                        label: result['name']
+                        value: result['id']
+                        preselect: false

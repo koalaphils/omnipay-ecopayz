@@ -199,18 +199,6 @@ widgets:
                         label: result['text']
                         value: result['id']
                         preselect: false
-                tags:
-                    options:
-                        label: Tags
-                        multiple: true
-                        required: false
-                    type: dropdown
-                    size: 12
-                    group: Right
-                    choicesFrom:
-                        function: '@customer.manager::getTagList'
-                        label: result['text']
-                        value: result['code']
                 locale:
                     options:
                         label: Locale

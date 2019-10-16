@@ -72,7 +72,7 @@ class CreateMemberRequestHandler
         $user->setUsername($username);
         $user->setEmail($request->getEmail());
         $user->setIsActive($request->getStatus());
-        $user->setType(User::USER_TYPE_MEMBER);
+        $user->setType($request->getUserType());
         $user->setPassword($this->encodePassword($user, $request->getPassword()));
         $user->setPreference('ipAddress', $this->getClientIp());
         $user->setActivationSentTimestamp(new \DateTime('now'));
