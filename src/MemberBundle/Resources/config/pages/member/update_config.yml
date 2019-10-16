@@ -1059,259 +1059,202 @@ widgets:
                     label: Campaign Name
                     type: text
                     from: campaign_name
-#    runningCommissionList:
-#        type: AppBundle\Widget\Page\ListWidget
-#        properties:
-#            class: DbBundle\Entity\CommissionPeriod
-#            processResult: '@member.manager::processRunningCommission'
-#            methods:
-#                records:
-#                    name: getCommissionPeriodList
-#                    # staticParams:
-#                    #    filters:
-#                    #        statuses:
-#                    #            - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT
-#                    #            - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION
-#                    params:
-#                        filters: []
-#                        limit: 20
-#                        offset: 0
-#                totalFiltered:
-#                    name: countCommissionList
-#                    staticParams:
-#                        filters:
-#                            statuses:
-#                                - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT
-#                                - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION
-#                    params:
-#                        filters: []
-#                total:
-#                    name: countCommissionList
-#                    staticParams:
-#                        filters:
-#                            statuses:
-#                                - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT
-#                                - !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION
-#                    params:
-#                        filters: []
-#            footer:
-#                columns:
-#                    total:
-#                        type: static
-#                        attrs:
-#                            colspan: 3
-#                            class: text-right
-#                        value: Total Running
-#                        isHead: true
-#                    totalCommission:
-#                        type: text
-#                        attrs:
-#                            colspan: 2
-#                        from: totalRunningCommission
-#            columns:
-#                dwlDateFrom:
-#                    label: Date From
-#                    type: text
-#                    from: schedule.dwl_date_from
-#                dwlDateTo:
-#                    label: Date To
-#                    type: text
-#                    from: schedule.dwl_date_to
-#                status:
-#                    label: Status
-#                    type: choice
-#                    from: commission.status
-#                    choices:
-#                        condition_unmet: Condition Not Met
-#                        condition_met: Condition Met
-#                commisison:
-#                    label: Commission
-#                    type: text
-#                    from: commission.commission
-#                payout:
-#                    label: AC Wallet Payout
-#                    type: text
-#                    from: commission.payout
 
-#    turnoverCommissionByProductList:
-#        type: \AppBundle\Widget\Page\ListWidget
-#        properties:
-#            class: \DbBundle\Entity\Customer
-#            ajax:
-#                url:
-#                    route: member.turnover_commission.search
-#                    params:
-#                        id: '@=pageManager.getData("customer").getId()'
-#                        orderBy: 'productName'
-#                        precision: '2'
-#                type: POST
-#            columns:
-#                productName:
-#                    label: Product
-#                    type: text
-#                    exclude: true
-#                memberId:
-#                    label: Member ID
-#                    type: text
-#                totalTurnover:
-#                    label: Total Turnover
-#                    type: function
-#                    function: turnoverCommissionDwlAmount
-#                totalWinLoss:
-#                    label: Total Member W/L
-#                    type: function
-#                    function: turnoverCommissionDwlAmount
-#                totalAffiliateCommission:
-#                    label: Affiliate Commission
-#                    type: function
-#                    function: turnoverCommissionAffiliateAmount
-#            footer:
-#                columns:
-#                    period:
-#                        attrs:
-#                            colspan: 2
-#                        type: function
-#                        function: turnoverCommissionPeriod
-#                        from: period
-#                    totalTurnover:
-#                        type: function
-#                        function: turnoverCommissionTotalTurnover
-#                        from: totals
-#                    totalWinLoss:
-#                        type: function
-#                        function: turnoverCommissionTotalWinLoss
-#                        from: totals
-#                    totalAffiliateCommission:
-#                        type: function
-#                        function: turnoverCommissionTotalCommission
-#                        from: totals
-#            filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'fth>>ar<'form-group' <'m-t-10'>>c<'form-group' <'m-t-10'>>>
-#            filters:
-#                dwlDateFrom:
-#                    label: DWL Date From
-#                    type: date
-#                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
-#                    symbol: f
-#                    attrs:
-#                        placeholder: DWL Date From
-#                        type: input
-#                        class: form-control cls-date
-#                    applyOnChanged: 0
-#                dwlDateTo:
-#                    label: DWL Date To
-#                    type: date
-#                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
-#                    symbol: t
-#                    attrs:
-#                        placeholder: DWL Date To
-#                        type: input
-#                        class: form-control cls-date
-#                    applyOnChanged: 0
-#                hideZeroTurnover:
-#                    label: 'Hide zero turnover?'
-#                    type: checkbox
-#                    symbol: h
-#                    applyOnChanged: 0
-#                applyFilter:
-#                    attrs:
-#                        class: btn btn-sm btn-default
-#                resetFilter:
-#                    attrs:
-#                        class: btn btn-sm btn-inverse
-#                btnExportCsv:
-#                    type: button
-#                    label: Export to CSV
-#                    symbol: c
-#                    attrs:
-#                        class: btn btn-sm btn-inverse
-#    turnoverCommissionByMemberList:
-#        type: \AppBundle\Widget\Page\ListWidget
-#        properties:
-#            class: \DbBundle\Entity\Customer
-#            ajax:
-#                url:
-#                    route: member.turnover_commission.search
-#                    params:
-#                        id: '@=pageManager.getData("customer").getId()'
-#                        orderBy: 'memberId'
-#                        precision: '2'
-#                type: POST
-#            columns:
-#                memberId:
-#                    label: Member ID
-#                    type: text
-#                    exclude: true
-#                productName:
-#                    label: Product
-#                    type: text
-#                totalTurnover:
-#                    label: Total Turnover
-#                    type: function
-#                    function: turnoverCommissionDwlAmount
-#                totalWinLoss:
-#                    label: Total Member W/L
-#                    type: function
-#                    function: turnoverCommissionDwlAmount
-#                totalAffiliateCommission:
-#                    label: Affiliate Commission
-#                    type: function
-#                    function: turnoverCommissionAffiliateAmount
-#            footer:
-#                columns:
-#                    period:
-#                        attrs:
-#                            colspan: 2
-#                        type: function
-#                        function: turnoverCommissionPeriod
-#                        from: period
-#                    totalTurnover:
-#                        type: function
-#                        function: turnoverCommissionTotalTurnover
-#                        from: totals
-#                    totalWinLoss:
-#                        type: function
-#                        function: turnoverCommissionTotalWinLoss
-#                        from: totals
-#                    totalAffiliateCommission:
-#                        type: function
-#                        function: turnoverCommissionTotalCommission
-#                        from: totals
-#            filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'fth>>ar<'form-group' <'m-t-10'>>c<'form-group' <'m-t-10'>>>
-#            filters:
-#                dwlDateFrom:
-#                    label: DWL Date From
-#                    type: date
-#                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
-#                    symbol: f
-#                    attrs:
-#                        placeholder: DWL Date From
-#                        type: input
-#                        class: form-control cls-date
-#                    applyOnChanged: 0
-#                dwlDateTo:
-#                    label: DWL Date To
-#                    type: date
-#                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
-#                    symbol: t
-#                    attrs:
-#                        placeholder: DWL Date To
-#                        type: input
-#                        class: form-control cls-date
-#                    applyOnChanged: 0
-#                hideZeroTurnover:
-#                    label: 'Hide zero turnover?'
-#                    type: checkbox
-#                    symbol: h
-#                    applyOnChanged: 0
-#                applyFilter:
-#                    attrs:
-#                        class: btn btn-sm btn-default
-#                resetFilter:
-#                    attrs:
-#                        class: btn btn-sm btn-inverse
-#                btnExportCsv:
-#                    type: button
-#                    label: Export to CSV
-#                    symbol: c
-#                    attrs:
-#                        class: btn btn-sm btn-inverse
+    revenueShare:
+        type: AppBundle\Widget\Page\ListWidget
+        properties:
+            class: DbBundle\Entity\CustomerProduct
+            processResult: 'controller::processRevenueShareResult'
+            dom: t
+            methods:
+                records:
+                    name: getReferrerTotalReferredProducts
+                    params:
+                        filters: []
+                        orders: []
+                        limit: 10
+                        offset: 0
+                totalFiltered:
+                    name: getReferrerReferredProductsCount
+                    params:
+                        filters: []
+                total:
+                    name: getReferrerReferredProductsCount
+                    params:
+                        filters: []
+            additionalFilters:
+                member: '@=pageManager.getData("customer").getId()'
+            columns:
+                product:
+                    label: Product
+                    type: text
+                    from: productName
+                revenue_range:
+                    label: Range
+                    type: function
+                    function: revenueShareAmountRange
+                percentage_range:
+                    label: Revenue Share %
+                    type: function
+                    function: revenueSharePercentageRange
+                created_at:
+                    label: Date Last Updated
+                    type: function
+                    function: revenueShareUpdatedDate
+                action:
+                    label: Action
+                    type: function
+                    function: revenueShareListAction
+
+    revenueShareForm:
+        type: \AppBundle\Widget\Page\FormWidget
+        properties:
+            modelClass: MemberBundle\Request\UpdateRevenueShareRequest
+            handler: '@member.handler.update_revenue_share::handle'
+            data: '@pageManager.customer'
+            notifications:
+                success:
+                    title: Saved
+                    message: Revenue Share settings have been saved
+            fields:
+                revenueShareSettings:
+                    addLabel: Add Range
+                    type: repeatable
+                    options:
+                        required: true
+                    fields:
+                        min:
+                            size: 6
+                            label: Value
+                            type: text
+                            options:
+                                attr:
+                                    class: 'form-control input-sm'
+                        max:
+                            size: 6
+                            label: Value
+                            type: text
+                            options:
+                                attr:
+                                    class: 'form-control input-sm'
+                        percentage:
+                            size: 6
+                            label: Value
+                            type: text
+                            options:
+                                attr:
+                                    class: 'form-control input-sm'
+                productId:
+                    type: hidden
+                productName:
+                    type: hidden
+                resourceId:
+                    type: hidden
+
+    turnoverCommissionByProductListRevenueShare:
+        type: \AppBundle\Widget\Page\ListWidget
+        properties:
+            class: \DbBundle\Entity\Customer
+            ajax:
+                url:
+                    route: member.turnover_commission.search
+                    params:
+                        id: '@=pageManager.getData("customer").getId()'
+                        orderBy: 'productName'
+                        precision: '2'
+                type: POST
+            columns:
+                productName:
+                    label: Product
+                    type: text
+                    exclude: true
+                memberId:
+                    label: Member ID
+                    type: text
+                totalTurnover:
+                    label: Total Turnover
+                    type: function
+                    function: turnoverCommissionDwlAmount
+                totalWinLoss:
+                    label: Total Member W/L
+                    type: function
+                    function: turnoverCommissionDwlAmount
+                totalBonus:
+                    label: Total Bonus
+                    type: function
+                    function: turnoverBonusAmount
+                #totalAffiliateCommission:
+                #    label: Affiliate Commission
+                #    type: function
+                #    function: turnoverCommissionAffiliateAmount
+                totalAffiliateRevenueShare:
+                    label: Affiliate Revenue Share
+                    type: function
+                    function: turnoverRevenueShareAffiliateAmount
+            footer:
+                columns:
+                    period:
+                        attrs:
+                            colspan: 2
+                        type: function
+                        function: turnoverCommissionPeriod
+                        from: period
+                    totalTurnover:
+                        type: function
+                        function: turnoverCommissionTotalTurnover
+                        from: totals
+                    totalWinLoss:
+                        type: function
+                        function: turnoverCommissionTotalWinLoss
+                        from: totals
+                    totalBonus:
+                        type: function
+                        function: turnoverBonusTotalBonus
+                        from: totals
+                    #totalAffiliateCommission:
+                    #    type: function
+                    #    function: turnoverCommissionTotalCommission
+                    #    from: totals
+                    totalAffiliateRevenueShare:
+                        type: function
+                        function: turnoverRevenueTotalRevenueShare
+                        from: totals
+            filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'fth>>ar<'form-group' <'m-t-10'>>c<'form-group' <'m-t-10'>>>
+            filters:
+                dwlDateFrom:
+                    label: DWL Date From
+                    type: date
+                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
+                    symbol: f
+                    attrs:
+                        placeholder: DWL Date From
+                        type: input
+                        class: form-control cls-date
+                    applyOnChanged: 0
+                dwlDateTo:
+                    label: DWL Date To
+                    type: date
+                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
+                    symbol: t
+                    attrs:
+                        placeholder: DWL Date To
+                        type: input
+                        class: form-control cls-date
+                    applyOnChanged: 0
+                hideZeroTurnover:
+                    label: 'Hide zero turnover?'
+                    type: checkbox
+                    symbol: h
+                    applyOnChanged: 0
+                applyFilter:
+                    attrs:
+                        class: btn btn-sm btn-default
+                resetFilter:
+                    attrs:
+                        class: btn btn-sm btn-inverse
+                btnExportCsv:
+                    type: button
+                    label: Export to CSV
+                    symbol: c
+                    attrs:
+                        class: btn btn-sm btn-inverse

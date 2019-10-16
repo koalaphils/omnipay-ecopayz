@@ -16,3 +16,6 @@ DbBundle\Entity\CommissionPeriod:
         status:
             expose: true
             groups: ['Default', 'periodBalance']
+        revenueShareStatus:
+            expose: true
+            groups: ['Default', 'periodBalance']

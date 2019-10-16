@@ -8,3 +8,8 @@ commission.recompute_and_payout:
     path: /commission/{commissionPeriodId}/recompute-and-payout/
     defaults:
         _controller: CommissionBundle:CommissionSetting:recomputeAndPayout
+
+commission.recompute_and_payout_revenue_share:
+    path: /commission/{commissionPeriodId}/recompute-and-payout-revenue-share/
+    defaults:
+        _controller: CommissionBundle:CommissionSetting:recomputeAndPayoutRevenueShare

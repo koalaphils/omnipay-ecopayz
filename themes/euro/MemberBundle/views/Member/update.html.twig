@@ -11,6 +11,8 @@
 {% widget_template widgets.createWebsiteForm 'MemberBundle:Member:widgets/update-widgets.html.twig' %}
 {% form_theme widgets.profileForm.getFormView() 'MemberBundle:Member:widgets/update-profile-form.html.twig' %}
 {% widget_template widgets.banners 'MemberBundle:Member:widgets/update-banners.html.twig' %}
+{% widget_template widgets.revenueShareForm 'MemberBundle:Member:widgets/update-revenueshare-form.html.twig' %}
+{% form_theme widgets.revenueShareForm.getFormView() 'MemberBundle:Member:widgets/update-revenueshare-form.html.twig' %}
 
 {% block title %}{{ "page.title.update"|trans({'%fullName%':customer.fullName},"MemberBundle") }}{% endblock %}
 
@@ -81,25 +83,66 @@
                                     <ul class="nav nav-tabs navtab-bg nav-justified">
                                         <li class="active">
                                             <a href="#running-commission" data-toggle="tab" aria-expanded="false">
-                                                <span>Running Commissions</span>
+                                                <span>Earnings by Period</span>
                                             </a>
                                         </li>
                                         <li class="">
                                             <a href="#commission-setting" data-toggle="tab" aria-expanded="true">
-                                                <span>Commission Settings</span>
+                                                <span>Affiliate Scheme</span>
                                             </a>
                                         </li>
                                         <li class="">
                                             <a href="#turnover-commission-product" data-toggle="tab" aria-expanded="false">
-                                                <span>Turnover/Commission (Product)</span>
+                                                <span>Earnings by Product</span>
                                             </a>
                                         </li>
                                         <li class="">
                                             <a href="#turnover-commission-member" data-toggle="tab" aria-expanded="false">
-                                                <span>Turnover/Commission (Member)</span>
+                                                <span>Earnings by Member</span>
                                             </a>
                                         </li>
                                     </ul>
+
+                                    <div class="tab-content" style="display: block">
+                                        <div class="tab-pane active" id="running-commission">
+                                            RUNNING REVENUE SHARE
+                                        </div>
+                                        <div class="tab-pane" id="commission-setting">
+                                            <!--To be added after Revenue Share development-->
+                                            <!--<div class="card-box table-responsive">
+                                                <h4 class="font-bold">Commission Scheme</h4>
+                                            </div>-->
+
+                                            <div class="card-box table-responsive">
+                                                <h4 class="font-bold">Revenue Share</h4>
+                                                <!-- Toggle Revenue Share -->
+                                                <label>Enable Revenue Share</label>
+                                                <label class="ui-switch">
+                                                    <input id="enableRevenueShare" type="checkbox" {{ customer.isRevenueShareEnabled() ? "checked='checked'" : "" }} />
+                                                    <span class="ui-slider round"></span>
+                                                </label>
+
+                                                <!-- Edit Revenue Share Modal -->
+                                                {{ widget_render(page.getWidget('revenueShareForm')) }}
+                                                
+                                                <!-- Revenue Share Table -->
+                                                {{ widget_render(page.getWidget('revenueShare')) }}
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane" id="turnover-commission-product">
+                                            <div class="card-box table-responsive">
+                                                {% if customer.isRevenueShareEnabled() %}
+                                                    {{ widget_render(page.getWidget('turnoverCommissionByProductListRevenueShare')) }}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane" id="turnover-commission-member">
+                                            <div class="card-box table-responsive">
+                                                EARNINGS BY MEMBER
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -503,7 +546,6 @@
         });
 
         $(function () {
-
             var verifyAjax = null;
             $('#verifyCustomer').on('change', function () {
                 var isChecked = this.checked;
@@ -639,6 +681,192 @@
                 {#{{ widgets.commissions.getFullId() }}Table.reloadTable();#}
             {#});#}
         });
+        
+        //Revenue Share
+        $(function () {
+            $('#enableRevenueShare').on('change', function () {
+                var isChecked = this.checked;
+
+                if (!isChecked){
+                    confirm2(
+                        'Are you sure you want to turn off revenue share?',
+                        'Turn off Revenue Share',
+                        {'closeOnConfirm': true},
+                        function (confirmed) {
+                            if (confirmed) {
+                                $.ajax({
+                                    'globalAjaxComplete': false,
+                                    'globalAjaxError': false,
+                                    'headers': {
+                                        'X-WIDGET-REQUEST': 'SaveRevenueShare'
+                                    },
+                                    'data': {'data': {'allow_revenue_share': isChecked}},
+                                    'type': 'POST',
+                                    'success': function () {
+                                        removeRevenueShareSettings();
+                                    },
+                                });
+                            } else {
+                                $('#enableRevenueShare').prop('checked', true);
+                            }
+                        }
+                    );
+                } else {
+                    $.ajax({
+                        'globalAjaxComplete': false,
+                        'globalAjaxError': false,
+                        'headers': {
+                            'X-WIDGET-REQUEST': 'SaveRevenueShare'
+                        },
+                        'data': {'data': {'allow_revenue_share': isChecked}},
+                        'type': 'POST',
+                    });
+                }
+            });
+
+            $('#{{ widgets.revenueShare.getFullId() }}_container').on('click', '.btn-edit', function () {
+                var tr = $(this).closest('tr');
+                var data = {{ widgets.revenueShare.getFullId() }}Table.dataTable.api().row(tr).data();
+                $('#{{ widgets.revenueShareForm.getFullId() }}_container').data('revenueShare', data);
+                $('#{{ widgets.revenueShareForm.getFullId() }}_container').modal('show');
+            });
+
+            $('#{{ widgets.revenueShareForm.getFormView().vars.id }}').on('form.success', function (e, data) {
+                {{ widgets.revenueShare.getFullId() }}Table.reloadTable();
+            });
+        });
+
+        
+        $('#{{ widgets.turnoverCommissionByProductListRevenueShare.getFullId() }}_container')
+        .on('xhr.dt', function (e, settings, json, xhr) {
+            if (typeof xhr.responseText !== 'undefined') {
+                var table = $(this);
+                var response = JSON.parse(xhr.responseText);
+                var period = response.period;
+
+                turnoverCommissionReport.filters[response.filters.orderBy] = response.filters;
+
+                table.find('input[name=dwlDateFrom]').val(moment(period.dwlDateFrom).format('L'));
+                table.find('input[name=dwlDateTo]').val(moment(period.dwlDateTo).format('L'));
+            }
+        }); 
+
+        $('#{{ widgets.turnoverCommissionByProductListRevenueShare.getFullId() }}_container').on('click', 'button[name=btnExportCsv]', function () {
+            exportTurnoverCommissionToCsv('productName');
+        });
+
+        function removeRevenueShareSettings() {
+            $.ajax({
+                'globalAjaxComplete': false,
+                'globalAjaxError': false,
+                'headers': {
+                    'X-WIDGET-REQUEST': 'RemoveRevenueShareSettings'
+                },
+                'type': 'POST',
+                'success': function () {
+                    {{ widgets.revenueShare.getFullId() }}Table.reloadTable();
+                },
+            });
+        }
+
+        function turnoverCommissionDwlAmount(data, type, full) {
+            return full.currencyCode + ' ' + data.rounded;
+        }
+
+        function turnoverCommissionDwlAmount(data, type, full) {
+            return full.currencyCode + ' ' + data.rounded;
+        }
+
+        function turnoverBonusAmount(data, type, full) {
+            return full.currencyCode + ' ' + full.totalBonus.rounded;
+        }
+
+        function turnoverCommissionAffiliateAmount(data, type, full) {
+            return '{{ customer.currencyCode }} ' + data.rounded;
+        }
+
+        function turnoverRevenueShareAffiliateAmount(data, type, full) {
+            return '{{ customer.currencyCode }} ' + full.totalRevenueShare.rounded;
+        }
+
+        function turnoverCommissionPeriod(period) {
+            return 'Date Covered: ' +
+            moment(period.dwlDateFrom).format('MMM D, YYYY') + ' - ' +
+            moment(period.dwlDateTo).format('MMM D, YYYY');
+        }
+
+        function turnoverCommissionTotalTurnover(totals) {
+            var value = '';
+
+            $.each(totals, function(key, total) {
+                value += total.currencyCode + ' ' + total.totalTurnover.rounded + "<br/>";
+            });
+
+            return value;
+        }
+
+        function turnoverCommissionTotalWinLoss(totals) {
+            var value = '';
+
+            $.each(totals, function(key, total) {
+                value += total.currencyCode + ' ' + total.totalWinLoss.rounded + "<br/>";
+            });
+
+            return value;
+        }
+
+        function turnoverBonusTotalBonus(totals) {
+            var value = '';
+            console.log(totals);
+            $.each(totals, function(key, total) {
+                value += total.currencyCode + ' ' + total.totalAffiliateBonus.rounded + "<br/>";
+            });
+
+            return value;
+        }
+
+        function turnoverCommissionTotalCommission(totals) {
+            var memberCurrencyCode = '{{ customer.currencyCode }}';
+
+            try {
+                var total = totals[0];
+                return memberCurrencyCode + ' ' + total.totalAffiliateCommission.rounded;
+            } catch (err) {
+                return memberCurrencyCode;
+            }
+        }
+
+        function turnoverRevenueTotalRevenueShare(totals) {
+            var memberCurrencyCode = '{{ customer.currencyCode }}';
+
+            try {
+                var total = totals[0];
+                return memberCurrencyCode + ' ' + total.totalAffiliateRevenueShare.rounded + "<br/>";
+            } catch (err) {
+                return memberCurrencyCode;
+            }
+        }
+
+        function revenueShareForPeriod(revenueShare) {
+            if (revenueShare.preceeding_running_revenue_share){
+                var revenue = revenueShare.preceeding_running_revenue_share.running_revenue_share;
+                if (revenueShare.preceeding_running_revenue_share.meta_data.data.hasOwnProperty('correctRevenueShare')){
+                    revenue = revenueShare.preceeding_running_revenue_share.meta_data.data.correctRevenueShare;
+                }
+
+                if (revenue < 0){
+                    return revenueShare.running_revenue_share;
+                } else {
+                    return revenueShare.revenue_share;
+                }
+            } else {
+                if (revenueShare.running_revenue_share < 0) {
+                    return revenueShare.running_revenue_share;
+                } else {
+                    return revenueShare.revenue_share;
+                }
+            }
+        }
 
         $(function () {
             displayAffiliateLinkVersions();
@@ -1013,6 +1241,77 @@
             } else {
                 return '<button class="btn btn-xs btn-success btn-website-enable">Enable</button>';
             }
+        }
+
+        // Revenue Share function
+        function revenueShareListAction(data, type, full)
+        {
+            var action = "<button class='btn btn-xs btn-primary btn-edit' data-toggle='modal' data-target='#revshareModal'>Edit</button";
+
+            return action;
+        }
+
+        function getMinRangeMin(data) {
+            return data.reduce((min, p) => parseInt(p.min) < parseInt(min) ? p.min : min, data[0].min);
+        }
+
+        function getMaxRangeMax(data) {
+            return data.reduce((max, p) => parseInt(p.max) > parseInt(max) ? p.max : max, data[0].max);
+        }
+
+        function getMinPercentage(data) {
+            return data.reduce((min, p) => parseInt(p.percentage) < parseInt(min) ? p.percentage : min, data[0].percentage);
+        }
+
+        function getMaxPercentage(data) {
+            return data.reduce((max, p) => parseInt(p.percentage) > parseInt(max) ? p.percentage : max, data[0].percentage);
+        }
+
+        function revenueShareAmountRange(data, type, full)
+        {   console.log(full);
+            var amountRange = 0.00 +' - '+ 0.00;
+            if (full.revenueShare.length != 0)
+            {
+                if (full.revenueShare.settings.length != 0) {
+                    amountRange = getMinRangeMin(full.revenueShare.settings) + ' - ' + getMaxRangeMax(full.revenueShare.settings);
+                }
+            }
+
+            return amountRange;
+        }
+
+        function revenueShareUpdatedDate(data, type, full)
+        {
+            var date = "";
+            if (full.revenueShare.created_at)
+            {
+                date = moment(full.revenueShare.created_at).format('MMM D, YYYY HH:mm:ss');
+            }
+
+            return date;
+        }
+
+        function revenueSharePercentageRange(data, type, full)
+        {
+            var amountRange = 0 + '%';
+            if (full.revenueShare.length != 0)
+            {
+                if (full.revenueShare.settings != 0) {
+                    if (full.revenueShare.settings.length != 1){
+                        amountRange = getMinPercentage(full.revenueShare.settings) + '% - ' + getMaxPercentage(full.revenueShare.settings) + '%';
+                    } else {
+                        if (getMaxPercentage(full.revenueShare.settings) != 0){
+                            amountRange = getMaxPercentage(full.revenueShare.settings) + '%';
+                        } else {
+                            amountRange = 0 + '% - ' + 0 + '%';
+                        }
+                    }
+                } else {
+                    amountRange = 0 + '% - ' + 0 + '%';
+                }
+            }
+
+            return amountRange;
         }
 
         function formatWebsite(data, type, full) {

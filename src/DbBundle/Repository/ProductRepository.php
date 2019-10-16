@@ -155,23 +155,23 @@ class ProductRepository extends BaseRepository
         $this->getEntityManager()->flush($entity);
     }
 
-    public function getAcWalletProduct(): ?Product
+    public function getPiwiWalletProduct(): ?Product
     {
         $queryBuilder = $this->createQueryBuilder('product')
             ->select('product')
-            ->where("JSON_EXTRACT(product.details, '$.ac_wallet') IS NOT NULL");
+            ->where("JSON_EXTRACT(product.details, '$.piwi_wallet') IS NOT NULL");
 
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }
 
-    public function getSkypeBettingProduct(): ?Product
+    /*public function getSkypeBettingProduct(): ?Product
     {
         $queryBuilder = $this->createQueryBuilder('product')
             ->select('product')
             ->where("JSON_CONTAINS(product.details, '{\"betadmin\": {\"tosync\": true}}') = 1");
 
         return $queryBuilder->getQuery()->getOneOrNullResult();
-    }
+    }*/
 
     public function getProductByCode(string $code): Product
     {

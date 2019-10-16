@@ -125,6 +125,11 @@ DbBundle\Entity\Customer:
             type: string
             column: customer_locale
             length: 12
+        allowRevenueShare:
+            type: boolean
+            column: customer_allow_revenue_share
+            options:
+                default: false
     manyToOne:
         currency:
             targetEntity: DbBundle\Entity\Currency

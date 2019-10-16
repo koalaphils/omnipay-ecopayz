@@ -32,6 +32,12 @@ DbBundle\Entity\CommissionPeriod:
             nullable: false
             options:
                 default: 1
+        revenueShareStatus:
+            type: tinyint
+            column: commission_period_revenue_share_status
+            nullable: false
+            options:
+                default: 1
         details:
             type: json
             column: commission_period_details

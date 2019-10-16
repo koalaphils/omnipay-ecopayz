@@ -645,9 +645,9 @@ class CustomerRepository extends BaseRepository
                     ->join('mp.product', 'p', Join::WITH, "JSON_EXTRACT(p.details, '$.ac_wallet') IS NULL");
             } elseif (array_get($filters, 'orderBy') == 'memberId') {
                 $queryBuilder->leftJoin('m.products', 'mp',
-                    Join::WITH, $queryBuilder->expr()->notIn('mp.product', ':acWalletProductId'))
+                    Join::WITH, $queryBuilder->expr()->notIn('mp.product', ':piwiWalletProductId'))
                     ->leftJoin('mp.product', 'p')
-                    ->setParameter('acWalletProductId', $filters['acWalletProductId']);
+                    ->setParameter('piwiWalletProductId', $filters['piwiWalletProductId']);
             }
         }
 
@@ -669,9 +669,9 @@ class CustomerRepository extends BaseRepository
                     ->join('mp.product', 'p', Join::WITH, "JSON_EXTRACT(p.details, '$.ac_wallet') IS NULL");
             } elseif (array_get($filters, 'orderBy') == 'memberId') {
                 $queryBuilder->leftJoin('m.products', 'mp',
-                    Join::WITH, $queryBuilder->expr()->notIn('mp.product', ':acWalletProductId'))
+                    Join::WITH, $queryBuilder->expr()->notIn('mp.product', ':piwiWalletProductId'))
                     ->leftJoin('mp.product', 'p')
-                    ->setParameter('acWalletProductId', $filters['acWalletProductId']);
+                    ->setParameter('piwiWalletProductId', $filters['piwiWalletProductId']);
             }
         }
 

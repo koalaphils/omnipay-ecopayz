@@ -16,6 +16,7 @@ use PinnacleBundle\Component\AuthComponent;
 use PinnacleBundle\Component\Exceptions\PinnacleException;
 use PinnacleBundle\Component\PinnacleInterface;
 use PinnacleBundle\Component\PlayerComponent;
+use PinnacleBundle\Component\ReportComponent;
 use PinnacleBundle\Component\TokenGenerator;
 use PinnacleBundle\Component\TransactionComponent;
 use PinnacleBundle\Component\Wrapper\RequestWrapper;
@@ -75,6 +76,11 @@ class PinnacleService implements PinnacleInterface
      */
     private $playerComponent;
 
+     /**
+     * @var ReportComponent
+     */
+    private $reportComponent;
+
     /**
      * @var LoggerInterface
      */
@@ -113,6 +119,7 @@ class PinnacleService implements PinnacleInterface
         $this->authComponent = new AuthComponent($this);
         $this->transactionComponent = new TransactionComponent($this);
         $this->playerComponent = new PlayerComponent($this);
+        $this->reportComponent = new ReportComponent($this);
     }
 
     public function get(string $path, array $query = [], array $params = []): ResponseInterface
@@ -188,6 +195,12 @@ class PinnacleService implements PinnacleInterface
     {
         return $this->playerComponent;
     }
+
+    public function getReportComponent(): ReportComponent
+    {
+        return $this->reportComponent;
+    }
+
 
     public function getPinnacleProduct(): Product
     {

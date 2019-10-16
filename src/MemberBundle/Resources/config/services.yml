@@ -41,6 +41,11 @@ services:
     member.commission_manager:
         class: MemberBundle\Manager\MemberCommissionManager
         parent: app.base_manager
+
+    member.revenue_share_manager:
+        class: MemberBundle\Manager\MemberRevenueShareManager
+        calls:
+            - ['setMemberRevenueShareRepository', ['@=service("doctrine").getRepository("DbBundle\\Entity\\MemberRevenueShare")']]
         
     member.referral_name_manager:
         class: MemberBundle\Manager\MemberReferralNameManager

@@ -285,7 +285,7 @@ class MemberManager extends AbstractManager
     }
 
     public function getCurrentPeriodReferralTurnoversAndCommissions(int $referrerId, DateTimeInterface $currentDate, array $filters): array
-    {
+    {   
         if (empty($filters['dwlDateFrom'] ?? null) || empty($filters['dwlDateTo'] ?? null)) {
             $currentPeriod = $this->getCommissionManager()->getCommissionPeriodForDate($currentDate);
 
@@ -295,8 +295,8 @@ class MemberManager extends AbstractManager
             }
         }
 
-        $acWallet = $this->getProductRepository()->getAcWalletProduct();
-        $filters['acWalletProductId'] = $acWallet->getId();
+        $piwiWallet = $this->getProductRepository()->getPiwiWalletProduct();
+        $filters['piwiWalletProductId'] = $piwiWallet->getId();
         $turnoversWinLossCommissions = $this->getTurnoversAndCommissionsByMember($referrerId, $filters);
 
         return $turnoversWinLossCommissions;
@@ -312,6 +312,7 @@ class MemberManager extends AbstractManager
             ['column' => $filters['orderBy'], 'dir' => 'ASC'],
             ['column' => $filters['orderBy'] == 'productName' ? 'memberId' : 'productName', 'dir' => 'ASC'],
         ];
+
         $result = [
             'recordsTotal' => $memberRepository->getReferralProductListTotalCountByReferrer($filters, $referrerId),
             'limit' => $filters['limit'],
@@ -330,6 +331,8 @@ class MemberManager extends AbstractManager
         $filters['startDate'] = $this->getSettingManager()->getSetting('commission.startDate');
         $this->precision = isset($filters['precision']) ? $filters['precision'] : 2;
 
+
+
         $memberReferralsTurnoversAndCommissions = $subTransactionRepository
             ->getReferralTurnoverWinLossCommissionByReferrer(
                 $filters, $orders, $referrerId, $filters['offset'], $filters['limit']
@@ -342,7 +345,11 @@ class MemberManager extends AbstractManager
                 $row = array_merge($row, [
                     'totalTurnover' => $this->formatCommissionAmount(0),
                     'totalWinLoss' => $this->formatCommissionAmount(0),
-                    'totalAffiliateCommission' => $this->formatCommissionAmount(0),
+                    #'totalAffiliateCommission' => $this->formatCommissionAmount(0),
+                    'totalAffiliateRevenueShare' => $this->formatCommissionAmount(0),
+                    'totalAffiliateBonus' => $this->formatCommissionAmount(0),
+                    'totalRevenueShare' => $this->formatCommissionAmount(0),
+                    'totalBonus' => $this->formatCommissionAmount(0),
                 ]);
 
                 if (array_has($memberReferralsTurnoversAndCommissions, $row['memberProductId'])) {
@@ -350,7 +357,11 @@ class MemberManager extends AbstractManager
 
                     $row['totalTurnover'] = $this->formatCommissionAmount($row['totalTurnover']);
                     $row['totalWinLoss'] = $this->formatCommissionAmount($row['totalWinLoss']);
-                    $row['totalAffiliateCommission'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
+                    #$row['totalAffiliateCommission'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
+                    $row['totalAffiliateRevenueShare'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
+                    $row['totalAffiliateBonus'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
+                    $row['totalRevenueShare'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
+                    $row['totalBonus'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
                 }
             }
         } else {
@@ -360,7 +371,11 @@ class MemberManager extends AbstractManager
             foreach ($result['records'] as &$row) {
                     $row['totalTurnover'] = $this->formatCommissionAmount($row['totalTurnover']);
                     $row['totalWinLoss'] = $this->formatCommissionAmount($row['totalWinLoss']);
-                    $row['totalAffiliateCommission'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
+                    #$row['totalAffiliateCommission'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
+                    $row['totalAffiliateRevenueShare'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
+                    $row['totalAffiliateBonus'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
+                    $row['totalRevenueShare'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
+                    $row['totalBonus'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
             }
         }
 
@@ -388,7 +403,9 @@ class MemberManager extends AbstractManager
                 $currency['totalWinLoss'] = $this->formatCommissionAmount($currency['totalWinLoss']);
             }
 
-            $currency['totalAffiliateCommission'] = $this->formatCommissionAmount($totalAffiliateCommission->toString());
+            #$currency['totalAffiliateCommission'] = $this->formatCommissionAmount($totalAffiliateCommission->toString());
+            $currency['totalAffiliateRevenueShare'] = $this->formatCommissionAmount($totalAffiliateCommission->toString());
+            $currency['totalAffiliateBonus'] = $this->formatCommissionAmount($totalAffiliateCommission->toString());
         }
 
         $result['totals'] = $currencies;

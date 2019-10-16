@@ -107,6 +107,11 @@ DbBundle\Entity\Customer:
             type: array
             groups: [preferences]
             serialized_name: preferences
+        allowRevenueShare:
+            exp: object.isRevenueShareEnabled()
+            expose: true
+            type: boolean
+            serialized_name: allow_revenue_share
 #        brokerageSyncId:
 #            exp: object.getBrokerageProductSyncId()
 #            expose: true
