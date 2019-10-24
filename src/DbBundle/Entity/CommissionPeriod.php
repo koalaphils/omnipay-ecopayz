@@ -48,6 +48,7 @@ class CommissionPeriod extends Entity implements ActionInterface, TimestampInter
         $this->conditions = [];
         $this->details = [];
         $this->status = self::STATUS_NOT_YET_COMPUTED;
+        $this->revenueShareStatus = self::STATUS_NOT_YET_COMPUTED;
     }
 
     public function getDWLDateFrom(): DateTimeImmutable

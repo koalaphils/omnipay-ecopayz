@@ -2,21 +2,25 @@
 
 namespace MemberBundle\Manager;
 
+use DateTimeInterface;
 use AppBundle\Manager\AbstractManager;
 use AppBundle\Manager\SettingManager;
 use AppBundle\Widget\Page\ListWidget;
+use AppBundle\ValueObject\Number;
 use CommissionBundle\Manager\CommissionManager;
-use DateTimeInterface;
+use CurrencyBundle\Manager\CurrencyManager;
 use DbBundle\Entity\Customer as Member;
 use DbBundle\Entity\User as MemberUser;
 use DbBundle\Entity\CustomerProduct as MemberProduct;
 use DbBundle\Entity\MemberCommission;
 use DbBundle\Entity\MemberRunningCommission;
+use DbBundle\Entity\MemberRevenueShare;
 use DbBundle\Entity\Product;
 use DbBundle\Entity\ProductCommission;
 use DbBundle\Entity\SubTransaction;
 use DbBundle\Entity\AuditRevision;
 use DbBundle\Entity\AuditRevisionLog;
+use DbBundle\Entity\Currency;
 use DbBundle\Repository\CustomerPaymentOptionRepository as MemberPaymentOptionRepository;
 use DbBundle\Repository\CustomerProductRepository as MemberProductRepository;
 use DbBundle\Repository\CustomerRepository as MemberRepository;
@@ -27,33 +31,41 @@ use DbBundle\Repository\ProductCommissionRepository;
 use DbBundle\Repository\ProductRepository;
 use DbBundle\Repository\SubTransactionRepository;
 use DbBundle\Repository\AuditRevisionRepository;
+use DbBundle\Repository\MemberRevenueShareRepository;
+use DbBundle\Repository\CurrencyRepository;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use MemberBundle\Event\ReferralEvent;
 use MemberBundle\Events;
+use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Translation\TranslatorInterface;
-use AppBundle\ValueObject\Number;
 use TransactionBundle\Manager\TransactionManager;
+use PinnacleBundle\Component\Model\WinlossResponse;
+use AppBundle\ValueObject\Money;
+use DateTimeImmutable;
 
 class MemberManager extends AbstractManager
 {
-    private $eventDispatcher;
     private $translator;
     private $entityManager;
     private $settingManager;
+    private $eventDispatcher;
     private $transactionManager;
     private $precision;
-
-    public function __construct(SettingManager $settingManager)
-    {
-        $this->settingManager = $settingManager;
-    }
-
     private $commissionManager;
     private $memberProductRepository;
     private $memberReferralNameRepository;
+    private $pinnacleService;
+
+    public function __construct(
+        PinnacleService $pinnacleService,
+        SettingManager $settingManager
+    ){
+        $this->pinnacleService = $pinnacleService;
+        $this->settingManager = $settingManager;
+    }
 
     public function verifyMember(Member $member): void
     {
@@ -285,7 +297,7 @@ class MemberManager extends AbstractManager
     }
 
     public function getCurrentPeriodReferralTurnoversAndCommissions(int $referrerId, DateTimeInterface $currentDate, array $filters): array
-    {   
+    {
         if (empty($filters['dwlDateFrom'] ?? null) || empty($filters['dwlDateTo'] ?? null)) {
             $currentPeriod = $this->getCommissionManager()->getCommissionPeriodForDate($currentDate);
 
@@ -296,119 +308,176 @@ class MemberManager extends AbstractManager
         }
 
         $piwiWallet = $this->getProductRepository()->getPiwiWalletProduct();
-        $filters['piwiWalletProductId'] = $piwiWallet->getId();
+        $filters['piwiWalletProductId'] = $piwiWallet->getId(); dump($filters);
         $turnoversWinLossCommissions = $this->getTurnoversAndCommissionsByMember($referrerId, $filters);
 
         return $turnoversWinLossCommissions;
     }
 
+    public function getDateTo($schemas, $key, $lastKey, $filters)
+    {   
+        if ($key == $lastKey) {
+            return $filters['dwlDateTo'];
+        } else {
+            $key += 1;
+            $date = \DateTime::createFromFormat('Y-m-d', $schemas[$key]['createdAt']);
+            $date->modify('-1 day');
+
+            return $date->format('Y-m-d');
+        }   
+    }
+
     public function getTurnoversAndCommissionsByMember(int $referrerId, array $filters): array
     {
         $memberRepository = $this->getRepository();
-        $subTransactionRepository = $this->getSubTransactionRepository();
-
+        $referrerDetails = $memberRepository->findById($referrerId);
         $filters['hideZeroTurnover'] = array_get($filters, 'hideZeroTurnover', false);
+        $filters['startDate'] = $this->getSettingManager()->getSetting('commission.startDate');
+
+        $result = [
+            'limit' => $filters['limit'],
+            'page' => $filters['page'],
+            'filters' => $filters,
+            'records' => [],
+            'allRecords' => [],
+            'recordsFiltered' => $memberRepository->getReferralProductListFilterCountByReferrer($filters, $referrerId),
+            'recordsTotal' => $memberRepository->getReferralProductListTotalCountByReferrer($filters, $referrerId),
+        ];
+
         $orders = [
             ['column' => $filters['orderBy'], 'dir' => 'ASC'],
             ['column' => $filters['orderBy'] == 'productName' ? 'memberId' : 'productName', 'dir' => 'ASC'],
         ];
 
-        $result = [
-            'recordsTotal' => $memberRepository->getReferralProductListTotalCountByReferrer($filters, $referrerId),
-            'limit' => $filters['limit'],
-            'page' => $filters['page'],
-            'filters' => $filters,
-        ];
-
-        if (!array_get($filters, 'hideZeroTurnover')) {
-            $result['records'] = $memberRepository->getReferralProductListByReferrer(
+        $membersAndProducts = $memberRepository->getAllReferralProductListByReferrer(
                 $filters, $orders, $referrerId, $filters['offset'], $filters['limit']
             );
-            $result['recordsFiltered'] = $memberRepository->getReferralProductListFilterCountByReferrer($filters, $referrerId);
-            $filters['memberProductIds'] = array_column($result['records'], 'memberProductId');
+
+        $this->precision = isset($filters['precision']) ? $filters['precision'] : 2;
+        $lookupPinBet = array_search(MemberRevenueShare::PINNACLE_PRODUCT_ID, array_column($membersAndProducts, 'productId'));
+
+        $schemas = [];
+        if (!is_null($lookupPinBet)) {
+            $schemas = $this->getMemberRevenueShareRepository()->findSchemeByRange($referrerId, MemberRevenueShare::PINNACLE_PRODUCT_ID, $filters);
+            $schemaCount = count($schemas);
+            $lastKey = $schemaCount - 1;
         }
 
-        $filters['startDate'] = $this->getSettingManager()->getSetting('commission.startDate');
-        $this->precision = isset($filters['precision']) ? $filters['precision'] : 2;
+        $subTransactionRepository = $this->getSubTransactionRepository();
+        $offset = $filters['offset'];
+        $displayCount = 0;
+        $recordCount = 0;
+        foreach ($membersAndProducts as &$row) {
+            $recordCount += 1;
+            $totalBonus = 0;
+            $totalWinLoss = 0;
+            $totalTurnover = 0;
+            $totalRevenueShare = 0;
 
+            $memberRecord = [
+                'productId' => $row['productId'],
+                'productName' => $row['productName'],
+                'memberId' => $row['memberId'],
+                'memberProductId' => $row['memberProductId'],
+                'currencyCode' => $row['currencyCode'],
+                'totalBonus' => $this->formatCommissionAmount($totalBonus),
+                'totalWinLoss' => $this->formatCommissionAmount($totalWinLoss),
+                'totalTurnover' => $this->formatCommissionAmount($totalTurnover),
+                'totalRevenueShare' => $this->formatCommissionAmount($totalRevenueShare)
+            ];
 
+            foreach ($schemas as $key => $schema) {
+                $bonus = 0;
+                $winLoss = 0;
+                $turnover = 0;
+                $revenueShare = 0;
 
-        $memberReferralsTurnoversAndCommissions = $subTransactionRepository
-            ->getReferralTurnoverWinLossCommissionByReferrer(
-                $filters, $orders, $referrerId, $filters['offset'], $filters['limit']
-            );
+                $newFrom = $schema['createdAt'];
+                $newTo = $this->getDateTo($schemas, $key, $lastKey, $filters);
+                if ($key == 0) {
+                    if ($filters['dwlDateFrom'] > $schema['createdAt']) {
+                        $newFrom = $filters['dwlDateFrom'];
+                    }
+                } else if ($key == $lastKey) {
+                    $newTo = $filters['dwlDateTo'];
+                }
 
-        if (!array_get($filters, 'hideZeroTurnover')) {
-            $memberReferralsTurnoversAndCommissions = array_column($memberReferralsTurnoversAndCommissions,null,'memberProductId');
+                // Get Pinnacle Data
+                $pinnacleData = $this->pinnacleService->getReportComponent()->winLoss($row['pinUserCode'], $newFrom, $newTo);
+                if ($pinnacleData instanceof WinLossResponse) {
+                    $winLoss = $pinnacleData->getTotalDetail('payout');
+                    $turnover = $pinnacleData->getTotalDetail('turnover');
+                    $totalWinLoss += $winLoss;
+                    $totalTurnover += $turnover;
+                }
 
-            foreach ($result['records'] as &$row) {
-                $row = array_merge($row, [
-                    'totalTurnover' => $this->formatCommissionAmount(0),
-                    'totalWinLoss' => $this->formatCommissionAmount(0),
-                    #'totalAffiliateCommission' => $this->formatCommissionAmount(0),
-                    'totalAffiliateRevenueShare' => $this->formatCommissionAmount(0),
-                    'totalAffiliateBonus' => $this->formatCommissionAmount(0),
-                    'totalRevenueShare' => $this->formatCommissionAmount(0),
-                    'totalBonus' => $this->formatCommissionAmount(0),
-                ]);
+                $filters['bonusDateFrom'] = $newFrom;
+                $filters['bonusDateTo'] = $newTo;
 
-                if (array_has($memberReferralsTurnoversAndCommissions, $row['memberProductId'])) {
-                    $row = array_get($memberReferralsTurnoversAndCommissions, $row['memberProductId']);
+                // Get Transaction Bonus
+                $memberBonus = $subTransactionRepository->getBonusByMember($filters, $orders, $row['memberId']);
+                if ($memberBonus){
+                    $bonus = $memberBonus['totalBonus'];
+                    $totalBonus += $bonus;
+                }
+                
+                $revenueShare = $this->getRevenueShare($schema, $winLoss, $bonus, $row['currencyCode'], $referrerDetails->getCurrencyCode());
+                $totalRevenueShare += $revenueShare;
+            }
 
-                    $row['totalTurnover'] = $this->formatCommissionAmount($row['totalTurnover']);
-                    $row['totalWinLoss'] = $this->formatCommissionAmount($row['totalWinLoss']);
-                    #$row['totalAffiliateCommission'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
-                    $row['totalAffiliateRevenueShare'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
-                    $row['totalAffiliateBonus'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
-                    $row['totalRevenueShare'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
-                    $row['totalBonus'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
+            $memberRecord['totalWinLoss'] = $this->formatCommissionAmount($totalWinLoss);
+            $memberRecord['totalTurnover'] = $this->formatCommissionAmount($totalTurnover);
+            $memberRecord['totalBonus'] = $this->formatCommissionAmount($totalBonus);
+            $memberRecord['totalRevenueShare'] = $this->formatCommissionAmount($totalRevenueShare);
+            $result['allRecords'][] = $memberRecord;
+
+            // Filter hideZeroTurnover
+            if (!(array_get($filters, 'hideZeroTurnover') && ($totalTurnover == 0))) {
+                // Display Data
+                if (($offset < $recordCount) && ($displayCount < $filters['limit'])){
+                    $displayCount += 1;
+                    $result['records'][] = $memberRecord;
                 }
             }
-        } else {
-            $result['records'] = $memberReferralsTurnoversAndCommissions;
-            $result['recordsFiltered'] = $subTransactionRepository->getReferralTurnoverWinLossCommissionFilterCountByReferrer($filters, $referrerId);
+        }
 
-            foreach ($result['records'] as &$row) {
-                    $row['totalTurnover'] = $this->formatCommissionAmount($row['totalTurnover']);
-                    $row['totalWinLoss'] = $this->formatCommissionAmount($row['totalWinLoss']);
-                    #$row['totalAffiliateCommission'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
-                    $row['totalAffiliateRevenueShare'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
-                    $row['totalAffiliateBonus'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
-                    $row['totalRevenueShare'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
-                    $row['totalBonus'] = $this->formatCommissionAmount($row['totalAffiliateCommission']);
+
+        $currencyPerRecord = array_column($result['allRecords'], 'currencyCode');
+        $currencies = array_unique($currencyPerRecord);
+        $curreciesRecords = [];
+
+        foreach ($currencies as $currency) {
+            $totalWinLoss = new Number(0);
+            $totalTurnover = new Number(0);
+            $totalAffiliateBonus = new Number(0);
+            $totalAffiliateRevenueShare = new Number(0);
+            
+            $perCurrency['currencyCode'] = $currency;
+            $perCurrency['totalWinLoss'] = $this->formatCommissionAmount(0);
+            $perCurrency['totalTurnover'] = $this->formatCommissionAmount(0);
+            $perCurrency['totalAffiliateBonus'] = $this->formatCommissionAmount(0);
+            $perCurrency['totalAffiliateRevenueShare'] = $this->formatCommissionAmount(0);
+
+            //Get record indexes that has match currency
+            $matchCurrency = array_filter($currencyPerRecord, function($k) use ($currency) {
+                return $k == $currency;
+            });
+
+            foreach ($matchCurrency as $key => $data) {
+                $totalWinLoss = $totalWinLoss->plus($result['allRecords'][$key]['totalWinLoss']['original']);
+                $totalTurnover = $totalTurnover->plus($result['allRecords'][$key]['totalTurnover']['original']);
+                $totalAffiliateBonus = $totalAffiliateBonus->plus($result['allRecords'][$key]['totalBonus']['original']);
+                $totalAffiliateRevenueShare = $totalAffiliateRevenueShare->plus($result['allRecords'][$key]['totalRevenueShare']['original']);
             }
+            
+            $perCurrency['totalWinLoss'] = $this->formatCommissionAmount($totalWinLoss);
+            $perCurrency['totalTurnover'] = $this->formatCommissionAmount($totalTurnover);
+            $perCurrency['totalAffiliateRevenueShare'] = $this->formatCommissionAmount($totalAffiliateRevenueShare);
+            $perCurrency['totalAffiliateBonus'] = $this->formatCommissionAmount($totalAffiliateBonus);
+            $curreciesRecords[] = $perCurrency;
         }
 
-        $currencies = $this->getMemberProductRepository()->getReferralCurrenciesByReferrer($referrerId);
-        $totals = array_column(
-            $subTransactionRepository
-            ->getTotalReferralTurnoverWinLossCommissionByReferrer($filters, $referrerId),
-            null,
-            'currencyCode'
-        );
-
-        $totalAffiliateCommission = new Number(0);
-        foreach ($totals as $total) {
-            $totalAffiliateCommission = $totalAffiliateCommission->plus($total['totalAffiliateCommission']);
-        }
-
-        foreach ($currencies as &$currency) {
-            $currency['totalTurnover'] = $this->formatCommissionAmount(0);
-            $currency['totalWinLoss'] = $this->formatCommissionAmount(0);
-
-            if (array_has($totals, $currency['currencyCode'])) {
-                $currency = array_get($totals, $currency['currencyCode']);
-
-                $currency['totalTurnover'] = $this->formatCommissionAmount($currency['totalTurnover']);
-                $currency['totalWinLoss'] = $this->formatCommissionAmount($currency['totalWinLoss']);
-            }
-
-            #$currency['totalAffiliateCommission'] = $this->formatCommissionAmount($totalAffiliateCommission->toString());
-            $currency['totalAffiliateRevenueShare'] = $this->formatCommissionAmount($totalAffiliateCommission->toString());
-            $currency['totalAffiliateBonus'] = $this->formatCommissionAmount($totalAffiliateCommission->toString());
-        }
-
-        $result['totals'] = $currencies;
+        $result['totals'] = $curreciesRecords;
         $result['period'] = [
             'dwlDateFrom' => $filters['dwlDateFrom'],
             'dwlDateTo' => $filters['dwlDateTo'],
@@ -417,14 +486,83 @@ class MemberManager extends AbstractManager
         return $result;
     }
 
+    public function getRevenueShare(array $schema, int $winLoss, int $bonus, string $fromCurrencyCode, string $toCurrencyCode)
+    {
+        $settings = json_decode($schema['revenueShareSettings'], true);
+        $totalRevenueShare = 0;
+        $absDwl = abs($winLoss);
+        $settingsCount = 0;
+        if ($settings){
+            $settingsCount = count($settings);
+        }
+
+        /*Temporarily, there is only 1 range per scheme as discussed with Ronnie*/
+        for($x=0; $x<$settingsCount; $x++) {
+            if ($settings[$x]["min"] <= $absDwl) {
+                $percentage = Number::div($settings[$x]["percentage"], 100)->toString();
+                $winLossMinBonus = Number::add($winLoss, $bonus)->toString();
+                $revenueShare = Number::mul(-1, $winLossMinBonus)->times($percentage)->toString();
+                $convertedTotalRevenueShare = $this->getConvertedCurrencyRate($schema['createdAt'], $fromCurrencyCode, $toCurrencyCode, $revenueShare);
+                $totalRevenueShare = $convertedTotalRevenueShare[$toCurrencyCode];
+            }
+        }
+
+        return $totalRevenueShare;
+    }
+
+    public function getConvertedCurrencyRate(string $transactionDate, string $fromCurrencyCode, string $toCurrencyCode, string $totalRevenueShare): array
+    {   
+        $transactionDate = new \DateTimeImmutable($transactionDate, new \DateTimeZone('UTC'));
+        $transactionDate = $transactionDate->format('Y-m-d');
+        $currencyDateRate = DateTimeImmutable::createFromFormat(
+            'Y-m-d H:i:s',
+            $transactionDate . ' 23:59:59'
+        );
+
+        $fromCurrency = $this->getCurrencyRepository()->findOneBy(['code' => $fromCurrencyCode]);
+        $toCurrency = $this->getCurrencyRepository()->findOneBy(['code' => $toCurrencyCode]);
+
+        $currencyRate = $convertionRate = $this
+                ->getCurrencyManager()
+                ->getConvertionRate($fromCurrency, $toCurrency, $currencyDateRate);
+
+        $commission = new Money(
+            $convertionRate->getSourceCurrency(),
+            $totalRevenueShare
+        );
+
+        $computed[$commission->getCurrencyCode()] = $commission->getAmount();
+        $computed['original'] = $commission->getAmount();
+
+        if (!$convertionRate->getSourceCurrency()->isEqualTo($convertionRate->getDestinationCurrency())) {
+            $convertedCommission = $commission->convertToCurrency(
+                $convertionRate->getDestinationCurrency(),
+                $convertionRate->getSourceRate(),
+                $convertionRate->getDestinationRate()
+            );
+            $computed[$convertedCommission->getCurrencyCode()] = $convertedCommission->getAmount();
+            $computed['original'] = $convertedCommission->getAmount();
+        }
+
+        return $computed;
+    }
+
     public function generateTurnoverCommissionReport(int $referrerId, array $filters): void
     {
         $separator = ',';
         $member = $this->getRepository()->find($referrerId);
         $memberCurrencyCode = $member->getCurrencyCode();
+        $allowRevenueShare = $member->isRevenueShareEnabled();
+
         $filters['limit'] = $this->getRepository()->getReferralProductListTotalCountByReferrer($filters, $referrerId);
         $filters['offset'] = 0;
         $result = $this->getTurnoversAndCommissionsByMember($referrerId, $filters);
+
+        $dateFrom = new DateTimeImmutable($result['period']['dwlDateFrom']);
+        $result['period']['dwlDateFrom'] = $dateFrom->format('Y-m-d');
+
+        $dateTo = new DateTimeImmutable($result['period']['dwlDateTo']);
+        $result['period']['dwlDateTo'] = $dateTo->format('Y-m-d');
 
         $csvReport = '';
         $csvReport .= 'Member: ' . $member->getFullName() . ' (' . $member->getUsername() . ')' . "\n\n";
@@ -432,13 +570,18 @@ class MemberManager extends AbstractManager
 
         $csvReport = '';
         $csvReport .= $filters['orderBy'] == 'productName' ? 'Product, Member ID' : 'Member ID, Product';
-        $csvReport .= ', Total Turnover,  Total W/L, Affiliate Commission';
+        
+        if ($allowRevenueShare) {
+            $csvReport .= ', Total Turnover,  Total W/L, Total Bonus, Affiliate Revenue Share';  
+        } else {
+            $csvReport .= ', Total Turnover,  Total W/L';
+        }
+        
         $csvReport .= "\n";
         echo $csvReport;
 
         foreach ($result['records'] as $record) {
             $csvReport = '';
-
             if ($filters['orderBy'] == 'productName') {
                 $csvReport .= $record['productName'] . $separator;
                 $csvReport .= $record['memberId'] . $separator;
@@ -453,7 +596,11 @@ class MemberManager extends AbstractManager
             if (!is_null($record['memberProductId'])) {
                 $csvReport .= '"' . $record['currencyCode'] . ' ' . $record['totalTurnover']['rounded'] . '"' . $separator;
                 $csvReport .= '"' . $record['currencyCode'] . ' ' . $record['totalWinLoss']['rounded']  . '"' . $separator;
-                $csvReport .= '"' . $memberCurrencyCode . ' ' . $record['totalAffiliateCommission']['rounded']  . '"' . $separator;
+                
+                if ($allowRevenueShare) {
+                    $csvReport .= '"' . $memberCurrencyCode . ' ' . $record['totalBonus']['rounded']  . '"' . $separator;
+                    $csvReport .= '"' . $memberCurrencyCode . ' ' . $record['totalRevenueShare']['rounded']  . '"' . $separator;
+                }
             } else {
                 $csvReport .= 'No products' . $separator . $separator . $separator . $separator;
             }
@@ -465,13 +612,15 @@ class MemberManager extends AbstractManager
 
         $totalTurnover = [];
         $totalWinLoss = [];
-        $totalAffiliateCommission = [];
+        $totalBonus = []; 
+        $totalRevenueShare = [];
 
         foreach ($result['totals'] as $total) {
             $currencyCode = $total['currencyCode'];
             $totalTurnover[$currencyCode] = $total['totalTurnover'];
             $totalWinLoss[$currencyCode] = $total['totalWinLoss'];
-            $totalAffiliateCommission[$currencyCode] = $total['totalAffiliateCommission'];
+            $totalAffiliateBonus[$currencyCode] = $total['totalAffiliateBonus'];
+            $totalAffiliateRevenueShare[$currencyCode] = $total['totalAffiliateRevenueShare'];
         }
 
         $csvReport = '';
@@ -489,9 +638,19 @@ class MemberManager extends AbstractManager
         }
         $csvReport .= '",';
 
-        $csvReport .= '"';
-        $csvReport .= $memberCurrencyCode . ' ' . $totalAffiliateCommission[$memberCurrencyCode]['rounded'] . "\n";
-        $csvReport .= '"';
+        if ($allowRevenueShare) {
+            $csvReport .= '"';
+            foreach ($totalAffiliateBonus as $currencyCode => $total) {
+                $csvReport .= $currencyCode . ' ' . $total['rounded'] . "\n";
+            }
+            $csvReport .= '",';
+        }
+
+        if ($allowRevenueShare) {
+            $csvReport .= '"';
+            $csvReport .= $memberCurrencyCode . ' ' . $totalAffiliateRevenueShare[$memberCurrencyCode]['rounded'] . "\n";
+            $csvReport .= '"';
+        }
 
         echo $csvReport;
     }
@@ -547,6 +706,11 @@ class MemberManager extends AbstractManager
         $this->commissionManager = $commissionManager;
     }
 
+    public function setCurrencyManager(CurrencyManager $currencyManager): void
+    {
+        $this->currencyManager = $currencyManager;
+    }
+
     public function setMemberProductRepository(MemberProductRepository $memberProductRepository): void
     {
         $this->memberProductRepository = $memberProductRepository;
@@ -555,6 +719,11 @@ class MemberManager extends AbstractManager
     public function setMemberPaymentOptionRepository(MemberPaymentOptionRepository $memberPaymentOptionRepository): void
     {
         $this->memberPaymentOptionRepository = $memberPaymentOptionRepository;
+    }
+
+    public function setCurrencyRepository(CurrencyRepository $currencyRepository): void
+    {
+        $this->currencyRepository = $currencyRepository;
     }
 
     public function getMemberLocale(Member $member): string
@@ -626,6 +795,11 @@ class MemberManager extends AbstractManager
         return $this->settingManager;
     }
 
+    public function getCurrencyManager(): CurrencyManager
+    {
+        return $this->currencyManager;
+    }
+
     private function getCommissionManager(): CommissionManager
     {
         return $this->commissionManager;
@@ -644,5 +818,15 @@ class MemberManager extends AbstractManager
     private function getMemberPaymentOptionRepository(): MemberPaymentOptionRepository
     {
         return $this->memberPaymentOptionRepository;
+    }
+
+    private function getMemberRevenueShareRepository(): MemberRevenueShareRepository
+    {
+        return $this->getDoctrine()->getRepository(MemberRevenueShare::class);
+    }
+
+    private function getCurrencyRepository(): CurrencyRepository
+    {
+        return $this->getDoctrine()->getRepository(Currency::class);
     }
 }
