@@ -308,7 +308,7 @@ class MemberManager extends AbstractManager
         }
 
         $piwiWallet = $this->getProductRepository()->getPiwiWalletProduct();
-        $filters['piwiWalletProductId'] = $piwiWallet->getId(); dump($filters);
+        $filters['piwiWalletProductId'] = $piwiWallet->getId();
         $turnoversWinLossCommissions = $this->getTurnoversAndCommissionsByMember($referrerId, $filters);
 
         return $turnoversWinLossCommissions;
