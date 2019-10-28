@@ -441,10 +441,9 @@ class MemberManager extends AbstractManager
             }
         }
 
-
         $currencyPerRecord = array_column($result['allRecords'], 'currencyCode');
         $currencies = array_unique($currencyPerRecord);
-        $curreciesRecords = [];
+        $currenciesRecords = [];
 
         foreach ($currencies as $currency) {
             $totalWinLoss = new Number(0);
@@ -474,10 +473,10 @@ class MemberManager extends AbstractManager
             $perCurrency['totalTurnover'] = $this->formatCommissionAmount($totalTurnover);
             $perCurrency['totalAffiliateRevenueShare'] = $this->formatCommissionAmount($totalAffiliateRevenueShare);
             $perCurrency['totalAffiliateBonus'] = $this->formatCommissionAmount($totalAffiliateBonus);
-            $curreciesRecords[] = $perCurrency;
+            $currenciesRecords[] = $perCurrency;
         }
 
-        $result['totals'] = $curreciesRecords;
+        $result['totals'] = $currenciesRecords;
         $result['period'] = [
             'dwlDateFrom' => $filters['dwlDateFrom'],
             'dwlDateTo' => $filters['dwlDateTo'],
