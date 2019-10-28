@@ -273,4 +273,39 @@ class SubTransactionRepository extends BaseRepository
 
         return $queryBuilder->getQuery()->iterate();
     }
+
+    public function getBonusByMember(array $filters, array $orders, int $memberId): ?array
+    {
+        $queryBuilder = $this->createQueryBuilder('subTransaction');
+        $queryBuilder
+        ->select('customer.id AS memberId', "SUM(IFNULL(transaction.amount, 0)) AS totalBonus")
+        ->innerJoin('subTransaction.parent', 'transaction')
+        ->innerJoin('transaction.customer', 'customer')
+        ->where($queryBuilder->expr()->andX()->addMultiple([
+                'transaction.type = :tranBonus',
+                'transaction.status = :submitted',
+                'transaction.isVoided = :isVoided',
+                'customer.id = :memberId',
+            ]))
+            ->setParameters([
+                'tranBonus' => Transaction::TRANSACTION_TYPE_BONUS,
+                'submitted' => Transaction::TRANSACTION_STATUS_END,
+                'isVoided' => false,
+                'memberId' => $memberId,
+            ]);
+
+        if (array_has($filters, 'bonusDateFrom')) {
+            $queryBuilder->andWhere('transaction.date >= :from');
+            $queryBuilder->setParameter('from', new \DateTime($filters['bonusDateFrom']));
+        }
+
+        if (array_has($filters, 'bonusDateTo')) {
+            $queryBuilder->andWhere('transaction.date <= :to');
+            $queryBuilder->setParameter('to', (new \DateTime($filters['bonusDateTo'] . '+1 day')));
+        }
+
+        $queryBuilder->groupBy('customer.id');
+
+        return $queryBuilder->getQuery()->getOneOrNullResult();
+    }
 }

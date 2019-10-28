@@ -1139,7 +1139,7 @@ widgets:
                 resourceId:
                     type: hidden
 
-    turnoverCommissionByProductListRevenueShare:
+    affiliateEarningsByProduct:
         type: \AppBundle\Widget\Page\ListWidget
         properties:
             class: \DbBundle\Entity\Customer
@@ -1162,50 +1162,142 @@ widgets:
                 totalTurnover:
                     label: Total Turnover
                     type: function
-                    function: turnoverCommissionDwlAmount
+                    function: turnoverAmount
                 totalWinLoss:
                     label: Total Member W/L
                     type: function
-                    function: turnoverCommissionDwlAmount
+                    function: winlossAmount
                 totalBonus:
                     label: Total Bonus
                     type: function
-                    function: turnoverBonusAmount
-                #totalAffiliateCommission:
-                #    label: Affiliate Commission
-                #    type: function
-                #    function: turnoverCommissionAffiliateAmount
+                    function: bonusAmount
                 totalAffiliateRevenueShare:
                     label: Affiliate Revenue Share
                     type: function
-                    function: turnoverRevenueShareAffiliateAmount
+                    function: revenueShareAmount
             footer:
                 columns:
                     period:
                         attrs:
                             colspan: 2
                         type: function
-                        function: turnoverCommissionPeriod
+                        function: commissionPeriod
                         from: period
                     totalTurnover:
                         type: function
-                        function: turnoverCommissionTotalTurnover
+                        function: totalAffiliateTurnover
                         from: totals
                     totalWinLoss:
                         type: function
-                        function: turnoverCommissionTotalWinLoss
+                        function: totalAffiliateWinLoss
                         from: totals
                     totalBonus:
                         type: function
-                        function: turnoverBonusTotalBonus
+                        function: totalAffiliateBonus
                         from: totals
-                    #totalAffiliateCommission:
-                    #    type: function
-                    #    function: turnoverCommissionTotalCommission
-                    #    from: totals
                     totalAffiliateRevenueShare:
                         type: function
-                        function: turnoverRevenueTotalRevenueShare
+                        function: totalAffiliateRevenueShare
+                        from: totals
+            filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'fth>>ar<'form-group' <'m-t-10'>>c<'form-group' <'m-t-10'>>>
+            filters:
+                dwlDateFrom:
+                    label: DWL Date From
+                    type: date
+                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
+                    symbol: f
+                    attrs:
+                        placeholder: DWL Date From
+                        type: input
+                        class: form-control cls-date
+                    applyOnChanged: 0
+                dwlDateTo:
+                    label: DWL Date To
+                    type: date
+                    dom: <'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>
+                    symbol: t
+                    attrs:
+                        placeholder: DWL Date To
+                        type: input
+                        class: form-control cls-date
+                    applyOnChanged: 0
+                hideZeroTurnover:
+                    label: 'Hide zero turnover?'
+                    type: checkbox
+                    symbol: h
+                    applyOnChanged: 0
+                applyFilter:
+                    attrs:
+                        class: btn btn-sm btn-default
+                resetFilter:
+                    attrs:
+                        class: btn btn-sm btn-inverse
+                btnExportCsv:
+                    type: button
+                    label: Export to CSV
+                    symbol: c
+                    attrs:
+                        class: btn btn-sm btn-inverse
+
+    affiliateEarningsByMember:
+        type: \AppBundle\Widget\Page\ListWidget
+        properties:
+            class: \DbBundle\Entity\Customer
+            ajax:
+                url:
+                    route: member.turnover_commission.search
+                    params:
+                        id: '@=pageManager.getData("customer").getId()'
+                        orderBy: 'memberId'
+                        precision: '2'
+                type: POST
+            columns:
+                memberId:
+                    label: Member ID
+                    type: text
+                    exclude: true
+                productName:
+                    label: Product
+                    type: text
+                totalTurnover:
+                    label: Total Turnover
+                    type: function
+                    function: turnoverAmount
+                totalWinLoss:
+                    label: Total Member W/L
+                    type: function
+                    function: winlossAmount
+                totalBonus:
+                    label: Total Bonus
+                    type: function
+                    function: bonusAmount
+                totalAffiliateRevenueShare:
+                    label: Affiliate Revenue Share
+                    type: function
+                    function: revenueShareAmount
+            footer:
+                columns:
+                    period:
+                        attrs:
+                            colspan: 2
+                        type: function
+                        function: commissionPeriod
+                        from: period
+                    totalTurnover:
+                        type: function
+                        function: totalAffiliateTurnover
+                        from: totals
+                    totalWinLoss:
+                        type: function
+                        function: totalAffiliateWinLoss
+                        from: totals
+                    totalBonus:
+                        type: function
+                        function: totalAffiliateBonus
+                        from: totals
+                    totalAffiliateRevenueShare:
+                        type: function
+                        function: totalAffiliateRevenueShare
                         from: totals
             filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'fth>>ar<'form-group' <'m-t-10'>>c<'form-group' <'m-t-10'>>>
             filters:

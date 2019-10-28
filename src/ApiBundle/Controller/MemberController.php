@@ -52,6 +52,8 @@ class MemberController extends AbstractController
         $filters['offset'] = ($filters['page'] - 1) * $filters['limit'];
         $filters['orderBy'] = $request->get('orderBy');
         $filters['precision'] = $request->get('precision');
+        $filters['filterRevenueShare'] = $request->get('filterRevenueShare', 0);
+        $filters['sort'] = $request->get('sort', 'asc');
 
         if ($request->query->has('dwlDateFrom')) {
             $filters['dwlDateFrom'] = $request->query->get('dwlDateFrom');
@@ -71,6 +73,14 @@ class MemberController extends AbstractController
 
         $currentPeriodReferralTurnoversAndCommissions = $this->getMemberManager()
             ->getCurrentPeriodReferralTurnoversAndCommissions($filters);
+
+        if ($request->query->has('dwlDateFrom')) {
+            $currentPeriodReferralTurnoversAndCommissions['period']['dwlDateFrom'] = convert_to_timezone($request->query->get('dwlDateFrom'))->format('c');
+        }
+
+        if ($request->query->has('dwlDateTo')) {
+            $currentPeriodReferralTurnoversAndCommissions['period']['dwlDateTo'] = convert_to_timezone($request->query->get('dwlDateTo'))->format('c');
+        }
 
         return $this->view($currentPeriodReferralTurnoversAndCommissions);
     }

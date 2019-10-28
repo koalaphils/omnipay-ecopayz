@@ -21,6 +21,7 @@ class MemberRevenueShare extends Entity implements ActionInterface, VersionableI
     const REVENUE_RANGE_MAX = 0;
     const REVENUE_PERCENTAGE_MIN = 0;
     const REVENUE_PERCENTAGE_MAX = 0;
+    const PINNACLE_PRODUCT_ID = 1;
     private $member;
     private $product;
     private $rangeMin;

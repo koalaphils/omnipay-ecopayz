@@ -108,11 +108,6 @@
                                             RUNNING REVENUE SHARE
                                         </div>
                                         <div class="tab-pane" id="commission-setting">
-                                            <!--To be added after Revenue Share development-->
-                                            <!--<div class="card-box table-responsive">
-                                                <h4 class="font-bold">Commission Scheme</h4>
-                                            </div>-->
-
                                             <div class="card-box table-responsive">
                                                 <h4 class="font-bold">Revenue Share</h4>
                                                 <!-- Toggle Revenue Share -->
@@ -131,14 +126,12 @@
                                         </div>
                                         <div class="tab-pane" id="turnover-commission-product">
                                             <div class="card-box table-responsive">
-                                                {% if customer.isRevenueShareEnabled() %}
-                                                    {{ widget_render(page.getWidget('turnoverCommissionByProductListRevenueShare')) }}
-                                                {% endif %}
+                                                {{ widget_render(page.getWidget('affiliateEarningsByProduct')) }}
                                             </div>
                                         </div>
                                         <div class="tab-pane" id="turnover-commission-member">
                                             <div class="card-box table-responsive">
-                                                EARNINGS BY MEMBER
+                                                {{ widget_render(page.getWidget('affiliateEarningsByMember')) }}
                                             </div>
                                         </div>
                                     </div>
@@ -737,7 +730,7 @@
         });
 
         
-        $('#{{ widgets.turnoverCommissionByProductListRevenueShare.getFullId() }}_container')
+        $('#{{ widgets.affiliateEarningsByProduct.getFullId() }}_container, #{{ widgets.affiliateEarningsByMember.getFullId() }}_container')
         .on('xhr.dt', function (e, settings, json, xhr) {
             if (typeof xhr.responseText !== 'undefined') {
                 var table = $(this);
@@ -751,9 +744,21 @@
             }
         }); 
 
-        $('#{{ widgets.turnoverCommissionByProductListRevenueShare.getFullId() }}_container').on('click', 'button[name=btnExportCsv]', function () {
-            exportTurnoverCommissionToCsv('productName');
+        $('#{{ widgets.affiliateEarningsByProduct.getFullId() }}_container').on('click', 'button[name=btnExportCsv]', function () {
+            exportAffiliateReportToCsv('productName');
         });
+
+        $('#{{ widgets.affiliateEarningsByMember.getFullId() }}_container').on('click', 'button[name=btnExportCsv]', function () {
+            exportAffiliateReportToCsv('memberId');
+        });
+
+        function exportAffiliateReportToCsv(orderBy) {
+            var filters = { 'filters': turnoverCommissionReport.filters[orderBy] };
+            var exportUrl = turnoverCommissionReport.exportUrl.replace('__orderBy__', orderBy);
+            exportUrl = exportUrl.replace('__id__', '{{ customer.id }}');
+
+            window.open(exportUrl + '?' + $.param(filters), '_blank');
+        }
 
         function removeRevenueShareSettings() {
             $.ajax({
@@ -769,33 +774,29 @@
             });
         }
 
-        function turnoverCommissionDwlAmount(data, type, full) {
+        function turnoverAmount(data, type, full) {
             return full.currencyCode + ' ' + data.rounded;
         }
 
-        function turnoverCommissionDwlAmount(data, type, full) {
+        function winlossAmount(data, type, full) {
             return full.currencyCode + ' ' + data.rounded;
         }
 
-        function turnoverBonusAmount(data, type, full) {
+        function bonusAmount(data, type, full) {
             return full.currencyCode + ' ' + full.totalBonus.rounded;
         }
 
-        function turnoverCommissionAffiliateAmount(data, type, full) {
-            return '{{ customer.currencyCode }} ' + data.rounded;
-        }
-
-        function turnoverRevenueShareAffiliateAmount(data, type, full) {
+        function revenueShareAmount(data, type, full) {
             return '{{ customer.currencyCode }} ' + full.totalRevenueShare.rounded;
         }
 
-        function turnoverCommissionPeriod(period) {
+        function commissionPeriod(period) {
             return 'Date Covered: ' +
             moment(period.dwlDateFrom).format('MMM D, YYYY') + ' - ' +
             moment(period.dwlDateTo).format('MMM D, YYYY');
         }
 
-        function turnoverCommissionTotalTurnover(totals) {
+        function totalAffiliateTurnover(totals) {
             var value = '';
 
             $.each(totals, function(key, total) {
@@ -805,7 +806,7 @@
             return value;
         }
 
-        function turnoverCommissionTotalWinLoss(totals) {
+        function totalAffiliateWinLoss(totals) {
             var value = '';
 
             $.each(totals, function(key, total) {
@@ -815,9 +816,8 @@
             return value;
         }
 
-        function turnoverBonusTotalBonus(totals) {
+        function totalAffiliateBonus(totals) {
             var value = '';
-            console.log(totals);
             $.each(totals, function(key, total) {
                 value += total.currencyCode + ' ' + total.totalAffiliateBonus.rounded + "<br/>";
             });
@@ -825,25 +825,14 @@
             return value;
         }
 
-        function turnoverCommissionTotalCommission(totals) {
+        function totalAffiliateRevenueShare(totals) {
             var memberCurrencyCode = '{{ customer.currencyCode }}';
+            var member = totals.find(obj => obj.currencyCode === memberCurrencyCode);
 
             try {
-                var total = totals[0];
-                return memberCurrencyCode + ' ' + total.totalAffiliateCommission.rounded;
+                return memberCurrencyCode + ' ' + member.totalAffiliateRevenueShare.rounded + "<br/>";
             } catch (err) {
-                return memberCurrencyCode;
-            }
-        }
-
-        function turnoverRevenueTotalRevenueShare(totals) {
-            var memberCurrencyCode = '{{ customer.currencyCode }}';
-
-            try {
-                var total = totals[0];
-                return memberCurrencyCode + ' ' + total.totalAffiliateRevenueShare.rounded + "<br/>";
-            } catch (err) {
-                return memberCurrencyCode;
+                return '';
             }
         }
 
@@ -1268,7 +1257,7 @@
         }
 
         function revenueShareAmountRange(data, type, full)
-        {   console.log(full);
+        {
             var amountRange = 0.00 +' - '+ 0.00;
             if (full.revenueShare.length != 0)
             {

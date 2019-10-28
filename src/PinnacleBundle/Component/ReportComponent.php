@@ -12,7 +12,7 @@ class ReportComponent extends PinnacleComponent
 
     public function winloss(string $userCode, string $dateFrom, string $dateTo): WinlossResponse
     {
-        $data = $this->get(self::WINLOSS, ['userCode' => $userCode, 'dateFrom' => $dateFrom, 'dateTo' => $dateTo]);
+        $data = $this->get(self::WINLOSS_PATH, ['userCode' => $userCode, 'dateFrom' => $dateFrom, 'dateTo' => $dateTo]);
 
         return WinlossResponse::create($data);
     }
