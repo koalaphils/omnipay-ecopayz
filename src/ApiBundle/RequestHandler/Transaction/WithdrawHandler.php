@@ -146,6 +146,8 @@ class WithdrawHandler
         $fields = array_get($withdrawRequest->getMeta()->toArray(), 'fields', []);
         $fields['is_withdrawal'] = 1;
 
+        unset($fields['account_id']);
+
         $memberPaymentOption = $this->memberPaymentOptionRepository->findByFields((int) $member->getId(), $withdrawRequest->getPaymentOptionType(), $fields);
         if ($memberPaymentOption instanceof CustomerPaymentOption) {
             return $memberPaymentOption;

@@ -148,8 +148,10 @@ class DepositHandler
 
         $fields = array_get($depositRequest->getMeta()->toArray(), 'fields', []);
         $fields['is_deposit'] = 1;
+
+        unset($fields['account_id']);
+
         if ($depositRequest->getPaymentOptionType() === $this->settingManager->getSetting('bitcoin.setting.paymentOption')) {
-            unset($fields['account_id']);
             unset($fields['email']);
         }
 
