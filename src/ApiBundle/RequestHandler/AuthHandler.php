@@ -296,9 +296,9 @@ class AuthHandler
         if ($forgotPasswordRequest->getEmail() === '') {
             $user = $this->userRepository->findUserByPhoneNumber($forgotPasswordRequest->getPhoneNumber(), $forgotPasswordRequest->getCountryPhoneCode());
         } else {
-            $user = $this->userRepository->findByEmail($forgotPasswordRequest->getEmail(), 1);
-            if (is_null($user)) {
-                $user = $this->userRepository->findByEmail($forgotPasswordRequest->getEmail(), 4);
+            $user = $this->userRepository->findByEmail($forgotPasswordRequest->getEmail(), User::USER_TYPE_MEMBER);
+            if (is_null($user) || empty($user)) {
+                $user = $this->userRepository->findByEmail($forgotPasswordRequest->getEmail(), User::USER_TYPE_AFFILIATE);
             }
         }
 
