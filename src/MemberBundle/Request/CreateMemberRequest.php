@@ -22,6 +22,7 @@ class CreateMemberRequest implements GroupSequenceProviderInterface
     private $gender;
     private $phoneNumber;
     private $useEmail;
+    private $userType;
 
     public function __construct()
     {
@@ -35,6 +36,7 @@ class CreateMemberRequest implements GroupSequenceProviderInterface
         $this->gender = Customer::MEMBER_GENDER_NOT_SET;
         $this->phoneNumber = '';
         $this->useEmail = true;
+        $this->userType = null;
     }
 
     public function isUseEmail(): bool
@@ -157,6 +159,16 @@ class CreateMemberRequest implements GroupSequenceProviderInterface
     public function setGender(int $gender): void
     {
         $this->gender = $gender;
+    }
+
+    public function getUserType(): ?int
+    {
+        return $this->userType;
+    }
+
+    public function setUserType(int $type): void
+    {
+        $this->userType = $type;
     }
 
     public function getCurrency(): ?int
