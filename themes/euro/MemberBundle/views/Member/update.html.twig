@@ -242,8 +242,6 @@
     {{ widget_render(page.getWidget('productForm')) }}
     {{ widget_render(page.getWidget('updateProductForm')) }}
     {{ widget_render(page.getWidget('linkForm')) }}
-    {#{{ widget_render(page.getWidget('addCommissionForm')) }}#}
-    {#{{ widget_render(page.getWidget('updateCommissionForm')) }}#}
     {{ widget_render(widgets.createMemberReferralNameForm) }}
     {{ widget_render(page.getWidget('createWebsiteForm')) }}
 {% endblock modals %}
@@ -298,7 +296,7 @@
             return location;
         }
 
-        $(function () {
+        /*$(function () {
             $('.page-widget-list').on('ztable.created', function () {
                 if ($(this).is(':visible')) {
                     let ztable = $(this).data('ztable');
@@ -319,7 +317,7 @@
                     }
                 });
             });
-        });
+        });*/
 
         function transactionListStatus(data, type, full)
         {
