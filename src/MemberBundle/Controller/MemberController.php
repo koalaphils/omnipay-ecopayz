@@ -423,7 +423,6 @@ class MemberController extends PageController
 
         $customer = $this->getCustomerRepository()->find($id);
         $filters['revenueShare'] = $customer->isRevenueShareEnabled();
-        $filters['filterRevenueShare'] = array_get($data, 'filterRevenueShare', 0);
         $filters['sort'] = array_get($data, 'sort', 'asc');
         $filters['limit'] = array_get($data, 'limit', 10);
         $filters['page'] = (int) array_get($data, 'page', 1);

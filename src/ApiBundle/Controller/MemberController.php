@@ -52,7 +52,6 @@ class MemberController extends AbstractController
         $filters['offset'] = ($filters['page'] - 1) * $filters['limit'];
         $filters['orderBy'] = $request->get('orderBy');
         $filters['precision'] = $request->get('precision');
-        $filters['filterRevenueShare'] = $request->get('filterRevenueShare', 0);
         $filters['sort'] = $request->get('sort', 'asc');
 
         if ($request->query->has('dwlDateFrom')) {
