@@ -105,7 +105,9 @@
 
                                     <div class="tab-content" style="display: block">
                                         <div class="tab-pane active" id="running-commission">
-                                            RUNNING REVENUE SHARE
+                                            <div class="card-box table-responsive">
+                                                {{ widget_render(page.getWidget('runningCommissionListRevenueShare')) }}
+                                            </div>
                                         </div>
                                         <div class="tab-pane" id="commission-setting">
                                             <div class="card-box table-responsive">

@@ -1139,6 +1139,70 @@ widgets:
                     type: hidden
                 resourceId:
                     type: hidden
+                    
+    runningCommissionListRevenueShare:
+        type: \AppBundle\Widget\Page\ListWidget
+        properties:
+            class: \DbBundle\Entity\CommissionPeriod
+            processResult: '@member.manager::processRunningCommission'
+            methods:
+                records:
+                    name: getCommissionPeriodList
+                    params:
+                        filters: []
+                        limit: 20
+                        offset: 0
+                totalFiltered:
+                    name: countCommissionList
+                    params:
+                        filters: []
+                total:
+                    name: countCommissionList
+                    params:
+                        filters: []
+            footer:
+                columns:
+                    total:
+                        type: static
+                        attrs:
+                            colspan: 3
+                            class: text-right
+                        value: Total Running
+                        isHead: true
+                    totalCommission:
+                        type: text
+                        attrs:
+                            colspan: 3
+                        from: totalRunningCommission
+            columns:
+                dwlDateFrom:
+                    label: Date From
+                    type: text
+                    from: schedule.dwl_date_from
+                dwlDateTo:
+                    label: Date To
+                    type: text
+                    from: schedule.dwl_date_to
+                status:
+                    label: Status
+                    type: choice
+                    from: commission.status
+                    choices:
+                        condition_unmet: Condition Not Met
+                        condition_met: Condition Met
+                commisison:
+                    label: Commission
+                    type: text
+                    from: commission.commission
+                revenueShare:
+                    label: Revenue Share
+                    type: function
+                    function: revenueShareForPeriod
+                    from: revenueShare
+                payout:
+                    label: AC Wallet Payout
+                    type: text 
+                    from: payout
 
     affiliateEarningsByProduct:
         type: \AppBundle\Widget\Page\ListWidget
