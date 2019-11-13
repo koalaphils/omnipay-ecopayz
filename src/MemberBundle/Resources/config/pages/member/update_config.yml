@@ -634,6 +634,7 @@ widgets:
                         bonus: Bonus
                         bet: Bet
                         commission: Commission
+                        revenue_share: Revenue Share
                         debit_adjustment: Debit
                         credit_adjustment: Credit
                     value: :types
