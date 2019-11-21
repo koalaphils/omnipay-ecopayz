@@ -21,14 +21,18 @@ final class Version20191008083925 extends AbstractMigration
 
         $this->addSql('ALTER TABLE commission_period ADD commission_period_revenue_share_status TINYINT(1) DEFAULT \'1\' NOT NULL');
 
-        $this->addSql('INSERT INTO `product` (`product_id`, `product_code`, `product_name`, `product_is_active`, `product_deleted_at`, `product_created_by`, `product_created_at`, `product_updated_by`, `product_updated_at`, `product_logo_uri`, `product_url`, `product_details`) VALUES
-(2, \'PW\',   \'PIWI WALLET\',  1,  NULL,   1,  NOW(),  NULL,   NULL,   NULL,   NULL, \'{"piwi_wallet": true}\')');
+        $this->addSql('UPDATE setting SET setting_value = JSON_SET(setting_value, "$.product", "PW") where setting_id = 104');
 
+        $this->addSql('UPDATE setting SET setting_value = JSON_SET(setting_value, "$.revenueshare", JSON_OBJECT("totalAmount", JSON_OBJECT("equation", "x+y", "variables", JSON_OBJECT("x", "sum_products", "y", "total_customer_fee")), "customerAmount", JSON_OBJECT("equation", "x", "variables", JSON_OBJECT("x", "sum_products")))) where setting_id = 98');
+
+        $this->addSql('INSERT INTO product (product_id, product_code, product_name, product_is_active, product_deleted_at, product_created_by, product_created_at, product_updated_by, product_updated_at, product_logo_uri, product_url, product_details) VALUES
+(2, "PW", "PIWI WALLET", 1, NULL, 1, NOW(), NULL, NULL, NULL, NULL, JSON_OBJECT("piwi_wallet", "TRUE"))');
     }
 
     public function down(Schema $schema) : void
     {
         // this down() migration is auto-generated, please modify it to your needs
+        $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
         $this->addSql('ALTER TABLE customer DROP customer_allow_revenue_share');
         $this->addSql('DROP TABLE member_revenue_share');
         $this->addSql('ALTER TABLE commission_period DROP commission_period_revenue_share_status');

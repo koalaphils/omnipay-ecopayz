@@ -115,9 +115,8 @@
                                                 <!-- Toggle Revenue Share -->
                                                 <label>Enable Revenue Share</label>
                                                 <label class="ui-switch">
-                                                    {# <input id="enableRevenueShare" type="checkbox" {{ customer.isRevenueShareEnabled() ? "checked='checked'" : "" }} />
-                                                    <span class="ui-slider round"></span> #}
-                                                    <input type="checkbox" checked data-plugin="switchery" data-size="small"/>
+                                                     <input id="enableRevenueShare" type="checkbox" {{ customer.isRevenueShareEnabled() ? "checked='checked'" : "" }} data-plugin="switchery" data-size="small"/>
+                                                    {#<input type="checkbox" checked data-plugin="switchery" data-size="small"/>#}
                                                 </label>
 
                                                 <!-- Edit Revenue Share Modal -->
@@ -660,21 +659,6 @@
                     }
                 });
             });
-
-            // Commission
-            {#$('#{{ widgets.commissions.getFullId() }}_container').on('click', '.btn-edit', function () {#}
-                {#var tr = $(this).closest('tr');#}
-                {#var data = {{ widgets.commissions.getFullId() }}Table.dataTable.api().row(tr).data();#}
-                {#$('#{{ widgets.updateCommissionForm.getFullId() }}_container').data('commission', data);#}
-                {#$('#{{ widgets.updateCommissionForm.getFullId() }}_container').modal('show');#}
-            {#});#}
-
-            {#$('#{{ widgets.addCommissionForm.getFormView().vars.id }}').on('form.success', function (e, data) {#}
-                {#{{ widgets.commissions.getFullId() }}Table.reloadTable();#}
-            {#});#}
-            {#$('#{{ widgets.updateCommissionForm.getFormView().vars.id }}').on('form.success', function (e, data) {#}
-                {#{{ widgets.commissions.getFullId() }}Table.reloadTable();#}
-            {#});#}
         });
         
         //Revenue Share
@@ -730,7 +714,6 @@
                 {{ widgets.revenueShare.getFullId() }}Table.reloadTable();
             });
         });
-
         
         $('#{{ widgets.affiliateEarningsByProduct.getFullId() }}_container, #{{ widgets.affiliateEarningsByMember.getFullId() }}_container')
         .on('xhr.dt', function (e, settings, json, xhr) {
