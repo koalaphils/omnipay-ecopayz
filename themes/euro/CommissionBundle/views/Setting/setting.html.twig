@@ -64,18 +64,6 @@
     <script>
 
         $(document).ready(function (){
-            $(document).on('click','.recompute-commission-button', function () {
-                var commissionPeriodId = $(this).attr('data-period-id');
-                var iconPlaceholder = $(this).parent().find('.icon-holder');
-                iconPlaceholder.addClass('fa fa-refresh fa-spin');
-                $('.recompute-commission-button').not(this).attr('disabled','disabled');
-                recomputeAndPayoutCommissionPeriod(commissionPeriodId, function () {
-                    iconPlaceholder.removeClass('fa fa-refresh fa-spin');
-                    $('.recompute-commission-button').not(this).removeAttr('disabled');
-                    notification('Computation now in progress...');
-                });
-            });
-
             $(document).on('click','.recompute-revenueshare-button', function () {
                 var commissionPeriodId = $(this).attr('data-period-id');
                 var iconPlaceholder = $(this).parent().find('.icon-holder');
@@ -92,15 +80,6 @@
         function getComputeButton(data, type, row)
         {
             var computeButton = '';
-            /*switch (row.commissionPeriod.status) {
-                case Global.commmission.status.successfulPayout:
-                case Global.commmission.status.successfulComputation:
-                case Global.commmission.status.failedComputation:
-                case Global.commmission.status.failedPayout:
-                    computeButton = '<button class="btn btn-sm btn-default recompute-commission-button" data-period-id="'+ row.commissionPeriod.id +'" ><span class="icon-holder"></span>Commission</button>';
-                break;
-            }*/
-
             switch (row.commissionPeriod.revenue_share_status) {
                 case Global.commmission.status.successfulComputation:
                 case Global.commmission.status.notYetComputed:
@@ -111,14 +90,6 @@
             }
                 
             return computeButton;
-        }
-
-        function recomputeAndPayoutCommissionPeriod(commissionPeriodId, actionsAfterCompletingRecomputation) {
-            var recomputeUrl = '{{ path('commission.recompute_and_payout',{'commissionPeriodId':'__COMMISSION_PERIOD_ID__'}) }}';
-            recomputeUrl = recomputeUrl.replace('__COMMISSION_PERIOD_ID__',commissionPeriodId);
-            $.post(recomputeUrl, {'commissionPeriodId': commissionPeriodId}, function (resultData) {
-                actionsAfterCompletingRecomputation();
-            });
         }
 
         function recomputeAndPayoutRevenueShareCommissionPeriod(commissionPeriodId, actionsAfterCompletingRecomputation) {

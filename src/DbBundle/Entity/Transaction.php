@@ -70,6 +70,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     const TRANSACTION_TYPE_ADJUSTMENT = 9;
     const TRANSACTION_TYPE_DEBIT_ADJUSTMENT = 10;
     const TRANSACTION_TYPE_CREDIT_ADJUSTMENT = 11;
+    const TRANSACTION_TYPE_REVENUE_SHARE = 12;
     const FILE_FOLDER_DIR = 'transaction';
 
     const TRANSACTION_STATUS_START = 1;
@@ -287,6 +288,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
             static::TRANSACTION_TYPE_DWL => 'dwl',
             static::TRANSACTION_TYPE_BET => 'bet',
             static::TRANSACTION_TYPE_COMMISSION => 'commission',
+            static::TRANSACTION_TYPE_REVENUE_SHARE => 'revenue_share',
             static::TRANSACTION_TYPE_ADJUSTMENT => 'adjustment',
             static::TRANSACTION_TYPE_DEBIT_ADJUSTMENT => 'debit_adjustment',
             static::TRANSACTION_TYPE_CREDIT_ADJUSTMENT => 'credit_adjustment',
@@ -834,6 +836,11 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         return $this->getType() === Transaction::TRANSACTION_TYPE_COMMISSION;
     }
 
+    public function isRevenueShare(): bool
+    {
+        return $this->getType() === Transaction::TRANSACTION_TYPE_REVENUE_SHARE;
+    }
+
     public function isDebitAdjustment(): bool
     {
         return $this->getType() === Transaction::TRANSACTION_TYPE_DEBIT_ADJUSTMENT;
@@ -920,6 +927,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
             self::TRANSACTION_TYPE_DWL => 'dwl',
             self::TRANSACTION_TYPE_BONUS => 'bonus',
             self::TRANSACTION_TYPE_COMMISSION => 'commission',
+            self::TRANSACTION_TYPE_REVENUE_SHARE => 'revenue_share',
             self::TRANSACTION_TYPE_DEBIT_ADJUSTMENT => 'Debit',
             self::TRANSACTION_TYPE_CREDIT_ADJUSTMENT => 'Credit',
         ];
@@ -955,6 +963,8 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
             $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_BONUS;
         } elseif ($this->isCommission()) {
             $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_COMMISSION;
+        } elseif ($this->isRevenueShare()) {
+            $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_REVENUE_SHARE;
         } elseif ($this->isDebitAdjustment()) {
             $category = AuditRevisionLog::CATEGORY_MEMBER_TRANSACTION_DEBIT_ADJUSTMENT;
         } elseif ($this->isCreditAdjustment()) {

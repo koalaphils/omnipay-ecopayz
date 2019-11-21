@@ -63,6 +63,7 @@ class DepositController extends  AbstractController
         }
         asort($transactionDates);
         asort($pinnacleTransactionDates);
+        dump($transaction);
 
         return $this->render("TransactionBundle:Transaction/Type:deposit.html.twig", [
             'form' => $form->createView(),

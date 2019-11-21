@@ -52,6 +52,60 @@ abstract class AbstractCommand extends ContainerAwareCommand
 
         return $user;
     }
+
+    protected function loginApiGateway(){
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+          CURLOPT_URL => "http://api-gateway/api/v1/auth/login",
+          CURLOPT_RETURNTRANSFER => true,
+          CURLOPT_TIMEOUT => 30,
+          CURLOPT_CUSTOMREQUEST => "POST",
+          CURLOPT_POSTFIELDS => '{"username":"'.$this->getContainer()->getParameter('mservice.username').'","password":"'.$this->getContainer()->getParameter('mservice.password').'","userType":2}',
+          CURLOPT_HTTPHEADER => array(
+            "Content-Type: application/json"
+          )
+        ));
+
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
+
+        if ($err) {
+          return false;
+        } 
+
+        return $response;
+    }
+
+    protected function updatePeriod(int $period, string $token, string $type){
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+          CURLOPT_URL => "http://api-gateway/api/v1/revenue-share/periods/".$period."/".$type,
+          CURLOPT_RETURNTRANSFER => true,
+          CURLOPT_TIMEOUT => 30,
+          CURLOPT_CUSTOMREQUEST => "POST",
+          CURLOPT_HTTPHEADER => array(
+            "Authorization: Bearer ".$token
+          )
+        ));
+
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
+
+        if ($err) {
+          return false;
+        } 
+
+        return $response;
+    }
+
+    protected function getToken($response): string{
+        $response = json_decode($response, true);
+        $token = array_get($response, 'token', false);
+
+        return $token;
+    }
     
     protected function getRequestStack(): RequestStack
     {

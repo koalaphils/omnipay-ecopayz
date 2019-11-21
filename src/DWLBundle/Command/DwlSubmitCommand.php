@@ -65,7 +65,7 @@ class DwlSubmitCommand extends ContainerAwareCommand
             
             $period = $this->getCommissionPeriodRepository()->getCommissionForDWL($dwl);
             if ($period instanceof CommissionPeriod) {
-                $computeJob = new Job('commission:period:compute',
+                $computeJob = new Job('revenueshare:period:compute',
                     [
                         $input->getArgument('username'),
                         '--period',
@@ -76,7 +76,7 @@ class DwlSubmitCommand extends ContainerAwareCommand
                     true,
                     'payout'
                 );
-                $payoutJob = new Job('commission:period:pay',
+                $payoutJob = new Job('revenueshare:period:pay',
                     [
                         $input->getArgument('username'),
                         '--period',

@@ -126,8 +126,8 @@ class TransactionType extends AbstractType
             ]);
         } elseif ($this->getSettingManager()->getSetting('transaction.paymentGateway') === 'customer-currency'
             || $this->getSettingManager()->getSetting('transaction.paymentGateway') === 'customer-group'
-        ) {
-            if ($options['isCommission'] === false && $options['hasAdjustment'] === false) {
+        ) { 
+            if ($options['isCommission'] === false && $options['isRevenueShare'] === false && $options['hasAdjustment'] === false) {
                 $builder->add('gateway', CType\Select2Type::class, [
                     'label' => 'fields.gateway',
                     'required' => false,
@@ -237,7 +237,7 @@ class TransactionType extends AbstractType
             }
         ));
         
-        if ($options['isCommission'] === false && $options['hasAdjustment'] === false) {
+        if ($options['isCommission'] === false && $options['isRevenueShare'] === false && $options['hasAdjustment'] === false) {
             $builder->get('gateway')->addModelTransformer(new CallbackTransformer(
                 function ($data) {
                     if ($data instanceof \DbBundle\Entity\Gateway && method_exists($data, '__isInitialized') && $data->__isInitialized() === false) {
@@ -337,7 +337,7 @@ class TransactionType extends AbstractType
                     $form->add('immutablePaymentOptionData', Type\TextType::class, [
                         'mapped' => false,
                     ]);
-                } elseif (!$transaction->isCommission() && !$transaction->hasAdjustment()) {
+                } elseif (!$transaction->isCommission() && $options['isRevenueShare'] === false && !$transaction->hasAdjustment()) {
                     $form->add('immutablePaymentOptionData', Type\TextType::class);
                 }
             } elseif ($customer === null) {
@@ -396,6 +396,7 @@ class TransactionType extends AbstractType
             'addSubtransaction' => true,
             'isForVoidingOrDecline' => false,
             'isCommission' => false,
+            'isRevenueShare' => false,
             'hasAdjustment' => false,
         ]);
     }
@@ -444,7 +445,7 @@ class TransactionType extends AbstractType
             }
             $view->children['currency']->vars['view'] = true;
             if ($this->getSettingManager()->getSetting('transaction.paymentGateway') === 'customer-level' 
-                    && $options['isCommission'] === false ) 
+                    && $options['isCommission'] === false && $options['isRevenueShare'] === false) 
             {
                 $view->children['gateway']->vars['view'] = true;
             }

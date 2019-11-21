@@ -118,24 +118,24 @@ class CommissionService
     {
         $computeJob = $this
             ->getJobRepository()
-            ->findJobForRelatedEntity('commission:period:compute', $commissionPeriod, [Job::STATE_PENDING]);
+            ->findJobForRelatedEntity('revenueshare:period:compute', $commissionPeriod, [Job::STATE_PENDING]);
         if (!($computeJob instanceof Job)) {
             $computeJob = new Job(
-                'commission:period:compute',
+                'revenueshare:period:compute',
                 [$this->getUser()->getUsername(), '--period', $commissionPeriod->getId(), '--env', $this->getEnvironment()],
                 true,
                 'payout'
             );
         }
-        $computeJob->setExecuteAfter(new DateTime($commissionPeriod->getDWLDateTo()->modify('+1 day')->format(DateTime::ATOM)));
+        $computeJob->setExecuteAfter(new DateTime($commissionPeriod->getPayoutAt()->modify('-1 day')->format(DateTime::ATOM)));
         $computeJob->addRelatedEntity($commissionPeriod);
 
         $payoutJob = $this
             ->getJobRepository()
-            ->findJobForRelatedEntity('commission:period:pay', $commissionPeriod);
+            ->findJobForRelatedEntity('revenueshare:period:pay', $commissionPeriod);
         if (!($payoutJob instanceof Job)) {
             $payoutJob = new Job(
-                'commission:period:pay',
+                'revenueshare:period:pay',
                 [$this->getUser()->getUsername(), '--period', $commissionPeriod->getId(), '--env', $this->getEnvironment()],
                 true, 'payout'
             );
@@ -157,7 +157,7 @@ class CommissionService
     private function runComputeForPeriod(CommissionPeriod $commissionPeriod)
     {
         $computeJob = new Job(
-            'commission:period:compute',
+            'revenueshare:period:compute',
             [$this->getUser()->getUsername(), '--period', $commissionPeriod->getId(), '--env', $this->getEnvironment()],
             true,
             'payout'

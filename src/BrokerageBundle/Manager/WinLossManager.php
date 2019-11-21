@@ -681,7 +681,7 @@ class WinLossManager extends AbstractManager
             if (count($referrerIds) > 0) {
                 $period = $this->getCommissionPeriodRepository()->getCommissionForDWL($dwl);
                 if ($period instanceof CommissionPeriod) {
-                    $computeJob = new Job('commission:period:compute',
+                    $computeJob = new Job('revenueshare:period:compute',
                         [
                             $this->getUser()->getUsername(),
                             '--period',
@@ -695,7 +695,7 @@ class WinLossManager extends AbstractManager
                         'payout'
                     );
 
-                    $payJob = new Job('commission:period:pay',
+                    $payJob = new Job('revenueshare:period:pay',
                         [
                             $this->getUser()->getUsername(),
                             '--period',

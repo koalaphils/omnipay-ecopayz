@@ -51,6 +51,11 @@ class CommissionPeriod extends Entity implements ActionInterface, TimestampInter
         $this->revenueShareStatus = self::STATUS_NOT_YET_COMPUTED;
     }
 
+    public function getIdentifier()
+    {
+        return $this->getId();
+    }
+
     public function getDWLDateFrom(): DateTimeImmutable
     {
         if ($this->dwlDateFrom instanceof DateTime) {
@@ -109,6 +114,11 @@ class CommissionPeriod extends Entity implements ActionInterface, TimestampInter
             $this->payoutAt = DateTimeImmutable::createFromMutable($this->payoutAt);
         }
         
+        return $this->payoutAt;
+    }
+
+    public function getDateTimePayoutAt(): DateTime
+    {
         return $this->payoutAt;
     }
 

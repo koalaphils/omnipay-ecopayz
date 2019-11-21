@@ -31,6 +31,8 @@ parameters:
     upload_dwl_filename: upload_dwl.log
 
     jwt_key: ${JWT_KEY}
+    mservice.username: ${MSERVICE_USERNAME}
+    mservice.password: ${MSERVICE_PASSWORD}
 
     data_transfer.xml: AppBundle:DataTransfer:default.html.twig
 

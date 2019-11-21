@@ -14,6 +14,7 @@ services:
         parent: app.base_manager
         calls:
             - ['setMemberRunningCommissionRepository', ['@=service("doctrine").getRepository("DbBundle\\Entity\\MemberRunningCommission")']]
+            - ['setMemberRunningRevenueShareRepository', ['@=service("doctrine").getRepository("DbBundle\\Entity\\MemberRunningRevenueShare")']]
             - ['setCommissionPeriodRepository', ['@=service("doctrine").getRepository("DbBundle\\Entity\\CommissionPeriod")']]
     TransactionBundle\Manager\TransactionManager: "@transaction.manager"
     # form type

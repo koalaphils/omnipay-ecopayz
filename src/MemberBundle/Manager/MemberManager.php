@@ -14,6 +14,7 @@ use DbBundle\Entity\User as MemberUser;
 use DbBundle\Entity\CustomerProduct as MemberProduct;
 use DbBundle\Entity\MemberCommission;
 use DbBundle\Entity\MemberRunningCommission;
+use DbBundle\Entity\MemberRunningRevenueShare;
 use DbBundle\Entity\MemberRevenueShare;
 use DbBundle\Entity\Product;
 use DbBundle\Entity\ProductCommission;
@@ -32,6 +33,7 @@ use DbBundle\Repository\ProductRepository;
 use DbBundle\Repository\SubTransactionRepository;
 use DbBundle\Repository\AuditRevisionRepository;
 use DbBundle\Repository\MemberRevenueShareRepository;
+use DbBundle\Repository\MemberRunningRevenueShareRepository;
 use DbBundle\Repository\CurrencyRepository;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -45,6 +47,7 @@ use TransactionBundle\Manager\TransactionManager;
 use PinnacleBundle\Component\Model\WinlossResponse;
 use AppBundle\ValueObject\Money;
 use DateTimeImmutable;
+use \DateTime;
 
 class MemberManager extends AbstractManager
 {
@@ -131,44 +134,75 @@ class MemberManager extends AbstractManager
         $commissionScheduleIds = array_map(function ($record) {
             return $record->getId();
         }, $result['records']);
-        $runningCommissions = $this
-            ->getMemberRunningCommissionRepository()
-            ->getMemberRunningCommissions(
+        
+
+        $runningRevenueShares = $this
+            ->getMemberRunningRevenueShareRepository()
+            ->getMemberRunningRevenueShares(
                 ['commissionIds' => $commissionScheduleIds, 'memberId' => $memberId],
                 count($commissionScheduleIds)
             );
-        $runningCommissionsIdKeyed = [];
-        foreach ($runningCommissions as $runningCommission) {
-            $runningCommissionsIdKeyed[$runningCommission->getCommissionPeriod()->getId()] = $runningCommission;
+
+        $runningRevenueSharesIdKeyed = [];
+        foreach ($runningRevenueShares as $runningRevenueShare) {
+            $runningRevenueSharesIdKeyed[$runningRevenueShare->getRevenueSharePeriod()->getId()] = $runningRevenueShare;
         }
+
         $records = [];
         $result['records'] = array_reverse($result['records']);
 
-        $preceedingCommission = null;
+        $preceedingRevenueShare = null;
+        $prevRunningRevShare = 0;
         $memberProduct = $this->getMemberProductRepository()->getProductWalletByMember($memberId);
         foreach ($result['records'] as $key => $record) {
-            $commission = $runningCommissionsIdKeyed[$record->getId()] ?? new MemberRunningCommission();
-            if (!isset($runningCommissionsIdKeyed[$record->getId()])) {
-                $commission->setMemberProduct($memberProduct);
+            $revenueShare = $runningRevenueSharesIdKeyed[$record->getId()] ?? new MemberRunningRevenueShare();
+            
+            if (is_null($revenueShare->getId()) && $preceedingRevenueShare instanceof MemberRunningRevenueShare) {
+                $revenueShare->getRunningRevenueShare($preceedingRevenueShare->getRunningRevenueShare());
             }
-            if (is_null($commission->getId()) && $preceedingCommission instanceof MemberRunningCommission) {
-                $commission->getRunningCommission($preceedingCommission->getRunningCommission());
+            if (is_null($revenueShare->getRevenueSharePeriod()) && $prevRunningRevShare < 0) {
+                $revenueShare->setRunningRevenueShare($prevRunningRevShare);
             }
+
+            $revenueSharePayout = 0;
+            if ($revenueShare->getRunningRevenueShare() < $revenueShare->getTotalRevenueShare()){
+                $revenueSharePayout = $revenueShare->getRunningRevenueShare();
+            } else {
+                $revenueSharePayout = $revenueShare->getTotalRevenueShare();
+            }
+
+            $now = new DateTime('now');
+            $dateNow = $now->format('Y-m-d');
+            $datePayout = $record->getDateTimePayoutAt();
+            $dateRecompute = $datePayout->modify('-1 day')->format('Y-m-d');
+
+            if ($dateRecompute < $dateNow) {
+                $prevRunningRevShare = $revenueSharePayout;
+            }
+
+            if ($revenueSharePayout < 0)
+            {
+                $revenueSharePayout = 0;
+            }
+
             $records[] = [
                 'schedule' => $record,
-                'commission' => $commission,
+                'revenueShare' => $revenueShare,
+                'payout' => $revenueSharePayout
             ];
-            $preceedingCommission = $commission;
+
+            $preceedingRevenueShare = $revenueShare;
         }
+
         $records = array_reverse($records);
         if (count($records) > ($data['limit'] - 1)) {
             array_pop($records);
         }
 
         $result['records'] = $records;
-        $result['totalRunningCommission'] = $this
-            ->getMemberRunningCommissionRepository()
-            ->totalRunningCommissionOfMember($memberId);
+        $result['totalRunningRevenueShare'] = $this
+            ->getMemberRunningRevenueShareRepository()
+            ->totalRunningRevenueShareOfMember($memberId);    
 
         return $result;
     }
@@ -359,8 +393,7 @@ class MemberManager extends AbstractManager
         $schemas = [];
         if (!is_null($lookupPinBet)) {
             $schemas = $this->getMemberRevenueShareRepository()->findSchemeByRange($referrerId, MemberRevenueShare::PINNACLE_PRODUCT_ID, $filters);
-            $schemaCount = count($schemas);
-            $lastKey = $schemaCount - 1;
+            $lastKey = count($schemas) - 1;
         }
 
         $subTransactionRepository = $this->getSubTransactionRepository();
@@ -420,7 +453,7 @@ class MemberManager extends AbstractManager
                     $bonus = $memberBonus['totalBonus'];
                     $totalBonus += $bonus;
                 }
-                
+
                 $revenueShare = $this->getRevenueShare($schema, $winLoss, $bonus, $row['currencyCode'], $referrerDetails->getCurrencyCode());
                 $totalRevenueShare += $revenueShare;
             }
@@ -485,7 +518,7 @@ class MemberManager extends AbstractManager
         return $result;
     }
 
-    public function getRevenueShare(array $schema, int $winLoss, int $bonus, string $fromCurrencyCode, string $toCurrencyCode)
+    public function getRevenueShare(array $schema,  float $winLoss, float $bonus, string $fromCurrencyCode, string $toCurrencyCode)
     {
         $settings = json_decode($schema['revenueShareSettings'], true);
         $totalRevenueShare = 0;
@@ -501,6 +534,7 @@ class MemberManager extends AbstractManager
                 $percentage = Number::div($settings[$x]["percentage"], 100)->toString();
                 $winLossMinBonus = Number::add($winLoss, $bonus)->toString();
                 $revenueShare = Number::mul(-1, $winLossMinBonus)->times($percentage)->toString();
+
                 $convertedTotalRevenueShare = $this->getConvertedCurrencyRate($schema['createdAt'], $fromCurrencyCode, $toCurrencyCode, $revenueShare);
                 $totalRevenueShare = $convertedTotalRevenueShare[$toCurrencyCode];
             }
@@ -772,6 +806,11 @@ class MemberManager extends AbstractManager
     private function getMemberRunningCommissionRepository(): MemberRunningCommissionRepository
     {
         return $this->getDoctrine()->getRepository(MemberRunningCommission::class);
+    }
+
+    private function getMemberRunningRevenueShareRepository(): MemberRunningRevenueShareRepository
+    {
+        return $this->getDoctrine()->getRepository(MemberRunningRevenueShare::class);
     }
 
     private function getMemberReferralNameRepository(): MemberReferralNameRepository

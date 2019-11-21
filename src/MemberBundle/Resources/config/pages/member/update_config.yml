@@ -1172,8 +1172,8 @@ widgets:
                     totalCommission:
                         type: text
                         attrs:
-                            colspan: 3
-                        from: totalRunningCommission
+                            colspan: 2
+                        from: totalRunningRevenueShare
             columns:
                 dwlDateFrom:
                     label: Date From
@@ -1186,14 +1186,10 @@ widgets:
                 status:
                     label: Status
                     type: choice
-                    from: commission.status
+                    from: revenueShare.status
                     choices:
                         condition_unmet: Condition Not Met
                         condition_met: Condition Met
-                commisison:
-                    label: Commission
-                    type: text
-                    from: commission.commission
                 revenueShare:
                     label: Revenue Share
                     type: function

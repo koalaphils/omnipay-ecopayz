@@ -66,6 +66,8 @@ class TransactionController extends AbstractController
             $response = $this->forward('TransactionBundle:Withdraw:updatePage', ['id' => $id, 'type' => $type], $request->query->all());
         } elseif ($type === 'bonus') {
             $response = $this->forward('TransactionBundle:Bonus:updatePage', ['id' => $id, 'type' => $type], $request->query->all());
+        } elseif ($type === 'revenue_share') {
+            $response = $this->forward('TransactionBundle:RevenueShare:updatePage', ['id' => $id, 'type' => $type], $request->query->all());
         } else {
             throw $this->createNotFoundException();
         }
