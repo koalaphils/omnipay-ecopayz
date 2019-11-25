@@ -7,8 +7,10 @@ use DbBundle\Entity\Currency;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerGroup;
 use DbBundle\Entity\CustomerProduct;
+use DbBundle\Entity\Product;
 use DbBundle\Entity\User;
 use DbBundle\Repository\CustomerGroupRepository;
+use DbBundle\Repository\ProductRepository;
 use Doctrine\ORM\EntityManager;
 use MemberBundle\Manager\MemberManager;
 use MemberBundle\Request\CreateMemberRequest;
@@ -61,11 +63,7 @@ class CreateMemberRequestHandler
             $country = $this->entityManager->getPartialReference(Country::class, $request->getCountry());
         }
 
-        $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
-        $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->createPlayer();
         $memberProduct = new CustomerProduct();
-        $memberProduct->setProduct($pinnacleProduct);
-        $memberProduct->setUserName($pinnaclePlayer->userCode());
         $memberProduct->setBalance('0.00');
         $memberProduct->setIsActive(true);
 
@@ -106,9 +104,21 @@ class CreateMemberRequestHandler
             ],
             'enabled' => false,
         ]);
+
+        if ($request->getUserType() == User::USER_TYPE_AFFILIATE) {
+            $piwiWallet = $this->getProductRepository()->getPiwiWalletProduct();
+            $memberProduct->setProduct($piwiWallet);
+            $memberProduct->setUserName($this->generateUsername($piwiWallet));
+        } else {
+            $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
+            $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->createPlayer();
+            $memberProduct->setProduct($pinnacleProduct);
+            $memberProduct->setUserName($pinnaclePlayer->userCode());
+            $member->setPinLoginId($pinnaclePlayer->loginId());
+            $member->setPinUserCode($pinnaclePlayer->userCode());
+        }
+
         $member->setTags([]);
-        $member->setPinLoginId($pinnaclePlayer->loginId());
-        $member->setPinUserCode($pinnaclePlayer->userCode());
         $member->setUser($user);
         $user->setCustomer($member);
         $member->setTags([Customer::ACRONYM_MEMBER]);
@@ -138,5 +148,15 @@ class CreateMemberRequestHandler
     private function getGroupRepository(): CustomerGroupRepository
     {
         return $this->entityManager->getRepository(CustomerGroup::class);
+    }
+
+    private function getProductRepository(): ProductRepository
+    {
+        return $this->entityManager->getRepository(Product::class);
+    }
+
+    private function generateUsername(Product $product): string
+    {
+        return uniqid('tmp_' . str_replace(' ', '', $product->getName()) . '_');
     }
 }
