@@ -17,6 +17,7 @@ class UpdateProfileRequest
     private $referrer;
     private $currency;
     private $joinedAt;
+    private $userType;
 
     private $affiliateLink;
     private $referrerSite;
@@ -44,6 +45,7 @@ class UpdateProfileRequest
         $request->fullName = $customer->getFullName();
         $request->birthDate = $customer->getBirthDate();
         $request->gender = $customer->getGender();
+        $request->userType = $customer->getUser()->getType();
         if ($customer->getCountry() !== null) {
             $request->country = $customer->getCountry()->getId();
         }
@@ -73,6 +75,11 @@ class UpdateProfileRequest
         $request->locale = $customer->getLocale();
 
         return $request;
+    }
+
+    public function getUserType(): ?string
+    {
+        return $this->userType;
     }
 
     public function getCustomer(): \DbBundle\Entity\Customer

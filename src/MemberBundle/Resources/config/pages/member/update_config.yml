@@ -210,6 +210,19 @@ widgets:
                         function: '@app.manager::getAvailableLocales'
                         label: result['name'] ~ ' (' ~ result['code'] ~ ')'
                         value: result['code']
+                userType:
+                    options:
+                        label: Type
+                        required: false
+                        attr:
+                            disabled: true
+                    type: dropdown
+                    size: 12
+                    group: Right
+                    choicesFrom:
+                        function: '@user.manager::getUserTypes'
+                        label: result['name']
+                        value: result['id']
     passwordForm:
         type: AppBundle\Widget\Page\FormWidget
         properties:

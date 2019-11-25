@@ -35,7 +35,7 @@ class CustomerRepository extends BaseRepository
         $qb->leftJoin('c.country', 'cco');
         $qb->select(
             'c'
-            . ', PARTIAL u.{username, id, email, isActive, activationCode, activationSentTimestamp, activationTimestamp, preferences, password, resetPasswordCode, resetPasswordSentTimestamp}'
+            . ', PARTIAL u.{username, id, email, isActive, activationCode, activationSentTimestamp, activationTimestamp, preferences, password, resetPasswordCode, resetPasswordSentTimestamp, type}'
             . ', PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}'
         );
         $qb->where('c.id = :id')->setParameter('id', $id);
