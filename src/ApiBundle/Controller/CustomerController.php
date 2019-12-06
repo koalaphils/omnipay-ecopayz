@@ -170,6 +170,8 @@ class CustomerController extends AbstractController
     /**
      * @ApiDoc(
      *  description="Get current customer products",
+     *  section="Member",
+     *  views={"piwi"},
      *  output={
      *      "class"="ArrayCollection<DbBundle\Entity\CustomerProduct>",
      *      "parsers"={ "ApiBundle\Parser\CollectionParser", "ApiBundle\Parser\JmsMetadataParser" },

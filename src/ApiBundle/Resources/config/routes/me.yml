@@ -63,3 +63,8 @@ api_member.change_locale:
   defaults:
     _controller: ApiBundle:Member:changeLocale
   methods: [POST]
+
+api_customers.me_products:
+  path: me/products
+  defaults: { _controller: ApiBundle:Customer:customerProducts }
+  methods: [GET]
