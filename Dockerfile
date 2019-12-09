@@ -94,7 +94,7 @@ ENV UPLOAD_FOLDER=/uploads \
     REDIS_PORT=6379 \
     REDIS_DATABASE=0 \
     MSERVICE_USERNAME= \
-    MSERVICE_PASSWORD= \
+    MSERVICE_PASSWORD=
 
 RUN mkdir $UPLOAD_FOLDER
 COPY /opt/docker/php/entrypoint.sh /entrypoint.sh
