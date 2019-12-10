@@ -81,16 +81,16 @@ RUN set -eux; \
     redis \
     xdebug \
   ; \
-  docker-php-ext-enable \
-    apcu \
-    event \
-    igbinary \
-    imagick \
-    intl \
-    opcache \
-    redis \
-    sockets \
-  ; \
+#  docker-php-ext-enable \
+#    apcu \
+#    event \
+#    igbinary \
+#    imagick \
+#    intl \
+#    opcache \
+#    redis \
+#    sockets \
+#  ; \
   cp /usr/bin/envsubst /usr/local/bin/envsubst; \
   cd /tmp; \
   git clone https://github.com/nrk/phpiredis.git; \
@@ -167,7 +167,7 @@ ENV TIMEZONE=Etc/GMT+4 \
     REDIS_PORT=6379 \
     REDIS_DATABASE=0 \
     MSERVICE_USERNAME= \
-    MSERVICE_PASSWORD=
+    MSERVICE_PASSWORD= \
     SSH_USER=piwi \
     SSH_PASS=piwipass
 
@@ -201,8 +201,8 @@ EXPOSE 9000
 CMD ["php-fpm", "--nodaemonize"]
 
 FROM nginx:latest as webservice
-ENV PHP_SSH_USER=ac66 \
-    PHP_SSH_PASS=ac66pass \
+ENV PHP_SSH_USER=piwi \
+    PHP_SSH_PASS=piwipass \
     TIMEZONE=Etc/GMT+4
 RUN apt-get update -y \
     && apt-get install --no-install-recommends -y \
