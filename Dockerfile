@@ -81,16 +81,16 @@ RUN set -eux; \
     redis \
     xdebug \
   ; \
-#  docker-php-ext-enable \
-#    apcu \
-#    event \
-#    igbinary \
-#    imagick \
-#    intl \
-#    opcache \
-#    redis \
-#    sockets \
-#  ; \
+  docker-php-ext-enable \
+    apcu \
+    event \
+    igbinary \
+    imagick \
+    intl \
+    opcache \
+    redis \
+    sockets \
+  ; \
   cp /usr/bin/envsubst /usr/local/bin/envsubst; \
   cd /tmp; \
   git clone https://github.com/nrk/phpiredis.git; \
@@ -123,6 +123,7 @@ ENV TIMEZONE=Etc/GMT+4 \
     DATABASE_HOST=127.0.0.1 \
     DATABASE_NAME= \
     DATABASE_USER= \
+    DATABASE_PORT=3306 \
     DATABASE_PASSWORD= \
     MAIL_TRANSPORT=smtp \
     MAIL_HOST= \
