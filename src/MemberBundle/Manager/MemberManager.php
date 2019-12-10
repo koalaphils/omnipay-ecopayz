@@ -160,7 +160,7 @@ class MemberManager extends AbstractManager
             if (is_null($revenueShare->getId()) && $preceedingRevenueShare instanceof MemberRunningRevenueShare) {
                 $revenueShare->getRunningRevenueShare($preceedingRevenueShare->getRunningRevenueShare());
             }
-            if (is_null($revenueShare->getRevenueSharePeriod()) && $prevRunningRevShare < 0) {
+            if (is_null($revenueShare->getRevenueSharePeriod()) && $prevRunningRevShare < MemberRunningRevenueShare::MIN_PAYOUT) {
                 $revenueShare->setRunningRevenueShare($prevRunningRevShare);
             }
 
