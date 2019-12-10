@@ -88,7 +88,13 @@ ENV UPLOAD_FOLDER=/uploads \
     PIN_AGENT_CODE=temp \
     TWILIO_SID= \
     TWILIO_TOKEN= \
-    TWILIO_FROM=
+    TWILIO_FROM= \
+    APP_TIMEZONE=Etc/GMT+4 \
+    REDIS_HOST=localhost \
+    REDIS_PORT=6379 \
+    REDIS_DATABASE=0 \
+    MSERVICE_USERNAME= \
+    MSERVICE_PASSWORD= \
 
 RUN mkdir $UPLOAD_FOLDER
 COPY /opt/docker/php/entrypoint.sh /entrypoint.sh
