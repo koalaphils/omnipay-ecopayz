@@ -180,7 +180,7 @@ class MemberManager extends AbstractManager
                 $prevRunningRevShare = $revenueSharePayout;
             }
 
-            if ($revenueSharePayout < 0)
+            if ($revenueSharePayout < MemberRunningRevenueShare::MIN_PAYOUT)
             {
                 $revenueSharePayout = 0;
             }

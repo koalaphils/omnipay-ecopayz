@@ -29,6 +29,8 @@ class MemberRunningRevenueShare extends Entity implements ActionInterface, Times
     const PROCESS_STATUS_PAID = 6;
     const PROCESS_STATUS_PAY_ERROR = 7;
 
+    const MIN_PAYOUT = 100;
+
     private const METADATA_CONVERTIONS = 'convertions';
     private const METADATA_PRECCEEDING_CONVERTIONS = 'precceedingConvertions';
     private const METADATA_CONVERTION_AMOUNT = 'amount';
@@ -355,7 +357,7 @@ class MemberRunningRevenueShare extends Entity implements ActionInterface, Times
 
     public function getCategory()
     {
-        return AuditRevisionLog::CATEGORY_RUNNING_COMMISSION;
+        return AuditRevisionLog::CATEGORY_RUNNING_REVENUE_SHARE;
     }
 
     public function getIdentifier()
