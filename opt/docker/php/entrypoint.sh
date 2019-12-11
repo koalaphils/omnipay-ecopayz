@@ -52,13 +52,13 @@ touch var/logs/${SYMFONY_ENV}.log
 
 chown -Rf www-data var
 
-#set +e
-#id -u ${SSH_USER}
-#if [ $? -ne 0 ]; then
-#  adduser ${SSH_USER}
-#fi
-#echo "${SSH_USER}:${SSH_PASS}" | chpasswd
-#ssh-keygen -A
+set +e
+id -u ${SSH_USER}
+if [ $? -ne 0 ]; then
+  adduser ${SSH_USER}
+fi
+echo "${SSH_USER}:${SSH_PASS}" | chpasswd
+ssh-keygen -A
 
 if [ $(grep -c Alpine /etc/issue) -ne 0 ]; then
 `which sshd`
