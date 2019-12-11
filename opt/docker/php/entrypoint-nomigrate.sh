@@ -5,14 +5,14 @@ nc -z ${DATABASE_HOST} ${DATABASE_PORT}
 
 cd /var/www/html
 
-set +u
-if [ -z "${REDIS_REPLICA_HOST}" ]; then
-  export REDIS_REPLICA_HOST="${REDIS_HOST}"
-fi
-if [ -z "${REDIS_REPLICA_PORT}" ]; then
-  export REDIS_REPLICA_PORT="${REDIS_PORT}"
-fi
-set -u
+#set +u
+#if [ -z "${REDIS_REPLICA_HOST}" ]; then
+#  export REDIS_REPLICA_HOST="${REDIS_HOST}"
+#fi
+#if [ -z "${REDIS_REPLICA_PORT}" ]; then
+#  export REDIS_REPLICA_PORT="${REDIS_PORT}"
+#fi
+#set -u
 
 cp /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo "${TIMEZONE}" > /etc/timezone
 sed -i "s|;date.timezone\s*=.*|date.timezone = ${TIMEZONE}|g" /usr/local/etc/php/conf.d/php.ini
