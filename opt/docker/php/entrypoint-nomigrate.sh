@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash 
 set -eux
 
 nc -z ${DATABASE_HOST} ${DATABASE_PORT}
@@ -35,11 +35,8 @@ else
     composer symfony-scripts --no-dev --no-interaction
 fi
 
-php app/console doctrine:migrations:migrate --no-interaction
 php app/console theme:apply euro --no-interaction
 php app/console cache:clear --no-warmup --no-optional-warmers --no-interaction
-php app/console assets:install --symlink --relative
-php app/console assetic:dump --no-interaction
 
 mkdir -p var/logs
 mkdir -p var/logs/blockchain
@@ -57,6 +54,7 @@ id -u ${SSH_USER}
 if [ $? -ne 0 ]; then
   adduser ${SSH_USER}
 fi
+
 echo "${SSH_USER}:${SSH_PASS}" | chpasswd
 ssh-keygen -A
 

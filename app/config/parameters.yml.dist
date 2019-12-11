@@ -100,7 +100,7 @@ parameters:
     twilio_token: '${TWILIO_TOKEN}'
     twilio_from: '${TWILIO_FROM}'
 
-    timezone: '${APP_TIMEZONE}'
+    timezone: '${TIMEZONE}'
 
     redis.host: ${REDIS_HOST}
     redis.port: ${REDIS_PORT}
