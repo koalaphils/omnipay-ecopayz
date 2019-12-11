@@ -71,7 +71,7 @@ class CommissionService
             $lastPeriod = $this->getCommissionPeriodRepository()->getCommissionPeriodBeforeOrOnTheDate($dateFor);
             if (!($lastPeriod instanceof CommissionPeriod)) {
                 $lastPeriod = new CommissionPeriod();
-                $lastPeriod->setDWLDateFrom(DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $commissionSetting['startDate'] . ' 00:00:00'));
+                $lastPeriod->setDWLDateFrom(DateTimeImmutable::createFromFormat('!Y-m-d', $commissionSetting['startDate']));
                 $this->computeRangeOfCommissionSchedule($lastPeriod);
                 $this->validateCommissionPeriod($lastPeriod);
                 $this->getCommissionPeriodRepository()->save($lastPeriod);
