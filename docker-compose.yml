@@ -1,4 +1,4 @@
-version: "3.4"
+version: "3.7"
 services:
   database:
     image: mysql:8.0.15
@@ -6,10 +6,13 @@ services:
     volumes:
       - database:/var/lib/mysql
     environment:
+      - TZ=America/Manaus
       - MYSQL_ROOT_PASSWORD=backoffice_pass
       - MYSQL_PASSWORD=backoffice_pass
       - MYSQL_DATABASE=backoffice_db
       - MYSQL_USER=backoffice
+    networks:
+      - piwinet
 
   mailhog:
     image: mailhog/mailhog
@@ -19,10 +22,15 @@ services:
     user: root
     ports:
       - 8025:8025
+    networks:
+      - piwinet
+
   adminer:
     image: adminer
     ports:
       - 9080:8080
+    networks:
+      - piwinet
 
   piwibo-php:
     build:
@@ -62,9 +70,10 @@ services:
       - WS_WAMP_URL=http://websocket:9092
       - DATABASE_DRIVER=pdo_mysql
       - DATABASE_HOST=database
-      - DATABASE_NAME=backoffice2
+      - DATABASE_NAME=backoffice_db
       - DATABASE_USER=backoffice
-      - DATABASE_PASSWORD=backofficepw
+      - DATABASE_PASSWORD=backoffice_pass
+      - DATABASE_PORT=3306
       - ECOPAYZ_TEST_MODE=true
       - BC_KEY=2db87356-bfbb-412d-8403-39b669cd9a9d
       - BC_WALLET_URL=http://wallet:3000
@@ -76,8 +85,34 @@ services:
       - TRUSTED_PROXIES=172.0.0.0/8,10.0.0.0/8,192.0.0.0/8
       - TIMEZONE=Etc/GMT+4
       - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DATABASE=0
       - MSERVICE_USERNAME=admin
       - MSERVICE_PASSWORD=admin
+    networks:
+      - piwinet
+
+  piwibo-wsclient:
+    build:
+      context: .
+      target: prod
+    entrypoint: ""
+    restart: unless-stopped
+    command:
+      - php
+      - app/console
+      - websocket:client
+      - ws://websocket:9090/ws
+      - realm
+      - system
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - database
+      - mailhog
+      - adminer
+    networks:
+      - piwinet
 
   piwibo-scheduler:
     build:
@@ -96,6 +131,8 @@ services:
       - database
       - mailhog
       - adminer
+    networks:
+      - piwinet
 
   piwibo-jobs:
     build:
@@ -114,39 +151,84 @@ services:
       - database
       - mailhog
       - adminer
+    networks:
+      - piwinet
 
   piwibo-web:
     build:
       context: .
       target: webservice
-    depends_on:
-      - piwibo-php
     ports:
       - 81:80
     volumes:
       - .:/var/www/html
     environment:
+      - ENVIRONMENT=dev
       - PHPHOST=piwibo-php
       - PHPPORT=9000
+      - TIMEZONE=Etc/GMT+4
+      - APPHOST=http://localhost
+    depends_on:
+      - piwibo-php
+    restart: always
+    networks:
+      - piwinet
+
+#  websocket:
+#    build:
+#      context: ./websocket
+#      target: websocket
+#    environment:
+#    - URL=0.0.0.0
+#    - PORT=9090
+#    - WAMP_PORT=9092
+#    - REALM=realm
+#    - JWT_SECRET=YourSampleKeyHere
+#    - REDIS_URL=tcp://redis:6379
+#    - REDIS_CODE=dev
+#    volumes:
+#    - ./websocket:/var/www/html/
+#    ports:
+#    - 83:9090
+#    networks:
+#    - piwinet
+
+#  wallet:
+#    image: registry.zmtsys.com/blockchain-wallet
+#    environment:
+#    - BLOCKCHAIN_SSH_USER=xpub
+#    - BLOCKCHAIN_SSH_PASS=zmtsysxpub
+#    expose:
+#      - 22
+#      - 3000
+#    networks:
+#    - piwinet
 
   redis:
     image: redis
     ports:
       - 6379:6379
+    networks:
+      - piwinet
+
   redisui:
     image: marian/rebrow
     ports:
       - "5001:5001"
+    networks:
+      - piwinet
+
   swagger-ui:
     image: swaggerapi/swagger-ui
     ports:
       - 8082:8080
+    networks:
+      - piwinet
 
 volumes:
   database:
   uploads:
 
 networks:
-  default:
-    external:
-      name: piwinet
+  piwinet:
+    external: true
