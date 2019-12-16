@@ -1312,3 +1312,9 @@ td.btc-wrap {
     min-height: 170px !important;
     white-space: pre-wrap;
 }
+
+button[data-id=update_profileForm_data_userType] {
+    background-color: #ededee;
+    cursor: not-allowed;
+    pointer-events: none;
+}

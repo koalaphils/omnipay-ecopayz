@@ -46,6 +46,7 @@ class UpdateProfileRequest
         $request->birthDate = $customer->getBirthDate();
         $request->gender = $customer->getGender();
         $request->userType = $customer->getUser()->getType();
+
         if ($customer->getCountry() !== null) {
             $request->country = $customer->getCountry()->getId();
         }
@@ -75,11 +76,6 @@ class UpdateProfileRequest
         $request->locale = $customer->getLocale();
 
         return $request;
-    }
-
-    public function getUserType(): ?string
-    {
-        return $this->userType;
     }
 
     public function getCustomer(): \DbBundle\Entity\Customer
@@ -296,5 +292,15 @@ class UpdateProfileRequest
     public function setLocale(string $locale): void
     {
         $this->locale = $locale;
+    }
+
+    public function getUserType(): ?int
+    {
+        return $this->userType;
+    }
+
+    public function setUserType(int $userType): void
+    {
+        $this->userType = $userType;
     }
 }

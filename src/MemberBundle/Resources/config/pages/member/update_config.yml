@@ -215,7 +215,7 @@ widgets:
                         label: Type
                         required: false
                         attr:
-                            disabled: true
+                            readonly: true
                     type: dropdown
                     size: 12
                     group: Right
@@ -223,6 +223,7 @@ widgets:
                         function: '@user.manager::getUserTypes'
                         label: result['name']
                         value: result['id']
+
     passwordForm:
         type: AppBundle\Widget\Page\FormWidget
         properties:
