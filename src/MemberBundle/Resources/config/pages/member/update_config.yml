@@ -224,16 +224,6 @@ widgets:
                         label: result['name']
                         value: result['id']
 
-#                userType:
-#                    options:
-#                        label: Type
-#                        required: false
-#                        attr:
-#                            readonly: true
-#                    type: text
-#                    size: 12
-#                    group: Right
-
     passwordForm:
         type: AppBundle\Widget\Page\FormWidget
         properties:

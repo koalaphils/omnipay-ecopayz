@@ -78,11 +78,6 @@ class UpdateProfileRequest
         return $request;
     }
 
-//    public function getUserType(): ?string
-//    {
-//        return $this->userType;
-//    }
-
     public function getCustomer(): \DbBundle\Entity\Customer
     {
         return $this->customer;
