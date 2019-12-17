@@ -165,7 +165,7 @@ class MemberManager extends AbstractManager
             }
 
             $revenueSharePayout = 0;
-            if ($revenueShare->getRunningRevenueShare() < $revenueShare->getTotalRevenueShare()){
+            if ($revenueShare->getRunningRevenueShare() < MemberRunningRevenueShare::MIN_PAYOUT){
                 $revenueSharePayout = $revenueShare->getRunningRevenueShare();
             } else {
                 $revenueSharePayout = $revenueShare->getTotalRevenueShare();
@@ -334,13 +334,11 @@ class MemberManager extends AbstractManager
     {
         if (empty($filters['dwlDateFrom'] ?? null) || empty($filters['dwlDateTo'] ?? null)) {
             $currentPeriod = $this->getCommissionManager()->getCommissionPeriodForDate($currentDate);
-
             if (!is_null($currentPeriod)) {
                 $filters['dwlDateFrom'] = $currentPeriod->getDWLDateFrom()->format('Y-m-d');
                 $filters['dwlDateTo'] = $currentPeriod->getDWLDateTo()->format('Y-m-d');
             }
         }
-
         $piwiWallet = $this->getProductRepository()->getPiwiWalletProduct();
         $filters['piwiWalletProductId'] = $piwiWallet->getId();
         $turnoversWinLossCommissions = $this->getTurnoversAndCommissionsByMember($referrerId, $filters);
