@@ -165,7 +165,7 @@ class MemberManager extends AbstractManager
             }
 
             $revenueSharePayout = 0;
-            if ($revenueShare->getRunningRevenueShare() < MemberRunningRevenueShare::MIN_PAYOUT){
+            if ($revenueShare->getRunningRevenueShare() < $revenueShare->getTotalRevenueShare()){
                 $revenueSharePayout = $revenueShare->getRunningRevenueShare();
             } else {
                 $revenueSharePayout = $revenueShare->getTotalRevenueShare();

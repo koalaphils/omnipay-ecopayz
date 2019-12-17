@@ -828,13 +828,13 @@
                     revenue = revenueShare.preceeding_running_revenue_share.meta_data.data.correctRevenueShare;
                 }
 
-                if (revenue < 0){
+                if (revenue < 100){
                     return revenueShare.running_revenue_share;
                 } else {
                     return revenueShare.revenue_share;
                 }
             } else {
-                if (revenueShare.running_revenue_share < 0) {
+                if (revenueShare.running_revenue_share < 100) {
                     return revenueShare.running_revenue_share;
                 } else {
                     return revenueShare.revenue_share;
