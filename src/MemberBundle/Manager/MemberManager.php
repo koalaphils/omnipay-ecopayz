@@ -164,13 +164,7 @@ class MemberManager extends AbstractManager
                 $revenueShare->setRunningRevenueShare($prevRunningRevShare);
             }
 
-            $revenueSharePayout = 0;
-            if ($revenueShare->getRunningRevenueShare() < $revenueShare->getTotalRevenueShare()){
-                $revenueSharePayout = $revenueShare->getRunningRevenueShare();
-            } else {
-                $revenueSharePayout = $revenueShare->getTotalRevenueShare();
-            }
-
+            $revenueSharePayout = $revenueShare->getTotalRevenueShare();
             $now = new DateTime('now');
             $dateNow = $now->format('Y-m-d');
             $datePayout = $record->getDateTimePayoutAt();
