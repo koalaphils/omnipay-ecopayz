@@ -170,7 +170,7 @@ class MemberManager extends AbstractManager
             $datePayout = $record->getDateTimePayoutAt();
             $dateRecompute = $datePayout->modify('-1 day')->format('Y-m-d');
 
-            if ($dateRecompute < $dateNow) {
+            if ($dateRecompute <= $dateNow) {
                 $prevRunningRevShare = $revenueSharePayout;
             }
 
