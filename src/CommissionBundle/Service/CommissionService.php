@@ -5,6 +5,7 @@ namespace CommissionBundle\Service;
 use AppBundle\Manager\SettingManager;
 use CommissionBundle\Request\CommissionSettingRequest;
 use DateTime;
+use DateTimeZone;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DbBundle\Entity\CommissionPeriod;
@@ -71,7 +72,7 @@ class CommissionService
             $lastPeriod = $this->getCommissionPeriodRepository()->getCommissionPeriodBeforeOrOnTheDate($dateFor);
             if (!($lastPeriod instanceof CommissionPeriod)) {
                 $lastPeriod = new CommissionPeriod();
-                $lastPeriod->setDWLDateFrom(DateTimeImmutable::createFromFormat('!Y-m-d', $commissionSetting['startDate']));
+                $lastPeriod->setDWLDateFrom(DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $commissionSetting['startDate'] . ' 00:00:00'));
                 $this->computeRangeOfCommissionSchedule($lastPeriod);
                 $this->validateCommissionPeriod($lastPeriod);
                 $this->getCommissionPeriodRepository()->save($lastPeriod);
