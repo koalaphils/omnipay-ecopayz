@@ -156,12 +156,9 @@ class MemberManager extends AbstractManager
         $memberProduct = $this->getMemberProductRepository()->getProductWalletByMember($memberId);
         foreach ($result['records'] as $key => $record) {
             $revenueShare = $runningRevenueSharesIdKeyed[$record->getId()] ?? new MemberRunningRevenueShare();
-            
-            if (is_null($revenueShare->getId()) && $preceedingRevenueShare instanceof MemberRunningRevenueShare) {
+
+            if (!(is_null($revenueShare->getId())) && $preceedingRevenueShare instanceof MemberRunningRevenueShare) {
                 $revenueShare->getRunningRevenueShare($preceedingRevenueShare->getRunningRevenueShare());
-            }
-            if (is_null($revenueShare->getRevenueSharePeriod()) && $prevRunningRevShare < MemberRunningRevenueShare::MIN_PAYOUT) {
-                $revenueShare->setRunningRevenueShare($prevRunningRevShare);
             }
 
             $revenueSharePayout = $revenueShare->getTotalRevenueShare();
@@ -327,21 +324,13 @@ class MemberManager extends AbstractManager
     public function getCurrentPeriodReferralTurnoversAndCommissions(int $referrerId, DateTimeInterface $currentDate, array $filters): array
     {
         if (empty($filters['dwlDateFrom'] ?? null) || empty($filters['dwlDateTo'] ?? null)) {
-            #dump('currentDate', $currentDate);
-            #print_r('currentDate');
-            #print_r($currentDate);
             $currentPeriod = $this->getCommissionManager()->getCommissionPeriodForDate($currentDate);
-            #dump('currentPeriod', $currentPeriod);
-            #print_r('currentPeriod');
-            #print_r($currentPeriod);
             if (!is_null($currentPeriod)) {
                 $filters['dwlDateFrom'] = $currentPeriod->getDWLDateFrom()->format('Y-m-d');
                 $filters['dwlDateTo'] = $currentPeriod->getDWLDateTo()->format('Y-m-d');
             }
-            #dump('filters', $filters);
-            #print_r('filters');
-            #print_r($filters);
         }
+
         $piwiWallet = $this->getProductRepository()->getPiwiWalletProduct();
         $filters['piwiWalletProductId'] = $piwiWallet->getId();
         $turnoversWinLossCommissions = $this->getTurnoversAndCommissionsByMember($referrerId, $filters);
