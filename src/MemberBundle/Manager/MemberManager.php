@@ -328,19 +328,19 @@ class MemberManager extends AbstractManager
     {
         if (empty($filters['dwlDateFrom'] ?? null) || empty($filters['dwlDateTo'] ?? null)) {
             #dump('currentDate', $currentDate);
-            print_r('currentDate');
-            print_r($currentDate);
+            #print_r('currentDate');
+            #print_r($currentDate);
             $currentPeriod = $this->getCommissionManager()->getCommissionPeriodForDate($currentDate);
             #dump('currentPeriod', $currentPeriod);
-            print_r('currentPeriod');
-            print_r($currentPeriod);
+            #print_r('currentPeriod');
+            #print_r($currentPeriod);
             if (!is_null($currentPeriod)) {
                 $filters['dwlDateFrom'] = $currentPeriod->getDWLDateFrom()->format('Y-m-d');
                 $filters['dwlDateTo'] = $currentPeriod->getDWLDateTo()->format('Y-m-d');
             }
             #dump('filters', $filters);
-            print_r('filters');
-            print_r($filters);
+            #print_r('filters');
+            #print_r($filters);
         }
         $piwiWallet = $this->getProductRepository()->getPiwiWalletProduct();
         $filters['piwiWalletProductId'] = $piwiWallet->getId();
