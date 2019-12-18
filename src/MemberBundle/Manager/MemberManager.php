@@ -327,11 +327,14 @@ class MemberManager extends AbstractManager
     public function getCurrentPeriodReferralTurnoversAndCommissions(int $referrerId, DateTimeInterface $currentDate, array $filters): array
     {
         if (empty($filters['dwlDateFrom'] ?? null) || empty($filters['dwlDateTo'] ?? null)) {
+            dump('currentDate', $currentDate);
             $currentPeriod = $this->getCommissionManager()->getCommissionPeriodForDate($currentDate);
+            dump('currentPeriod', $currentPeriod);
             if (!is_null($currentPeriod)) {
                 $filters['dwlDateFrom'] = $currentPeriod->getDWLDateFrom()->format('Y-m-d');
                 $filters['dwlDateTo'] = $currentPeriod->getDWLDateTo()->format('Y-m-d');
             }
+            dump('filters', $filters);
         }
         $piwiWallet = $this->getProductRepository()->getPiwiWalletProduct();
         $filters['piwiWalletProductId'] = $piwiWallet->getId();
