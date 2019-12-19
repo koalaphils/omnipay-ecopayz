@@ -96,7 +96,7 @@ class CommissionPeriodRepository extends BaseRepository
     {
         $queryBuilder = $this->createQueryBuilder('cs');
         $queryBuilder->where('cs.dwlDateFrom <= :date AND cs.dwlDateTo >= :date')
-            ->setParameter('date', $date);
+            ->setParameter('date', $date->format('Y-m-d'));
 
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }
