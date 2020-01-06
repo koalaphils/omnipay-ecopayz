@@ -421,8 +421,6 @@ class MemberManager extends AbstractManager
                     if ($filters['dwlDateFrom'] > $schema['createdAt']) {
                         $newFrom = $filters['dwlDateFrom'];
                     }
-                } else if ($key == $lastKey) {
-                    $newTo = $filters['dwlDateTo'];
                 }
 
                 // Get Pinnacle Data

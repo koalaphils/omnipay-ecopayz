@@ -23,7 +23,7 @@ final class Version20191008083925 extends AbstractMigration
 
         $this->addSql('UPDATE setting SET setting_value = JSON_SET(setting_value, "$.product", "PW") where setting_id = 104');
 
-        $this->addSql('UPDATE setting SET setting_value = JSON_SET(setting_value, "$.revenueshare", JSON_OBJECT("totalAmount", JSON_OBJECT("equation", "x+y", "variables", JSON_OBJECT("x", "sum_products", "y", "total_customer_fee")), "customerAmount", JSON_OBJECT("equation", "x", "variables", JSON_OBJECT("x", "sum_products")))) where setting_id = 98');
+        $this->addSql('UPDATE setting SET setting_value = JSON_SET(setting_value, "$.revenue_share", JSON_OBJECT("totalAmount", JSON_OBJECT("equation", "x+y", "variables", JSON_OBJECT("x", "sum_products", "y", "total_customer_fee")), "customerAmount", JSON_OBJECT("equation", "x", "variables", JSON_OBJECT("x", "sum_products")))) where setting_id = 98');
 
         $this->addSql('INSERT INTO product (product_id, product_code, product_name, product_is_active, product_deleted_at, product_created_by, product_created_at, product_updated_by, product_updated_at, product_logo_uri, product_url, product_details) VALUES
 (2, "PW", "PIWI WALLET", 1, NULL, 1, NOW(), NULL, NULL, NULL, NULL, JSON_OBJECT("piwi_wallet", "TRUE"))');
