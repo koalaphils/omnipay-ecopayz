@@ -43,7 +43,7 @@ class MemberRunningRevenueShareRepository extends BaseRepository
         $queryBuilder = $this->createQueryBuilder('mrs')
             ->select('mrs.runningRevenueShare as totalRunningRevenueShare')
             ->join('mrs.revenueSharePeriod', 'cs')
-            ->where('mrs.member = :memberId AND (cs.status = :successPayout OR cs.status = :successComputation)')
+            ->where('mrs.member = :memberId AND (cs.revenueShareStatus = :successPayout OR cs.revenueShareStatus = :successComputation)')
             ->orderBy('cs.dwlDateTo', 'DESC')
             ->setMaxResults(1)
             ->setParameters([
@@ -52,11 +52,11 @@ class MemberRunningRevenueShareRepository extends BaseRepository
                 'successComputation' => CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION
             ]);
 
-        $totalRunningCommission = $queryBuilder->getQuery()->getOneOrNullResult(Query::HYDRATE_SINGLE_SCALAR);
-        if (is_null($totalRunningCommission)) {
+        $totalRunningRevenueShare = $queryBuilder->getQuery()->getOneOrNullResult(Query::HYDRATE_SINGLE_SCALAR);
+        if (is_null($totalRunningRevenueShare)) {
             return '0';
         } else {
-            return (string) $totalRunningCommission;
+            return (string) $totalRunningRevenueShare;
         }
     }
     

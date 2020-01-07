@@ -66,7 +66,10 @@ class CustomerController extends AbstractController
                 $preferencesExtra['transaction']['statuses'][$otherStatus] = $this->getTranslator()->trans($otherStatus, [], 'TransactionBundle');
             }
 
-            $user->getCustomer()->setExtraPreferences($preferencesExtra);
+            $getRunningRevenueShare = $this->getMemberRunningRevenueShareRepository()->totalRunningRevenueShareOfMember($user->getCustomer()->getIdentifier());
+            $revenueShare = ['runningRevenueShare' => $getRunningRevenueShare];
+
+            $user->getCustomer()->setExtraPreferences(array_merge($preferencesExtra, $revenueShare));
         }
 
         $view->getContext()->setGroups($groups);
@@ -797,6 +800,11 @@ class CustomerController extends AbstractController
     private function getCustomerPaymentOptionRepository(): \DbBundle\Repository\CustomerPaymentOptionRepository
     {
         return $this->getDoctrine()->getRepository('DbBundle:CustomerPaymentOption');
+    }
+
+    private function getMemberRunningRevenueShareRepository(): \DbBundle\Repository\MemberRunningRevenueShareRepository
+    {
+        return $this->getDoctrine()->getRepository('DbBundle:MemberRunningRevenueShare');
     }
 
     private function getCustomerProductRepository(): \DbBundle\Repository\CustomerProductRepository
