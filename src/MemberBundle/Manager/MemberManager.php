@@ -156,12 +156,7 @@ class MemberManager extends AbstractManager
         $memberProduct = $this->getMemberProductRepository()->getProductWalletByMember($memberId);
         foreach ($result['records'] as $key => $record) {
             $revenueShare = $runningRevenueSharesIdKeyed[$record->getId()] ?? new MemberRunningRevenueShare();
-
-            if (!(is_null($revenueShare->getId())) && $preceedingRevenueShare instanceof MemberRunningRevenueShare) {
-                $revenueShare->getRunningRevenueShare($preceedingRevenueShare->getRunningRevenueShare());
-            }
-
-            $revenueSharePayout = $revenueShare->getTotalRevenueShare();
+            $revenueSharePayout = $revenueShare->getRunningRevenueShare();
             $now = new DateTime('now');
             $dateNow = $now->format('Y-m-d');
             $datePayout = $record->getDateTimePayoutAt();
@@ -171,8 +166,7 @@ class MemberManager extends AbstractManager
                 $prevRunningRevShare = $revenueSharePayout;
             }
 
-            if ($revenueSharePayout < MemberRunningRevenueShare::MIN_PAYOUT)
-            {
+            if (!(($revenueSharePayout >= MemberRunningRevenueShare::MIN_PAYOUT) && ($revenueShare->isConditionMet()))) {
                 $revenueSharePayout = 0;
             }
 
@@ -181,8 +175,6 @@ class MemberManager extends AbstractManager
                 'revenueShare' => $revenueShare,
                 'payout' => $revenueSharePayout
             ];
-
-            $preceedingRevenueShare = $revenueShare;
         }
 
         $records = array_reverse($records);

@@ -10,6 +10,8 @@ DbBundle\Entity\MemberRunningRevenueShare:
             expose: true
         metaData:
             expose: true
+        precedingRunningRevenueShare:
+            expose: true
         commissionPeriod:
             expose: true
             groups: ['periodBalance']

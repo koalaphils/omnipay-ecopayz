@@ -157,7 +157,7 @@
                         <label class="control-label" for="verifyCustomer">Verify Customer</label>
                         <input type="checkbox" id="verifyCustomer" {{ customer.isVerified() ? "checked='checked'" : "" }} data-plugin="switchery" data-color="#81c868" data-secondary-color="#f05050" />
                     </div>
-                    {{ widget_render(page.getWidget('documents')) }}
+                    {#{ widget_render(page.getWidget('documents')) }#}
                 </div>
                 <div class="tab-pane" id="referrals">
                     <div class="row">
@@ -822,23 +822,19 @@
         }
 
         function revenueShareForPeriod(revenueShare) {
-            if (revenueShare.preceeding_running_revenue_share){
-                var revenue = revenueShare.preceeding_running_revenue_share.running_revenue_share;
-                if (revenueShare.preceeding_running_revenue_share.meta_data.data.hasOwnProperty('correctRevenueShare')){
-                    revenue = revenueShare.preceeding_running_revenue_share.meta_data.data.correctRevenueShare;
+            if (revenueShare.preceding_running_revenue_share){
+                var revenue = revenueShare.preceding_running_revenue_share.running_revenue_share;
+                if (revenueShare.preceding_running_revenue_share.meta_data.data.hasOwnProperty('correctRevenueShare')){
+                    revenue = revenueShare.preceding_running_revenue_share.meta_data.data.correctRevenueShare;
                 }
 
-                if (revenue < 100){
-                    return revenueShare.running_revenue_share;
-                } else {
+                if ((revenue >= 100) && (revenueShare.preceding_running_revenue_share == 'condition_met')) {
                     return revenueShare.revenue_share;
+                } else {
+                    return revenueShare.running_revenue_share;
                 }
             } else {
-                if (revenueShare.running_revenue_share < 100) {
-                    return revenueShare.running_revenue_share;
-                } else {
-                    return revenueShare.revenue_share;
-                }
+                return revenueShare.running_revenue_share;
             }
         }
 
