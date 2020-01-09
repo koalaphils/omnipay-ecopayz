@@ -45,6 +45,7 @@ mkdir -p var/cache/${SYMFONY_ENV}/profiler
 mkdir -p var/cache/${SYMFONY_ENV}/jms_diextra/doctrine
 mkdir -p var/cache/${SYMFONY_ENV}/jms_diextra/metadata
 mkdir -p var/cache/${SYMFONY_ENV}/jms_aop
+mkdir -p var/spool/default
 touch var/logs/${SYMFONY_ENV}.log
 
 chown -Rf www-data var
