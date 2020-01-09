@@ -108,7 +108,7 @@ class CreateMemberRequestHandler
         if ($request->getUserType() == User::USER_TYPE_AFFILIATE) {
             $piwiWallet = $this->getProductRepository()->getPiwiWalletProduct();
             $memberProduct->setProduct($piwiWallet);
-            $memberProduct->setUserName($this->generateUsername($piwiWallet));
+            $memberProduct->setUserName($this->generateUsername($username));
         } else {
             $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
             $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->createPlayer();
@@ -155,8 +155,8 @@ class CreateMemberRequestHandler
         return $this->entityManager->getRepository(Product::class);
     }
 
-    private function generateUsername(Product $product): string
+    private function generateUsername(string $username): string
     {
-        return uniqid('tmp_' . str_replace(' ', '', $product->getName()) . '_');
+        return strtok($username, '@');
     }
 }
