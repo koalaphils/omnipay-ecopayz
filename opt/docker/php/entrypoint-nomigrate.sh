@@ -37,6 +37,8 @@ fi
 
 php app/console theme:apply euro --no-interaction
 php app/console cache:clear --no-warmup --no-optional-warmers --no-interaction
+php app/console app:email-setup
+php app/console app:referral-tools-setup
 
 mkdir -p var/logs
 mkdir -p var/logs/blockchain
@@ -49,6 +51,7 @@ mkdir -p var/spool/default
 touch var/logs/${SYMFONY_ENV}.log
 
 chown -Rf www-data var
+chmod -R 777 ./var/
 
 set +e
 id -u ${SSH_USER}
