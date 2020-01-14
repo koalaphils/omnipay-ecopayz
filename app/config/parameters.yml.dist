@@ -22,7 +22,7 @@ parameters:
 
     app_locales: en|ko
     upload_folder: "${UPLOAD_FOLDER}"
-    php_command: /usr/bin/php
+    php_command: php
 
     #session expiration time
     session.expiration_time: 3600
@@ -105,3 +105,12 @@ parameters:
     redis.host: ${REDIS_HOST}
     redis.port: ${REDIS_PORT}
     redis.database_id: ${REDIS_DATABASE}
+
+
+- MAIL_HOST=smtp.gmail.com
+- MAIL_USER=verify@piwi247.com
+- MAIL_PASSWORD=!xKRz6NZyfGKziii_nHL
+
+- MAIL_HOST=smtp.zmtsys.com
+- MAIL_USER=jayfer.balecha@zmtsys.com
+- MAIL_PASSWORD=!@mj@y09305
