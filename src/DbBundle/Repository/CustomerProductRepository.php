@@ -202,7 +202,7 @@ class CustomerProductRepository extends BaseRepository
         $queryBuilder = $connection->createQueryBuilder();
 
         $queryBuilder
-            ->select("cp.cproduct_id id, cp.cproduct_username userName, c.customer_balance balance, 
+            ->select("cp.cproduct_id id, cp.cproduct_username userName, cp.cproduct_balance balance, 
                 cp.cproduct_is_active isActive, cp.cproduct_requested_at requestedAt, cp.cproduct_details details,"
                 . "c.customer_id, "
                 . "p.product_id, p.product_name, p.product_details")
