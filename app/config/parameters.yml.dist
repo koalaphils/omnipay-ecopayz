@@ -22,7 +22,7 @@ parameters:
 
     app_locales: en|ko
     upload_folder: "${UPLOAD_FOLDER}"
-    php_command: /usr/bin/php
+    php_command: php
 
     #session expiration time
     session.expiration_time: 3600
