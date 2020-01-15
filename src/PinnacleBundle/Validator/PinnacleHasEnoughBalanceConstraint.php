@@ -10,6 +10,7 @@ class PinnacleHasEnoughBalanceConstraint extends Constraint
 {
     protected $message = "Balance not enough";
     protected $userCode;
+    protected $isAffiliate;
     protected $isUserCodeExpression = false;
     protected $transactedExpression;
 
@@ -45,6 +46,18 @@ class PinnacleHasEnoughBalanceConstraint extends Constraint
     public function getUserCode(): string
     {
         return $this->userCode;
+    }
+
+    public function setIsAffiliate(string $isAffiliate): self
+    {
+        $this->isAffiliate = $isAffiliate;
+
+        return $this;
+    }
+
+    public function getIsAffiliate(): string
+    {
+        return $this->isAffiliate;
     }
 
     public function getIsUserCodeExpression(): bool

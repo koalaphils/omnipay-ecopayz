@@ -107,7 +107,7 @@ class CommissionManager
      * @param int $commissionPeriodId
      * @return bool whether operation was successfull
      */
-    public function recomputeAndPayoutRevenueShareForPeriod(int $commissionPeriodId, string $usernameForAuditLog, bool $forceRecompute = false): bool
+    public function recomputeAndPayoutRevenueShareForPeriod(int $commissionPeriodId, string $usernameForAuditLog, string $action, bool $forceRecompute = false): bool
     {
         $period = $this->getCommissionPeriodRepository()->find($commissionPeriodId);
         if (!$period instanceof CommissionPeriod) {
@@ -115,8 +115,17 @@ class CommissionManager
         }
 
         try {
-            $computeJob = new Job('revenueshare:period:compute',
-                [
+
+            if ($action == 'pay'){
+                $arrayJob = [
+                    $usernameForAuditLog,
+                    '--period',
+                    $period->getId(),
+                    '--env',
+                    $this->kernelEnvironment,
+                ];
+            } else {
+                $arrayJob = [
                     $usernameForAuditLog,
                     '--period',
                     $period->getId(),
@@ -124,9 +133,13 @@ class CommissionManager
                     $forceRecompute ? '1' : '0',
                     '--env',
                     $this->kernelEnvironment,
-                ],
+                ];
+            }
+
+            $computeJob = new Job('revenueshare:period:'.$action,
+                $arrayJob,
                 true,
-                'payout'
+                $action
             );
 
             $this->entityManager->persist($computeJob);
