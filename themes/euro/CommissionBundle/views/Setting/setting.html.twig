@@ -72,7 +72,7 @@
                 $('.payout-revenueshare-button').not(this).attr('disabled','disabled');
                 recomputeAndPayoutRevenueShareCommissionPeriod(commissionPeriodId, 'compute', function () {
                     iconPlaceholder.removeClass('fa fa-refresh fa-spin');
-                    $('.compute-revenueshare-button').not(this).removeAttr('disabled');
+                    //$('.compute-revenueshare-button').not(this).removeAttr('disabled');
                     notification('Computation of Revenue Share is now in progress...');
                 });
             });
@@ -85,7 +85,7 @@
                 $('.compute-revenueshare-button').not(this).attr('disabled','disabled');
                 recomputeAndPayoutRevenueShareCommissionPeriod(commissionPeriodId, 'pay', function () {
                     iconPlaceholder.removeClass('fa fa-refresh fa-spin');
-                    $('.payout-revenueshare-button').not(this).removeAttr('disabled');
+                    //$('.payout-revenueshare-button').not(this).removeAttr('disabled');
                     notification('Computation of Revenue Share is now in progress...');
                 });
             });
