@@ -59,6 +59,20 @@
                         {% endif %}
                     </ul>
                 </li>
+                <li class="has_sub" id="menu-member-request">
+                    <a class="waves-effect" href="javascript:void(0)">
+                        <i class="ti-exchange-vertical"></i>
+                        <span>Member Requests</span>
+                        <span class="menu-arrow"></span>
+                        <span class="menu-label label-primary pull-right hide">0</span>
+                    </a>
+                    <ul class="list-unstyled">
+                        {% if is_granted('ROLE_MEMBER_REQUEST_VIEW') %}
+                            <li><a href="">Pending</a></li>
+                            <li><a href="">Request History</a></li>
+                        {% endif %}
+                    </ul>
+                </li>
                 {% endif %}
                 {% if is_granted(['ROLE_TRANSACTION_VIEW', 'ROLE_GATEWAY_TRANACTION_VIEW', 'ROLE_GATEWAY_LOG_VIEW'])  %}
                 <li class="has_sub" id="menu-transaction">
