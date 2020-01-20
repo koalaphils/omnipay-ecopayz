@@ -378,7 +378,7 @@ class DWLManager extends AbstractManager
                     $referrer = $transaction->getCustomer()->getReferrer();
                     $period = $this->getCommissionPeriodRepository()->getCommissionForDWL($dwl);
                     if ($period instanceof CommissionPeriod) {
-                        $computeJob = new Job('commission:period:compute',
+                        $computeJob = new Job('revenueshare:period:compute',
                             [
                                 $this->getUser()->getUsername(),
                                 '--period',

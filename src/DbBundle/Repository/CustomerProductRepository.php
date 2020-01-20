@@ -202,7 +202,7 @@ class CustomerProductRepository extends BaseRepository
         $queryBuilder = $connection->createQueryBuilder();
 
         $queryBuilder
-            ->select("cp.cproduct_id id, cp.cproduct_username userName, c.customer_balance balance, 
+            ->select("cp.cproduct_id id, cp.cproduct_username userName, cp.cproduct_balance balance, 
                 cp.cproduct_is_active isActive, cp.cproduct_requested_at requestedAt, cp.cproduct_details details,"
                 . "c.customer_id, "
                 . "p.product_id, p.product_name, p.product_details")
@@ -391,9 +391,9 @@ class CustomerProductRepository extends BaseRepository
     {
         $queryBuilder = $this->createQueryBuilder('cp');
         $queryBuilder->join('cp.customer', 'c', 'WITH', 'c.id = :memberId')
-            ->join('cp.product', 'p', 'WITH', 'JSON_CONTAINS(p.details, :acWalletTag) = 1')
+            ->join('cp.product', 'p', 'WITH', 'JSON_CONTAINS(p.details, :piwiWalletTag) = 1')
             ->setParameter('memberId', $memberId)
-            ->setParameter('acWalletTag', json_encode(['ac_wallet' => true]));
+            ->setParameter('piwiWalletTag', json_encode(['piwi_wallet' => true]));
 
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }

@@ -1,3 +1,9 @@
+api_customers.me:
+  path: me
+  defaults:
+    _controller: ApiBundle:Customer:me
+  methods: [GET]
+
 api_me_pinnacle_balance:
   path: me/pinnacle/balance
   defaults:
@@ -57,3 +63,8 @@ api_member.change_locale:
   defaults:
     _controller: ApiBundle:Member:changeLocale
   methods: [POST]
+
+api_customers.me_products:
+  path: me/products
+  defaults: { _controller: ApiBundle:Customer:customerProducts }
+  methods: [GET]

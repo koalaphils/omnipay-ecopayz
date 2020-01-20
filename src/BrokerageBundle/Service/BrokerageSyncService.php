@@ -85,7 +85,7 @@ class BrokerageSyncService
             foreach ($this->getCommissionPeriodsForDwls($dwls) as $period) {
                 $this
                     ->getCommissionManager()
-                    ->recomputeAndPayoutCommissionForPeriod($period->getId(), $this->_getUser()->getUsername());
+                    ->recomputeAndPayoutRevenueShareForPeriod($period->getId(), $this->_getUser()->getUsername());
             }
         } catch (Exception $ex) {
             // Do nothing this method must be successfull even a job for commission got an error.

@@ -32,11 +32,13 @@ class CommissionPeriod extends Entity implements ActionInterface, TimestampInter
     const STATUS_EXECUTING_PAYOUT = 5;
     const STATUS_SUCCESSFULL_PAYOUT = 6;
     const STATUS_FAILED_PAYOUT = 7;
+    const STATUS_NOT_COMPUTED = 8;
 
     private $dwlDateFrom;
     private $dwlDateTo;
     private $payoutAt;
     private $status;
+    private $revenueShareStatus;
     private $details;
     private $conditions;
 
@@ -46,6 +48,12 @@ class CommissionPeriod extends Entity implements ActionInterface, TimestampInter
         $this->conditions = [];
         $this->details = [];
         $this->status = self::STATUS_NOT_YET_COMPUTED;
+        $this->revenueShareStatus = self::STATUS_NOT_YET_COMPUTED;
+    }
+
+    public function getIdentifier()
+    {
+        return $this->getId();
     }
 
     public function getDWLDateFrom(): DateTimeImmutable
@@ -109,6 +117,11 @@ class CommissionPeriod extends Entity implements ActionInterface, TimestampInter
         return $this->payoutAt;
     }
 
+    public function getDateTimePayoutAt(): DateTime
+    {
+        return $this->payoutAt;
+    }
+
     public function setPayoutAt(DateTimeInterface $payoutAt): self
     {
         if ($payoutAt instanceof DateTimeImmutable) {
@@ -137,7 +150,7 @@ class CommissionPeriod extends Entity implements ActionInterface, TimestampInter
     {
         return $this->status;
     }
-    
+
     public function isNotYetComputed(): bool
     {
         return $this->status === self::STATUS_NOT_YET_COMPUTED;
@@ -234,5 +247,82 @@ class CommissionPeriod extends Entity implements ActionInterface, TimestampInter
             self::DETAIL_DATE_FROM => $this->getDWLDateFrom()->format('Y-m-d'),
             self::DETAIL_DATE_TO => $this->getDWLDateTo()->format('Y-m-d'),
         ];
+    }
+
+    public function setRevenueShareStatus(int $status): self
+    {
+        $this->revenueShareStatus = $status;
+        
+        return $this;
+    }
+    
+    public function getRevenueShareStatus(): int
+    {
+        return $this->revenueShareStatus;
+    }
+    
+    public function isNotYetComputedRevenueShare(): bool
+    {
+        return $this->revenueShareStatus === self::STATUS_NOT_YET_COMPUTED;
+    }
+
+    public function isComputingRevenueShare(): bool
+    {
+        return $this->revenueShareStatus === self::STATUS_COMPUTING;
+    }
+    
+    public function isSuccessfullComputationRevenueShare(): bool
+    {
+        return $this->revenueShareStatus === self::STATUS_SUCCESSFULL_COMPUTATION;
+    }
+    
+    public function isFailedComputationRevenueShare(): bool
+    {
+        return $this->revenueShareStatus === self::STATUS_FAILED_COMPUTATION;
+    }
+    
+    public function isExecutingPayoutRevenueShare(): bool
+    {
+        return $this->revenueShareStatus === self::STATUS_EXECUTING_PAYOUT;
+    }
+    
+    public function isSuccessfullPayoutRevenueShare(): bool
+    {
+        return $this->revenueShareStatus === self::STATUS_SUCCESSFULL_PAYOUT;
+    }
+    
+    public function isFailedPayoutRevenueShare(): bool
+    {
+        return $this->revenueShareStatus === self::STATUS_FAILED_PAYOUT;
+    }
+    
+    public function setToComputingRevenueShare(): void
+    {
+        $this->revenueShareStatus = self::STATUS_COMPUTING;
+    }
+    
+    public function setToSuccessfullComputationRevenueShare(): void
+    {
+        $this->revenueShareStatus = self::STATUS_SUCCESSFULL_COMPUTATION;
+    }
+    
+    public function setToFailedComputationRevenueShare(): void
+    {
+        $this->revenueShareStatus = self::STATUS_FAILED_COMPUTATION;
+    }
+    
+    public function setToExecutingPayoutRevenueShare(): void
+    {
+        $this->revenueShareStatus = self::STATUS_EXECUTING_PAYOUT;
+    }
+    
+    public function setToSuccessfullPayoutRevenueShare(): void
+    {
+        $this->revenueShareStatus = self::STATUS_SUCCESSFULL_PAYOUT;
+    }
+    
+    public function setToFailedPayoutRevenueShare(): void
+    {
+        $this->revenueShareStatus = self::STATUS_FAILED_PAYOUT;
     }
 }

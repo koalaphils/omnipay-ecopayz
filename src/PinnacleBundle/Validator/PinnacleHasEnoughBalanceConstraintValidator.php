@@ -40,6 +40,11 @@ class PinnacleHasEnoughBalanceConstraintValidator extends ConstraintValidator
         if ($constraint->getIsUserCodeExpression()) {
             $expLang = new ExpressionLanguage();
             $userCode = $expLang->evaluate($constraint->getUserCode(), ['object' => $this->context->getObject()]);
+            $isAffiliate = $expLang->evaluate($constraint->getIsAffiliate(), ['object' => $this->context->getObject()]);
+
+            if ($isAffiliate) {
+                return;
+            }
         }
 
 

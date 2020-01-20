@@ -49,6 +49,8 @@ class AuditRevisionLog extends Entity
     const CATEGORY_BITCOIN_RATE_SETTING = 33;
     const CATEGORY_MEMBER_TRANSACTION_DEBIT_ADJUSTMENT = 34;
     const CATEGORY_MEMBER_TRANSACTION_CREDIT_ADJUSTMENT = 35;
+    const CATEGORY_RUNNING_REVENUE_SHARE = 36;
+    const CATEGORY_CUSTOMER_TRANSACTION_REVENUE_SHARE = 37;
 
     private $details;
 
@@ -260,6 +262,12 @@ class AuditRevisionLog extends Entity
                 break;
             case self::CATEGORY_MEMBER_TRANSACTION_CREDIT_ADJUSTMENT:
                 $key = 'creditAdjustment';
+                break;
+            case self::CATEGORY_RUNNING_REVENUE_SHARE:
+                $key = 'revenueShare';
+                break;
+            case self::CATEGORY_CUSTOMER_TRANSACTION_REVENUE_SHARE:
+                $key = 'cRevenueShare';
                 break;
         }
 

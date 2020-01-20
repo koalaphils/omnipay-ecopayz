@@ -18,11 +18,12 @@ services:
         lazy: true
         arguments:
             - '@doctrine'
-
+            
     member.manager:
         class: MemberBundle\Manager\MemberManager
+        autowire: true
+        autoConfig: true
         parent: app.base_manager
-        arguments: [ "@app.setting_manager" ]
         calls:
             - ['setEntityManager', ['@doctrine.orm.entity_manager']]
             - ['setTranslator', ['@translator']]
@@ -30,10 +31,13 @@ services:
             - ['setSettingManager', ['@app.setting_manager']]
             - ['setCommissionManager', ['@commission.manager']]
             - ['setTransactionManager', ['@transaction.manager']]
+            - ['setCurrencyManager', ['@currency.manager']]
             - ['setMemberProductRepository', ['@=service("doctrine").getRepository("DbBundle\\Entity\\CustomerProduct")']]
             - ['setMemberReferralNameRepository', ['@=service("doctrine").getRepository("DbBundle\\Entity\\MemberReferralName")']]
             - ['setMemberPaymentOptionRepository', ['@=service("doctrine").getRepository("DbBundle\\Entity\\CustomerPaymentOption")']]
-
+            - ['setCurrencyRepository', ['@=service("doctrine").getRepository("DbBundle\\Entity\\Currency")']]
+    MemberBundle\Manager\MemberManager: "@member.manager"
+  
     member.inactive.manager:
         class: MemberBundle\Manager\InactiveMemberManager
         arguments: [ "@doctrine.orm.entity_manager", "@transaction.manager"]
@@ -41,6 +45,11 @@ services:
     member.commission_manager:
         class: MemberBundle\Manager\MemberCommissionManager
         parent: app.base_manager
+
+    member.revenue_share_manager:
+        class: MemberBundle\Manager\MemberRevenueShareManager
+        calls:
+            - ['setMemberRevenueShareRepository', ['@=service("doctrine").getRepository("DbBundle\\Entity\\MemberRevenueShare")']]
         
     member.referral_name_manager:
         class: MemberBundle\Manager\MemberReferralNameManager

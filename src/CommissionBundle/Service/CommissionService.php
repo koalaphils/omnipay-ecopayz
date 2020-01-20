@@ -5,6 +5,7 @@ namespace CommissionBundle\Service;
 use AppBundle\Manager\SettingManager;
 use CommissionBundle\Request\CommissionSettingRequest;
 use DateTime;
+use DateTimeZone;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DbBundle\Entity\CommissionPeriod;
@@ -32,7 +33,7 @@ class CommissionService
     const SCHEDULER_FREQUENCY_DAILY = 'daily';
     const SCHEDULER_FREQUENCY_WEEKLY = 'weekly';
     const SCHEDULER_FREQUENCY_YEARLY = 'yearly';
-    
+
     private $validator;
 
     public function handleCommissionSettingRequest(CommissionSettingRequest $request): Response
@@ -57,12 +58,12 @@ class CommissionService
             ],
             'conditions' => $conditions,
         ]);
-        
+
         $this->createOrUpdateCommissionPeriod($request->getDateOfRequest());
-        
+
         return Response::create('', Response::HTTP_ACCEPTED);
     }
-    
+
     public function createOrUpdateCommissionPeriod(DateTimeInterface $dateFor): void
     {
         try {
@@ -71,7 +72,7 @@ class CommissionService
             $lastPeriod = $this->getCommissionPeriodRepository()->getCommissionPeriodBeforeOrOnTheDate($dateFor);
             if (!($lastPeriod instanceof CommissionPeriod)) {
                 $lastPeriod = new CommissionPeriod();
-                $lastPeriod->setDWLDateFrom(DateTimeImmutable::createFromFormat('Y-m-d', $commissionSetting['startDate']));
+                $lastPeriod->setDWLDateFrom(DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $commissionSetting['startDate'] . ' 00:00:00'));
                 $this->computeRangeOfCommissionSchedule($lastPeriod);
                 $this->validateCommissionPeriod($lastPeriod);
                 $this->getCommissionPeriodRepository()->save($lastPeriod);
@@ -113,29 +114,29 @@ class CommissionService
             throw $e;
         }
     }
-    
+
     private function createOrUpdateJobForPeriod(CommissionPeriod $commissionPeriod): void
-    {   
+    {
         $computeJob = $this
             ->getJobRepository()
-            ->findJobForRelatedEntity('commission:period:compute', $commissionPeriod, [Job::STATE_PENDING]);
+            ->findJobForRelatedEntity('revenueshare:period:compute', $commissionPeriod, [Job::STATE_PENDING]);
         if (!($computeJob instanceof Job)) {
             $computeJob = new Job(
-                'commission:period:compute',
+                'revenueshare:period:compute',
                 [$this->getUser()->getUsername(), '--period', $commissionPeriod->getId(), '--env', $this->getEnvironment()],
                 true,
                 'payout'
             );
         }
-        $computeJob->setExecuteAfter(new DateTime($commissionPeriod->getDWLDateTo()->modify('+1 day')->format(DateTime::ATOM)));
+        $computeJob->setExecuteAfter(new DateTime($commissionPeriod->getPayoutAt()->modify('-1 day')->format(DateTime::ATOM)));
         $computeJob->addRelatedEntity($commissionPeriod);
-        
+
         $payoutJob = $this
             ->getJobRepository()
-            ->findJobForRelatedEntity('commission:period:pay', $commissionPeriod);
+            ->findJobForRelatedEntity('revenueshare:period:pay', $commissionPeriod);
         if (!($payoutJob instanceof Job)) {
             $payoutJob = new Job(
-                'commission:period:pay',
+                'revenueshare:period:pay',
                 [$this->getUser()->getUsername(), '--period', $commissionPeriod->getId(), '--env', $this->getEnvironment()],
                 true, 'payout'
             );
@@ -143,21 +144,21 @@ class CommissionService
         $payoutJob->addRelatedEntity($commissionPeriod);
         $payoutJob->setExecuteAfter(new DateTime($commissionPeriod->getPayoutAt()->format(DateTime::ATOM)));
         $payoutJob->addDependency($computeJob);
-        
+
         $this->getEntityManager()->persist($computeJob);
         $this->getEntityManager()->persist($payoutJob);
         $this->getEntityManager()->flush($computeJob);
         $this->getEntityManager()->flush($payoutJob);
-        
+
         if ($this->getMemberRunningCommissionRepository()->totalMemberRunningCommissionForCommissionPeriod($commissionPeriod) > 0) {
             $this->runComputeForPeriod($commissionPeriod);
         }
     }
-    
+
     private function runComputeForPeriod(CommissionPeriod $commissionPeriod)
     {
         $computeJob = new Job(
-            'commission:period:compute',
+            'revenueshare:period:compute',
             [$this->getUser()->getUsername(), '--period', $commissionPeriod->getId(), '--env', $this->getEnvironment()],
             true,
             'payout'
@@ -199,7 +200,12 @@ class CommissionService
                     }
                     break;
             }
-            $dwlDateTo = DateTimeImmutable::createFromFormat('Y-m-d', sprintf('%s-%s-%s', $year, $month, $day));
+
+            if ($scheduleDay === 'last') {
+                $dwlDateTo = DateTimeImmutable::createFromFormat('Y-m-t H:i:s', sprintf('%s-%s-01 00:00:00', $year, $month));
+            } else {
+                $dwlDateTo = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', sprintf('%s-%s-%s 00:00:00', $year, $month, $day));
+            }
         } elseif ($scheduleFrequency === self::SCHEDULER_FREQUENCY_WEEKLY) {
             $weekname = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
             $dwlDateTo = $commissionPeriod->getDWLDateFrom();
@@ -216,12 +222,12 @@ class CommissionService
         $payoutDate = $commissionPeriod->getDWLDateTo()->modify('+' . $schedulePayout . ' days');
         $commissionPeriod->setPayoutAt($payoutDate->createFromFormat('Y-m-d H:i', $payoutDate->format('Y-m-d ' . $scheduleTime)));
     }
-    
+
     public function setValidator(\Symfony\Component\Validator\Validator\ValidatorInterface $validator): void
     {
         $this->validator = $validator;
     }
-    
+
     private function validateCommissionPeriod(CommissionPeriod $commissionPeriod): void
     {
         $violationList = $this->validator->validate($commissionPeriod);
@@ -238,17 +244,17 @@ class CommissionService
     {
         return $this->container->get('doctrine')->getRepository(CommissionPeriod::class);
     }
-    
+
     private function getJobRepository(): JobRepository
     {
         return $this->getDoctrine()->getRepository(Job::class);
     }
-    
+
     private function getEntityManager(): EntityManager
     {
         return $this->getDoctrine()->getManager();
     }
-    
+
     private function getDoctrine(): Registry
     {
         return $this->container->get('doctrine');
@@ -258,12 +264,12 @@ class CommissionService
     {
         return $this->container->get('app.setting_manager');
     }
-    
+
     private function getMemberRunningCommissionRepository(): MemberRunningCommissionRepository
     {
         return $this->getDoctrine()->getRepository(MemberRunningCommission::class);
     }
-    
+
     private function getUser()
     {
         if (!$this->container->has('security.token_storage')) {
@@ -280,7 +286,7 @@ class CommissionService
 
         return $user;
     }
-    
+
     private function getEnvironment(): string
     {
         return $this->container->get('kernel')->getEnvironment();

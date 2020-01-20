@@ -1,0 +1,22 @@
+DbBundle\Entity\MemberRunningRevenueShare:
+    exclusion_policy: ALL
+    properties:
+        runningRevenueShare:
+            expose: true
+            groups: ['Default', 'periodBalance']
+        revenueShare:
+            expose: true
+        status:
+            expose: true
+        metaData:
+            expose: true
+        precedingRunningRevenueShare:
+            expose: true
+        commissionPeriod:
+            expose: true
+            groups: ['periodBalance']
+    virtual_properties:
+        payout:
+            exp: "object.getPayout()"
+            expose: true
+            groups: ['Default', 'periodBalance']

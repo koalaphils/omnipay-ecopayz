@@ -13,12 +13,12 @@ DbBundle\Entity\CommissionPeriod:
                 unsigned: true
     fields:
         dwlDateFrom:
-            type: date
+            type: datetime
             column: commission_period_date_from
             nullable: false
             unique: true
         dwlDateTo:
-            type: date
+            type: datetime
             column: commission_period_date_to
             nullable: false
             unique: true
@@ -29,6 +29,12 @@ DbBundle\Entity\CommissionPeriod:
         status:
             type: tinyint
             column: commission_period_status
+            nullable: false
+            options:
+                default: 1
+        revenueShareStatus:
+            type: tinyint
+            column: commission_period_revenue_share_status
             nullable: false
             options:
                 default: 1

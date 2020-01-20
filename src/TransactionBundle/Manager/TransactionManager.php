@@ -15,6 +15,7 @@ use DbBundle\Entity\Notification;
 use DbBundle\Entity\User;
 use DbBundle\Repository\CommissionPeriodRepository;
 use DbBundle\Repository\MemberRunningCommissionRepository;
+use DbBundle\Repository\MemberRunningRevenueShareRepository;
 use Doctrine\ORM\Query;
 use PaymentBundle\Controller\Bitcoin\NotifyAction;
 use PaymentBundle\Manager\BitcoinManager;
@@ -32,6 +33,7 @@ use AppBundle\Helper\WampHelper;
 class TransactionManager extends TransactionOldManager
 {
     private $memberRunningCommissionRepository;
+    private $memberRunningRevenueShareRepository;
     private $commissionPeriodRepository;
 
     /**
@@ -664,9 +666,22 @@ class TransactionManager extends TransactionOldManager
         return $commissionPeriod;
     }
 
+    public function getCommissionPeriodForRevenueShareTransaction(int $transactionId): CommissionPeriod
+    {
+        $memberRunningRevenueShare = $this->getMemberRunningRevenueShareRepository()->findOneByRevenueShareTransaction($transactionId);
+        $revenueSharePeriod = $this->getCommissionPeriodRepository()->findOneById($memberRunningRevenueShare->getRevenueSharePeriodId());
+
+        return $revenueSharePeriod;
+    }
+
     public function setMemberRunningCommissionRepository(MemberRunningCommissionRepository $memberRunningCommissionRepository): void
     {
         $this->memberRunningCommissionRepository = $memberRunningCommissionRepository;
+    }
+
+    public function setMemberRunningRevenueShareRepository(MemberRunningRevenueShareRepository $memberRunningRevenueShareRepository): void
+    {
+        $this->memberRunningRevenueShareRepository = $memberRunningRevenueShareRepository;
     }
 
     public function setCommissionPeriodRepository(CommissionPeriodRepository $commissionPeriodRepository): void
@@ -682,6 +697,11 @@ class TransactionManager extends TransactionOldManager
     private function getMemberRunningCommissionRepository(): MemberRunningCommissionRepository
     {
         return $this->memberRunningCommissionRepository;
+    }
+
+    private function getMemberRunningRevenueShareRepository(): MemberRunningRevenueShareRepository
+    {
+        return $this->memberRunningRevenueShareRepository;
     }
 
     private function getCommissionPeriodRepository(): CommissionPeriodRepository
@@ -800,6 +820,7 @@ class TransactionManager extends TransactionOldManager
                 return $groups;
             },
             'isCommission' => $transaction->isCommission(),
+            'isRevenueShare' => $transaction->isRevenueShare(),
             'hasAdjustment' => $transaction->hasAdjustment(),
         ]);
 
@@ -890,7 +911,7 @@ class TransactionManager extends TransactionOldManager
             ],
         ];
 
-        if (!$transaction->isCommission()) {
+        if (!$transaction->isCommission() && !$transaction->isRevenueShare()) {
             $formView = array_merge($formView, ['gateway' => !array_get($this->getStatus($transaction->getStatus()), 'editGateway', false)]);
         }
 

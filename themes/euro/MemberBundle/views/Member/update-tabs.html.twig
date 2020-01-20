@@ -54,17 +54,17 @@
           </span>
       </a>
   </li>
-  {#<li class="li-customer-tab">#}
-      {#<a href="#commissions" aria-expanded="true" class="customer-tab">#}
-          {#<span class="visible-xs visible-sm visible-md tooltip-members" data-toggle="tooltip" title="Affiliate Setting">#}
-              {#<i class="ti-link"></i>#}
-          {#</span>#}
-          {#<span class="hidden-xs hidden-sm hidden-md">#}
-              {#<i class="ti-link"></i>#}
-              {#{{ "page.tab.commissions"|trans({},"MemberBundle") }}#}
-          {#</span>#}
-      {#</a>#}
-  {#</li>#}
+  <li class="li-customer-tab">
+      <a href="#commissions" aria-expanded="true" class="customer-tab">
+          <span class="visible-xs visible-sm visible-md tooltip-members" data-toggle="tooltip" title="Affiliate Setting">
+              <i class="ti-link"></i>
+          </span>
+          <span class="hidden-xs hidden-sm hidden-md">
+              <i class="ti-link"></i>
+              {{ "page.tab.commissions"|trans({},"MemberBundle") }}
+          </span>
+      </a>
+  </li>
   <li class="li-customer-tab">
       <a href="#transactions" aria-expanded="true" class="customer-tab">
           <span class="visible-xs visible-sm visible-md tooltip-members" data-toggle="tooltip" title="Transaction History">

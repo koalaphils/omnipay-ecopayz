@@ -11,8 +11,10 @@ DbBundle\Entity\CommissionPeriod:
             groups: ['Default', 'periodBalance']
         payoutAt:
             expose: true
-            type: DateTime<'Y-m-d H:i:s'>
             groups: ['Default', 'periodBalance']
         status:
+            expose: true
+            groups: ['Default', 'periodBalance']
+        revenueShareStatus:
             expose: true
             groups: ['Default', 'periodBalance']

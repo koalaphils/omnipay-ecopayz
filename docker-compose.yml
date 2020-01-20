@@ -1,0 +1,234 @@
+version: "3.7"
+services:
+  database:
+    image: mysql:8.0.15
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - database:/var/lib/mysql
+    environment:
+      - TZ=America/Manaus
+      - MYSQL_ROOT_PASSWORD=backoffice_pass
+      - MYSQL_PASSWORD=backoffice_pass
+      - MYSQL_DATABASE=backoffice_db
+      - MYSQL_USER=backoffice
+    networks:
+      - piwinet
+
+  mailhog:
+    image: mailhog/mailhog
+    command:
+      - "-smtp-bind-addr"
+      - "0.0.0.0:25"
+    user: root
+    ports:
+      - 8025:8025
+    networks:
+      - piwinet
+
+  adminer:
+    image: adminer
+    ports:
+      - 9080:8080
+    networks:
+      - piwinet
+
+  piwibo-php:
+    build:
+      context: .
+      target: prod
+    volumes:
+      - .:/var/www/html
+      - uploads:/uploads
+    depends_on:
+      - database
+      - mailhog
+      - adminer
+    environment:
+      - SYMFONY_ENV=dev
+      - APP_ENV=dev
+      - APP_DEBUG=1
+      - APP_SECRET=ThisTokenIsNotSoSecretChangeIt
+      - CUSTOMER_TEMP_PASSWORD=super@c66p@$$w0rd
+      - JWT_KEY=YourSampleKeyHere
+      - SLACK_TOKEN=xoxp-190886717379-465628275376-480332621415-5498caaeea6af3c795381717e3194787
+      - SLACK_CHANNEL=cyd-piwi-error
+      - MAIL_TRANSPORT=smtp
+      - MAIL_HOST=mailhog
+      - MAIL_USER=~
+      - MAIL_PORT=25
+      - MAIL_PASSWORD=~
+      - MAIL_FROM=support@piwi247.com
+      - MAIL_ENCRYPTION=~
+      - PIN_API_URL=http://proxy.pinny88.com/b2b
+      - PIN_API_AGENT_KEY=035c48be-9959-4556-80eb-9a0224814c88
+      - PIN_API_SECRET_KEY=P6Aae0ej2dwnJe9B
+      - PIN_AGENT_CODE=PS711
+      - TWILIO_SID=ACa8414b7fd5f78fa371c0aeb341931c8d
+      - TWILIO_TOKEN=e4815df706ef97c0017a7a1f2e37b928
+      - TWILIO_FROM=972525436769
+      - WS_URL=ws://localhost:83/ws/
+      - WS_WAMP_URL=http://websocket:9092
+      - DATABASE_DRIVER=pdo_mysql
+      - DATABASE_HOST=database
+      - DATABASE_NAME=backoffice_db
+      - DATABASE_USER=backoffice
+      - DATABASE_PASSWORD=backoffice_pass
+      - DATABASE_PORT=3306
+      - ECOPAYZ_TEST_MODE=true
+      - BC_KEY=2db87356-bfbb-412d-8403-39b669cd9a9d
+      - BC_WALLET_URL=http://wallet:3000
+      - BC_XPUB__HOST=wallet
+      - BC_XPUB_PORT=22
+      - BC_XPUB__USER=xpub
+      - BC_XPUB__PASSWORD=zmtsysxpub
+      - BC_CALLBACK_HOST=https://cydrick.serveo.net
+      - TRUSTED_PROXIES=172.0.0.0/8,10.0.0.0/8,192.0.0.0/8
+      - TIMEZONE=Etc/GMT+4
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DATABASE=0
+      - MSERVICE_USERNAME=admin
+      - MSERVICE_PASSWORD=admin
+    networks:
+      - piwinet
+
+  piwibo-wsclient:
+    build:
+      context: .
+      target: prod
+    entrypoint: ""
+    restart: unless-stopped
+    command:
+      - php
+      - app/console
+      - websocket:client
+      - ws://websocket:9090/ws
+      - realm
+      - system
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - database
+      - mailhog
+      - adminer
+    networks:
+      - piwinet
+
+  piwibo-scheduler:
+    build:
+      context: .
+      target: prod
+    entrypoint: ""
+    restart: unless-stopped
+    command:
+      - php
+      - app/console
+      - jms-job-queue:schedule
+      - --env=dev
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - database
+      - mailhog
+      - adminer
+    networks:
+      - piwinet
+
+  piwibo-jobs:
+    build:
+      context: .
+      target: prod
+    restart: unless-stopped
+    entrypoint: ""
+    command:
+      - php
+      - app/console
+      - jms-job-queue:run
+      - --env=dev
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - database
+      - mailhog
+      - adminer
+    networks:
+      - piwinet
+
+  piwibo-web:
+    build:
+      context: .
+      target: webservice
+    ports:
+      - 81:80
+    volumes:
+      - .:/var/www/html
+    environment:
+      - ENVIRONMENT=dev
+      - PHPHOST=piwibo-php
+      - PHPPORT=9000
+      - TIMEZONE=Etc/GMT+4
+      - APPHOST=http://localhost
+    depends_on:
+      - piwibo-php
+    restart: always
+    networks:
+      - piwinet
+
+#  websocket:
+#    build:
+#      context: ./websocket
+#      target: websocket
+#    environment:
+#    - URL=0.0.0.0
+#    - PORT=9090
+#    - WAMP_PORT=9092
+#    - REALM=realm
+#    - JWT_SECRET=YourSampleKeyHere
+#    - REDIS_URL=tcp://redis:6379
+#    - REDIS_CODE=dev
+#    volumes:
+#    - ./websocket:/var/www/html/
+#    ports:
+#    - 83:9090
+#    networks:
+#    - piwinet
+
+#  wallet:
+#    image: registry.zmtsys.com/blockchain-wallet
+#    environment:
+#    - BLOCKCHAIN_SSH_USER=xpub
+#    - BLOCKCHAIN_SSH_PASS=zmtsysxpub
+#    expose:
+#      - 22
+#      - 3000
+#    networks:
+#    - piwinet
+
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    networks:
+      - piwinet
+
+  redisui:
+    image: marian/rebrow
+    ports:
+      - "5001:5001"
+    networks:
+      - piwinet
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    ports:
+      - 8082:8080
+    networks:
+      - piwinet
+
+volumes:
+  database:
+  uploads:
+
+networks:
+  piwinet:
+    external: true

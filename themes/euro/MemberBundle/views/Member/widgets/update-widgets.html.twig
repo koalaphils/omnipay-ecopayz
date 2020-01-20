@@ -702,12 +702,6 @@
                 $('#{{ id }}_container').modal('hide');
                 return false;
             });
-            $('#btnCreateReferralName').click(function () {
-                $('#{{ id }}_container').modal('show');
-            });
-            $('#{{ form.vars.id }}').on('form.success', function (e, data) {
-                $('#{{ id }}_container').modal('hide');
-            });
         });
     </script>
 {% endblock update_createMemberReferralNameForm_javascript %}

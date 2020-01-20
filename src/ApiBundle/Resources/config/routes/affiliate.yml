@@ -1,0 +1,4 @@
+api_affiliate.me_referral_turnover_winloss_current_period:
+    path: me/referral-turnover-winloss/current-period
+    defaults: { _controller: ApiBundle:Member:getCurrentPeriodReferralTurnoversAndCommissions }
+    methods: [GET]

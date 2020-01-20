@@ -71,7 +71,7 @@ class TransactionSerializerSubscriber implements \JMS\Serializer\EventDispatcher
             $visitor->setData('lock_down_rate_time_remaining', $lockDownRateTimeRemaining);
         }
 
-        if (in_array('API', $groups) && $object->isCommission()) {
+        if (in_array('API', $groups) && ($object->isCommission() || $object->isRevenueShare())) {
             $commissionPeriod = $this->getTransactionManager()->getCommissionPeriodForTransaction($object->getId());
             $visitor->setData(self::TRANSACTION_COMMISSION_PERIOD, $commissionPeriod->getPeriodDateDetails());
         }

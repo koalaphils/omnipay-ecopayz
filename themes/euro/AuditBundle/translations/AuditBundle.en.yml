@@ -59,6 +59,8 @@ category:
     bitcoinRateSetting: Bitcoin Rate Setting
     debitAdjustment: Debit
     creditAdjustment: Credit
+    revenueShare: Revenue Share
+    cRevenueShare: Member Revenue Share
 
 operation:
     create: Created

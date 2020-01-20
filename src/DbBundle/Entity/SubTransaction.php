@@ -376,6 +376,8 @@ class SubTransaction extends Entity implements AuditInterface
             $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_BONUS;
         } elseif ($parent->isCommission()) {
             $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_COMMISSION;
+         } elseif ($parent->isRevenueShare()) {
+            $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_REVENUE_SHARE;
         } elseif ($parent->isDebitAdjustment()) {
             $category = AuditRevisionLog::CATEGORY_MEMBER_TRANSACTION_DEBIT_ADJUSTMENT;
         } elseif ($parent->isCreditAdjustment()) {

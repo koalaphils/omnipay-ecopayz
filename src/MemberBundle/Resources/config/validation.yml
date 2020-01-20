@@ -280,3 +280,47 @@ MemberBundle\Request\SendResetPasswordRequest:
     properties:
         origin:
             - NotBlank: ~
+
+MemberBundle\Request\UpdateRevenueShareRequest:
+    constraints:
+        - MemberBundle\Constraints\GreaterThanConstraint:
+            first: revenueShareSettings
+        - MemberBundle\Constraints\ValidRange: ~
+    properties:
+        revenueShareSettings:
+            - Count:
+                min: 1
+                minMessage: You must add at least one settings
+            - All:
+                - Collection:
+                    fields:
+                        min:
+                            - Required:
+                                - NotBlank: ~
+                                - Regex:
+                                    pattern: /^(0|[1-9]\d*)(\.\d+)?$/
+                                    match: true
+                                    message: Invalid min value.
+                                - AppBundle\Validator\Constraints\DecimalLength:
+                                    length: 10
+                        max:
+                            - Required:
+                                - NotBlank: ~
+                                - Regex:
+                                    pattern: /^(0|[1-9]\d*)(\.\d+)?$/
+                                    match: true
+                                    message: Invalid max value.
+                                - AppBundle\Validator\Constraints\DecimalLength:
+                                    length: 10
+                        percentage:
+                            - Required:
+                                - NotBlank: ~
+                                - Regex:
+                                    pattern: /^(0|[1-9]\d*)(\.\d+)?$/
+                                    match: true
+                                    message: Invalid percentage value.
+                                - LessThan:
+                                    value: 100
+                                    message: Percentage should be less than 100.
+                                - AppBundle\Validator\Constraints\DecimalLength:
+                                    length: 10

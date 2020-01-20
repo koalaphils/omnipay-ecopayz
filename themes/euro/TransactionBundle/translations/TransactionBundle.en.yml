@@ -28,6 +28,7 @@ types:
     adjustment: Adjustment
     debit_adjustment: Debit
     credit_adjustment: Credit
+    revenue_share: Revenue Share
 
 fields:
     number: Number
@@ -63,6 +64,7 @@ menus:
     Bonus: Bonus
     Bet: Bet
     Commission: Commission
+    RevenueShare: Revenue Share
     Adjustment: Adjustment
 
 quicklinks:

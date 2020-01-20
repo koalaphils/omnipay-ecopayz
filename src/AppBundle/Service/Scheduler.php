@@ -22,6 +22,10 @@ class Scheduler implements JobScheduler
             $queue = 'autoDecline';
         }
 
+        if ($commandName === 'revenueshare:period:compute') {
+            $queue = 'compute';
+        }
+
         return new Job($commandName, $args, true, $queue);
     }
 
@@ -35,6 +39,10 @@ class Scheduler implements JobScheduler
 
         if ($commandName === 'transaction:decline') {
             return time() - $lastRunAt->getTimestamp() >= 60;
+        }
+
+        if ($commandName === 'revenueshare:period:compute') {
+            return time() - $lastRunAt->getTimestamp() >= 86400;
         }
 
         return time() - $lastRunAt->getTimestamp() >= (60*60);

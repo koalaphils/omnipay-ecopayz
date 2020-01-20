@@ -107,7 +107,7 @@ class CommissionManager
      * @param int $commissionPeriodId
      * @return bool whether operation was successfull
      */
-    public function recomputeAndPayoutCommissionForPeriod(int $commissionPeriodId, string $usernameForAuditLog, bool $forceRecompute = false): bool
+    public function recomputeAndPayoutRevenueShareForPeriod(int $commissionPeriodId, string $usernameForAuditLog, string $action): bool
     {
         $period = $this->getCommissionPeriodRepository()->find($commissionPeriodId);
         if (!$period instanceof CommissionPeriod) {
@@ -115,37 +115,33 @@ class CommissionManager
         }
 
         try {
-            $computeJob = new Job('commission:period:compute',
-                [
-                    $usernameForAuditLog,
-                    '--period',
-                    $period->getId(),
-                    '--recompute',
-                    $forceRecompute ? '1' : '0',
-                    '--env',
-                    $this->kernelEnvironment,
-                ],
-                true,
-                'payout'
-            );
 
-            $payJob = new Job('commission:period:pay',
-                [
+            if ($action == 'pay'){
+                $arrayJob = [
                     $usernameForAuditLog,
                     '--period',
                     $period->getId(),
                     '--env',
                     $this->kernelEnvironment,
-                ],
+                ];
+            } else {
+                $arrayJob = [
+                    $usernameForAuditLog,
+                    '--period',
+                    $period->getId(),
+                    '--env',
+                    $this->kernelEnvironment,
+                ];
+            }
+
+            $computeJob = new Job('revenueshare:period:'.$action,
+                $arrayJob,
                 true,
-                'payout'
+                $action
             );
-            $payJob->addDependency($computeJob);
 
             $this->entityManager->persist($computeJob);
-            $this->entityManager->persist($payJob);
             $this->entityManager->flush($computeJob);
-            $this->entityManager->flush($payJob);
 
             return true;
         } catch (\Exception $e) {

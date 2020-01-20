@@ -104,13 +104,18 @@
                 'p2pTransfer': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_P2P_TRANSFER') }} },
                 'cDwl': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_DWL') }} },
                 'bet': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_BET') }} },
-                'transactionBonus': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_BONUS') }} }
+                'transactionBonus': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_BONUS') }} },
+                'revenueShare': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_RUNNING_REVENUE_SHARE') }} },
+                'cRevenueShare': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_REVENUE_SHARE') }} }
             }
         };
         this.commmission = {
             'status' : {
                 'successfulComputation': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION') }},
-                'successfulPayout': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT') }}
+                'successfulPayout': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT') }},
+                'failedComputation': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_FAILED_COMPUTATION') }},
+                'failedPayout': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_FAILED_PAYOUT') }},
+                'notYetComputed': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_NOT_YET_COMPUTED') }}
             }
         };
     };

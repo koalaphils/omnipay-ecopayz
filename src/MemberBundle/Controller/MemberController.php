@@ -17,6 +17,7 @@ use AppBundle\Widget\Page\ListWidget;
 use BrokerageBundle\Manager\BrokerageManager;
 use MemberBundle\Manager\MemberReferralNameManager;
 use MemberBundle\Manager\MemberCommissionManager;
+use MemberBundle\Manager\MemberRevenueShareManager;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerGroup;
 use DbBundle\Entity\MarketingTool;
@@ -68,6 +69,52 @@ class MemberController extends PageController
         }, $result['records']);
 
         return $result;
+    }
+
+    public function processRevenueShareResult(array $result, ListWidget $widget): array
+    {
+        $member = $widget->getPageManager()->getData('customer');
+        $memberRevenueShareManager = $this->getMemberRevenueShareManager();
+        $result['records'] = array_map(function(&$record) use ($memberRevenueShareManager, $member) {
+            $product = $this->getProductRepository()->findOneById($record['productId']);
+            $record['revenueShare'] = $memberRevenueShareManager->getRevenueShareSetting($member, $product);
+
+            return $record;
+        }, $result['records']);
+
+        return $result;
+    }
+
+    public function updateSaveRevenueShare(PageManager $pageManager, array $data): JsonResponse
+    {
+        $member = $pageManager->getData('customer');
+        if ($member instanceof Customer){
+            $status = $data['allow_revenue_share'];
+            $member->setRevenueShare(json_decode($status, true));
+            $this->getCustomerRepository()->save($member);
+        }
+
+        return new JsonResponse(['success' => true], Response::HTTP_OK);
+    }
+
+    public function updateRemoveRevenueShareSettings(PageManager $pageManager, array $data): JsonResponse
+    {
+        $member = $pageManager->getData('customer');
+        $memberRevenueShareManager = $this->getMemberRevenueShareManager();
+
+        $revenueShareSettings = $memberRevenueShareManager->getRevenueShareSettingByMember($member);
+        $defaultSettings[] = array('max' => '0', 'min' => '0', 'percentage' => '0');
+
+        foreach ($revenueShareSettings as $revenueShareSetting) {
+            $request = \MemberBundle\Request\UpdateRevenueShareRequest::fromEntity($member);
+            $handler = $this->getUpdateRevenueShareRequestHandler();
+            $request->setRevenueShareSettings($defaultSettings);
+            $request->setProductId($revenueShareSetting->getProduct()->getIdentifier());
+            $request->setResourceId($revenueShareSetting->getResourceId());
+            $handler->handle($request);
+        }
+
+        return new JsonResponse(['success' => true], Response::HTTP_OK);
     }
 
     public function processCustomerProductListResult(array $result, ListWidget $widget)
@@ -374,6 +421,9 @@ class MemberController extends PageController
         $data = $request->get('data', []);
         $filters = $data['filters'];
 
+        $customer = $this->getCustomerRepository()->find($id);
+        $filters['revenueShare'] = $customer->isRevenueShareEnabled();
+        $filters['sort'] = array_get($data, 'sort', 'asc');
         $filters['limit'] = array_get($data, 'limit', 10);
         $filters['page'] = (int) array_get($data, 'page', 1);
         $filters['offset'] = ($filters['page'] - 1) * $filters['limit'];
@@ -462,6 +512,11 @@ class MemberController extends PageController
         return $this->get('member.commission_manager');
     }
 
+    private function getMemberRevenueShareManager(): MemberRevenueShareManager
+    {
+        return $this->get('member.revenue_share_manager');
+    }
+
     private function getMediaManager(): MediaManager
     {
         return $this->get('media.manager');
@@ -485,5 +540,10 @@ class MemberController extends PageController
     private function getEventDispatcher(): EventDispatcherInterface
     {
         return $this->get('event_dispatcher');
+    }
+
+    private function getUpdateRevenueShareRequestHandler(): \MemberBundle\RequestHandler\UpdateRevenueShareRequestHandler
+    {
+        return $this->container->get('member.handler.update_revenue_share');
     }
 }

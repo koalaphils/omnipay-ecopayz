@@ -35,7 +35,7 @@ class CustomerRepository extends BaseRepository
         $qb->leftJoin('c.country', 'cco');
         $qb->select(
             'c'
-            . ', PARTIAL u.{username, id, email, isActive, activationCode, activationSentTimestamp, activationTimestamp, preferences, password, resetPasswordCode, resetPasswordSentTimestamp}'
+            . ', PARTIAL u.{username, id, email, isActive, activationCode, activationSentTimestamp, activationTimestamp, preferences, password, resetPasswordCode, resetPasswordSentTimestamp, type}'
             . ', PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}'
         );
         $qb->where('c.id = :id')->setParameter('id', $id);
@@ -606,13 +606,26 @@ class CustomerRepository extends BaseRepository
         return $count > 0;
     }
 
+    public function getAllReferralProductListByReferrer(array $filters, array $orders, int $referrerId, int $offset, int $limit): array
+    {
+        $queryBuilder = $this->getReferralProductListByReferrerQb($filters, $orders, $referrerId);
+
+        $queryBuilder
+            ->select(
+                'm.id AS memberId', 'm.pinUserCode AS pinUserCode', 'mp.id AS memberProductId', 'p.id AS productId',
+                'p.name AS productName', 'c.code AS currencyCode'
+            );
+
+        return $queryBuilder->getQuery()->getArrayResult();
+    }
+
     public function getReferralProductListByReferrer(array $filters, array $orders, int $referrerId, int $offset, int $limit): array
     {
         $queryBuilder = $this->getReferralProductListByReferrerQb($filters, $orders, $referrerId);
 
         $queryBuilder
             ->select(
-                'm.id AS memberId', 'mp.id AS memberProductId', 'p.id AS productId',
+                'm.id AS memberId', 'm.pinUserCode AS pinUserCode', 'mp.id AS memberProductId', 'p.id AS productId',
                 'p.name AS productName', 'c.code AS currencyCode'
             )
             ->setFirstResult($offset)
@@ -645,9 +658,9 @@ class CustomerRepository extends BaseRepository
                     ->join('mp.product', 'p', Join::WITH, "JSON_EXTRACT(p.details, '$.ac_wallet') IS NULL");
             } elseif (array_get($filters, 'orderBy') == 'memberId') {
                 $queryBuilder->leftJoin('m.products', 'mp',
-                    Join::WITH, $queryBuilder->expr()->notIn('mp.product', ':acWalletProductId'))
+                    Join::WITH, $queryBuilder->expr()->notIn('mp.product', ':piwiWalletProductId'))
                     ->leftJoin('mp.product', 'p')
-                    ->setParameter('acWalletProductId', $filters['acWalletProductId']);
+                    ->setParameter('piwiWalletProductId', $filters['piwiWalletProductId']);
             }
         }
 
@@ -666,12 +679,12 @@ class CustomerRepository extends BaseRepository
         if (array_has($filters, 'orderBy')) {
             if (array_get($filters, 'orderBy') == 'productName') {
                 $queryBuilder->join('m.products', 'mp')
-                    ->join('mp.product', 'p', Join::WITH, "JSON_EXTRACT(p.details, '$.ac_wallet') IS NULL");
+                    ->join('mp.product', 'p', Join::WITH, "JSON_EXTRACT(p.details, '$.piwi_wallet') IS NULL");
             } elseif (array_get($filters, 'orderBy') == 'memberId') {
                 $queryBuilder->leftJoin('m.products', 'mp',
-                    Join::WITH, $queryBuilder->expr()->notIn('mp.product', ':acWalletProductId'))
+                    Join::WITH, $queryBuilder->expr()->notIn('mp.product', ':piwiWalletProductId'))
                     ->leftJoin('mp.product', 'p')
-                    ->setParameter('acWalletProductId', $filters['acWalletProductId']);
+                    ->setParameter('piwiWalletProductId', $filters['piwiWalletProductId']);
             }
         }
 

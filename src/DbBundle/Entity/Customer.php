@@ -160,6 +160,8 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
 
     private $gender;
 
+    private $allowRevenueShare;
+
     /**
      * @var string
      */
@@ -171,6 +173,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         $this->setUser(new User());
         $this->setBirthDate(null);
         $this->setGender(self::MEMBER_GENDER_NOT_SET);
+        $this->setRevenueShare(false);
         $this->setTransactionPassword('');
         $this->setLevel(1);
         $this->setMName('');
@@ -1391,5 +1394,17 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         $this->locale = $locale;
 
         return $this;
+    }
+
+    public function setRevenueShare(bool $revenueShare): self
+    {
+        $this->allowRevenueShare = $revenueShare;
+
+        return $this;
+    }
+
+    public function isRevenueShareEnabled(): bool
+    {
+        return $this->allowRevenueShare;
     }
 }

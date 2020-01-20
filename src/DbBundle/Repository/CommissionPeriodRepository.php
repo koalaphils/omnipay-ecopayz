@@ -95,8 +95,10 @@ class CommissionPeriodRepository extends BaseRepository
     public function getCommissionPeriodForDate(DateTimeInterface $date): ?CommissionPeriod
     {
         $queryBuilder = $this->createQueryBuilder('cs');
-        $queryBuilder->where('cs.dwlDateFrom <= :date AND cs.dwlDateTo >= :date')
-            ->setParameter('date', $date);
+        $queryBuilder->where('cs.dwlDateTo >= :date')
+            ->orderBy('cs.dwlDateTo', 'ASC')
+            ->setMaxResults(1)
+            ->setParameter('date', $date->format('Y-m-d').' 00:00:00');
 
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }

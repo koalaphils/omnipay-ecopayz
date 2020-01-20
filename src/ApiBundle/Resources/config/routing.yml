@@ -5,6 +5,10 @@ api_members:
   resource: "./routes/member.yml"
   prefix:   member/
 
+api_affiliate:
+  resource: "./routes/affiliate.yml"
+  prefix:   affiliate/
+
 api_2fa:
   resource: "./routes/2fa.yml"
   prefix: 2fa/
