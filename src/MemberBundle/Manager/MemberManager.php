@@ -178,7 +178,7 @@ class MemberManager extends AbstractManager
         }
 
         $records = array_reverse($records);
-        if (count($records) > ($data['limit'] - 1)) {
+        if (count($records) > ($data['limit'])) {
             array_pop($records);
         }
 

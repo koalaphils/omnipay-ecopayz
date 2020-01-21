@@ -107,7 +107,7 @@ class CommissionManager
      * @param int $commissionPeriodId
      * @return bool whether operation was successfull
      */
-    public function recomputeAndPayoutRevenueShareForPeriod(int $commissionPeriodId, string $usernameForAuditLog, string $action, bool $forceRecompute = false): bool
+    public function recomputeAndPayoutRevenueShareForPeriod(int $commissionPeriodId, string $usernameForAuditLog, string $action): bool
     {
         $period = $this->getCommissionPeriodRepository()->find($commissionPeriodId);
         if (!$period instanceof CommissionPeriod) {
@@ -129,8 +129,6 @@ class CommissionManager
                     $usernameForAuditLog,
                     '--period',
                     $period->getId(),
-                    '--recompute',
-                    $forceRecompute ? '1' : '0',
                     '--env',
                     $this->kernelEnvironment,
                 ];
