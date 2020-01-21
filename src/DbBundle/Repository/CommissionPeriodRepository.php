@@ -97,6 +97,7 @@ class CommissionPeriodRepository extends BaseRepository
         $queryBuilder = $this->createQueryBuilder('cs');
         $queryBuilder->where('cs.dwlDateTo >= :date')
             ->orderBy('cs.dwlDateTo', 'ASC')
+            ->setMaxResults(1)
             ->setParameter('date', $date->format('Y-m-d').' 00:00:00');
 
         return $queryBuilder->getQuery()->getOneOrNullResult();

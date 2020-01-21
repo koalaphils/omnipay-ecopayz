@@ -72,7 +72,7 @@
                 $('.payout-revenueshare-button').not(this).attr('disabled','disabled');
                 recomputeAndPayoutRevenueShareCommissionPeriod(commissionPeriodId, 'compute', function () {
                     iconPlaceholder.removeClass('fa fa-refresh fa-spin');
-                    $('.compute-revenueshare-button').not(this).removeAttr('disabled');
+                    //$('.compute-revenueshare-button').not(this).removeAttr('disabled');
                     notification('Computation of Revenue Share is now in progress...');
                 });
             });
@@ -85,7 +85,7 @@
                 $('.compute-revenueshare-button').not(this).attr('disabled','disabled');
                 recomputeAndPayoutRevenueShareCommissionPeriod(commissionPeriodId, 'pay', function () {
                     iconPlaceholder.removeClass('fa fa-refresh fa-spin');
-                    $('.payout-revenueshare-button').not(this).removeAttr('disabled');
+                    //$('.payout-revenueshare-button').not(this).removeAttr('disabled');
                     notification('Computation of Revenue Share is now in progress...');
                 });
             });
@@ -101,10 +101,11 @@
                     break;
                 case Global.commmission.status.notYetComputed:
                     computeButton += '<button class="btn btn-sm btn-default compute-revenueshare-button" data-period-id="'+ row.commissionPeriod.id +'">Compute</button>&nbsp;&nbsp;&nbsp;';
+                    computeButton += '<button class="btn btn-sm btn-default payout-revenueshare-button" data-period-id="'+ row.commissionPeriod.id +'" disabled>Payout</button>';
                     break;
                 case Global.commmission.status.failedComputation:
                     computeButton += '<button class="btn btn-sm btn-default compute-revenueshare-button" data-period-id="'+ row.commissionPeriod.id +'">Compute</button>&nbsp;&nbsp;&nbsp;';
-                    computeButton += '<button class="btn btn-sm btn-default payout-revenueshare-button" data-period-id="'+ row.commissionPeriod.id +'">Payout</button>';
+                    computeButton += '<button class="btn btn-sm btn-default payout-revenueshare-button" data-period-id="'+ row.commissionPeriod.id +'" disabled>Payout</button>';
                     break;
                 case Global.commmission.status.failedPayout:
                     computeButton += '<button class="btn btn-sm btn-default compute-revenueshare-button" data-period-id="'+ row.commissionPeriod.id +'">Compute</button>&nbsp;&nbsp;&nbsp;';
