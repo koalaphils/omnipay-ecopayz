@@ -236,20 +236,23 @@ class TransactionType extends AbstractType
                 return $customerEntity;
             }
         ));
-        
+        dump('bbbbbbbbbbb');
         if ($options['isCommission'] === false && $options['isRevenueShare'] === false && $options['hasAdjustment'] === false) {
+            dump('aaaaaaaaaaaaaaaa');
             $builder->get('gateway')->addModelTransformer(new CallbackTransformer(
                 function ($data) {
+                    dump($data);
                     if ($data instanceof \DbBundle\Entity\Gateway && method_exists($data, '__isInitialized') && $data->__isInitialized() === false) {
                         $data = $this->getGatewayRepository()->findById($data->getId());
                     }
                     $context = \JMS\Serializer\SerializationContext::create();
                     $context->setGroups(['Default', 'balance', 'details']);
-
+                    dump($data);
                     return json_decode($this->jmsSerializer->serialize($data, 'json', $context), true);
                 },
                 function ($data) {
                     if ($data && !($data instanceof \DbBundle\Entity\Gateway)) {
+                        dump($this->getGatewayRepository()->find($data));
                         return $this->getGatewayRepository()->find($data);
                     }
 

@@ -52,20 +52,25 @@ class MailerManager
      */
     public function send($subject, $to, $template, $params, $replyTo = null, $cc = null)
     {
-        $emailFolder = 'emails' . DIRECTORY_SEPARATOR;
-        $file = $this->mediaManager->getFile($emailFolder . $template);
+        $filename = $this->mediaManager->getFilePath($this->mediaManager->getPath('emails') . $template);
+        $tempFile = tmpfile();
+        $file = fopen($this->mediaManager->getFileUri($filename), 'rb');
+        stream_copy_to_stream($file, $tempFile);
+        fseek($tempFile, 0);
+        $tmpMetadata = stream_get_meta_data($tempFile);
 
-        if ($file->getSize() > 0) {
-            $subject = $this->twig->createTemplate($subject)->render($params);
-
+        if (!feof($tempFile)) {
             $message = \Swift_Message::newInstance()
                 ->setSubject($subject)
                 ->setFrom(trim($this->mailerEmailFrom))
                 ->setTo(trim($to))
                 ->setBody(
-                    $this->templating->render($file->getRealPath(), $params),
+                    $this->templating->render($tmpMetadata['uri'], $params),
                     'text/html'
                 );
+            fclose($file);
+            fclose($tempFile);
+
             if (!is_null($replyTo)) {
                 $message->setReplyTo(trim($replyTo));
             }

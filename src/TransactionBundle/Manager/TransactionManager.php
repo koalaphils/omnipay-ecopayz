@@ -190,7 +190,7 @@ class TransactionManager extends TransactionOldManager
         foreach ($subTransactions as $subTransaction) {
             $customerProduct = array_get($customerProducts, $subTransaction->getCustomerProduct()->getId(), $subTransaction->getCustomerProduct());
             $customerBalance = new Number(array_get($customers, $customerProduct->getCustomerID(), 0));
-            if ($subTransaction->isDeposit() || $subTransaction->isDWL()) {
+            if ($subTransaction->isDeposit()) {
                 $customerProductBalance = new Number($customerProduct->getBalance());
                 $customerProductBalance = $customerProductBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
                 $customerProduct->setBalance($customerProductBalance->toString());
@@ -636,7 +636,7 @@ class TransactionManager extends TransactionOldManager
         $customerProductBalance = new Number($customerProduct->getBalance());
         $subTransactionAmount = $subTransaction->getDetail('convertedAmount', $subTransaction->getAmount());
 
-        if ($subTransaction->isDeposit() || $subTransaction->isDWL()) {
+        if ($subTransaction->isDeposit()) {
             $customerProductBalance = $customerProductBalance->minus($subTransactionAmount);
             $customerProduct->setBalance($customerProductBalance->__toString());
         } elseif ($subTransaction->isWithdrawal()) {
@@ -751,14 +751,14 @@ class TransactionManager extends TransactionOldManager
         $actions = [];
         $isForVoidingOrDecline = array_get($args, 'isForVoidingOrDecline', false);
 
-        if (!$transaction->isDwl() && $transaction->hasEnded() && !$transaction->isVoided()) {
+        if ($transaction->hasEnded() && !$transaction->isVoided()) {
             $actions['void'] =
                 [
                     'label' => 'Void',
                     'class' => 'btn-danger',
                     'status' => 'void',
                 ];
-        } else if (!$transaction->isDwl() && $transaction->isTransactionPaymentBitcoin() && !$transaction->isVoided() && $transaction->getStatus() == Transaction::TRANSACTION_STATUS_START && $transaction->isDeposit()) {
+        } else if ($transaction->isTransactionPaymentBitcoin() && !$transaction->isVoided() && $transaction->getStatus() == Transaction::TRANSACTION_STATUS_START && $transaction->isDeposit()) {
             $actions['decline'] = ['label' => 'Decline', 'class' => 'btn-danger', 'status' => Transaction::TRANSACTION_STATUS_DECLINE];
             $actions['confirm'] = ['label' => 'Confirm', 'class' => 'btn-danger', 'status' => Transaction::TRANSACTION_STATUS_ACKNOWLEDGE];
             $isForVoidingOrDecline = true;

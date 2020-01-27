@@ -1,0 +1,15 @@
+DbBundle\Entity\MemberRequest:
+    constraints:
+        - Callback:
+                callback: [MemberRequestBundle\Validator\MemberRequestValidatorCallback, validatePassword]
+                groups: ['withProductPassword']
+    properties:
+        details:
+            - Collection:
+                groups: ['withKycToDecline']
+                fields:
+                    notes:
+                        - NotBlank:
+                            groups: ['withKycToDecline']
+                allowMissingFields: true
+                allowExtraFields: true

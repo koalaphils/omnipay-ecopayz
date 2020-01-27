@@ -1,0 +1,65 @@
+DbBundle\Entity\MemberRequest:
+    type: entity
+    table: member_request
+    repositoryClass: DbBundle\Repository\MemberRequestRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: member_request_id
+            options:
+                unsigned: true
+    indexes:
+        UNIQ_20190328103500:
+            columns: [ member_request_number ]
+    fields:
+        number:
+            type: string
+            length: 255
+            unique: true
+            column: member_request_number
+        date:
+            type: datetime
+            column: member_request_date
+        type:
+            type: integer
+            column: member_request_type
+            options:
+                unsigned: true
+        status:
+            type: integer
+            column: member_request_status
+            options:
+                unsigned: true
+        details:
+            type: json
+            column: member_request_details
+            nullable: true
+        createdBy:
+            type: bigint
+            column: member_request_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: member_request_created_at
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: member_request_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            column: member_request_updated_at
+            nullable: true
+    manyToOne:
+        member:
+            targetEntity: DbBundle\Entity\Customer
+            inversedBy: member_request
+            joinColumn:
+                name: member_request_member_id
+                referencedColumnName: customer_id
+    lifecycleCallbacks: {  }

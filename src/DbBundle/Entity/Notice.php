@@ -16,7 +16,6 @@ class Notice extends Entity implements ActionInterface, TimestampInterface
     const NOTICE_TYPE_GENERAL = 1;
     const NOTICE_TYPE_DEPOSIT = 2;
     const NOTICE_TYPE_WITHDRAW = 3;
-    const NOTICE_TYPE_BET = 4;
 
     /**
      * @var string
@@ -200,7 +199,6 @@ class Notice extends Entity implements ActionInterface, TimestampInterface
     public static function getTypes()
     {
         return [
-            'noticeType.bet' => self::NOTICE_TYPE_BET,
             'noticeType.deposit' => self::NOTICE_TYPE_DEPOSIT,
             'noticeType.general' => self::NOTICE_TYPE_GENERAL,
             'noticeType.withdraw' => self::NOTICE_TYPE_WITHDRAW,

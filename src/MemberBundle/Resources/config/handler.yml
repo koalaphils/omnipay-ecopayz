@@ -39,11 +39,11 @@ services:
     member.handler.create_member_product:
         class: MemberBundle\RequestHandler\CreateMemberProductRequestHandler
         lazy: true
-        arguments: ["@doctrine", "@event_dispatcher", "@brokerage.brokerage_manager", "@customerproduct.manager"]
+        arguments: ["@doctrine", "@event_dispatcher", "@customerproduct.manager"]
     member.handler.update_member_product:
         class: MemberBundle\RequestHandler\UpdateMemberProductRequestHandler
         lazy: true
-        arguments: ["@doctrine", "@event_dispatcher", "@brokerage.brokerage_manager", "@customerproduct.manager"]
+        arguments: ["@doctrine", "@event_dispatcher", "@customerproduct.manager"]
     member.handler.link_member:
         class: MemberBundle\RequestHandler\LinkMemberRequestHandler
         lazy: true

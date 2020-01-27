@@ -25,15 +25,6 @@
                         {% if is_granted('ROLE_GATEWAY_VIEW') %}
                             <li><a href="{{ path("gateway.list_page") }}">Gateway</a></li>
                         {% endif %}
-                        {#% if is_granted('ROLE_CURRENCY_VIEW') %}
-                        <li><a href="{{ path("currency.list_page") }}">Currency</a></li>
-                        {% endif %}
-                        {% if is_granted('ROLE_PRODUCT_VIEW') %}
-                        <li><a href="{{ path("product.list_page") }}">Product</a></li>
-                        {% endif %}
-                        {% if is_granted('ROLE_DWL_VIEW') %}
-                        <li><a href="{{ path("dwl.list_page") }}">Daily Win/Loss</a></li>
-                        {% endif %#}
                     </ul>
                 </li>
                 {% endif %}
@@ -68,8 +59,8 @@
                     </a>
                     <ul class="list-unstyled">
                         {% if is_granted('ROLE_MEMBER_REQUEST_VIEW') %}
-                            <li><a href="">Pending</a></li>
-                            <li><a href="">Request History</a></li>
+                            <li><a href="{{ path("member_request.pending") }}">Pending</a></li>
+                            <li><a href="{{ path("member_request.history") }}">Request History</a></li>
                         {% endif %}
                     </ul>
                 </li>

@@ -6,6 +6,8 @@ use DbBundle\Entity\Interfaces\AuditAssociationInterface;
 use DbBundle\Entity\Interfaces\AuditInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\PersistentCollection;
+use DbBundle\Entity\MemberRequest;
 use AppBundle\ValueObject\Number;
 
 class Customer extends Entity implements AuditInterface, AuditAssociationInterface
@@ -161,6 +163,8 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     private $gender;
 
     private $allowRevenueShare;
+
+    private $memberRequests;
 
     /**
      * @var string
@@ -978,22 +982,6 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this->referrerByCode;
     }
 
-    /**
-     * to get brokerage sync id
-     */
-    public function getBrokerageProductSyncId(): ?int
-    {
-        if (is_iterable($this->products)) {
-            foreach ($this->products as $product) {
-                if ($product->getDetail('brokerage')['sync_id'] && $product->getIsActive()) {
-                    return $product->getDetail('brokerage')['sync_id'];
-                }
-            }
-        }
-
-        return 0;
-    }
-
     public function getCategory()
     {
         return AuditRevisionLog::CATEGORY_CUSTOMER;
@@ -1163,6 +1151,12 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     {
         return $this->getUser()->getUsername();
     }
+
+    public function getMemberRequests(): PersistentCollection
+    {
+        return $this->memberRequests;
+    }
+
     /**
      * @var string
      */

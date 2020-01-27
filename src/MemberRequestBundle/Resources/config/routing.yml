@@ -1,0 +1,36 @@
+member_request.history:
+    path:     /history
+    defaults: { _controller: MemberRequestBundle:MemberRequest:history }
+
+member_request.pending:
+    path:     /pending
+    defaults: { _controller: MemberRequestBundle:MemberRequest:pending }
+
+member_request.list_search:
+    path:       /search
+    defaults:   { _controller: MemberRequestBundle:MemberRequest:search }
+    condition:  "context.getMethod() in ['POST', 'GET'] and request.isXMLHttpRequest()"
+
+member_request.kyc_document_valid:
+    path:       /kyc/valid
+    defaults:   { _controller: MemberRequestBundle:MemberRequest:valid }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()" 
+
+member_request.kyc_document_invalid:
+    path:       /kyc/invalid
+    defaults:   { _controller: MemberRequestBundle:MemberRequest:invalid }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()" 
+
+member_request.update_page:
+    path:       /{type}/{id}
+    defaults:    { _controller: MemberRequestBundle:MemberRequest:updatePage }
+
+member_request.save:
+    path:       /{type}/{id}/save
+    defaults:   { _controller: MemberRequestBundle:MemberRequest:save }
+    condition:  "context.getMethod() in ['POST']"
+
+member_request.kyc_document_delete:
+    path:       /{memberRequestId}/{requestId}/delete
+    defaults:   { _controller: MemberRequestBundle:MemberRequest:deleteDocument }
+    condition:  "context.getMethod() in ['POST'] and request.isXMLHttpRequest()" 

@@ -238,7 +238,6 @@
             $('#{{ id }}_container').on('hide.bs.modal', function (e) {
                 $('#{{ form.vars.id }}')[0].reset();
                 $('#{{ form.product.vars.id }}').selectpicker('val', '');
-                $('#{{ form.brokerage.vars.id }}').val('').trigger('change');
             });
             $('#{{ form.btnCancel.vars.id }}').click(function (e) {
                 $('#{{ form.vars.id }} div.form-group').removeClass('has-error');
@@ -249,31 +248,9 @@
 
             $('#addProduct').click(function () {
                 $('#{{ id }}_container').modal('show');
-
-                hideBrokerage();
                 $('#{{ form.vars.id }} .panel-body .col-sm-12:nth-child(3)').show();
-
-                $("#{{ form.brokerage.vars.id }}").on('select2:select', function (e) {
-                    var data = e.params.data;
-
-                    $("#{{form.brokerageFirstName.vars.id}}").val(data.firstname);
-                    $("#{{form.brokerageLastName.vars.id}}").val(data.lastname);
-                });
-
                 $("#{{ form.product.vars.id }}").on('change', function (e) {
                     var text = $(this).find("option:selected").text();
-                    var isSkype = text.indexOf("Skype") > -1;
-                    var isSynced = text.indexOf("BETADMIN") > -1;
-
-                    if (isSkype) {
-                        if (isSynced) {
-                            showBrokerage();
-                        }
-                        hideBalance();
-                    } else {
-                        hideBrokerage();
-                        showBalance();
-                    }
                 });
             });
 
@@ -287,14 +264,6 @@
 
             function showBalance() {
                 $("#{{ form.vars.id }} .panel-body .col-sm-12:nth-child(3)").show();
-            }
-
-            function hideBrokerage() {
-                $("#{{ form.brokerage.vars.id }}").parent().parent().hide();
-            }
-
-            function showBrokerage() {
-                $("#{{ form.brokerage.vars.id }}").parent().parent().show();
             }
         });
     </script>
@@ -367,37 +336,15 @@
 
         function initForm(data) {
             $("#{{ form.balance.vars.id }}").closest('.col-sm-12').removeClass('hidden');
-            $("#brokerageBalanceInput").text('').closest('.col-sm-12').addClass('hidden');
 
             $('#{{ form.username.vars.id }}').val(data.userName);
             $('#{{ form.balance.vars.id }}').val(data.balance);
             $('#{{ form.product.vars.id }}').selectpicker('val', data.product.id);
             $('#{{ form.customerProduct.vars.id }}').val(data.id);
 
-            var brokerage = hasBrokerage(data);
             var syncable = isSyncable(data);
             var skype = isSkype();
             var memberProductDetails = JSON.parse(data.details);
-
-            if (brokerage) {
-                var brokerageFirstName = memberProductDetails['brokerage'] != null ? memberProductDetails['brokerage']['details']['first_name'] : '';
-                var brokerageLastName = memberProductDetails['brokerage'] != null ? memberProductDetails['brokerage']['details']['last_name'] : '';
-                var brokerage = memberProductDetails['brokerage'] != null ? memberProductDetails['brokerage']['sync_id'] : '';
-
-                var newOption = new Option(brokerageFirstName + ' ' + brokerageLastName, brokerage, true, true);
-                $("#{{ form.brokerage.vars.id }}").append(newOption).trigger('change');
-
-                $("#{{form.brokerageFirstName.vars.id}}").val(brokerageFirstName);
-                $("#{{form.brokerageLastName.vars.id}}").val(brokerageLastName);
-                var balanceText = $("[for=update_updateProductForm_data_balance]").text();
-                $("#{{ form.balance.vars.id }}").closest('.col-sm-12').addClass('hidden');
-                $("#brokerageBalanceInput").text(data.baBalance).closest('.col-sm-12').removeClass('hidden');
-            }
-
-            if (!skype || !syncable) {
-                hideBrokerage();
-            }
-
             attachListeners();
         }
 
@@ -415,42 +362,6 @@
                     clearBrokerage();
                 }
             });
-
-            // Brokerage Field Listener
-            $("#{{ form.brokerage.vars.id }}").on('select2:select', function (e) {
-                var data = e.params.data;
-
-                $("#{{form.brokerageFirstName.vars.id}}").val(data.firstname);
-                $("#{{form.brokerageLastName.vars.id}}").val(data.lastname);
-            });
-        }
-
-        function hasBrokerage(data) {
-
-            var memberProductDetails = JSON.parse(data.details);
-            if (memberProductDetails != null && typeof memberProductDetails['brokerage']  == 'object' && typeof memberProductDetails['brokerage']['details']  != 'undefined') {
-                return true;
-            }
-
-            return false;
-        }
-
-        function isSyncable(data) {
-            var productDetails = JSON.parse(data.product.details);
-
-            if (!(productDetails == null || typeof productDetails['betadmin']  == 'undefined')) {
-                return productDetails['betadmin']['tosync'];
-            }
-
-            return false;
-        }
-
-        function isSkype() {
-            return $("#{{ form.product.vars.id }}").find("option:selected").text().indexOf("Skype") > -1;
-        }
-
-        function hasSynced() {
-            return $("#{{ form.product.vars.id }}").find("option:selected").text().indexOf("BETADMIN") > -1;
         }
 
         function enableBalance() {
@@ -459,18 +370,6 @@
 
         function disableBalance() {
             $('#{{ form.vars.id }}_balance').attr('readonly', true);
-        }
-
-        function showBrokerage() {
-            $("#{{ form.brokerage.vars.id }}").parent().parent().show();
-        }
-
-        function hideBrokerage() {
-            $("#{{ form.brokerage.vars.id }}").parent().parent().hide();
-        }
-
-        function clearBrokerage() {
-            $("#{{ form.brokerage.vars.id }}").val(null).trigger('change');
         }
     </script>
 {% endblock update_updateProductForm_javascript %}

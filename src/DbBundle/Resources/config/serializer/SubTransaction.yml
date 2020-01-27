@@ -18,12 +18,6 @@ DbBundle\Entity\SubTransaction:
         immutableCustomerProductData:
             expose: true
             exp: object.getImmutableCustomerProductData()
-        brokerageWinLoss:
-            expose: true
-            exp: object.getDwlBrokerageWinLoss()
-        brokerageReturn:
-            expose: true
-            exp: object.getDwlReturn()
         immutableUsername:
             expose: true
             exp: object.getImmutableCustomerProductData()

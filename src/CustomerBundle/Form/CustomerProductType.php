@@ -79,22 +79,7 @@ class CustomerProductType extends AbstractType
                 'required' => false,
                 'translation_domain' => 'CustomerProductBundle',
                 'data' => true,
-            ])->add('brokerageSyncId',\AppBundle\Form\Type\Select2Type::class, [
-                'label' => 'fields.brokerageSyncId',
-                'required' => false,
-                'attr' => [
-                    'data-autostart' => 'true',
-                    'data-ajax--url' => $this->router->generate('brokerage.search_name'),
-                    'data-ajax--type' => 'POST',
-                    'data-minimum-input-length' => 3,
-                    'data-length' => 10,
-                    'data-ajax--cache' => 1,
-                ],
-                'placeholder' => 'Select Brokrage name',
-                'translation_domain' => 'CustomerProductBundle',
             ])
-            ->add('brokerageFirstName', HiddenType::class)
-            ->add('brokerageLastName', HiddenType::class)
             ->add('saveModal', ButtonType::class, [
                 'label' => 'form.save',
                 'translation_domain' => 'AppBundle',

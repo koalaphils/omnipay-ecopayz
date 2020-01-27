@@ -19,7 +19,6 @@ class AuditRevisionLog extends Entity
     const CATEGORY_CURRENCY = 3;
     const CATEGORY_CUSTOMER = 4;
     const CATEGORY_CUSTOMER_GROUP = 5;
-    const CATEGORY_DWL = 6;
     const CATEGORY_GATEWAY = 7;
     const CATEGORY_GATEWAY_TRANSACTION = 8;
     const CATEGORY_NOTICE = 9;
@@ -37,7 +36,6 @@ class AuditRevisionLog extends Entity
     const CATEGORY_CUSTOMER_TRANSACTION_TRANSFER = 21;
     const CATEGORY_CUSTOMER_TRANSACTION_P2P_TRANSFER = 22;
     const CATEGORY_CUSTOMER_TRANSACTION_DWL = 23;
-    const CATEGORY_CUSTOMER_TRANSACTION_BET = 24;
     const CATEGORY_CUSTOMER_TRANSACTION_BONUS = 25;
     const CATEGORY_RISK_SETTING = 26;
     const CATEGORY_MEMBER_BANNER = 27;
@@ -176,9 +174,6 @@ class AuditRevisionLog extends Entity
             case self::CATEGORY_CUSTOMER_GROUP:
                 $key = 'customerGroup';
                 break;
-            case self::CATEGORY_DWL:
-                $key = 'dwl';
-                break;
             case self::CATEGORY_GATEWAY:
                 $key = 'gateway';
                 break;
@@ -226,12 +221,6 @@ class AuditRevisionLog extends Entity
                 break;
             case self::CATEGORY_CUSTOMER_TRANSACTION_P2P_TRANSFER:
                 $key = 'p2pTransfer';
-                break;
-            case self::CATEGORY_CUSTOMER_TRANSACTION_DWL:
-                $key = 'cDwl';
-                break;
-            case self::CATEGORY_CUSTOMER_TRANSACTION_BET:
-                $key = 'bet';
                 break;
             case self::CATEGORY_CUSTOMER_TRANSACTION_BONUS:
                 $key = 'transactionBonus';

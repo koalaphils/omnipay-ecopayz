@@ -12,8 +12,6 @@ class Product extends Entity implements ActionInterface, TimestampInterface, Aud
     use Traits\ActionTrait;
     use Traits\TimestampTrait;
 
-    const PRODUCT_SKYPE_BETTING = 9;
-
     /**
      * @var string
      */
@@ -242,26 +240,6 @@ class Product extends Entity implements ActionInterface, TimestampInterface, Aud
     public function getDetail($key, $default = null)
     {
         return array_get($this->details, $key, $default);
-    }
-
-    public function getBetadminToSync()
-    {
-        return $this->getDetail('betadmin.tosync', false);
-    }
-
-    public function isSkypeBetting() : bool
-    {
-        return $this->getBetadminToSync() === true;
-    }
-
-    public function setBetadminToSync($betadminToSync = false)
-    {
-        return $this->setDetail('betadmin.tosync', $betadminToSync);
-    }
-
-    public function canSyncToBetAdmin(): bool
-    {
-        return $this->getDetail('betadmin.tosync', false);
     }
 
     public function getCategory()

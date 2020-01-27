@@ -76,8 +76,6 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
 
         $payload['username'] = $customerProduct->getUserName();
         $payload['isActive'] = $customerProduct->getIsActive();
-        $payload['syncId'] = $customerProduct->getBrokerageSyncId();
-        $payload['oldSyncId'] = $customerProduct->getOldBrokerageSyncId();
 
         return $payload;
     }

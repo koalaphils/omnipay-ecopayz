@@ -30,14 +30,8 @@ DbBundle\Entity\Transaction:
             columns: [transaction_finished_at]
         toCustomer_index:
             columns: [transaction_to_customer]
-        dwlId_index:
-            columns: [dwl_id]
         customer_index:
             columns: [transaction_customer_id]
-        bet_id_index:
-            columns: [transaction_bet_id]
-        bet_event_id_index:
-            columns: [transaction_bet_event_id]
         commission_computed_original_index:
             columns: [transaction_commission_computed_original]
         virtual_bitcoin_transaction_hash_index:
@@ -117,27 +111,6 @@ DbBundle\Entity\Transaction:
                 generate: transaction_other_details->"$.toCustomer"
                 readOnly: true
             column: transaction_to_customer
-            nullable: true
-        dwlId:
-            type: bigint
-            options:
-                generate: transaction_other_details->"$.dwl.id"
-                readOnly: true
-            column: dwl_id
-            nullable: true
-        betId:
-            type: bigint
-            options:
-                generate: transaction_other_details->"$.bet_id"
-                readOnly: true
-            column: transaction_bet_id
-            nullable: true
-        betEventId:
-            type: bigint
-            options:
-                generate: transaction_other_details->"$.event_id"
-                readOnly: true
-            column: transaction_bet_event_id
             nullable: true
         commissionComputedOriginal:
             type: decimal

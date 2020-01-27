@@ -99,10 +99,6 @@ class TransactionRepository
         
         if (array_has($filters, 'types')) {
             $qb->andWhere('t.type IN (:types)')->setParameter('types', $filters['types']);
-        } else {
-            $qb->andWhere('t.type NOT IN (:types)')
-                ->setParameter('types', [Transaction::TRANSACTION_TYPE_BET, Transaction::TRANSACTION_TYPE_DWL])
-            ;
         }
         
         if (array_has($filters, 'status')) {

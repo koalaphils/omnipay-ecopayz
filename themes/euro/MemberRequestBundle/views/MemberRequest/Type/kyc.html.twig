@@ -1,0 +1,447 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}{{ "page.title.request.kyc"|trans({},"MemberRequestBundle") }}{% endblock %}
+
+{% block stylesheets %}
+    <!-- DataTables -->
+    <link href="{{ asset('/assets/plugins/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('/assets/plugins/datatables/buttons.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('/assets/plugins/datatables/responsive.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('/assets/plugins/datatables/dataTables.colVis.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('/assets/plugins/datatables/dataTables.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('/assets/css/custom-memberRequest.css') }}" rel="stylesheet">
+    <link href="{{ asset('/assets/plugins/sweet-alert2/sweetalert2.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block pageTitle -%} {{ "menus.MemberRequest"|trans({},"MemberRequestBundle") }} {%- endblock pageTitle %}
+
+{% block breadcrumb -%}
+<li>{{ "breadcrumb.memberRequest"|trans({},"AppBundle") }}</li>
+{# <li>{{listLabel}} {{ "breadcrumb.list"|trans({},"MemberRequestBundle") }}</li> #}
+{%- endblock breadcrumb %}
+
+{% block pageHeaderExtra %}
+<div class="pull-right">
+    <a class="btn btn-inverse waves-effect waves-light pull-right m-b-10" href="{{ path("member_request.pending") }}">
+        <i class="ti-arrow-left m-r-10"></i>{{ "Back to Pending List"|trans({}, 'MemberRequestBundle') }}
+    </a>
+    <ul class="list-inline quicklinks font-13 font-normal text-right">
+        <li>Quick Links:</li>
+        {% if is_granted('ROLE_MEMBER_REQUEST_VIEW') %}
+        <li><a href="{{ path("member_request.pending") }}">Pending</a></li>|
+        <li><a href="{{ path("member_request.history") }}">History</a></li>
+        <li>&nbsp;</li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock pageHeaderExtra %}
+
+{% block page %}
+  <div class="row">
+    <div class="col-md-12">
+      <div class="col-md-3">
+        <div class="card-box" id="customer-container">
+          <h4 class="m-t-0 header-title">Member</h4>
+          <span class="form-control"> <i class="fa fa-user"></i> | {{memberRequest.getMember().getFullName()}} ({{memberRequest.getMember().getUser().getUsername()}})</span>
+        </div>
+      </div>
+      {{ form_start(form) }}
+      <div class="col-md-5">
+        <div class="card-box">
+          <div class="card-box">
+            <div class="row">
+                {{ form_row(form.number) }}
+                {{ form_row(form.date) }}
+            </div>
+          </div>
+          <div class="card-box">
+            <h4 class="header-title m-b-10 m-t-0">Documents</h4>
+            <div class="kyc-docs">
+              <ul>
+                {% for key, child in form.subRequests.children%}
+                    {{form_widget(child.children['filename'])}}
+                    <li>
+                        <div>
+                            {% if memberRequest.isRequesthestDeleted(key) %}
+                                <span class="left"><strike>{{child.children['filename'].vars.value}}</strike></span>
+                            {% else %}
+                                <span class="left">{{child.children['filename'].vars.value}}</span>
+                            {% endif %}
+                            {% if memberRequest.isAcknowledged() and not memberRequest.isRequesthestDeleted(key) %}
+                            <div class="pull-right">
+                                <a href="javascript:void(0);" data-toggle="tooltip" title="Preview" onclick="return renderDocument('{{child.children['filename'].vars.value}}');" class="btn btn-success waves-effect waves-light btn-xs active-state-action tooltip-preview"><i class="fa fa-eye"></i></a>
+                                {% if not memberRequest.isValidDocument(key) %}
+                                <a href="javascript:void(0);" data-toggle="tooltip" title="Delete"  onclick="return deleteDocument({{key}}, '{{child.children['filename'].vars.value}}');" class="btn btn-danger waves-effect waves-light btn-xs active-state-action"><i class="fa fa-trash-o"></i></a>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group kyc-remark">
+                        {% if memberRequest.isForProcessing() %}
+                            {{form_widget(child.children['remark'], {"attr": {"class" : " m-r-10"}})}}
+                            <a href="javascript:void(0);" onclick="return markAsValid({{key}}, '{{child.children['filename'].vars.value}}');" class="btn btn-success waves-effect waves-light btn-sm m-r-5 flex-center-center">Valid</a>
+                            <a href="javascript:void(0);" onclick="return markAsInValid({{key}}, '{{child.children['filename'].vars.value}}');" class="btn btn-danger waves-effect waves-light btn-sm flex-center-center">Invalid</a>
+                        {% else %}
+                            {% if child.children['remark'] is defined %}
+                                {% if memberRequest.isValidDocument(key) %}
+                                    {{form_widget(child.children['remark'], {"type": "hidden"})}}
+                                    <p class="m-r-5 text-success"><i class="fa fa-check-circle fa-lg m-r-10"></i>Valid document</p> |
+                                    <p class="text-muted font-italic m-l-5">{{child.children['remark'].vars.value|default('No Remarks')}}</p>
+                                {% elseif memberRequest.isInvalidDocument(key) %}
+                                    {{form_widget(child.children['remark'], {"type": "hidden"})}}
+                                    <p class="m-r-5 text-danger"><i class="fa fa-times-circle fa-lg m-r-10"></i>Invalid document</p> |
+                                    <p class="text-muted font-italic m-l-5">{{child.children['remark'].vars.value|default('No Remarks')}}</p>
+                                {% else %}
+                                    {{form_widget(child.children['remark'], {"attr": {"class" : " m-r-10"}})}}
+                                    <a href="javascript:void(0);" onclick="return markAsValid({{key}}, '{{child.children['filename'].vars.value}}');" class="btn btn-success waves-effect waves-light btn-sm m-r-5 flex-center-center">Valid</a>
+                                    <a href="javascript:void(0);" onclick="return markAsInValid({{key}}, '{{child.children['filename'].vars.value}}');" class="btn btn-danger waves-effect waves-light btn-sm flex-center-center">Invalid</a>
+                                {% endif %}
+                            {% endif%}
+                        {% endif %}
+                        </div>
+                    </li>
+                {%endfor %}
+              </ul>
+            </div>
+          </div>
+          <div class="card-box">
+            <div class="row">
+                <div class="col-sm-12">
+                    {{ form_row(form.notes) }}
+                </div>
+            </div>
+          </div>
+          <div class="row">
+              <div class="col-sm-12">
+              {{ form_row(form.actions) }}
+              </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4" id="kyc-doc-preview">
+        <div class="card-box">
+          <h4 class="header-title m-b-10 m-t-0">Preview</h4>
+          <div id="memberDocument" class="card-box m-0"></div>
+        </div>
+      </div>
+      {{ form_end(form) }}    
+    </div>
+  </div>
+{% endblock page %}
+
+{% block javascripts %}
+<script src="{{ asset('bundles/transaction/js/transaction/form.js') }}"></script>
+<script src="{{ asset('/assets/plugins/sweet-alert2/sweetalert2.js') }}" type="text/javascript" ></script>
+<script type="text/javascript" >
+    function renderDocument(documentName) {
+        var ext = documentName.split(".");
+        ext = ext[ext.length-1].toLowerCase();
+        
+        if(ext == 'docx' || ext == 'doc' || ext == 'odt') {
+            var html = '<i class="fa fa-file-word-o fa-5x"></i>'+
+                '<span class="m-10"><p class="m-t-10"><i class="fa fa-download"></i>' +
+                    '<a data-toggle="tooltip" title="Download" href="/' + '{{attributes.locale}}' + '/file/'+ encodeURI(documentName) +'?folder=' + '{{attributes.documentRoot}}' + '"> '+ documentName +'</a>'+
+                '</p></span>';
+            $("#memberDocument").html(html);
+        } else if(ext == 'pdf') {
+            var html = '<i class="fa fa-file-pdf-o fa-5x"></i>'+
+                '<span class="m-10"><p class="m-t-10"><i class="fa fa-download"></i>' +
+                    '<a data-toggle="tooltip" title="Download" href="/' + '{{attributes.locale}}' + '/file/'+ encodeURI(documentName) +'?folder=' + '{{attributes.documentRoot}}' + '"> '+ documentName +'</a>'+
+                '</p></span>';
+            $("#memberDocument").html(html);
+        } else {
+            var html = '<img src="/en/file/'+ documentName +'?folder=' + '{{attributes.documentRoot}}' + '" width="100%">'+
+                '<span class="m-10"><p class="m-t-10"><i class="fa fa-download"></i>' +
+                    '<a data-toggle="tooltip" title="Download" href="/' + '{{attributes.locale}}' + '/file/'+ encodeURI(documentName) +'?folder=' + '{{attributes.documentRoot}}' + '"> '+ documentName +'</a>'+
+                '</p></span>';
+            $("#memberDocument").html(html);
+        }
+    }
+
+    function markAsValid(key, documentName) {
+        var remark = $('#{{form.subRequests.vars.id}}_' + key +'_remark').val();
+        {% if memberRequest.hasOnlyOneRequestToBeValidated() %}
+            swal({
+                title: "Confirmation",
+                text: "This is the last document. Do you want to process this request?",
+                type: "info",
+                showCancelButton: true,
+                cancelButtonClass: 'btn-md waves-effect',
+                confirmButtonClass: 'btn-primary btn-md waves-effect waves-light',
+                confirmButtonText: 'Proceed'
+            }).then(function(isProcess) {
+                if (isProcess) {
+                    {% if form.actions.children['btn_process'].vars.id is defined %}
+                            $('#{{form.actions.children['btn_process'].vars.id}}').trigger("click");
+                    {% endif %}
+                }
+            }, function(dismiss) {});
+        {% else %}
+            swal({
+                title: "Document '" + documentName +"' will be set as valid.",
+                text: "Do you want to process this request?",
+                type: "info",
+                showCancelButton: true,
+                cancelButtonClass: 'btn-md waves-effect',
+                confirmButtonClass: 'btn-primary btn-md waves-effect waves-light',
+                confirmButtonText: 'Proceed'
+            }).then(function(isValid) {
+                if (isValid) {
+                    var postURL = "{{ path('member_request.kyc_document_valid', {requestId: memberRequest.getId(), requestKey: 'key_id' }) -}}";
+                    $.ajax({
+                        url : postURL.replace("key_id", key).replace("&amp;", "&"),
+                        globalAjaxComplete : false,
+                        type: "POST",
+                        dataType: "JSON",
+                        data: {remark : remark},
+                        success: function (data) {
+                            if (data.status) {
+                                notification('Saved', 'Document is successfully validated', 'success');
+                                setTimeout(function () {
+                                    window.location = window.location.href;
+                                }, 1000);
+                            }
+                        }
+                    });
+                }
+            }, function(dismiss) {});
+        {% endif %}
+    }
+
+    function markAsInValid(key, documentName) {
+        var remarkField = $('#{{form.subRequests.vars.id}}_' + key +'_remark');
+        var remark = remarkField.val();
+        if (remark == '') {
+            remarkField
+                .closest('.form-group')
+                .addClass('has-error')
+                .find('.help-block ul')
+                .append('<li>Required message</li>');
+            remarkField.focus();
+            notification('Validation Failed', 'Some fields are required', 'error');
+
+            return false;
+        }
+        {% if memberRequest.hasOnlyOneRequestToBeInvalidated() %}
+            swal({
+                title: "Confirmation",
+                text: "This is the last document. Do you want to process this request?. Invalidating wll cause the request to be declined.",
+                type: "info",
+                showCancelButton: true,
+                cancelButtonClass: 'btn-md waves-effect',
+                confirmButtonClass: 'btn-primary btn-md waves-effect waves-light',
+                confirmButtonText: 'Proceed'
+            }).then(function(isProcess) {
+                if (isProcess) {
+                    var postURL = "{{ path('member_request.kyc_document_invalid', {requestId: memberRequest.getId(), requestKey: 'key_id' }) -}}";
+                    $.ajax({
+                        url : postURL.replace("key_id", key).replace("&amp;", "&"),
+                        globalAjaxComplete : false,
+                        type: "POST",
+                        dataType: "JSON",
+                        data: {remark : remark},
+                        success: function (data) {
+                            if (data.status) {
+                                {% if form.actions.children['btn_decline'].vars.id is defined %}
+                                    $('#{{form.notes.vars.id}}').val("Invalid Documents");
+                                    $('#{{form.actions.children['btn_decline'].vars.id}}').trigger("click");
+                                {% endif %}
+                            }
+                        }
+                    });
+                }
+            }, function(dismiss) {});
+        {% else %}
+            swal({
+                title: "Document '" + documentName +"' will set as invalid.",
+                text: "Do you want to process this request?",
+                type: "info",
+                showCancelButton: true,
+                cancelButtonClass: 'btn-md waves-effect',
+                confirmButtonClass: 'btn-primary btn-md waves-effect waves-light',
+                confirmButtonText: 'Proceed'
+            }).then(function(isInvalid) {
+                if (isInvalid) {
+                    var postURL = "{{ path('member_request.kyc_document_invalid', {requestId: memberRequest.getId(), requestKey: 'key_id' }) -}}";
+                    $.ajax({
+                        url : postURL.replace("key_id", key).replace("&amp;", "&"),
+                        globalAjaxComplete : false,
+                        type: "POST",
+                        dataType: "JSON",
+                        data: {remark : remark},
+                        success: function (data) {
+                            if (data.status) {
+                                notification('Saved', 'Document is successfully validated', 'success');
+                                setTimeout(function () {
+                                    window.location = window.location.href;
+                                }, 1000);
+                            }
+                        }
+                    });
+                }
+            }, function(dismiss) {});
+        {% endif %}
+    }
+
+    function deleteDocument(key, documentName) {
+        var remarkField = $('#{{form.subRequests.vars.id}}_' + key +'_remark');
+        var remark = remarkField.val();
+        if (remark == '') {
+            remarkField
+                .closest('.form-group')
+                .addClass('has-error')
+                .find('.help-block ul')
+                .append('<li>Required message</li>');
+            remarkField.focus();
+            notification('Validation Failed', 'Some fields are required', 'error');
+
+            return false;
+        }
+        {% if memberRequest.hasOnlyOneRequestToBeDeleted() %}        
+            swal({
+                title: "Deleting '" + documentName +"' will cause this request to be declined.",
+                text: "Are you sure you want to delete this file and decline the request?",
+                type: "warning",
+                showCancelButton: true,
+                cancelButtonClass: 'btn-md waves-effect',
+                confirmButtonClass: 'btn-warning btn-md waves-effect waves-light',
+                confirmButtonText: 'Delete & Decline'
+            }).then(function(isDelete) {
+                if (isDelete) {
+                    var postURL = "{{ path('member_request.kyc_document_delete', {memberRequestId: memberRequest.getId(), requestId: 'key_id' }) -}}";
+                    $.ajax({
+                        url : postURL.replace("key_id", key).replace("&amp;", "&"),
+                        globalAjaxComplete : false,
+                        type: "POST",
+                        dataType: "JSON",
+                        data: {remark : remark},
+                        success: function (data) {
+                            if (data.success) {
+                                {% if form.actions.children['btn_decline'].vars.id is defined %}
+                                    $('#{{form.notes.vars.id}}').val("Invalid Documents");
+                                    $('#{{form.actions.children['btn_decline'].vars.id}}').trigger("click");
+                                {% endif %}
+                            }
+                        }
+                    });
+                }
+            }, function(dismiss) {});
+        {% else %}
+            swal({
+                title: documentName +"' will be removed.",
+                text: "Are you sure you want to delete this file?",
+                type: "warning",
+                showCancelButton: true,
+                cancelButtonClass: 'btn-md waves-effect',
+                confirmButtonClass: 'btn-warning btn-md waves-effect waves-light',
+                confirmButtonText: 'Delete'
+            }).then(function(isDelete) {
+                if (isDelete) {
+                    var postURL = "{{ path('member_request.kyc_document_delete', {memberRequestId: memberRequest.getId(), requestId: 'key_id' }) -}}";
+                    $.ajax({
+                        url : postURL.replace("key_id", key).replace("&amp;", "&"),
+                        globalAjaxComplete : false,
+                        type: "POST",
+                        dataType: "JSON",
+                        data: {remark : remark},
+                        success: function (data) {
+                            if (data.success) {
+                                notification('Saved', 'Document successfully deleted', 'success');
+                                setTimeout(function () {
+                                    window.location = window.location.href;
+                                }, 1000);
+                            }
+                        }
+                    });
+                }
+            }, function(dismiss) {});
+        {% endif %}
+    }
+
+    $(function(){
+        $('#{{ form.vars.id }}').form({
+            'action': '{{ form.vars.action }}',
+            'ajax': {
+                'success': function (data) {
+                    if (data.success) {
+                        notification('Saved', 'You have successfully saved the request', 'success');
+                        setTimeout(function () {
+                            window.location = window.location.href;
+                        }, 1000);
+                    } else if (typeof data.errors !== 'undefined') {
+                        for (var i in data.errors) {
+                            var error = data.errors[i];
+                            $('#' + error.formId)
+                                .closest('.form-group')
+                                .addClass('has-error')
+                                .find('.help-block ul')
+                                .append('<li>' + error.message + '</li>');
+                        }
+                        notification('Validation Failed', 'Some fields are invalid', 'error');
+                    }
+                },
+                'beforeSend': function (xhr, settings) {
+                    $('#{{ form.vars.id }}').find('.form-group').removeClass('has-error');
+                    $('#{{ form.vars.id }}').find('.help-block ul li').remove();
+                    $('#btnSave').attr('disabled', 'disabled');
+                },
+                'complete': function (xhr, textStatus) {
+                    $('#btnSave').removeAttr('disabled');
+                }
+            }
+        });
+        
+        $('.btn-action').click(function () {     
+            var submitButton = this;
+            var actionType = $(this).html();
+
+            if (actionType.toLowerCase() === 'process') {
+               {% if memberRequest.getMember().getVerifiedAt() is null %}
+                    swal({
+                        title: "Confirmation",
+                        text: "Do you want to tag member as verified?",
+                        type: "info",
+                        showCancelButton: true,
+                        cancelButtonClass: 'btn-md waves-effect',
+                        confirmButtonClass: 'btn-primary btn-md waves-effect waves-light',
+                        confirmButtonText: 'Verify',
+                        cancelButtonText: "Process Only"
+                    }).then(function(verify) {
+                        if (verify) {
+                            $.ajax({
+                                url: "{{ path('customer.verify', {'id':memberRequest.getMember().getId()}) }}",
+                                globalAjaxComplete : false,
+                                data: {
+                                    "_status": 1
+                                },
+                                'success': function (data) {
+                                    swal({
+                                        title: 'Member has been verified!',
+                                        confirmButtonText: 'OK',
+                                        type: "success",
+                                        showCancelButton: false,
+                                        confirmButtonClass: 'btn-success'
+                                    }).then(function(isVerified) {
+                                        if (isVerified) {
+                                            $('#{{ form.vars.id }}').trigger('form:submit', [submitButton]);
+                                        }
+                                    });
+
+                                }
+                            });
+                        }
+                    }, function(dismiss) {
+                        if (dismiss === 'cancel' || dismiss === 'close') {
+                            $('#{{ form.vars.id }}').trigger('form:submit', [submitButton]);
+                        } 
+                    });
+                {% else %}
+                    $('#{{ form.vars.id }}').trigger('form:submit', [submitButton]);
+                {% endif %}
+            } else {
+                $('#{{ form.vars.id }}').trigger('form:submit', [submitButton]);
+            }
+        });
+    });
+  </script>
+{% endblock javascripts %}

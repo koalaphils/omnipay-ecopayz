@@ -81,10 +81,6 @@ class ProductRepository extends BaseRepository
             ]))->setParameter('search', '%' . $filters['search'] . '%');
         }
 
-        if (isset($filters['betadminToSync'])) {
-            $qb->andWhere('p.id != :id')->setParameter('id', $filters['id']);
-        }
-
         $groupFilters = [];
         if (array_has($filters, 'filter')) {
             $groupFilters = array_get($filters, 'filter');
@@ -163,15 +159,6 @@ class ProductRepository extends BaseRepository
 
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }
-
-    /*public function getSkypeBettingProduct(): ?Product
-    {
-        $queryBuilder = $this->createQueryBuilder('product')
-            ->select('product')
-            ->where("JSON_CONTAINS(product.details, '{\"betadmin\": {\"tosync\": true}}') = 1");
-
-        return $queryBuilder->getQuery()->getOneOrNullResult();
-    }*/
 
     public function getProductByCode(string $code): Product
     {

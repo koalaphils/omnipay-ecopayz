@@ -111,7 +111,6 @@ class SubTransactionRepository extends BaseRepository
             ->join('st.parent', 't')
             ->join('t.customer', 'm')
             ->join('m.affiliate', 'a', Join::WITH, $queryBuilder->expr()->eq('a.id', ':referrerId'))
-            ->join('DbBundle:DWL', 'dwl', Join::WITH, $queryBuilder->expr()->eq('dwl.id', 'st.dwlId'))
             ->join('dwl.currency', 'dwlCurrency')
             ->join('dwl.product', 'p')
             ->andWhere($queryBuilder->expr()->gte('dwl.date', ':startDate'))
@@ -164,11 +163,9 @@ class SubTransactionRepository extends BaseRepository
             ->innerJoin('subTransaction.parent', 'transaction')
             ->innerJoin('subTransaction.customerProduct', 'customerProduct')
             ->where($queryBuilder->expr()->andX()->addMultiple([
-                'subTransaction.dwlId = :dwlId',
                 'subTransaction.customerProduct = :memberProductId',
             ]))
             ->setParameters([
-                'dwlId' => $dwlId,
                 'memberProductId' => $memberProductId,
             ]);
 
@@ -183,11 +180,9 @@ class SubTransactionRepository extends BaseRepository
             ->innerJoin('subTransaction.parent', 'transaction')
             ->innerJoin('subTransaction.customerProduct', 'customerProduct')
             ->where($queryBuilder->expr()->andX()->addMultiple([
-                'subTransaction.dwlId = :dwlId',
                 'subTransaction.customerProduct = :memberProductId',
             ]))
             ->setParameters([
-                'dwlId' => $dwlId,
                 'memberProductId' => $memberProductId,
             ]);
 
@@ -199,8 +194,7 @@ class SubTransactionRepository extends BaseRepository
         $queryBuilder = $this->createQueryBuilder('subTransaction');
         $queryBuilder
             ->select('COUNT(subTransaction.id) totalSubtransaction')
-            ->where("subTransaction.dwlId = :dwlId AND JSON_EXTRACT(subTransaction.details, '$.dwl.exclude') = 0")
-            ->setParameter('dwlId', $dwlId);
+            ->where("JSON_EXTRACT(subTransaction.details, '$.dwl.exclude') = 0");
 
         return $queryBuilder->getQuery()->getSingleScalarResult();
     }
@@ -209,13 +203,7 @@ class SubTransactionRepository extends BaseRepository
     {
         $queryBuilder = $this->createQueryBuilder('subTransaction');
         $queryBuilder
-            ->select('subTransaction.id')
-            ->where($queryBuilder->expr()->andX()->addMultiple([
-                'subTransaction.dwlId IN (:dwlIds)',
-            ]))
-            ->setParameters([
-                'dwlIds' => $dwlIds,
-            ]);
+            ->select('subTransaction.id');
 
         return $queryBuilder->getQuery()->getScalarResult();
     }
@@ -245,11 +233,9 @@ class SubTransactionRepository extends BaseRepository
             ->innerJoin('subTransaction.parent', 'transaction')
             ->innerJoin('subTransaction.customerProduct', 'customerProduct')
             ->where($queryBuilder->expr()->andX()->addMultiple([
-                'subTransaction.dwlId = :dwlId',
                 'subTransaction.id NOT IN (:subtransactionIds)',
             ]))
             ->setParameters([
-                'dwlId' => $dwlId,
                 'subtransactionIds' => $subtransactionIds,
             ]);
 
@@ -263,13 +249,7 @@ class SubTransactionRepository extends BaseRepository
         $queryBuilder
             ->select('subTransaction', 'transaction', 'customerProduct')
             ->innerJoin('subTransaction.parent', 'transaction')
-            ->innerJoin('subTransaction.customerProduct', 'customerProduct')
-            ->where($queryBuilder->expr()->andX()->addMultiple([
-                'subTransaction.dwlId = :dwlId',
-            ]))
-            ->setParameters([
-                'dwlId' => $dwlId,
-            ]);
+            ->innerJoin('subTransaction.customerProduct', 'customerProduct');
 
         return $queryBuilder->getQuery()->iterate();
     }

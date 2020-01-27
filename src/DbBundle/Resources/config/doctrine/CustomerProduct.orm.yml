@@ -16,8 +16,6 @@ DbBundle\Entity\CustomerProduct:
             columns: [cproduct_username]
         productID_index:
             columns: [cproduct_product_id]
-        bet_sync_id_index:
-            columns: [cproduct_bet_sync_id]
     uniqueConstraints:
         username_unq:
             columns: [cproduct_username, cproduct_product_id]
@@ -70,13 +68,6 @@ DbBundle\Entity\CustomerProduct:
             type: json
             nullable: true
             column: cproduct_details
-        betSyncId:
-            type: bigint
-            options:
-                generate: cproduct_details->"$.brokerage.sync_id"
-                readOnly: true
-            column: cproduct_bet_sync_id
-            nullable: true
         requestedAt:
             type: datetime
             nullable: true

@@ -1,4 +1,0 @@
-brokerage.search_name:
-    path: brokerage/search-name
-    defaults:
-        _controller: BrokerageBundle:Brokerage:searchName

@@ -91,18 +91,6 @@ DbBundle\Entity\CustomerProduct:
             fields: [userName, product]
             groups: ['default']
             message: customerProduct.duplicate
-        - AppBundle\Validator\Constraints\Unique:
-            groups: ['default']
-            entityClass: DbBundle\Entity\CustomerProduct
-            expression: "JSON_UNQUOTE(JSON_EXTRACT(e.details, '$.brokerage.sync_id')) = :brokerageSyncId"
-            expressionParams:
-                brokerageSyncId: object.getBrokerageSyncId()
-            validator: unique_json
-            errorPath: brokerageSyncId
-            violationValues:
-                --firstname: object.getBrokerageFirstName()
-                --lastname: object.getBrokerageLastName()
-            message: "--firstname --lastname already in used."
     properties:
         balance:
             - NotBlank:

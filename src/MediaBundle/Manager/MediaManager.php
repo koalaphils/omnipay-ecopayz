@@ -7,94 +7,59 @@
 
 namespace MediaBundle\Manager;
 
-use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
-use Symfony\Component\Finder\Finder;
+use Aws\S3\S3Client;
+use MediaBundle\Adapter\AbstractFileStorage;
+use MediaBundle\Adapter\FileSystemAdapter;
+use MediaBundle\Adapter\S3Adapter;
 use AppBundle\Manager\AbstractManager;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
+use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\Response;
-use Imagick;
-use ImagickException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter as FileSystemCache;
 
 /**
  * Description of MediaManager.
  *
- * @author cnonog
+ * @author Melvin D. Protacio<melvin.protacio@zmtsys.com>
  */
 class MediaManager extends AbstractManager
 {
     /**
-     * @var string
+     * @var AbstractFileStorage
      */
-    private $path;
+    protected $storageProvider;
 
-    public function init()
+
+    /**
+     * @param S3Client|Filesystem $storageProvider
+     */
+    public function init($storageProvider)
     {
-        $this->path = $this->container->getParameter('upload_folder');
+        if ($storageProvider instanceof S3Client) {
+            $this->storageProvider = new S3Adapter($storageProvider, $this->getRouter(), 'uploads/',
+                [
+                    'path' => ltrim($this->getContainer()->getParameter('upload_folder'), DIRECTORY_SEPARATOR),
+                    'bucket' => $this->getContainer()->getParameter('aws_s3.bucket'),
+                    'cache' => new FileSystemCache('media.library')
+                ]);
+        } else if ($storageProvider instanceof Filesystem) {
+            $this->storageProvider = new FileSystemAdapter($storageProvider, $this->getRouter(), '/uploads/',
+                [
+                    'path' => $this->getContainer()->getParameter('upload_folder'),
+                ]);
+        }
     }
 
-    public function getFiles($filter = [])
+    public function getFiles($filter = []): array
     {
-        $finder = new Finder();
-        if (array_has($filter, 'search')) {
-            $finder->depth('== 0')->in($this->path)->name('*' . $filter['search'] . '*');
-        }
-        if (empty($filter)) {
-            $finder->depth('== 0')->files()->in($this->path);
-        }
-        $files = [];
-
-        /** @var $file \Symfony\Component\Finder\SplFileInfo */
-        foreach ($finder as $file) {
-            $len = strlen($file->getFileName()) - strlen($file->getExtension()) - 1;
-            $files[] = [
-                'filename' => $file->getFileName(),
-                'route' => [
-                    'render' => $this->getRouter()->generate('app.render_file', ['fileName' => $file->getFileName()]),
-                    'delete' => $this->getRouter()->generate('media.file_delete', ['fileName' => $file->getFileName()]),
-                ],
-                'ext' => $file->getExtension(),
-                'size' => $file->getSize(),
-                'lastModified' => date('Y-m-d H:i:s', $file->getMTime()),
-                'basename' => substr($file->getFileName(), 0, $len),
-            ];
-        }
-
-        return $files;
+        return $this->storageProvider->getFilesInFolder(null, $filter);
     }
 
     public function getFilesInFolder(string $folder, array $filters = []): array
     {
-        $fullPath = $this->getFilePath($folder);
-        $finder = new Finder();
-
-        if (array_has($filters, 'search')) {
-            $finder->depth('== 0')->in($fullPath)->name('*' . $filters['search'] . '*');
-        }
-        if (empty($filters)) {
-            $finder->depth('== 0')->files()->in($fullPath);
-        }
-        $files = [];
-
-        foreach ($finder as $file) {
-            $len = strlen($file->getFileName()) - strlen($file->getExtension()) - 1;
-            $files[] = [
-                'filename' => $file->getFileName(),
-                'folder' => $folder,
-                'route' => [
-                    'render' => $this->getRouter()->generate('app.render_file', ['fileName' => $file->getFileName(), 'folder' => $folder]),
-                    'delete' => $this->getRouter()->generate('media.file_delete', ['fileName' => $file->getFileName(), 'folder' => $folder]),
-                ],
-                'ext' => $file->getExtension(),
-                'size' => $file->getSize(),
-                'lastModified' => date('Y-m-d H:i:s', $file->getMTime()),
-                'basename' => substr($file->getFileName(), 0, $len),
-            ];
-        }
-
-        return $files;
+        return $this->storageProvider->getFilesInFolder($folder, $filters);
     }
 
     /**
@@ -105,79 +70,28 @@ class MediaManager extends AbstractManager
      *
      * @return array
      */
-    public function getFile($fileName, $info = false)
+    public function getFile(?string $fileName = null, ?bool $info = false)
     {
-        $folders = explode('/', $fileName, -1);
+        if ($fileName === null) return [];
 
-        if (!($fileName instanceof File)) {
-            $file = new File(rtrim($this->path, '/') . '/' . ltrim($fileName), true);
-        } else {
-            $file = $fileName;
+        try {dump($fileName); dump($this->storageProvider->getFile($fileName, $info));
+            return $this->storageProvider->getFile($fileName, $info);
+        } catch(FileNotFoundException $fne) {
+            $pathInfo = pathinfo($fileName);
+            return [
+                'error' => 'File Not Found',
+                'filename' => $fileName,
+                'folder' => $this->storageProvider->getDirectory($fileName),
+                'basename' => $pathInfo['filename'],
+                'ext' => $pathInfo['extension'],
+                'size' => 0
+            ];
         }
-
-        if (!$info) {
-            return $file;
-        }
-
-        $len = strlen($file->getFileName()) - strlen($file->getExtension()) - 1;
-        $fileInfo = [
-            'filename' => $file->getFileName(),
-            'folder' => implode('/', $folders),
-            'route' => [
-                'render' => $this->getRouter()->generate('app.render_file', ['fileName' => $file->getFileName(), 'folder' => implode('/', $folders)]),
-                'delete' => $this->getRouter()->generate('media.file_delete', ['fileName' => $file->getFileName()]),
-            ],
-            'ext' => $file->getExtension(),
-            'size' => $file->getSize(),
-            'lastModified' => $file->getMTime(),
-            'basename' => substr($file->getFileName(), 0, $len),
-        ];
-
-        return $fileInfo;
     }
 
     public function renameFile($fileName, $rename)
     {
-        try {
-            $file = new File(rtrim($this->path, '/') . '/' . ltrim($fileName), true);
-            $folder = explode('/', trim($rename, " \t\n\r\0\x0B\/"));
-            $rename = $folder[count($folder) - 1];
-            unset($folder[count($folder) - 1]);
-            $folder = implode('/', $folder);
-
-            $origName = $rename . '.' . $file->getExtension();
-            $i = 1;
-            $fs = new Filesystem();
-            $status = [];
-            do {
-                $loop = true;
-                if ($fs->exists($this->getPath($folder) . $origName)) {
-                    $origName = $rename . "($i)." . $file->getExtension();
-                    ++$i;
-                } else {
-                    $loop = false;
-                    $file->move($this->getPath($folder), $origName);
-                    $file = new File($this->getPath($folder) . $origName, true);
-                    $len = strlen($file->getFileName()) - strlen($file->getExtension()) - 1;
-                    $fileInfo = [
-                        'filename' => $file->getFileName(),
-                        'route' => [
-                            'render' => $this->getRouter()->generate('app.render_file', ['fileName' => $file->getFileName()]),
-                            'delete' => $this->getRouter()->generate('media.file_delete', ['fileName' => $file->getFileName()]),
-                        ],
-                        'ext' => $file->getExtension(),
-                        'size' => $file->getSize(),
-                        'lastModified' => $file->getMTime(),
-                        'basename' => substr($file->getFileName(), 0, $len),
-                    ];
-                    $status = ['success' => true, 'file' => $fileInfo, 'code' => 200];
-                }
-            } while ($loop);
-        } catch (\Exception $e) {
-            $status = ['success' => false, 'error' => $e->getMessage(), 'code' => 400];
-        }
-
-        return $status;
+        return $this->storageProvider->renameFile($fileName, $rename);
     }
 
     /**
@@ -187,148 +101,95 @@ class MediaManager extends AbstractManager
      *
      * @return array
      */
-    public function uploadFile($file, $folder = '', string $filename = '')
+
+    public function uploadFile(UploadedFile $file, $folder = '', ?string $filename = '')
     {
-        $fileExtension = $file->getClientOriginalExtension();
-        $origName = empty($filename) ? $file->getClientOriginalName() : $filename;
-        $i = 1;
-        $fs = new Filesystem();
-        $status = [];
-        do {
-            $loop = true;
-            try {
-                if ($fs->exists($this->path . $folder . '/' . $origName)) {
-                    $len = strlen($origName) - strlen($fileExtension) - 1;
-                    $origName = substr($origName, 0, $len) . "($i)." . $fileExtension;
-                    ++$i;
-                } else {
-                    $loop = false;
-                    $file->move($this->path . $folder, $origName);
-                    $status = ['success' => true, 'filename' => $origName, 'folder' => $folder, 'code' => Response::HTTP_OK];
-                }
-            } catch (\Exception $e) {
-                $loop = false;
-                $status = ['success' => false, 'error' => $e->getMessage(), 'code' => $e->getCode()];
+        $pathInfo = pathinfo($this->storageProvider->getFilePath($this->getPath($folder) . ($filename ?? $file->getClientOriginalName())));
+        try {
+            $mimeType = $file->getMimeType();
+
+            if (stripos($mimeType, 'image') === false){
+                $fileInfo = $this->storageProvider->uploadRawFile($file, $folder, $filename);
+            }else{
+                $fileInfo = $this->storageProvider->compressUploadFile($file, $folder, $filename);
             }
-        } while ($loop);
+            if(array_has($fileInfo, 'error')){
+                $status = ['success' => false, 'error' => $fileInfo['error'], 'folder' => $fileInfo['folder'], 'code' => Response::HTTP_INTERNAL_SERVER_ERROR, 'filename' => $filename ?? $pathInfo['basename']];
+            }else{
+                $status = ['success' => true, 'filename' => $fileInfo['filename'], 'folder' => $fileInfo['folder'], 'code' => Response::HTTP_OK];
+            }
+        } catch (\Exception $e) {
+            $status = ['success' => false, 'error' => $e->getMessage(), 'code' => $e->getCode(), 'filename' => $pathInfo['basename']];
+        }
+
 
         return $status;
     }
 
-    public function compressUploadFile(UploadedFile $file, string $folder, string $filename): void
+    public function compressUploadFile(UploadedFile $file, string $folder, ?string $filename = null): array
     {
-        try {
-            $uploadedFile = new Imagick($file->getRealPath());
-            $fileProfiles = $uploadedFile->getImageProfiles('icc', true);
-            $uploadedFile->stripImage();
-
-            if (!empty($fileProfiles)) {
-                $uploadedFile->profileImage('icc', $fileProfiles['icc']);
-            }
-
-            $uploadedFile->setImageCompression(Imagick::COMPRESSION_JPEG);
-            $uploadedFile->setCompressionQuality(85);
-            $uploadedFile->writeImage(sprintf('%s%s/%s', $this->path, $folder, $filename));
-            $uploadedFile->clear();
-            $uploadedFile->destroy();
-        } catch (ImagickException $e) {
-            throw new ImagickException($e->getMessage(), $e->getCode());
-        }
+        return $this->storageProvider->compressUploadFile($file, $folder, $filename);
     }
 
-    public function deleteFile($file, $base = false)
+    public function deleteFile($file, $base = false): array
     {
-        $fs = new Filesystem();
-        try {
-            if (!$base) {
-                $fs->remove(rtrim($this->path, " \t\n\r\0\x0B\/") . '/' . trim($file, " \t\n\r\0\x0B\/"));
-            } else {
-                $fs->remove($file);
-            }
-
-            return ['success' => true, 'code' => 200];
-        } catch (IOExceptionInterface $e) {
-            return ['success' => false, 'error' => $e->getMessage(), 'code' => $e->getCode()];
-        }
+        return $this->storageProvider->deleteFile($file, $base);
     }
 
-    public function createFile($file, $base = false)
+    public function createFile($file, $base = false): array
     {
-        $fs = new Filesystem();
-        try {
-            if (!$base) {
-                $fs->touch(rtrim($this->path, " \t\n\r\0\x0B\/") . '/' . trim($file, " \t\n\r\0\x0B\/"));
-            } else {
-                $fs->touch($file);
-            }
-
-            return ['success' => true];
-        } catch (IOExceptionInterface $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
+        return $this->storageProvider->createFile($file, $base);
     }
 
     public function getFilePath($file, $base = false): string
     {
-        if (!$base) {
-            return rtrim($this->path, " \t\n\r\0\x0B\/") . '/' . trim($file, " \t\n\r\0\x0B\/");
-        }
-
-        return $file;
+        return $this->storageProvider->getFilePath($file, $base);
     }
 
-    public function getPath($folder = '')
+    public function getPath($folder = ''): string
     {
-        if ($folder !== '' && $folder !== null) {
-            $folder = trim($folder, " \t\n\r\0\x0B\/");
-
-            return rtrim($this->path, " \t\n\r\0\x0B\/") . '/' . $folder . '/';
-        }
-
-        return $this->path;
+        return $this->storageProvider->getPath($folder);
     }
 
     public function isFileExists(string $filename): bool
     {
-        return is_file($this->getFilePath($filename));
+        return $this->storageProvider->isFileExists($filename);
+    }
+    public function getFileUri($filename, ?string $folder = null, bool $presigned = true){
+        return $this->storageProvider->getFileUri($filename, $folder, $presigned);
     }
 
-    public function renderFile(string $filename, ?string $folder = '')
+    public function getCustomerDocumentRoot()
     {
-        $folder = trim($folder, '/');
-        $uploadFolder = rtrim($this->getParameter('upload_folder'), '/');
-        $pathInfo = [
-            $uploadFolder,
-            $folder,
-            trim($filename, '/'),
-        ];
-
-        $pathValid = [];
-        foreach ($pathInfo as $path) {
-            if ($path !== '') {
-                $pathValid[] = $path;
-            }
-        }
-
-        $relativePath = implode('/', $pathValid);
-        if (!$this->checkIfFileInUploadFolder($uploadFolder, $relativePath)) {
-            throw new FileNotFoundException($filename);
-        }
-
-        return $relativePath;
+        return $this->getContainer()->getParameter('customer_folder') ?? 'customerDocuments';
     }
 
-    private function checkIfFileInUploadFolder($uploadFolder, $relativePath): bool
+    public function renderFile(string $filename, ?string $folder = ''): StreamedResponse
     {
-        $fileRealPath = realpath($relativePath);
-        $explodedFolder = explode(DIRECTORY_SEPARATOR, $uploadFolder);
-        $explodedRealPath = explode(DIRECTORY_SEPARATOR, $fileRealPath, count($explodedFolder));
+        $fileUri = $this->storageProvider->getFileUri($filename, $folder);
 
-        $uploadDirPath = implode(DIRECTORY_SEPARATOR, $explodedFolder);
-        $filePath = implode(DIRECTORY_SEPARATOR, $explodedRealPath);
-        $beginningOfString = 0;
+        return new StreamedResponse(function () use ($fileUri) {
+            readfile($fileUri);
+        }, 200, [
+            'Content-Transfer-Encoding' => 'binary',
+            'Content-Type' => 'application/octet-stream',
+            'Content-Disposition' => "inline; filename=\"${filename}\"",
+            'Cache-Control' => 'public, max-age=900'
+        ]);
+    }
 
-        return  (strpos($filePath, $uploadDirPath) === $beginningOfString);
+    public function checkIfFileInUploadFolder($uploadFolder, $relativePath): bool
+    {
+        return $this->storageProvider->checkIfFileInUploadFolder($uploadFolder, $relativePath);
+    }
+
+    public function putContents($fileName, $data)
+    {
+        return $this->storageProvider->putContents($fileName, $data);
+    }
+    public function getContents($filename)
+    {
+        return $this->storageProvider->getContents($filename);
     }
 
     protected function getRepository()
