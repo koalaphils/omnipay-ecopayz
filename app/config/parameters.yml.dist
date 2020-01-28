@@ -22,6 +22,7 @@ parameters:
 
     app_locales: en|ko
     upload_folder: "${UPLOAD_FOLDER}"
+    customer_folder: "${CUSTOMER_FOLDER}"
     php_command: php
 
     #session expiration time
