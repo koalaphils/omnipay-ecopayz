@@ -98,4 +98,5 @@ parameters:
     aws_sdk.key: "${AWS_KEY}"
     aws_sdk.secret: "${AWS_SECRET}"
     aws_s3.version: "${AWS_S3_VERSION}"
+    aws_s3.region: "${AWS_REGION}"
     aws_s3.bucket: "${AWS_BUCKET}"
