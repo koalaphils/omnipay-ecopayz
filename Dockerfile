@@ -170,7 +170,15 @@ ENV TIMEZONE=Etc/GMT+4 \
     MSERVICE_USERNAME= \
     MSERVICE_PASSWORD= \
     SSH_USER=piwi \
-    SSH_PASS=piwipass
+    SSH_PASS=piwipass \
+    CUSTOMER_DOCUMENTS= \
+    AWS_SDK_VERSION= \
+    AWS_REGION= \
+    AWS_KEY= \
+    AWS_SECRET= \
+    AWS_S3_VERSION= \
+    AWS_REGION= \
+    AWS_BUCKET= 
 
 WORKDIR /var/www/html
 RUN sed -i "s/;emergency_restart_threshold\s*=\s*.*/emergency_restart_threshold = 10/g" /usr/local/etc/php-fpm.conf \
