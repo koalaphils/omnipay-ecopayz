@@ -60,7 +60,6 @@ class WithdrawController extends AbstractController
         }
         asort($transactionDates);
         asort($pinnacleTransactionDates);
-        dump('getGateway', $transaction->getGateway());
         return $this->render("TransactionBundle:Transaction/Type:withdraw.html.twig", [
             'form' => $form->createView(),
             'type' => 'withdraw',
