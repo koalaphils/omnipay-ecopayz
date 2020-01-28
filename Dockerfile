@@ -177,7 +177,6 @@ ENV TIMEZONE=Etc/GMT+4 \
     AWS_KEY= \
     AWS_SECRET= \
     AWS_S3_VERSION= \
-    AWS_REGION= \
     AWS_BUCKET= 
 
 WORKDIR /var/www/html
