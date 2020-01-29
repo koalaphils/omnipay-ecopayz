@@ -760,7 +760,7 @@ class TransactionManager extends TransactionOldManager
                 ];
         } else if ($transaction->isTransactionPaymentBitcoin() && !$transaction->isVoided() && $transaction->getStatus() == Transaction::TRANSACTION_STATUS_START && $transaction->isDeposit()) {
             $actions['decline'] = ['label' => 'Decline', 'class' => 'btn-danger', 'status' => Transaction::TRANSACTION_STATUS_DECLINE];
-            $actions['confirm'] = ['label' => 'Confirm', 'class' => 'btn-danger', 'status' => Transaction::TRANSACTION_STATUS_ACKNOWLEDGE];
+            $actions['confirm'] = ['label' => 'Confirm', 'class' => 'btn-success', 'status' => Transaction::TRANSACTION_STATUS_ACKNOWLEDGE];
             $isForVoidingOrDecline = true;
         } else {
             $actions = array_get($this->getStatus($transaction->getStatus()), 'actions', []);

@@ -933,16 +933,19 @@
                         if (actionType.toLowerCase() === 'decline') {
                             var temp = document.getElementById('declineReason');
                             var clone = temp.content.cloneNode(true);
+                            $('#decline-modal').find('.btn-void-transaction').addClass("btn-danger").removeClass("btn-success");
                         }
 
                         if (actionType.toLowerCase() === 'void') {
                             var temp = document.getElementById('voidReason');
                             var clone = temp.content.cloneNode(true);
+                            $('#decline-modal').find('.btn-void-transaction').addClass("btn-danger").removeClass("btn-success");
                         }
 
                         if(actionType.toLowerCase() === 'confirm'){
                             var temp = document.getElementById('confirmReason');
                             var clone = temp.content.cloneNode(true);
+                            $('#decline-modal').find('.btn-void-transaction').addClass("btn-success").removeClass("btn-danger");
                         }
 
                         container.appendChild(clone);
