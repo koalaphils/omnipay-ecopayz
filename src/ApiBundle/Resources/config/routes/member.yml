@@ -35,3 +35,30 @@ api_customers.me_read_notifications:
     path: read-notifications
     defaults: { _controller: ApiBundle:Customer:readNotifications }
     methods: [PUT]
+
+api_customers.me_kyc_files:
+    path: me/files
+    defaults: { _controller: ApiBundle:Member:getMemberFiles }
+    methods: [GET]
+
+api_customers.me_kyc_upload:
+    path: me/files
+    defaults:
+        _controller: ApiBundle:Member:uploadMemberFile
+    methods: [POST]
+
+api_customers.me_kyc_render:
+    path: me/file/{filename}
+    defaults:
+        _controller: ApiBundle:Member:renderMemberFile
+
+api_customers.me_kyc_file_uri:
+    path: me/file/uri/{filename}
+    defaults:
+        _controller: ApiBundle:Member:getMemberFileUri
+
+api_customers.me_kyc_delete:
+    path: me/file/{filename}/delete
+    defaults:
+        _controller: ApiBundle:Member:deleteMemberFile
+    methods: [POST]

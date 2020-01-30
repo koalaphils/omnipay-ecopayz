@@ -49,6 +49,7 @@ class AuditRevisionLog extends Entity
     const CATEGORY_MEMBER_TRANSACTION_CREDIT_ADJUSTMENT = 35;
     const CATEGORY_RUNNING_REVENUE_SHARE = 36;
     const CATEGORY_CUSTOMER_TRANSACTION_REVENUE_SHARE = 37;
+    const CATEGORY_MEMBER_REQUEST_KYC = 39;
 
     private $details;
 
