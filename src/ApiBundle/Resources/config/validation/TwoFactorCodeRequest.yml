@@ -1,0 +1,19 @@
+ApiBundle\Request\TwoFactorCodeRequest:
+  group_sequence_provider: true
+  constraints:
+    - Expression:
+        expression: "this.getEmail() !== '' or this.getPhoneNumber() !== ''"
+        message: "Email or Phone Number must not blank"
+  getters:
+    email:
+      - NotBlank:
+          groups: [Email]
+      - Email:
+          groups: [Email]
+      - AppBundle\Validator\Constraints\Exists:
+          entityClass: DbBundle\Entity\User
+          valuePath: value
+          column: email
+          message: "Email does not exist. Please contact customer support for assistance."
+          expression: "AND e.activationTimestamp IS NOT NULL"
+          groups: [Email]
