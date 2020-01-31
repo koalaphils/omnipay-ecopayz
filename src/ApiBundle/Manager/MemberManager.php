@@ -108,6 +108,13 @@ class MemberManager extends AbstractManager
         return ['member' => $member, 'code' => Response::HTTP_OK];
     }
 
+    public function getMemberFiles(): array
+    {
+        $member = $this->getUser()->getMember();
+
+        return $this->getMemberBundleManager()->getMemberFiles($member, false);
+    }
+
     public function uploadMemberFile(array $files, ?string $folder = null, ?string $filename = null): array
     {
         $member = $this->getUser()->getMember();
