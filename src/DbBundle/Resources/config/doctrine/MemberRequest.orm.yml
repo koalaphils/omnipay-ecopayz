@@ -58,8 +58,10 @@ DbBundle\Entity\MemberRequest:
     manyToOne:
         member:
             targetEntity: DbBundle\Entity\Customer
-            inversedBy: member_request
+            inversedBy: memberRequests
             joinColumn:
                 name: member_request_member_id
                 referencedColumnName: customer_id
+            cache:
+                usage: READ_ONLY
     lifecycleCallbacks: {  }

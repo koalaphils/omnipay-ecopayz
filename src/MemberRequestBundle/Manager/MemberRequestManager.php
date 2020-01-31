@@ -136,11 +136,7 @@ class MemberRequestManager extends AbstractManager
         if ($form->isSubmitted() && $form->isValid()) {
             $memberRequestForm = $form->getData();
             $memberRequestForm->setNumber($requestNumber);
-            if ($memberRequest->isKyc()) {
-                $memberRequestForm->setKycSubRequests($memberRequests['subRequests']);
-            } elseif ($memberRequest->isProductPassword() && !is_null($memberRequest->getProductPasswordSubRequests())) {
-                $memberRequestForm->setProductPasswordSubRequests($memberRequest->getProductPasswordSubRequests()->getValues());
-            }
+            $memberRequestForm->setKycSubRequests($memberRequests['subRequests']);
 
             $btn = $form->getClickedButton();
             $action = array_get($btn->getConfig()->getOption('attr', []), 'value', 'process');
@@ -209,78 +205,30 @@ class MemberRequestManager extends AbstractManager
 
     public function endRequest(&$memberRequest): void
     {
-        if ($memberRequest->isKyc()) {
-            $subRequests = $memberRequest->getKycSubRequests();
-            $i = 0;
-            foreach ($subRequests as $request) {
-                if ($request instanceof KycModel) {
-                    $memberRequest->setDetail('sub_requests.' . $i . '.remark', $request->getRemark());
-                    if (!$request->wasStatusValidated()) {
-                        $memberRequest->setDocumentAsValid($i);
-                    }
+        $subRequests = $memberRequest->getKycSubRequests();
+        $i = 0;
+        foreach ($subRequests as $request) {
+            if ($request instanceof KycModel) {
+                $memberRequest->setDetail('sub_requests.' . $i . '.remark', $request->getRemark());
+                if (!$request->wasStatusValidated()) {
+                    $memberRequest->setDocumentAsValid($i);
                 }
-
-                $i++;
             }
-        } elseif ($memberRequest->isProductPassword()) {
-            $subRequests = $memberRequest->getProductPasswordSubRequests();
-            
-            $i = 0;
-            $emailDetails = [];
-            foreach ($subRequests as $request) {
-                if ($request instanceof ProductPasswordModel) {
-                    $currentMemberProductId = $memberRequest->getDetail('sub_requests.' . $i . '.member_product_id', '');
-                    if ($request->getMemberProductId() === (int) $currentMemberProductId) {
-                        $memberRequest->setDetail('sub_requests.' . $i . '.password', $request->getPassword());
-                    }
-                    $memberProduct = $this->getMemberProductRepository()->find($request->getMemberProductId());
-                    $productPasswordData = [
-                        'password' => $request->getPassword(),
-                        'created_at' => new DateTime('now'),
-                        'is_active' => 1,
-                        'is_requested' => 0,
-                    ];
-                    $memberProduct->setDetail('product_password', $productPasswordData);
-                    $this->save($memberProduct);
 
-                    $emailDetails['memberProducts'][] = [
-                        'productName' => $memberProduct->getProduct()->getName(),
-                        'productUserName' => $memberProduct->getUserName(),
-                        'productPassword' =>  $request->getPassword(),
-                        'productURL' => $memberProduct->getProduct()->getUrl(),
-                    ];
-                }
-
-                $i++;
-            }
-            if (!empty($subRequests->count())) {
-                $member = $memberRequest->getMember();
-                $this->handleMailSendingProductPassword($member, $emailDetails);
-            } 
+            $i++;
         }
     }
 
     public function declineRequest(&$memberRequest): void
     {
-        if ($memberRequest->isKyc()) {
-            $subRequests = $memberRequest->getKycSubRequests();
-            $i = 0;
-            foreach ($subRequests as $request) {
-                if ($request instanceof KycModel) {
-                    $memberRequest->setDocumentValidated($i, '', 0);
-                }
+        $subRequests = $memberRequest->getKycSubRequests();
+        $i = 0;
+        foreach ($subRequests as $request) {
+            if ($request instanceof KycModel) {
+                $memberRequest->setDocumentValidated($i, '', 0);
+            }
 
-                $i++;
-            }
-        } elseif ($memberRequest->isProductPassword()) {
-            $subRequests = $memberRequest->getProductPasswordSubRequests();
-            $i = 0;
-            foreach ($subRequests as $request) {
-                if ($request instanceof ProductPasswordModel) {
-                    $memberProduct = $this->getMemberProductRepository()->find($request->getMemberProductId());
-                    $this->getMemberManager()->setMemberProductAsVoidOrDecline($memberProduct);
-                }
-            }
+            $i++;
         }
     }
 
@@ -319,7 +267,7 @@ class MemberRequestManager extends AbstractManager
     public function getMemberKYCPendingRequest(PersistentCollection $memberRequests): ?MemberRequest
     {
         foreach ($memberRequests as $key => $memberRequest) {
-            if ($memberRequest->isKyc() && $memberRequest->hasPendingRequest()) {
+            if ($memberRequest->hasPendingRequest()) {
                 return $memberRequest;
             }
         }
@@ -330,15 +278,13 @@ class MemberRequestManager extends AbstractManager
     public function getMemberKYCDocumentToBeDeleted(PersistentCollection $memberRequests, string $filename): ?array
     {
         foreach ($memberRequests as $key => $memberRequest) {
-            if ($memberRequest->isKyc()) {
-                if ($index = $memberRequest->hasDocumentFilename($memberRequest, $filename)) {
+            if ($index = $memberRequest->hasDocumentFilename($memberRequest, $filename)) {
 
-                    return [
-                        'memberRequest' => $memberRequest,
-                        'index' => $index,
-                    ];
-               }   
-            }
+                 return [
+                     'memberRequest' => $memberRequest,
+                     'index' => $index,
+                 ];
+            }   
         }
 
         return null;
@@ -382,19 +328,12 @@ class MemberRequestManager extends AbstractManager
         $subRequests = [];
         $isMemberProductMapped = true;
 
-        if ($memberRequest->isKyc()) {
-            $subRequests = [
-                'filename' => false,
-                'is_deleted' => false,
-                'remark' => $this->isRemarkFieldEditable($memberRequest),
-            ];
-        } elseif ($memberRequest->isProductPassword()) {
-            $isProductPasswordEditable = $this->isPasswordFieldEditable($memberRequest);
-            $subRequests = [
-                'password' => $isProductPasswordEditable,
-                'member_product_id' => false,
-            ];
-        }
+        $subRequests = [
+            'filename' => false,
+            'is_deleted' => false,
+            'remark' => $this->isRemarkFieldEditable($memberRequest),
+        ];
+        
 
         return [
             'number' => false,
@@ -409,16 +348,9 @@ class MemberRequestManager extends AbstractManager
         $isRemarkReadonly = !$this->isRemarkFieldEditable($memberRequest);
         $isProductPasswordEditable = !$this->isPasswordFieldEditable($memberRequest);
         $readOnly = true;
-        $subRequests = [];
-        if ($memberRequest->isKyc()) {
-            $subRequests = [
-                'remark' => $isRemarkReadonly,
-            ];
-        } elseif ($memberRequest->isProductPassword()) {
-            $subRequests = [
-                'password' => $isProductPasswordEditable,
-            ];
-        }
+        $subRequests = [
+            'remark' => $isRemarkReadonly,
+        ];
 
         return [
             'number' => $readOnly,

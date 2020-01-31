@@ -46,6 +46,10 @@ class StatusType extends AbstractType
                 'label' => 'settings.transaction.fields.status.edit_date',
                 'translation_domain' => 'TransactionBundle',
                 'required' => false,
+        ])->add('editRemark', CType\SwitchType::class, [
+                'label' => 'settings.memberRequest.fields.status.edit_remark',
+                'translation_domain' => 'TransactionBundle',
+                'required' => false,
         ])->add('editGateway', CType\SwitchType::class, [
             'label' => 'settings.transaction.fields.status.editGateway',
             'translation_domain' => 'TransactionBundle',

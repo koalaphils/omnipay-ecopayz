@@ -45,7 +45,6 @@
                             <th>{{ "fields.member"|trans({}, "MemberRequestBundle") }}</th>
                             <th>{{ "fields.status"|trans({}, "MemberRequestBundle") }}</th>
                             <th>{{ "fields.type"|trans({}, "MemberRequestBundle") }}</th>
-                            <th data-priority="2">{{ "fields.action"|trans({}, "MemberRequestBundle") }}</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -307,14 +306,6 @@
                                 };
 
                                 return typeText[data];
-                            }
-                        },
-                        {
-                            'name': 'mrs.status',
-                            'data': 'memberRequest.status',
-                            'defaultContent': '',
-                            'render': function(status, text, full) {
-                                return '';
                             }
                         }
                     ]
