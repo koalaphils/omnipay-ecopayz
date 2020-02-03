@@ -708,6 +708,7 @@ class MemberManager extends AbstractManager
     public function getMemberFiles(Member $member, ?bool $info = true, ?bool $includeErrors = false): array
     {
         $files = $member->getFiles();
+
         $retval = [];
         foreach ($files as $file) {
             $filepath = $this->getMediaManager()->getPath(array_get($file, 'folder', '')) . $file['file'];

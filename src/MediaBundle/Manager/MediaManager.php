@@ -74,7 +74,7 @@ class MediaManager extends AbstractManager
     {
         if ($fileName === null) return [];
 
-        try {dump($fileName); dump($this->storageProvider->getFile($fileName, $info));
+        try {
             return $this->storageProvider->getFile($fileName, $info);
         } catch(FileNotFoundException $fne) {
             $pathInfo = pathinfo($fileName);
@@ -121,7 +121,6 @@ class MediaManager extends AbstractManager
         } catch (\Exception $e) {
             $status = ['success' => false, 'error' => $e->getMessage(), 'code' => $e->getCode(), 'filename' => $pathInfo['basename']];
         }
-
 
         return $status;
     }
