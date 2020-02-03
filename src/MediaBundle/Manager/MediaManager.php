@@ -122,7 +122,6 @@ class MediaManager extends AbstractManager
             $status = ['success' => false, 'error' => $e->getMessage(), 'code' => $e->getCode(), 'filename' => $pathInfo['basename']];
         }
 
-
         return $status;
     }
 
