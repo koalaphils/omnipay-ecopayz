@@ -333,13 +333,11 @@ class MemberRequestManager extends AbstractManager
             'is_deleted' => false,
             'remark' => $this->isRemarkFieldEditable($memberRequest),
         ];
-        
 
         return [
             'number' => false,
             'date' => false,
             'subRequests' => $subRequests,
-            
         ];
     }
 
@@ -356,7 +354,7 @@ class MemberRequestManager extends AbstractManager
             'number' => $readOnly,
             'date' => $readOnly,
             'subRequests' => $subRequests,
-            'notes' => $memberRequest->isEnd() || $memberRequest->isDeclined() || $memberRequest->isStart(),
+            'notes' => $memberRequest->isEnd() || $memberRequest->isDeclined(),
         ];
     }
 
