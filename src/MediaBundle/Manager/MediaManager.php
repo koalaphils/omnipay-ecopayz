@@ -107,19 +107,20 @@ class MediaManager extends AbstractManager
         $pathInfo = pathinfo($this->storageProvider->getFilePath($this->getPath($folder) . ($filename ?? $file->getClientOriginalName())));
         try {
             $mimeType = $file->getMimeType();
-
             if (stripos($mimeType, 'image') === false){
                 $fileInfo = $this->storageProvider->uploadRawFile($file, $folder, $filename);
             }else{
                 $fileInfo = $this->storageProvider->compressUploadFile($file, $folder, $filename);
             }
+
             if(array_has($fileInfo, 'error')){
                 $status = ['success' => false, 'error' => $fileInfo['error'], 'folder' => $fileInfo['folder'], 'code' => Response::HTTP_INTERNAL_SERVER_ERROR, 'filename' => $filename ?? $pathInfo['basename']];
             }else{
                 $status = ['success' => true, 'filename' => $fileInfo['filename'], 'folder' => $fileInfo['folder'], 'code' => Response::HTTP_OK];
             }
+
         } catch (\Exception $e) {
-            $status = ['success' => false, 'error' => $e->getMessage(), 'code' => $e->getCode(), 'filename' => $pathInfo['basename']];
+            $status = ['success' => false, 'message' => 'File too large.', 'code' => Response::HTTP_UNPROCESSABLE_ENTITY, 'filename' => $pathInfo['basename']];
         }
 
         return $status;

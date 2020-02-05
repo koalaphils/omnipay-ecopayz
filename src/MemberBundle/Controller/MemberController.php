@@ -136,19 +136,19 @@ class MemberController extends PageController
     {
         $member  = $pageManager->getData('customer');
         $uploadedFile = $widget->uploadFile();
-        $result = $widget->uploadFile();
-        if ($result['success']) {
+
+        if ($uploadedFile['success']) {
             $member->addFile([
-                'folder' => $result['folder'],
-                'file' => $result['filename'],
-                'title' => $result['filename'],
+                'folder' => $uploadedFile['folder'],
+                'file' => $uploadedFile['filename'],
+                'title' => $uploadedFile['filename'],
                 'description' => '',
             ]);
             $this->getCustomerRepository()->save($member);
 
             return $this->getMediaManager()->getFile($this->getMediaManager()->getPath($uploadedFile['folder']) . $uploadedFile['filename'], true);
-        } else {
-            return $result;
+        } else { 
+            return $uploadedFile;
         }
     }
 
