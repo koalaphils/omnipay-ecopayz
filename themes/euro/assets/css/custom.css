@@ -1324,3 +1324,7 @@ button[data-id=update_profileForm_data_userType] {
   justify-content: center;
   align-items: center;
 }
+
+.dropzone .dz-preview.dz-error:hover .dz-error-message {
+  display: none;
+}
