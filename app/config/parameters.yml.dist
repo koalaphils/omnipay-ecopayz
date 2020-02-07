@@ -105,3 +105,6 @@ parameters:
     redis.host: ${REDIS_HOST}
     redis.port: ${REDIS_PORT}
     redis.database_id: ${REDIS_DATABASE}
+    product_integration:
+        evolution:
+            url: ${EVOLUTION_SERVICE_URL}

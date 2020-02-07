@@ -34,6 +34,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use UserBundle\Manager\UserManager;
+use ApiBundle\ProductIntegration\ProductIntegrationFactory;
 
 class AuthHandler
 {
@@ -107,6 +108,8 @@ class AuthHandler
      */
     private $pinnacleExpiration;
 
+    private $productIntegrationFactory;
+
     public function __construct(
         OAuth2 $oauthService,
         PinnacleService $pinnacleService,
@@ -119,6 +122,7 @@ class AuthHandler
         UserManager $userManager,
         SettingManager $settingManager,
         SessionRepository $sessionRepository,
+        ProductIntegrationFactory $productIntegrationFactory,
         string $jwtKey
     ) {
         $this->oauthService = $oauthService;
@@ -135,6 +139,7 @@ class AuthHandler
         $this->sessionExpiration = $this->settingManager->getSetting('session.timeout');
         $this->pinnacleExpiration = $this->settingManager->getSetting('session.pinnacle_timeout');
         $this->sessionRepository = $sessionRepository;
+        $this->productIntegrationFactory = $productIntegrationFactory;
     }
 
     /**
@@ -170,12 +175,26 @@ class AuthHandler
             $processPaymentOptionTypes[$paymentOption->getCode()] = true;
         }
 
+        $jwt = $this->generateJwtToken($user->getCustomer());
+
+        $evolutionIntegration = $this->productIntegrationFactory->getIntegration('evolution');
+        $evolutionResponse = $evolutionIntegration->auth($jwt, [
+            'id' => $user->getCustomer()->getId(),
+            'lastName' => $user->getCustomer()->getLName() || $user->getCustomer()->getUsername(),
+            'firstName' => $user->getCustomer()->getFName(),
+            'nickname' => $user->getCustomer()->getUsername(),
+            'country' => $user->getCustomer()->getCountry()->getCode(),
+            'language' => 'en',
+            'currency' => $user->getCustomer()->getCurrency()->getCode()
+        ]);
+
         $loginResponse = [
             'token' => $data,
             'pinnacle' => $pinLoginResponse->toArray(),
             'member' => $user->getCustomer(),
             'process_payments' => $processPaymentOptionTypes,
-            'jwt' => $this->generateJwtToken($user->getCustomer()),
+            'evolution' => $evolutionResponse,
+            'jwt' => $jwt,
         ];
         $this->deleteUserAccessToken($accessToken->getUser()->getId(), [], [$accessToken->getToken()]);
 
