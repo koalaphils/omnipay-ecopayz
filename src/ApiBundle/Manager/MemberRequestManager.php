@@ -31,23 +31,23 @@ class MemberRequestManager extends AbstractManager
             $filters['sort'] = $request->query->get('sort');
         }
 
-        if ($request->query->has('from')) {
+        if ($request->query->has('from') && !empty($request->query->get('from'))) {
             $filters['from'] = convert_to_timezone($request->query->get('from'))->format('c');
         }
 
-        if ($request->query->has('to')) {
+        if ($request->query->has('to') && !empty($request->query->get('to'))) {
             $filters['to'] = convert_to_timezone($request->query->get('to'))->format('c');
         }
 
-        if ($request->query->has('search')) {
+        if ($request->query->has('search') && !empty($request->query->get('search'))) {
             $filters['search'] = $request->query->get('search');
         }
 
-        if ($request->query->has('types')) {
+        if ($request->query->has('types') && !empty($request->query->get('types'))) {
             $filters['types'] = explode(',', $request->query->get('types'));
         }
 
-        if ($request->query->has('status')) {
+        if ($request->query->has('status') && !empty($request->query->get('status'))) {
             $filters['status'] = $request->query->get('status');
             if (!is_array($filters['status'])) {
                 $filters['status'] = [$filters['status']];
