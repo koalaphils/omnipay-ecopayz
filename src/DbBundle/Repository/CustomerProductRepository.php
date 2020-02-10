@@ -123,6 +123,17 @@ class CustomerProductRepository extends BaseRepository
         return $qb->getQuery()->getSingleResult($hydrationMode);
     }
 
+    public function findOneByCustomerAndProductCode(Member $member, string $code): ?MemberProduct
+    {
+        $qb = $this->createQueryBuilder('cp');
+        $qb->join('cp.product', 'p');
+        $qb->select('cp, p');
+        $qb->where('p.code = :code')->setParameter('code', $code);
+        $qb->andWhere('cp.customer = :customer')->setParameter('customer', $member);
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
+
     /**
      * Create Query Builder.
      *

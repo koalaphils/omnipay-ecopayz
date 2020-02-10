@@ -185,3 +185,12 @@ services:
     ApiBundle\ProductIntegration\ProductIntegrationFactory:
         arguments:
             $config: '%product_integration%'
+
+    ApiBundle\Service\JWTGeneratorService:
+        arguments:
+            $jwtKey: "%jwt_key%"
+
+    ApiBundle\Subscriber\LoginListener:
+        arguments: ['@doctrine.orm.entity_manager']
+        tags:
+            - { name: 'kernel.event_listener', event: 'security.interactive_login' }

@@ -20,6 +20,7 @@ class LoginEventListener
     public function onLogin(InteractiveLoginEvent $event)
     {
         $user = $event->getAuthenticationToken()->getUser();
+        dump('HERE');
 
         $userAdmin = $this->getUserRepository()->find($user->getId());
         $userAdmin->setPreference('lastLoginIP', $event->getRequest()->getClientIp());
