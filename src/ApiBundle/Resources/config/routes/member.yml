@@ -62,3 +62,9 @@ api_customers.me_kyc_delete:
     defaults:
         _controller: ApiBundle:Member:deleteMemberFile
     methods: [POST]
+
+api_member.me_requests:
+    path: me/requests
+    defaults:
+        _controller: ApiBundle:MemberRequest:memberRequests
+    methods: [GET]
