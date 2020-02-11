@@ -45,8 +45,8 @@ class EvolutionIntegration extends AbstractIntegration
             $url = sprintf('/credit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $params['transactionId']);
             $response = $this->get($url, $token);
             $object = json_decode(((string) $response->getBody()));
-            dump($object);
-            return 'MEOW';
+            
+            return $object->transfer->balance;
 
         } catch (ClientException $e) {
             throw new IntegrationException($e->getResponse());
