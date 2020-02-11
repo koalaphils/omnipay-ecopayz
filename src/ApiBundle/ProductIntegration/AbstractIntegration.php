@@ -40,6 +40,7 @@ abstract class AbstractIntegration
 
     abstract public function auth(string $token, array $auth = []): array;
     abstract public function getBalance(string $token, string $id): string;
+    abstract public function credit(string $token, array $params);
 
     // Implements other necessary methods e.g credit, debit
 }
