@@ -35,25 +35,9 @@ class MemberProductManager
     {
         $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
         $result['records'] = array_map(function(&$record) use ($pinnacleProduct) {
-            dump($record);
             $record['product'] = $this->getProductDetails($record);
             $record['customer'] = [ 'id' => $record['customer_id']];
             $record['balance'] = $this->getProductBalance($record);
-
-            // if ($pinnacleProduct->getId() == $record['product_id']) {
-            //     try {
-            //         $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->getPlayer($record['userName']);
-            //         $record['balance'] = $pinnaclePlayer->availableBalance();
-            //     } catch (PinnacleException $exception) {
-            //         $record['balance'] = "Unable to fetch balance";
-            //     } catch (PinnacleError $exception) {
-            //         $record['balance'] = "Unable to fetch balance";
-            //     }
-            // }
-
-            // if (Number::isNumber($record['balance'])) {
-            //     $record['balance'] = Number::formatToMinimumDecimal($record['balance'], 2);
-            // }
 
             return $record;
         }, $result['records']);
@@ -98,10 +82,5 @@ class MemberProductManager
         }
 
         return $balance;
-    }
-
-    private function generateToken($customerId)
-    {
-        // $customer = $this->customerRepository->findById($customerId);
     }
 }
