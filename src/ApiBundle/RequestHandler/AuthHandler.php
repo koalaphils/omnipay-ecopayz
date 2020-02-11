@@ -268,7 +268,7 @@ class AuthHandler
         $evolutionIntegration = $this->productIntegrationFactory->getIntegration('evolution');
         $evolutionProduct = $this->getEvolutionProduct($customer);
         $evolutionResponse = $evolutionIntegration->auth($jwt, [
-            'id' => $evolutionProduct->getId(),
+            'id' => $evolutionProduct->getUsername(),
             'lastName' => $customer->getLName() || $customer->getUsername(),
             'firstName' => $customer->getFName(),
             'nickname' => $customer->getUsername(),

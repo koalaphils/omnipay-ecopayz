@@ -38,4 +38,18 @@ class EvolutionIntegration extends AbstractIntegration
             throw new IntegrationException($e->getResponse());
         }
     }
+
+    public function credit(string $token, array $params): string
+    {
+        try {
+            $url = sprintf('/credit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $params['transactionId']);
+            $response = $this->get($url, $token);
+            $object = json_decode(((string) $response->getBody()));
+            dump($object);
+            return 'MEOW';
+
+        } catch (ClientException $e) {
+            throw new IntegrationException($e->getResponse());
+        }
+    }
 }

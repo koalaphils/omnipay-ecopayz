@@ -404,6 +404,7 @@ class TransactionManager extends TransactionOldManager
             }
 
             $this->processTransaction($transaction, $action);
+          
 
             return $transaction;
         }

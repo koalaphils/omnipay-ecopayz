@@ -53,6 +53,13 @@ services:
         autoconfigure: true
         tags:
             - { name: kernel.event_subscriber }
+
+    transaction.process_subscriber_for_integrations:
+        class: TransactionBundle\EventHandler\TransactionProcessSubscriberForIntegrations
+        autowire: true
+        autoconfigure: true
+        tags:
+            - { name: kernel.event_subscriber }
             
     transaction.decline.service:
         class: TransactionBundle\Service\TransactionDeclineService
