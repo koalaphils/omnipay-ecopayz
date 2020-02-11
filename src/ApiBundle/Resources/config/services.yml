@@ -185,3 +185,7 @@ services:
     ApiBundle\ProductIntegration\ProductIntegrationFactory:
         arguments:
             $config: '%product_integration%'
+
+    ApiBundle\Service\JWTGeneratorService:
+        arguments:
+            $jwtKey: "%jwt_key%"

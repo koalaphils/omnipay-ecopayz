@@ -4,6 +4,8 @@ namespace ApiBundle\ProductIntegration;
 
 use GuzzleHttp\Client;
 
+// TODO: Create HTTPService
+
 abstract class AbstractIntegration
 {
     protected $url;
@@ -17,14 +19,18 @@ abstract class AbstractIntegration
         ]);
     }
 
-    protected function get(string $url, string $token, $data = []) 
+    protected function get(string $url, string $token) 
     {
-
+        return $this->client->get($url, [
+            'headers' => [
+                'Authorization' => 'Bearer ' , $token,
+            ]
+        ]);
     }
 
     protected function post(string $url, string $token, $body = [])
     {
-        return $this->client->post('/auth', [
+        return $this->client->post($url, [
             'json' => $body,
             'headers' => [
                 'Authorization' => 'Bearer ' , $token,
@@ -32,7 +38,8 @@ abstract class AbstractIntegration
         ]);
     }
 
-    abstract public function auth(string $token): array;
+    abstract public function auth(string $token, array $auth = []): array;
+    abstract public function getBalance(string $token, string $id): string;
 
     // Implements other necessary methods e.g credit, debit
 }

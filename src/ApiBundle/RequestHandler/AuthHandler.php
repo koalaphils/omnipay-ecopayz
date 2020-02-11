@@ -19,9 +19,13 @@ use DbBundle\Entity\Customer;
 use DbBundle\Entity\OAuth2\AccessToken;
 use DbBundle\Entity\Session;
 use DbBundle\Entity\User;
+use DbBundle\Entity\CustomerProduct;
+use DbBundle\Repository\SessionRepositoryRepository;
 use DbBundle\Repository\PaymentOptionRepository;
 use DbBundle\Repository\SessionRepository;
 use DbBundle\Repository\UserRepository;
+use DbBundle\Repository\CustomerProductRepository;
+use DbBundle\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Firebase\JWT\JWT;
 use FOS\OAuthServerBundle\Security\Authentication\Token\OAuthToken;
@@ -107,7 +111,8 @@ class AuthHandler
      * @var string
      */
     private $pinnacleExpiration;
-
+    private $customerProductRepository;
+    private $productRepository;
     private $productIntegrationFactory;
 
     public function __construct(
@@ -122,6 +127,8 @@ class AuthHandler
         UserManager $userManager,
         SettingManager $settingManager,
         SessionRepository $sessionRepository,
+        CustomerProductRepository $customerProductRepository,
+        ProductRepository $productRepository,
         ProductIntegrationFactory $productIntegrationFactory,
         string $jwtKey
     ) {
@@ -140,6 +147,8 @@ class AuthHandler
         $this->pinnacleExpiration = $this->settingManager->getSetting('session.pinnacle_timeout');
         $this->sessionRepository = $sessionRepository;
         $this->productIntegrationFactory = $productIntegrationFactory;
+        $this->customerProductRepository = $customerProductRepository;
+        $this->productRepository = $productRepository;
     }
 
     /**
@@ -163,6 +172,9 @@ class AuthHandler
 
         /* @var $user \DbBundle\Entity\User */
         $user = $accessToken->getUser();
+
+        $this->loginUser($user);
+
         $this->pinnacleService->getAuthComponent()->logout($user->getCustomer()->getPinUserCode());
 
         $memberLocale = $user->getCustomer()->getLocale();
@@ -176,17 +188,7 @@ class AuthHandler
         }
 
         $jwt = $this->generateJwtToken($user->getCustomer());
-
-        $evolutionIntegration = $this->productIntegrationFactory->getIntegration('evolution');
-        $evolutionResponse = $evolutionIntegration->auth($jwt, [
-            'id' => $user->getCustomer()->getId(),
-            'lastName' => $user->getCustomer()->getLName() || $user->getCustomer()->getUsername(),
-            'firstName' => $user->getCustomer()->getFName(),
-            'nickname' => $user->getCustomer()->getUsername(),
-            'country' => $user->getCustomer()->getCountry()->getCode(),
-            'language' => 'en',
-            'currency' => $user->getCustomer()->getCurrency()->getCode()
-        ]);
+        $evolutionResponse = $this->loginToEvolution($jwt, $user->getCustomer());
 
         $loginResponse = [
             'token' => $data,
@@ -205,8 +207,6 @@ class AuthHandler
         }
 
         $this->saveSession($user, $data, $pinLoginResponse->toArray());
-
-        $this->loginUser($user);
         $this->customerManager->handleAudit('login');
 
         $channel = $user->getCustomer()->getWebsocketDetails()['channel_id'];
@@ -261,6 +261,41 @@ class AuthHandler
             'pinnacle_updated' => $updatePinnacleLogin,
             'pinnacle' => $pinnacleInfo
         ];
+    }
+
+    private function loginToEvolution(string $jwt, Customer $customer): array
+    {
+        $evolutionIntegration = $this->productIntegrationFactory->getIntegration('evolution');
+        $evolutionProduct = $this->getEvolutionProduct($customer);
+        $evolutionResponse = $evolutionIntegration->auth($jwt, [
+            'id' => $evolutionProduct->getId(),
+            'lastName' => $customer->getLName() || $customer->getUsername(),
+            'firstName' => $customer->getFName(),
+            'nickname' => $customer->getUsername(),
+            'country' => $customer->getCountry()->getCode(),
+            'language' => 'en',
+            'currency' => $customer->getCurrency()->getCode()
+        ]);
+
+        return $evolutionResponse;
+    }
+
+    private function getEvolutionProduct(Customer $customer): CustomerProduct
+    {
+        $customerProduct = $this->customerProductRepository->findOneByCustomerAndProductCode($customer, 'EVOLUTION');
+
+        if ($customerProduct === null) {
+            $customerProduct = CustomerProduct::create($customer);
+            $product = $this->productRepository->getProductByCode('EVOLUTION');
+            $customerProduct->setProduct($product);
+            $customerProduct->setUsername('Evolution_' . uniqid());
+            $customerProduct->setBalance('0.00');
+            $customerProduct->setIsActive(true);
+            $this->entityManager->persist($customerProduct);
+            $this->entityManager->flush();
+        }
+
+        return $customerProduct;
     }
 
     private function generateJwtToken(Customer $member): string
