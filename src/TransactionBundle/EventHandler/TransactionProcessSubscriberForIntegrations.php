@@ -56,11 +56,12 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
            $memberProduct = $subTransaction->getCustomerProduct();
            try {
                 $integration = $this->factory->getIntegration(strtolower($memberProduct->getProduct()->getName()));
-                $integration->credit($jwt, [
+                $newBalance = $integration->credit($jwt, [
                     'id' => $memberProduct->getUsername(),
                     'amount' => $subTransaction->getAmount(),
                     'transactionId' => $subTransaction->getParent()->getNumber()
                 ]);
+                $memberProduct->setBalance($newBalance);
            } catch(NoSuchIntegrationException $ex) {
                continue;
            }
@@ -73,11 +74,12 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
            $memberProduct = $subTransaction->getCustomerProduct();
            try {
                 $integration = $this->factory->getIntegration(strtolower($memberProduct->getProduct()->getName()));
-                $integration->debit($jwt, [
+                $newBalance = $integration->debit($jwt, [
                     'id' => $memberProduct->getUsername(),
                     'amount' => $subTransaction->getAmount(),
                     'transactionId' => $subTransaction->getParent()->getNumber()
                 ]);
+                $memberProduct->setBalance($newBalance);
            } catch(NoSuchIntegrationException $ex) {
                continue;
            }
