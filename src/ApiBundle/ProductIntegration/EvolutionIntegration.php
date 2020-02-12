@@ -47,7 +47,19 @@ class EvolutionIntegration extends AbstractIntegration
             $object = json_decode(((string) $response->getBody()));
             
             return $object->transfer->balance;
+        } catch (ClientException $e) {
+            throw new IntegrationException($e->getResponse());
+        }
+    }
 
+    public function debit(string $token, array $params): string
+    {
+        try {
+            $url = sprintf('/debit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $params['transactionId']);
+            $response = $this->get($url, $token);
+            $object = json_decode(((string) $response->getBody()));
+            
+            return $object->transfer->balance;
         } catch (ClientException $e) {
             throw new IntegrationException($e->getResponse());
         }
