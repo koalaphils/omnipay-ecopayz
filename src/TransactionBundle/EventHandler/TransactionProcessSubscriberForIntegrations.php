@@ -40,18 +40,18 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
     public function onTransitionEntered(WorkflowEvent $event)
     {
         $transaction = $event->getSubject();
+        $subTransactions = $transaction->getSubTransactions();
+        $jwt = $this->jwtGenerator->generate([]);
         
-        if ($transaction->isDeposit() && $transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
-            $this->credit($transaction);
-        } else if ($transaction->isBonus() && $transaction->getStatus() === Transaction::TRANSACTION_STATUS_END ) {
-            $this->credit($transaction);
+        if (($transaction->isDeposit() || $transaction->isBonus()) && $transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
+            $this->credit($jwt, $subTransactions);
+        } else if ($transaction->isWithdrawal() && $transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
+            $this->debit($jwt, $subTransactions);
         }
     }
 
-    private function credit(Transaction $transaction): void 
+    private function credit(string $jwt, $subTransactions): void 
     {
-        $subTransactions = $transaction->getSubTransactions();
-        $jwt = $this->jwtGenerator->generate([]);
         foreach ($subTransactions as $subTransaction) {
            $memberProduct = $subTransaction->getCustomerProduct();
            try {
@@ -67,6 +67,22 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         }
     }
 
+    private function debit(string $jwt, $subTransactions): void 
+    {
+        foreach ($subTransactions as $subTransaction) {
+           $memberProduct = $subTransaction->getCustomerProduct();
+           try {
+                $integration = $this->factory->getIntegration(strtolower($memberProduct->getProduct()->getName()));
+                $integration->debit($jwt, [
+                    'id' => $memberProduct->getUsername(),
+                    'amount' => $subTransaction->getAmount(),
+                    'transactionId' => $subTransaction->getParent()->getNumber()
+                ]);
+           } catch(NoSuchIntegrationException $ex) {
+               continue;
+           }
+        }
+    }
 }
 
 
