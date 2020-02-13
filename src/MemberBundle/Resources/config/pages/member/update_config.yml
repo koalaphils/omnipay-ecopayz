@@ -688,7 +688,6 @@ widgets:
             processResult: 'controller::processListResult'
             additionalFilters:
                 affiliate: '@=pageManager.getData("customer").getId()'
-            dom: t
             methods:
                 records:
                     name: getCustomerList
