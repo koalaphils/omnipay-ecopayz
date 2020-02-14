@@ -68,7 +68,7 @@
                               <div class="col-md-6">
                                 <div class="cls-title">
                                   <h3 class="media-selected-title">
-                                      <i class="fa fa-download"></i><a data-info="title" class="kyc-download" data-type="text" data-placeholder="Enter Title" data-title="Title"></a>
+                                      <a data-info="title" class="kyc-download" data-type="text" data-placeholder="Enter Title" data-title="Title"></a>
                                   </h3>
                                 </div>
                               </div>
@@ -336,7 +336,7 @@
                     $('.media-details-container .media-file-none').addClass('hide');
                     $('.media-details-container .media-file-selected ').removeClass('hide');
 
-                    $('.media-selected-title a').html(file.getInfo('title'));
+                    $('.media-selected-title a').html('<i class="fa fa-download"></i>' + file.getInfo('title'));
                     $('.media-selected-title a').attr('href', file.getInfo('route').render);
                     if(file.getType() == 'image') {
                         $('.media-selected-thumb .icon').addClass('hide');

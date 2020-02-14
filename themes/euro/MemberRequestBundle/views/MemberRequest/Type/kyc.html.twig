@@ -118,6 +118,16 @@
           </div>
         </div>
       </div>
+      <div class="col-md-4">
+        <div class="card-box">
+            <div class="row">
+                <div class="col-md-6 col-sm-6 col-xs-6"><b>{{ "Status"|trans({},"TransactionBundle") }}</b></div>
+                <div class="col-md-6 col-sm-6 col-xs-6">
+                    <span class="label label-success">{{ setting('transaction.status.' ~ memberRequest.status ~ '.label', {}) }}</span>
+                </div>
+            </div>
+        </div>
+      </div>
       <div class="col-md-4" id="kyc-doc-preview">
         <div class="card-box">
           <h4 class="header-title m-b-10 m-t-0">Preview</h4>
