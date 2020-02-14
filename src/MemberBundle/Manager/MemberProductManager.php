@@ -6,6 +6,7 @@ namespace MemberBundle\Manager;
 
 use ApiBundle\Service\JWTGeneratorService;
 use ApiBundle\ProductIntegration\ProductIntegrationFactory;
+use ApiBundle\ProductIntegration\IntegrationException;
 use AppBundle\ValueObject\Number;
 use AppBundle\Widget\Page\ListWidget;
 use PinnacleBundle\Component\Exceptions\PinnacleError;
@@ -70,15 +71,18 @@ class MemberProductManager
                 $balance = "Unable to fetch balance";
             }
         } else {
-            // Integration is Evolution
-            $integration = $this->factory->getIntegration(strtolower($record['product_name']));
-            $jwt = $this->jwtGeneratorService->generate([]);
-            $balance = $integration->getBalance($jwt, $record['id']);
+            // Non-pinnacle product
+            try {
+                $integration = $this->factory->getIntegration(strtolower($record['product_name']));
+                $jwt = $this->jwtGeneratorService->generate([]);
+                $balance = $integration->getBalance($jwt, $record['userName']);
+            } catch (IntegrationException $ex) {
+                $balance = "Unable to fetch balance";
+            }
         }
 
         if (Number::isNumber($balance)) {
            $balance = Number::formatToMinimumDecimal($balance, 2);
-        
         }
 
         return $balance;

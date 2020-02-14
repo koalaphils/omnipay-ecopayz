@@ -61,6 +61,8 @@ class TransactionRepository extends BaseRepository
     public function findByIdAndType($id, $type, $hydrationMode = Query::HYDRATE_OBJECT, $lockMode = null): Transaction
     {
         $qb = $this->createQueryBuilder('t');
+
+        dump($id);
         
         $qb->join('t.customer', 'c');
         $qb->leftJoin('c.user', 'u');

@@ -63,8 +63,6 @@ class TransactionSubscriber implements EventSubscriberInterface
         }
     }
 
-
-
     private function getStatus($status)
     {
         $settingInfo = $this->settingManager->getSetting('transaction.status.' . $status);

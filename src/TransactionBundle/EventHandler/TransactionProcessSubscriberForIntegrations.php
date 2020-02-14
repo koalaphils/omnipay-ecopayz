@@ -10,22 +10,26 @@
 
 namespace TransactionBundle\EventHandler;
 
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Workflow\Event\Event as WorkflowEvent;
+
 use ApiBundle\ProductIntegration\NoSuchIntegrationException;
 use ApiBundle\ProductIntegration\ProductIntegrationFactory;
 use ApiBundle\Service\JWTGeneratorService;
 use DbBundle\Entity\Transaction;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\Workflow\Event\Event as WorkflowEvent;
+use PinnacleBundle\Service\PinnacleService;
 
 class TransactionProcessSubscriberForIntegrations implements EventSubscriberInterface
 {
     private $factory;
     private $jwtGenerator;
+    private $pinnacleService;
 
-    public function __construct(ProductIntegrationFactory $factory, JWTGeneratorService $jwtGenerator)
+    public function __construct(ProductIntegrationFactory $factory, JWTGeneratorService $jwtGenerator, PinnacleService $pinnacleService)
     {
         $this->factory = $factory;
         $this->jwtGenerator = $jwtGenerator;
+        $this->pinnacleService = $pinnacleService;
     }
 
     public static function getSubscribedEvents()
@@ -47,6 +51,8 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
             $this->credit($jwt, $subTransactions);
         } else if ($transaction->isWithdrawal() && $transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
             $this->debit($jwt, $subTransactions);
+        } else if ($transaction->isTransfer() && $transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
+            $this->transfer($jwt, $subTransactions);
         }
     }
 
@@ -73,7 +79,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         foreach ($subTransactions as $subTransaction) {
            $memberProduct = $subTransaction->getCustomerProduct();
            try {
-                $integration = $this->factory->getIntegration(strtolower($memberProduct->getProduct()->getName()));
+                $integration = $this->factory->getIntegration(strtolower($memberProduct->getProduct()->getCode()));
                 $newBalance = $integration->debit($jwt, [
                     'id' => $memberProduct->getUsername(),
                     'amount' => $subTransaction->getAmount(),
@@ -83,6 +89,31 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
            } catch(NoSuchIntegrationException $ex) {
                continue;
            }
+        }
+    }
+
+    private function transfer(string $jwt, $subTransactions): void
+    {
+        foreach($subTransactions as $subTransaction) {
+            $memberProduct = $subTransaction->getCustomerProduct();
+            $subTransactionAmount = $subTransaction->getAmount();
+            if ($subTransaction->isDeposit()) {
+                if ($memberProduct->getProduct()->getCode() !== 'PINBET') {
+                    $this->credit($jwt, [$subTransaction]);
+                } else {
+                    // Use Pinnacle Implementation for now.
+                    $response = $this->pinnacleService->getTransactionComponent()->deposit($memberProduct->getUsername(), $subTransactionAmount);
+                    $memberProduct->setBalance($response->availableBalance());
+                }
+                
+            } else if ($subTransaction->isWithdrawal()) {
+                if ($memberProduct->getProduct()->getCode() !== 'PINBET') {
+                    $this->debit($jwt, [$subTransaction]);
+                } else {
+                    // Use Pinnacle Implementation for now.
+                    $response = $this->pinnacleService->getTransactionComponent()->withdraw($memberProduct->getUsername(), $subTransactionAmount);
+                }
+            }
         }
     }
 }

@@ -49,6 +49,11 @@ class GatewayMemberTransaction
         }
 
         $gateway = $transaction->getGateway();
+
+        if ($gateway === null) {
+            return;
+        }
+
         $details = $gateway->getDetails();
         $methods = array_get($details, 'methods.' . $this->getType($transaction->getType(), true));
         if ($transaction->isBonus()) {
