@@ -1331,3 +1331,6 @@ button[data-id=update_profileForm_data_userType] {
 .dropzone .dz-preview.dz-error .dz-error-message {
   display: none;
 }
+.kyc-label-status {
+  margin-right: 5px;
+}
