@@ -1334,3 +1334,6 @@ button[data-id=update_profileForm_data_userType] {
 .kyc-label-status {
   margin-right: 5px;
 }
+#customer-container .form-control {
+  height: auto !important;
+}
