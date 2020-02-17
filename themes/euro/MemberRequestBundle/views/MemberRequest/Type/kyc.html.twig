@@ -121,7 +121,14 @@
       <div class="col-md-4">
         <div class="card-box">
             <div class="row">
-                <div class="col-md-12 col-sm-12 col-xs-12"><strong class="kyc-label-status">{{ "Status"|trans({},"TransactionBundle") }}</strong> <span class="label label-success">{{ setting('transaction.status.' ~ memberRequest.status ~ '.label', {}) }}</span></div>
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <strong class="kyc-label-status">{{ "Status"|trans({},"TransactionBundle") }}</strong>
+                    {% if memberRequest.status != '3' %}
+                        <span class="label label-success">{{ setting('transaction.status.' ~ memberRequest.status ~ '.label', {}) }}</span>
+                    {% else %}
+                        <span class="label label-danger">{{ setting('transaction.status.' ~ memberRequest.status ~ '.label', {}) }}</span>
+                    {% endif %}
+                </div>
             </div>
         </div>
       </div>
