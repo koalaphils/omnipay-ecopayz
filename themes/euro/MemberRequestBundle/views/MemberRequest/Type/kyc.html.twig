@@ -146,20 +146,20 @@
         
         if(ext == 'docx' || ext == 'doc' || ext == 'odt') {
             var html = '<i class="fa fa-file-word-o fa-5x"></i>'+
-                '<span class="m-10"><p class="m-t-10"><i class="fa fa-download"></i>' +
-                    '<a data-toggle="tooltip" title="Download" href="/' + '{{attributes.locale}}' + '/file/'+ encodeURI(documentName) +'?folder=' + '{{attributes.documentRoot}}' + '"> '+ documentName +'</a>'+
+                '<span class="m-10"><p class="m-t-10">' +
+                    '<a data-toggle="tooltip" title="Download" href="/' + '{{attributes.locale}}' + '/file/'+ encodeURI(documentName) +'?folder=' + '{{attributes.documentRoot}}' + '"><i class="fa fa-download"></i> '+ documentName +'</a>'+
                 '</p></span>';
             $("#memberDocument").html(html);
         } else if(ext == 'pdf') {
             var html = '<i class="fa fa-file-pdf-o fa-5x"></i>'+
-                '<span class="m-10"><p class="m-t-10"><i class="fa fa-download"></i>' +
-                    '<a data-toggle="tooltip" title="Download" href="/' + '{{attributes.locale}}' + '/file/'+ encodeURI(documentName) +'?folder=' + '{{attributes.documentRoot}}' + '"> '+ documentName +'</a>'+
+                '<span class="m-10"><p class="m-t-10">' +
+                    '<a data-toggle="tooltip" title="Download" href="/' + '{{attributes.locale}}' + '/file/'+ encodeURI(documentName) +'?folder=' + '{{attributes.documentRoot}}' + '"><i class="fa fa-download"></i> '+ documentName +'</a>'+
                 '</p></span>';
             $("#memberDocument").html(html);
         } else {
             var html = '<img src="/en/file/'+ documentName +'?folder=' + '{{attributes.documentRoot}}' + '" width="100%">'+
-                '<span class="m-10"><p class="m-t-10"><i class="fa fa-download"></i>' +
-                    '<a data-toggle="tooltip" title="Download" href="/' + '{{attributes.locale}}' + '/file/'+ encodeURI(documentName) +'?folder=' + '{{attributes.documentRoot}}' + '"> '+ documentName +'</a>'+
+                '<span class="m-10"><p class="m-t-10">' +
+                    '<a data-toggle="tooltip" title="Download" href="/' + '{{attributes.locale}}' + '/file/'+ encodeURI(documentName) +'?folder=' + '{{attributes.documentRoot}}' + '"> <i class="fa fa-download"></i>'+ documentName +'</a>'+
                 '</p></span>';
             $("#memberDocument").html(html);
         }
