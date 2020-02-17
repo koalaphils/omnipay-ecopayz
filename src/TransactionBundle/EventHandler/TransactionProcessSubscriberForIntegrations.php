@@ -51,6 +51,12 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         $subTransactions = $transaction->getSubTransactions();
         $jwt = $this->jwtGenerator->generate([]);
         
+        if ($event->getTransition()->getName() === 'void') {
+            $this->revert($jwt, $subTransactions);
+            return; // Do nothing after voiding a transaction.
+        }
+
+
         if (($transaction->isDeposit() || $transaction->isBonus()) && $transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
             $this->credit($jwt, $subTransactions);
         } else if ($transaction->isWithdrawal() && $transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
@@ -60,7 +66,11 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         }
     }
 
-    private function credit(string $jwt, $subTransactions): void 
+    // If $newTransactionId is present, it will be used
+    // as the transaction id for crediting the user.
+    // This means that the actual transactionId is already
+    // processed by some integration and will throw an error
+    private function credit(string $jwt, $subTransactions, $newTransactionId = null): void 
     {
         foreach ($subTransactions as $subTransaction) {
            $memberProduct = $subTransaction->getCustomerProduct();
@@ -68,21 +78,27 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
             $newBalance = $integration->credit($jwt, [
                 'id' => $memberProduct->getUsername(),
                 'amount' => $subTransaction->getAmount(),
-                'transactionId' => $subTransaction->getParent()->getNumber()
+                'transactionId' => $subTransaction->getParent()->getNumber(),
+                'newTransactionId' => $newTransactionId
             ]);
             $memberProduct->setBalance($newBalance);
         }
     }
 
-    private function debit(string $jwt, $subTransactions): void 
+    // If $newTransactionId is present, it will be used
+    // as the transaction id for debiting the user.
+    // This means that the actual transactionId is already
+    // processed by some integration and will throw an error
+    private function debit(string $jwt, $subTransactions, $newTransactionId = null): void 
     {
         foreach ($subTransactions as $subTransaction) {
-           $memberProduct = $subTransaction->getCustomerProduct();
+            $memberProduct = $subTransaction->getCustomerProduct();
             $integration = $this->factory->getIntegration(strtolower($memberProduct->getProduct()->getCode()));
             $newBalance = $integration->debit($jwt, [
                 'id' => $memberProduct->getUsername(),
                 'amount' => $subTransaction->getAmount(),
-                'transactionId' => $subTransaction->getParent()->getNumber()
+                'transactionId' => $subTransaction->getParent()->getNumber(),
+                'newTransactionId' => $newTransactionId
             ]);
             $memberProduct->setBalance($newBalance);
         }
@@ -114,6 +130,30 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                 $this->credit($jwt, $debitedIntegration['subTransactions']);
             }
             
+            throw $ex;
+        }
+    }
+
+    private function revert(string $jwt, $subTransactions): void
+    {
+        $creditTransactions = [];
+        $debitTransactions = [];
+        try {
+            foreach($subTransactions as $subTransaction) {
+                $memberProduct = $subTransaction->getCustomerProduct();
+                $subTransactionAmount = $subTransaction->getAmount();
+                if ($subTransaction->isDeposit()) {
+                    $this->debit($jwt, [$subTransaction], 'revert_' . uniqid());
+                    $debitTransactions[] = $subTransaction;
+                } else if ($subTransaction->isWithdrawal()) {
+                    $this->credit($jwt, [$subTransaction], 'revert_' . uniqid());
+                    $creditTransactions[]  = $subTransaction;
+                }
+            }
+        } catch (IntegrationNotAvailableException $ex) {
+            $this->credit($jwt, $debitTransactions, 'revert_' . uniqid());
+            $this->debit($jwt, $creditTransactions, 'revert_' . uniqid());
+
             throw $ex;
         }
     }

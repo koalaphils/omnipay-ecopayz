@@ -2,9 +2,11 @@
 
 namespace ApiBundle\ProductIntegration;
 
+use AppBundle\ValueObject\Number;
 use PinnacleBundle\Service\PinnacleService;
 use PinnacleBundle\Component\Exceptions\PinnacleError;
 use PinnacleBundle\Component\Exceptions\PinnacleException;
+
 
 class PinnacleAdapterIntegration extends AbstractIntegration
 {
@@ -54,7 +56,7 @@ class PinnacleAdapterIntegration extends AbstractIntegration
     {
         try {
             $transactionComponent = $this->pinnacleService->getTransactionComponent();
-            $response = $transactionComponent->withdraw($params['id'], $params['amount']);
+            $response = $transactionComponent->withdraw($params['id'], Number::format($params['amount'], ['precision' => 2]));
     
             return $response->availableBalance();          
         } catch (PinnacleException $exception) {
