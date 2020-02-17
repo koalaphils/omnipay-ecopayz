@@ -106,10 +106,11 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
 
     private function transfer(string $jwt, $subTransactions): void
     {
-        // Tracks integration that was debited.
+        // Tracks integration that was debited /credited .
         // Useful when one integration fails then
-        // we debit the amount back.
-        $debitedIntegrations = [];
+        // we debit / credit the amount back.
+        $creditTransactions = [];
+        $debitTransactions = [];
 
         try {
             foreach($subTransactions as $subTransaction) {
@@ -117,18 +118,15 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                 $subTransactionAmount = $subTransaction->getAmount();
                 if ($subTransaction->isDeposit()) {
                     $this->credit($jwt, [$subTransaction]);
+                    $creditTransactions[]  = $subTransaction;
                 } else if ($subTransaction->isWithdrawal()) {
                     $this->debit($jwt, [$subTransaction]);
-                    $debitedIntegrations[] = [
-                        'subTransactions' => [$subTransaction],
-                    ];
+                    $debitTransactions[] = $subTransaction;
                 }
             }
         } catch (IntegrationNotAvailableException $ex) {
-            // Credit back the amount to integrations.
-            foreach ($debitedIntegrations as $debitedIntegration) {
-                $this->credit($jwt, $debitedIntegration['subTransactions']);
-            }
+            $this->credit($jwt, $debitTransactions);
+            $this->debit($jwt, $creditTransactions);
             
             throw $ex;
         }
