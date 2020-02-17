@@ -3,6 +3,8 @@
 namespace ApiBundle\ProductIntegration;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ConnectException;
 
 // TODO: Create HTTPService
 
@@ -21,26 +23,37 @@ abstract class AbstractIntegration
 
     protected function get(string $url, string $token) 
     {
-        return $this->client->get($url, [
-            'headers' => [
-                'Authorization' => 'Bearer ' , $token,
-            ]
-        ]);
+        try {
+            return $this->client->get($url, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' , $token,
+                ]
+            ]);
+        } catch (ClientException $e) {
+            throw new IntegrationException($e->getResponse()->getBody(), $e->getResponse()->getStatusCode());
+        } catch (ConnectException  $e) {
+            throw new IntegrationNotAvailableException();
+        }
     }
 
     protected function post(string $url, string $token, $body = [])
     {
-        return $this->client->post($url, [
-            'json' => $body,
-            'headers' => [
-                'Authorization' => 'Bearer ' , $token,
-            ]
-        ]);
+        try {
+            return $this->client->post($url, [
+                'json' => $body,
+                'headers' => [
+                    'Authorization' => 'Bearer ' , $token,
+                ]
+            ]);
+        } catch (ClientException $e) {
+            throw new IntegrationException($e->getResponse()->getBody(), $e->getResponse()->getStatusCode());
+        } catch (ConnectException  $e) {
+            throw new IntegrationNotAvailableException();
+        }
     }
 
     abstract public function auth(string $token, array $auth = []): array;
     abstract public function getBalance(string $token, string $id): string;
-    abstract public function credit(string $token, array $params);
-
-    // Implements other necessary methods e.g credit, debit
+    abstract public function credit(string $token, array $params): string;
+    abstract public function debit(string $token, array $params): string;
 }
