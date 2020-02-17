@@ -183,6 +183,8 @@ services:
             - { name: validator.constraint_validator }
 
     ApiBundle\ProductIntegration\ProductIntegrationFactory:
+        autowire: true
+        autoconfigure: true
         arguments:
             $config: '%product_integration%'
 

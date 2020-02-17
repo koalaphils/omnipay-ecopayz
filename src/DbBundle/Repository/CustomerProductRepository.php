@@ -216,7 +216,7 @@ class CustomerProductRepository extends BaseRepository
             ->select("cp.cproduct_id id, cp.cproduct_username userName, cp.cproduct_balance balance, 
                 cp.cproduct_is_active isActive, cp.cproduct_requested_at requestedAt, cp.cproduct_details details,"
                 . "c.customer_id, "
-                . "p.product_id, p.product_name, p.product_details")
+                . "p.product_id, p.product_name, p.product_details, p.product_code")
             ->from("customer_product", "cp")
             ->leftJoin("cp", "product", "p", "cp.cproduct_product_id = p.product_id ")
             ->leftJoin("cp", "customer", "c", "cp.cproduct_customer_id = c.customer_id")

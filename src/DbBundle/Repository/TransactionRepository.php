@@ -62,8 +62,6 @@ class TransactionRepository extends BaseRepository
     {
         $qb = $this->createQueryBuilder('t');
 
-        dump($id);
-        
         $qb->join('t.customer', 'c');
         $qb->leftJoin('c.user', 'u');
 

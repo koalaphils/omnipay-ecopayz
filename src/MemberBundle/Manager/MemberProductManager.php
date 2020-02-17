@@ -7,6 +7,7 @@ namespace MemberBundle\Manager;
 use ApiBundle\Service\JWTGeneratorService;
 use ApiBundle\ProductIntegration\ProductIntegrationFactory;
 use ApiBundle\ProductIntegration\IntegrationException;
+use ApiBundle\ProductIntegration\IntegrationNotAvailableException;
 use AppBundle\ValueObject\Number;
 use AppBundle\Widget\Page\ListWidget;
 use PinnacleBundle\Component\Exceptions\PinnacleError;
@@ -59,28 +60,18 @@ class MemberProductManager
     private function getProductBalance($record)
     {
         $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
-        $balance = null;
-
-        if ($pinnacleProduct->getId() == $record['product_id']) {
-            try {
-                $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->getPlayer($record['userName']);
-                $balance = $pinnaclePlayer->availableBalance();
-            } catch (PinnacleException $exception) {
-                $balance = "Unable to fetch balance";
-            } catch (PinnacleError $exception) {
-                $balance = "Unable to fetch balance";
-            }
-        } else {
-            // Non-pinnacle product
-            try {
-                $integration = $this->factory->getIntegration(strtolower($record['product_name']));
-                $jwt = $this->jwtGeneratorService->generate([]);
-                $balance = $integration->getBalance($jwt, $record['userName']);
-            } catch (IntegrationException $ex) {
-                $balance = "Unable to fetch balance";
-            }
+        $balance = 'Unable to fetch balance';
+      
+        try {
+            $integration = $this->factory->getIntegration(strtolower($record['product_code']));
+            $jwt = $this->jwtGeneratorService->generate([]);
+            $balance = $integration->getBalance($jwt, $record['userName']);
+        } catch (IntegrationException $ex) {
+            $balance = "Unable to fetch balance";
+        } catch (IntegrationNotAvailableException $ex) {
+            $balance = "Unable to fetch balance";
         }
-
+    
         if (Number::isNumber($balance)) {
            $balance = Number::formatToMinimumDecimal($balance, 2);
         }

@@ -2,8 +2,6 @@
 
 namespace ApiBundle\ProductIntegration;
 
-use GuzzleHttp\Exception\ClientException;
-
 class EvolutionIntegration extends AbstractIntegration
 {
     public function __construct(string $url)
@@ -13,55 +11,39 @@ class EvolutionIntegration extends AbstractIntegration
 
     public function auth(string $token, $body = []): array
     {
-        try {
-            $response = $this->post('/auth', $token, $body);
-            $object = json_decode(((string) $response->getBody()));
-            
-            return [
-                'entry' => $object->entry,
-                'entry_embedded' => $object->entryEmbedded
-            ];
-        } catch (ClientException $e) {
-            throw new IntegrationException($e->getResponse());
-        }
+        $response = $this->post('/auth', $token, $body);
+        $object = json_decode(((string) $response->getBody()));
+        
+        return [
+            'entry' => $object->entry,
+            'entry_embedded' => $object->entryEmbedded
+        ];
     }
 
     public function getBalance(string $token, string $id): string
     {
-        try {
-            $response = $this->get('/balance' . '?id=' . $id, $token);
-            $object = json_decode(((string) $response->getBody()));
-            
-            return $object->userbalance->tbalance;
-
-        } catch (ClientException $e) {
-            throw new IntegrationException($e->getResponse());
-        }
+        $response = $this->get('/balance' . '?id=' . $id, $token);
+        $object = json_decode(((string) $response->getBody()));
+        
+        return $object->userbalance->tbalance;
     }
 
     public function credit(string $token, array $params): string
     {
-        try {
-            $url = sprintf('/credit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $params['transactionId']);
-            $response = $this->get($url, $token);
-            $object = json_decode(((string) $response->getBody()));
-            
-            return $object->transfer->balance;
-        } catch (ClientException $e) {
-            throw new IntegrationException($e->getResponse());
-        }
+        $url = sprintf('/credit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $params['transactionId']);
+        $response = $this->get($url, $token);
+        $object = json_decode(((string) $response->getBody()));
+        
+        return $object->transfer->balance;
+
     }
 
     public function debit(string $token, array $params): string
-    {
-        try {
-            $url = sprintf('/debit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $params['transactionId']);
-            $response = $this->get($url, $token);
-            $object = json_decode(((string) $response->getBody()));
-            
-            return $object->transfer->balance;
-        } catch (ClientException $e) {
-            throw new IntegrationException($e->getResponse());
-        }
+    {  
+        $url = sprintf('/debit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $params['transactionId']);
+        $response = $this->get($url, $token);
+        $object = json_decode(((string) $response->getBody()));
+        
+        return $object->transfer->balance;
     }
 }
