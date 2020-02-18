@@ -30,7 +30,8 @@ class EvolutionIntegration extends AbstractIntegration
 
     public function credit(string $token, array $params): string
     {
-        $url = sprintf('/credit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $params['transactionId']);
+        $transactionId = $params['newTransactionId'] ? $params['newTransactionId'] : $params['transactionId'];
+        $url = sprintf('/credit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $transactionId);
         $response = $this->get($url, $token);
         $object = json_decode(((string) $response->getBody()));
         
@@ -40,10 +41,11 @@ class EvolutionIntegration extends AbstractIntegration
 
     public function debit(string $token, array $params): string
     {  
-        $url = sprintf('/debit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $params['transactionId']);
+        $transactionId = $params['newTransactionId'] ? $params['newTransactionId'] : $params['transactionId'];
+        $url = sprintf('/debit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $transactionId);
         $response = $this->get($url, $token);
         $object = json_decode(((string) $response->getBody()));
-        
+
         return $object->transfer->balance;
     }
 }
