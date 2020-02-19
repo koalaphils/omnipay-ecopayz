@@ -35,9 +35,6 @@ class EvolutionIntegration extends AbstractIntegration
         $response = $this->get($url, $token);
         $object = json_decode(((string) $response->getBody()));
         
-
-        dump($object);
-
         return $object->transfer->balance;
     }
 

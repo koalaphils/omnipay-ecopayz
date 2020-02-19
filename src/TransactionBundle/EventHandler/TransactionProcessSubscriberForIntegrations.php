@@ -102,7 +102,6 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
 
     private function credit(string $jwt, string $amount, $memberProduct)
     {
-        dump($memberProduct->getProduct()->getCode());
         $integration = $this->factory->getIntegration(strtolower($memberProduct->getProduct()->getCode()));
         $newBalance = $integration->credit($jwt, [
             'id' => $memberProduct->getUsername(),
