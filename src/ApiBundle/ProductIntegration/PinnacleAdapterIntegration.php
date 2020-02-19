@@ -7,7 +7,6 @@ use PinnacleBundle\Service\PinnacleService;
 use PinnacleBundle\Component\Exceptions\PinnacleError;
 use PinnacleBundle\Component\Exceptions\PinnacleException;
 
-
 class PinnacleAdapterIntegration extends AbstractIntegration
 {
     private $pinnacleService;
@@ -42,7 +41,7 @@ class PinnacleAdapterIntegration extends AbstractIntegration
     {
         try {
             $transactionComponent = $this->pinnacleService->getTransactionComponent();
-            $response = $transactionComponent->deposit($params['id'], $params['amount']);
+            $response = $transactionComponent->deposit($params['id'], Number::format($params['amount'], ['precision' => 2]));
     
             return $response->availableBalance();          
         } catch (PinnacleException $exception) {
