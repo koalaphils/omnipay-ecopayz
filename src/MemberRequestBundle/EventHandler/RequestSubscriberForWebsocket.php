@@ -50,26 +50,31 @@ class RequestSubscriberForWebsocket implements EventSubscriberInterface
     public function onRequestSaved(RequestProcessEvent $event): void
     {
         $memberRequest = $event->getRequest();
-        $this->getEventDispatcher()->dispatch(Events::EVENT_MEMBER_REQUEST_PROCESSED, $event);
-        /*$requestNumber = $memberRequest->getNumber();
+        $requestNumber = $memberRequest->getNumber();
         $type = $memberRequest->getCleanTypeText();
         $status = $memberRequest->getStatusText();
-        $payload['id'] = $memberRequest->getId();
-        $payload['status'] = $status;
-        $payload['type'] = $memberRequest->getTypeText();
-        
+
         $member = $memberRequest->getMember();
         $locale = $member->getLocale();
         $channel = $member->getWebsocketDetails()['channel_id'];
 
+        $payload['id'] = $memberRequest->getId();
+        $payload['status'] = $status;
+        $payload['type'] = $memberRequest->getTypeText();
+        $payload['isVerified'] = $member->isVerified();
+
         $payload['message'] = $this->getTranslator()->trans('Request', array(), 'messages', $locale) . ' ' .
-        $requestNumber . ' ' . $type . ' ' .
-        $this->translator->trans('has been', array(), 'messages', $locale) . ' ' . $status;
+        $requestNumber . ' ' . $type . ' ' . $this->translator->trans('has been', array(), 'messages', $locale) . ' ' . $status;
+
+        /*
         $notification = 'Request ' . $requestNumber . ' ' . $type . ' has been ' . $status;
         $this->createNotification($member, $notification);
-        $this->publishWebsocketTopic($memberRequest, $channel, $payload);
-        $this->createAdminNotification($memberRequest);
-        $this->getEventDispatcher()->dispatch(Events::EVENT_MEMBER_REQUEST_PROCESSED, $event);*/
+        $this->publishWebsocketTopic($memberRequest, $channel, $payload);*/
+        //$this->createAdminNotification($memberRequest);
+        //$this->publisher->publish(Events::EVENT_MEMBER_REQUEST_PROCESSED . '.' . $channel, json_encode($payload));
+
+        $this->publisher->publishUsingWamp(WebsocketTopics::TOPIC_MEMBER_REQUEST_PROCESSED . '.' . $channel, $payload);
+        //$this->getEventDispatcher()->dispatch(Events::EVENT_MEMBER_REQUEST_PROCESSED, $event);
     }
 
     private function createNotification(Member $member, string $message): void
@@ -113,9 +118,9 @@ class RequestSubscriberForWebsocket implements EventSubscriberInterface
     private function publishWebsocketTopic(MemberRequest $memberRequest, string $channel, array $payload = []) :void
     {
         $this->publisher->publish(WebsocketTopics::TOPIC_MEMBER_REQUEST_SAVED . '.' . $channel, json_encode($payload));
-        if ($memberRequest->isGoogleAuth() && $memberRequest->getStatus() === MemberRequest::MEMBER_REQUEST_STATUS_END) {
+        /*if ($memberRequest->isGoogleAuth() && $memberRequest->getStatus() === MemberRequest::MEMBER_REQUEST_STATUS_END) {
             $this->publisher->publish(WebsocketTopics::TOPIC_MEMBER_REQUEST_GAUTH_PROCESSED . '.' . $channel, json_encode($payload));
-        }
+        }*/
     }
 
     protected function getEntityManager(): EntityManagerInterface
