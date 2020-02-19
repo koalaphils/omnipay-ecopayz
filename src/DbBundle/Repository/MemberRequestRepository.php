@@ -12,7 +12,7 @@ use DbBundle\Entity\Customer as Member;
 class MemberRequestRepository extends BaseRepository
 {
 
-    public function getRequestList($filters = null, array $orders = []): array
+    public function getRequestList($filters = null, array $orders = [], $hydrationMode = Query::HYDRATE_OBJECT): array
     {
         $queryBuilder = $this->getRequestListQueryBuilder($filters);
 
@@ -29,7 +29,7 @@ class MemberRequestRepository extends BaseRepository
             $queryBuilder->setFirstResult($filters['start']);
         }
 
-        return $queryBuilder->getQuery()->getResult();
+        return $queryBuilder->getQuery()->getResult($hydrationMode);
     }
     
     public function getRequestListQueryBuilder(array $filters = []): QueryBuilder

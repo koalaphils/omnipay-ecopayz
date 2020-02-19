@@ -18,14 +18,20 @@
         var message = details.message + ' Please proceed to pending tab to view.';
 
         var url = "";
-        try {
+        try {console.log(notificationType);
             url = Global.dummyTransactionUrl.replace('/__type__', '/'+ details.otherDetails.type).replace('/__id__', '/'+ details.otherDetails.id);
             if (notificationType == 'registration' || notificationType == 'requestProduct') {
                 message = details.message + ' Please proceed to member list to view.';
                 url = Global.dummyCustomerProfileUrl.replace('/__id__', '/'+ details.otherDetails.id).replace('/__activeTab__', '/'+ details.otherDetails.type);
+            } else if (notificationType == 'docs') {
+                message = details.message + 'Please proceed to member list to view.';
+                url = Global.dummyCustomerProfileUrl.replace('/__id__', '/'+ details.otherDetails.id).replace('/__activeTab__', '/'+ details.otherDetails.type);
+                if( typeof details.member_request_route !== 'undefined') {
+                    url = details.member_request_route;
+                }
             }
         } catch (e) {
-
+            console.log(e);
         }
 
 
@@ -86,6 +92,15 @@
         session.subscribe('created.transaction', function (args) {
             triggerNotification(args, 'transaction', 'success', playDefaultSoundAlert);
         });
+
+        session.subscribe('ms.topic.kyc_file_uploaded', function(args) {
+            triggerNotification(args, 'docs', 'success');
+        });
+
+        session.subscribe('ms.topic.kyc_file_deleted', function(args) {
+            triggerNotification(args, 'docs', 'success');
+        });
+
 
         if (typeof btcExchangeRateSubscription === "function") {
             btcExchangeRateSubscription(session);

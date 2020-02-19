@@ -73,6 +73,17 @@
                     'isAffiliate': 0
                 }
             });
+            $(document).on('onWebsocketOpen', function (e, session) {
+            session.subscribe('bo.topic.kyc_file_deleted', function(args) {
+              Library.refreshList();
+            });
+            session.subscribe('bo.topic.kyc_file_uploaded', function(args){
+              Library.refreshList();
+            })
+            session.subscribe('bo.event.member_request_processed', function(args){
+              Library.refreshList();
+            })
+          });
         });
     </script>
 {% endblock %}

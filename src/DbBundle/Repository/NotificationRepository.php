@@ -15,6 +15,8 @@ use DbBundle\Repository\CustomerRepository;
 //use DbBundle\Entity\Product;
 //use Doctrine\ORM\QueryBuilder;
 
+use Doctrine\ORM\Query;
+
 /**
  * TransactionLogRepository.
  *
@@ -51,6 +53,21 @@ class NotificationRepository extends BaseRepository {
                 break;
         }
         return $style;
+    }
+
+    public function getNotificationList($limit = 10, $offset = 0): array
+    {
+        $qb = $this->createQueryBuilder('n');
+
+        $qb->select('n')
+            //->join('n.member', 'm')
+            //->where('BIT_AND(n.channel, :channel) > 0')
+            //->setParameter('channel', $channel)
+            ->setMaxResults($limit)
+            ->setFirstResult($offset)
+            ->orderBy('n.created_at', 'DESC');
+
+        return $qb->getQuery()->getResult(Query::HYDRATE_ARRAY);
     }
 
 }

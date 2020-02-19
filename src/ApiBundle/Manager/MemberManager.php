@@ -23,6 +23,10 @@ use MemberRequestBundle\Manager\MemberRequestManager;
 use Symfony\Component\HttpFoundation\Response;
 use MemberBundle\Manager\MemberManager as MemberBundleManager;
 
+
+use ApiBundle\Event\TransactionCreatedEvent;
+use DbBundle\Entity\Transaction;
+
 class MemberManager extends AbstractManager
 {
     public function getReferralLinkList(): array
@@ -168,28 +172,31 @@ class MemberManager extends AbstractManager
                     'id' => $memberRequest->getId()]
             );
             $response['member_request_route'] = $memberRequestKycRoute;
+            $response['id'] = $memberRequest->getId();
+            $response['type'] = $memberRequest->getTypeText();
         }
-//        $event = new Notification($member, $response);
-//        $notification = new Notification();
 
         $notifMessage = sprintf('KYC %d file(s) uploaded. (%s)', $success, $member->getFullName());
-
-//        $notification->setChannel(Notification::NOTIFICATION_CHANNEL_BACKOFFICE);
-//        $notification->setTitle('KYC');
-//        $notification->setDetail('files', $response['details']);
-//        $notification->setDetail('member_request_route', $memberRequestKycRoute);
-//        $notification->setMessage($notifMessage);
-//        $notification->setMember($member);
-//        $notification->setType('docs');
-//
-//        if($success){
-//            $this->save($notification);
-//        }
-
+        $response['notificationTitle'] = 'KYC Request';
         $response['notificationMessage'] = $notifMessage;
         $response['fromApi'] = true;
+        $response['success'] = $success;
+        $response['id'] = $memberRequest->getId();
 
-//        $this->get('event_dispatcher')->dispatch(Events::EVENT_MEMBER_KYC_FILE_UPLOADED, $event);
+
+        $notification = new Notification();
+        $notification->setMessage($notifMessage);
+        $notification->setUserId(1);
+        $notification->setStyle('green');
+        $notification->setCreatedAt(new \DateTime());
+        $notification->type ='docs';
+
+       if($success){
+           $this->save($notification);
+       }
+
+        $event = new KycFileEvent($member, $result, $response);
+        $this->get('event_dispatcher')->dispatch(Events::EVENT_MEMBER_KYC_FILE_UPLOADED, $event);
 
         return $response;
     }

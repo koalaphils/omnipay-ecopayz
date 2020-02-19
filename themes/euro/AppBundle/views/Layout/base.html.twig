@@ -231,7 +231,9 @@
             moment.tz.setDefault("{{ "now"|date("e") }}");
             var topics = {
                 'memberCreated': "{{ constant('TransactionBundle\\WebsocketTopics::TOPIC_CUSTOMER_CREATED') }}",
-                'productRequested': "{{ constant('WebSocketBundle\\Topics::TOPIC_MEMBER_PRODUCT_REQUESTED') }}"
+                'productRequested': "{{ constant('WebSocketBundle\\Topics::TOPIC_MEMBER_PRODUCT_REQUESTED') }}",
+                'kycUploaded' : "{{ constant('WebSocketBundle\\Topics::TOPIC_MEMBER_KYC_FILE_UPLOADED') }}",
+                'kycDeleted' : "{{ constant('WebSocketBundle\\Topics::TOPIC_MEMBER_KYC_FILE_DELETED') }}"
             };
         </script>
         <script type='text/javascript' src="{{ asset('assets/plugins/dotdotdot/jquery.dotdotdot-3.2.2.js') }}"></script>
@@ -258,6 +260,7 @@
                 this.dateFormat = phpjs_dateFormat("{{ setting('dateFormat')|e("js") }}");
                 this.dateTimeFormat = phpjs_dateFormat("{{ setting('dateTimeFormat')|e("js") }}");
                 this.dummyTransactionUrl = "{{ path('transaction.update_page', {'type': '__type__', 'id': '__id__' }) }}";
+                this.dummyMemberRequestUrl = "{{ path('member_request.update_page', {'type': '__type__', 'id': '__id__' }) }}";
                 this.dummyCustomerProfileUrl = "{{ path('member.update_page', {'id': '__id__', 'activeTab': '__activeTab__' }) }}";
                 this.links = {
                     user: {
@@ -512,7 +515,6 @@
 
             var iterateDataNotification = function (data) {
                 var counter = 0;
-
                 for (var i in data.list) {
 
                     var creationDate = new Date(data.list[i].createdAt.date);
@@ -556,6 +558,10 @@
                         } else {
                             message = data.list[i].fName + ' '+ data.list[i].lName +' was created.';
                         }
+                    } else if (data.list[i].notificationType == 'docs') {
+                        url = Global.dummyMemberRequestUrl.replace('/__type__', '/'+ 'kyc').replace('/__id__', '/'+ data.list[i].id);
+                        title = "KYC REQUEST";
+                        message = data.list[i].message;
                     } else if (data.list[i].notificationType == 'requestProduct') {
                         var details = data.list[i];
 

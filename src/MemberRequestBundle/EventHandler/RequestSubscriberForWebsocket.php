@@ -50,7 +50,8 @@ class RequestSubscriberForWebsocket implements EventSubscriberInterface
     public function onRequestSaved(RequestProcessEvent $event): void
     {
         $memberRequest = $event->getRequest();
-        $requestNumber = $memberRequest->getNumber();
+        $this->getEventDispatcher()->dispatch(Events::EVENT_MEMBER_REQUEST_PROCESSED, $event);
+        /*$requestNumber = $memberRequest->getNumber();
         $type = $memberRequest->getCleanTypeText();
         $status = $memberRequest->getStatusText();
         $payload['id'] = $memberRequest->getId();
@@ -68,7 +69,7 @@ class RequestSubscriberForWebsocket implements EventSubscriberInterface
         $this->createNotification($member, $notification);
         $this->publishWebsocketTopic($memberRequest, $channel, $payload);
         $this->createAdminNotification($memberRequest);
-        $this->getEventDispatcher()->dispatch(Events::EVENT_MEMBER_REQUEST_PROCESSED, $event);
+        $this->getEventDispatcher()->dispatch(Events::EVENT_MEMBER_REQUEST_PROCESSED, $event);*/
     }
 
     private function createNotification(Member $member, string $message): void

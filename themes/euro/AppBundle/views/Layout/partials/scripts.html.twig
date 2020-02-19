@@ -1,4 +1,4 @@
-<script type="text/javascript">
+<script type="text/javascript"> console.log('jjjjjjjj');
     var Global = new function () {
         this.dateFormat = phpjs_dateFormat("{{ setting('dateFormat')|e("js") }}");
         this.dateTimeFormat = phpjs_dateFormat("{{ setting('dateTimeFormat')|e("js") }}");
@@ -98,7 +98,8 @@
                 'p2pTransfer': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_P2P_TRANSFER') }} },
                 'transactionBonus': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_BONUS') }} },
                 'revenueShare': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_RUNNING_REVENUE_SHARE') }} },
-                'cRevenueShare': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_REVENUE_SHARE') }} }
+                'cRevenueShare': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_REVENUE_SHARE') }} },
+                'kyc': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_MEMBER_REQUEST_KYC') }} }
             }
         };
         this.commmission = {
@@ -194,9 +195,7 @@
 
         this.iterateDataNotification = function (data) {
             var counter = 0;
-
             for (var i in data.list) {
-
                 var creationDate = new Date(data.list[i].createdAt.date);
                 var lastRead = new Date(data.lastRead.date);
                 var notifStatus = 'read';
@@ -244,6 +243,15 @@
                     url = Global.dummyCustomerProfileUrl.replace('/__id__', '/'+ details.customer.id).replace('/__activeTab__', '/product');
                     title = 'PRODUCT REQUEST';
                     message = 'Product ' + details.product.name + ' has been added. (' + details.customer.fullName + ')';
+                } else if (data.list[i].notificationType == 'docs') {
+                    url = "VVVVVVVVVVVVVVVVVVVV"; 
+                        //data.list[i].details.member_request_route;
+                        title = "KYC REQUEST";
+                        message = data.list[i].message;
+                } else if (data.list[i].notificationType == 'member_request') {
+                    url = data.list[i].details.member_request_route;
+                    title = data.list[i].title;
+                    message = data.list[i].message;
                 }
 
                 var htmlContent = '<a href="'+ url +'" class="date-created list-group-item '+ notifStatus +'" data-date="'+ creationDate +'">'
