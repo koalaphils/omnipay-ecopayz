@@ -41,14 +41,6 @@ else
     composer symfony-scripts --no-dev --no-interaction
 fi
 
-php app/console doctrine:migrations:migrate --no-interaction
-php app/console theme:apply euro --no-interaction
-php app/console cache:clear --no-warmup --no-optional-warmers --no-interaction
-php app/console assets:install --symlink --relative
-php app/console assetic:dump --no-interaction
-php app/console app:email-setup
-php app/console app:referral-tools-setup
-
 mkdir -p var/logs
 mkdir -p var/logs/blockchain
 mkdir -p var/cache/${SYMFONY_ENV}/jms_serializer
@@ -56,11 +48,11 @@ mkdir -p var/cache/${SYMFONY_ENV}/profiler
 mkdir -p var/cache/${SYMFONY_ENV}/jms_diextra/doctrine
 mkdir -p var/cache/${SYMFONY_ENV}/jms_diextra/metadata
 mkdir -p var/cache/${SYMFONY_ENV}/jms_aop
-mkdir -p var/spool/default
+mkdir -p var/cache/${SYMFONY_ENV}/twig
 touch var/logs/${SYMFONY_ENV}.log
+# mkdir -p var/spool/default
 
 chown -Rf www-data var
-chmod -R 777 ./var/
 
 set +e
 id -u ${SSH_USER}

@@ -30,18 +30,17 @@ class EvolutionIntegration extends AbstractIntegration
 
     public function credit(string $token, array $params): string
     {
-        $transactionId = $params['newTransactionId'] ? $params['newTransactionId'] : $params['transactionId'];
+        $transactionId = 'Credit_' . uniqid();
         $url = sprintf('/credit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $transactionId);
         $response = $this->get($url, $token);
         $object = json_decode(((string) $response->getBody()));
         
         return $object->transfer->balance;
-
     }
 
     public function debit(string $token, array $params): string
     {  
-        $transactionId = $params['newTransactionId'] ? $params['newTransactionId'] : $params['transactionId'];
+        $transactionId = 'Debit_' . uniqid();
         $url = sprintf('/debit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $transactionId);
         $response = $this->get($url, $token);
         $object = json_decode(((string) $response->getBody()));
