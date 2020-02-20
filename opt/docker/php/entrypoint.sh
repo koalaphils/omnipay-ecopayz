@@ -37,6 +37,9 @@ if [ "$SYMFONY_ENV" = "dev" ]; then
     composer dumpautoload -oa --apcu --no-interaction
     php app/console theme:apply euro --remove
     composer symfony-scripts --no-interaction
+    php app/console theme:apply euro
+    php app/console assets:install
+    php app/console assetic:dump
 else
     composer symfony-scripts --no-dev --no-interaction
 fi
