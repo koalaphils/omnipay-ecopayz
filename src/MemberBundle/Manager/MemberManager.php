@@ -34,10 +34,12 @@ use DbBundle\Repository\SubTransactionRepository;
 use DbBundle\Repository\AuditRevisionRepository;
 use DbBundle\Repository\MemberRevenueShareRepository;
 use DbBundle\Repository\MemberRunningRevenueShareRepository;
+use MemberRequestBundle\WebsocketTopics;
 use DbBundle\Repository\CurrencyRepository;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use MemberBundle\Event\ReferralEvent;
+use MemberBundle\Event\VerifyEvent;
 use MemberBundle\Events;
 use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -45,6 +47,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Translation\TranslatorInterface;
 use TransactionBundle\Manager\TransactionManager;
 use PinnacleBundle\Component\Model\WinlossResponse;
+use MediaBundle\Manager\MediaManager;
 use AppBundle\ValueObject\Money;
 use DateTimeImmutable;
 use \DateTime;
@@ -74,12 +77,18 @@ class MemberManager extends AbstractManager
     {
         $member->verify();
         $this->getRepository()->save($member);
+
+        $event = new VerifyEvent($member);
+        $this->get('event_dispatcher')->dispatch(Events::MEMBER_VERIFICATION, $event);
     }
 
     public function unverifyMember(Member $member): void
     {
         $member->unverify();
         $this->getRepository()->save($member);
+
+        $event = new VerifyEvent($member);
+        $this->get('event_dispatcher')->dispatch(Events::MEMBER_VERIFICATION, $event);
     }
 
     public function getMemberACWallet(Member $member, bool $createIfNotExists = false): ?MemberProduct
@@ -702,6 +711,29 @@ class MemberManager extends AbstractManager
             $this->getEntityManager()->persist($memberPaymentOption);
             $this->getEntityManager()->flush($memberPaymentOption);
         }
+    }
+
+    public function getMemberFiles(Member $member, ?bool $info = true, ?bool $includeErrors = false): array
+    {
+        $files = $member->getFiles();
+
+        $retval = [];
+        foreach ($files as $file) {
+            $filepath = $this->getMediaManager()->getPath(array_get($file, 'folder', '')) . $file['file'];
+            $fileInfo = $this->getMediaManager()->getFile($filepath, $info);
+            if($includeErrors){
+                $retval[] = array_merge($file, $fileInfo);
+            }else if(!array_has($fileInfo, 'error')){
+                $retval[] = array_merge($file, $fileInfo);
+            }
+        }
+
+        return $retval;
+    }
+
+    public function getMediaManager() : MediaManager
+    {
+        return $this->get('media.manager');
     }
 
     public function setTransactionManager(TransactionManager $transactionManager): void

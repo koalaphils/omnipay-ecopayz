@@ -1,0 +1,33 @@
+DbBundle\Entity\MemberRequest:
+    exclusion_policy: ALL
+    properties:
+        id:
+            expose: true
+        number:
+            expose: true
+        amount:
+            expose: true
+        type:
+            expose: true
+        date:
+            expose: true
+            type: DateTime<'c'>
+        status:
+            expose: true
+        details:
+            expose: true
+    virtual_properties:
+        typeText:
+            exp: "object.getTypeText()"
+            expose: true
+            serialized_name: type_text
+            groups: ['Default']
+        member_full_name:
+            exp: object.getMember().getFullName()
+            type: string
+            groups: ['Default']
+        statusText:
+            exp: "object.getStatusText()"
+            expose: true
+            serialized_name: status_text
+            groups: ['Default']

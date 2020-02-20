@@ -37,7 +37,7 @@ class DefaultController extends AbstractController
     public function renameAction(Request $request)
     {
         $this->getSession()->save();
-        $status = $this->getManager()->renameFile($request->get('filename'), $request->get('rename'));
+        $status = $this->getManager()->renameFile($request->get('folder') . DIRECTORY_SEPARATOR . $request->get('filename'), $request->get('rename'));
         if ($status['success']) {
             $message = [
                 'title' => 'Renamed',
@@ -58,7 +58,8 @@ class DefaultController extends AbstractController
 
     public function deleteAction(Request $request, $fileName)
     {
-        $status = $this->getManager()->deleteFile($fileName);
+        $folder = $request->get('folder', '');
+        $status = $this->getManager()->deleteFile(rtrim($folder, '/'). DIRECTORY_SEPARATOR . $fileName);
         $notifications = [];
 
         if ($status['success']) {

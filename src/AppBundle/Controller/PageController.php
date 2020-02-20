@@ -75,7 +75,11 @@ class PageController extends AbstractController
         } elseif (is_string($response)) {
             return new Response($response);
         } elseif (is_array($response)) {
-            return $this->jsonResponse($response);
+            if (array_key_exists('code', $response)) {
+                return $this->jsonResponse($response, $response['code']);
+            } else {
+                return $this->jsonResponse($response);
+            }
         } else {
             throw new \RuntimeException('Not supported format');
         }

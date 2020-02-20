@@ -5,6 +5,7 @@ namespace AppBundle\Manager;
 use DbBundle\Repository\CustomerProductRepository as MemberProductRepository;
 use DbBundle\Repository\CustomerRepository as MemberRepository;
 use DbBundle\Repository\TransactionRepository;
+use DbBundle\Repository\MemberRequestRepository;
 use Doctrine\ORM\Query;
 
 class NotificationManager extends AbstractManager
@@ -44,8 +45,20 @@ class NotificationManager extends AbstractManager
             return $data;
         }, $latestRequestedProducts);
 
+        $filter = ['limit'=>$limit];
+        $order = [['column' => 'mrs.updatedAt', 'dir' => 'desc']];
+        $memberRequestNotifications = $this->getMemberRequestRepository()->getRequestList($filter, $order, Query::HYDRATE_ARRAY);
+        $memberRequestNotifications = array_map(function ($memberRequest){
+            $data = $memberRequest;
+            $date = $data['updatedAt'] ?? $data['createdAt'];
+            $data['notificationType'] = 'docs';
+            $data['createdAt'] = $date;
+
+            return $data;
+        }, $memberRequestNotifications);
+
         $lastRead = $this->getLastReadNotification();
-        $mergedNotifications = array_merge($latestCustomers, $latestTransactions, $latestRequestedProducts);
+        $mergedNotifications = array_merge($latestCustomers, $latestTransactions, $latestRequestedProducts, $memberRequestNotifications);
         $dateCreated = [];
 
         foreach ($mergedNotifications as $record) {
@@ -104,5 +117,10 @@ class NotificationManager extends AbstractManager
     private function getMemberProductRepository(): MemberProductRepository
     {
         return $this->memberProductRepository;
+    }
+
+    private function getMemberRequestRepository(): MemberRequestRepository
+    {
+        return $this->getDoctrine()->getRepository('DbBundle:MemberRequest');
     }
 }

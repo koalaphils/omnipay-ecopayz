@@ -4,7 +4,6 @@ MemberBundle\Request\CreateMemberProductRequest:
             action: "create"
             errorPath: "username"
             message: "The combination for Customer Product username, currency, and product must be unique."
-        - MemberBundle\Constraints\SyncIdConstraint: ~
     properties:
         username:
             - NotBlank: ~
@@ -16,7 +15,6 @@ MemberBundle\Request\UpdateMemberProductRequest:
                 action: "update"
                 errorPath: "username"
                 message: "The combination for Customer Product username, currency, and product must be unique."
-        - MemberBundle\Constraints\SyncIdConstraint: ~
     properties:
         username:
             - NotBlank: ~

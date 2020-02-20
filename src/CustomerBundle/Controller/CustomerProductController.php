@@ -84,14 +84,8 @@ class CustomerProductController extends AbstractController
         if ($form->isValid()) {
             $customerProduct = $form->getData();
             $productEntity = $this->_getProductRepository()->find($data['product']);
-
-            $customerProduct->setProduct($productEntity);
-            if (!$productEntity->isSkypeBetting() || empty($data['brokerageSyncId'])) {
-                $customerProduct->unsetBrokerage();
-            }
-            
+            $customerProduct->setProduct($productEntity);            
             $manager = $this->getManager();
-            $manager->preventMultipleActiveSkypeBettingProduct($customerProduct);
 
             $productName = $productEntity->getName();
 

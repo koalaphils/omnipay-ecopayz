@@ -1,12 +1,21 @@
-<script type="text/javascript">
+<script type="text/javascript"> console.log('jjjjjjjj');
     var Global = new function () {
         this.dateFormat = phpjs_dateFormat("{{ setting('dateFormat')|e("js") }}");
         this.dateTimeFormat = phpjs_dateFormat("{{ setting('dateTimeFormat')|e("js") }}");
         this.dummyTransactionUrl = "{{ path('transaction.update_page', {'type': '__type__', 'id': '__id__' }) }}";
         this.dummyCustomerProfileUrl = "{{ path('member.update_page', {'id': '__id__', 'activeTab': '__activeTab__' }) }}";
+        this.dummyMemberRequestUrl = "{{ path('member_request.pending') }}";
         this.links = {
             user: {
                 'preferences_save': '{{ path('user.preferences_save') }}'
+            }
+        };
+        this.memberRequest = {
+            'type' : {
+                'kyc' : {{ constant('DbBundle\\Entity\\MemberRequest::MEMBER_REQUEST_TYPE_KYC') }},
+            },
+            'reversed': {
+                'kyc': 'kyc',
             }
         };
         this.transaction = {
@@ -15,25 +24,12 @@
                 'withdraw': {{ constant('DbBundle\\Entity\\Transaction::TRANSACTION_TYPE_WITHDRAW') }},
                 'transfer': {{ constant('DbBundle\\Entity\\Transaction::TRANSACTION_TYPE_TRANSFER') }},
                 'p2ptransfer': {{ constant('DbBundle\\Entity\\Transaction::TRANSACTION_TYPE_P2P_TRANSFER') }},
-                'dwl': {{ constant('DbBundle\\Entity\\Transaction::TRANSACTION_TYPE_DWL') }}
             },
             'reversed': {
                 'deposit': 'deposit',
                 'withdraw': 'withdraw',
                 'transfer': 'transfer',
-                'p2ptransfer': 'p2p_transfer',
-                'dwl': 'dwl'
-            }
-        };
-        this.dwl = {
-            'status_groups': ['uploaded', 'uploading', 'submiting', 'submited'],
-            'status': {
-                'uploaded': {'value': {{ constant('DbBundle\\Entity\\DWL::DWL_STATUS_UPLOADED') }}, 'group': 'uploading'},
-                'processing': {'value': {{ constant('DbBundle\\Entity\\DWL::DWL_STATUS_PROCESSING') }}, 'group': 'uploading'},
-                'processed': {'value': {{ constant('DbBundle\\Entity\\DWL::DWL_STATUS_PROCESSED') }}, 'group': 'uploaded'},
-                'submited': {'value': {{ constant('DbBundle\\Entity\\DWL::DWL_STATUS_SUBMITED') }}, 'group': 'submiting'},
-                'transacting': {'value': {{ constant('DbBundle\\Entity\\DWL::DWL_STATUS_TRANSACTING') }}, 'group': 'submiting'},
-                'completed': {'value': {{ constant('DbBundle\\Entity\\DWL::DWL_STATUS_COMPLETED') }}, 'group': 'submited'}
+                'p2ptransfer': 'p2p_transfer'
             }
         };
         this.variables = {
@@ -86,7 +82,6 @@
                 'currency': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CURRENCY') }} },
                 'customer': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER') }} },
                 'customerGroup': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_GROUP') }} },
-                'dwl': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_DWL') }} },
                 'gateway': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_GATEWAY') }} },
                 'gatewayTransaction': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_GATEWAY_TRANSACTION') }} },
                 'notice': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_NOTICE') }} },
@@ -102,11 +97,10 @@
                 'withdrawal': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_WITHDRAWAL') }} },
                 'transfer': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_TRANSFER') }} },
                 'p2pTransfer': {"value": {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_P2P_TRANSFER') }} },
-                'cDwl': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_DWL') }} },
-                'bet': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_BET') }} },
                 'transactionBonus': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_BONUS') }} },
                 'revenueShare': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_RUNNING_REVENUE_SHARE') }} },
-                'cRevenueShare': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_REVENUE_SHARE') }} }
+                'cRevenueShare': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_REVENUE_SHARE') }} },
+                'kyc': {'value': {{ constant('DbBundle\\Entity\\AuditRevisionLog::CATEGORY_MEMBER_REQUEST_KYC') }} }
             }
         };
         this.commmission = {
@@ -202,9 +196,7 @@
 
         this.iterateDataNotification = function (data) {
             var counter = 0;
-
             for (var i in data.list) {
-
                 var creationDate = new Date(data.list[i].createdAt.date);
                 var lastRead = new Date(data.lastRead.date);
                 var notifStatus = 'read';
@@ -252,6 +244,14 @@
                     url = Global.dummyCustomerProfileUrl.replace('/__id__', '/'+ details.customer.id).replace('/__activeTab__', '/product');
                     title = 'PRODUCT REQUEST';
                     message = 'Product ' + details.product.name + ' has been added. (' + details.customer.fullName + ')';
+                } else if (data.list[i].notificationType == 'docs') {
+                    url = Global.dummyMemberRequestUrl;
+                    title = "KYC REQUEST";
+                    message = data.list[i].message;
+                } else if (data.list[i].notificationType == 'member_request') {
+                    url = data.list[i].details.member_request_route;
+                    title = data.list[i].title;
+                    message = data.list[i].message;
                 }
 
                 var htmlContent = '<a href="'+ url +'" class="date-created list-group-item '+ notifStatus +'" data-date="'+ creationDate +'">'

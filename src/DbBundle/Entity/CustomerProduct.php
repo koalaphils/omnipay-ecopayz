@@ -16,8 +16,6 @@ class CustomerProduct extends Entity implements ActionInterface, TimestampInterf
     use Traits\ActionTrait;
     use Traits\TimestampTrait;
 
-    const BROKERAGE_SYNC_STAUS_PROCESSED = 0;
-
     /**
      * @var int
      */
@@ -63,7 +61,6 @@ class CustomerProduct extends Entity implements ActionInterface, TimestampInterf
      */
     private $details;
 
-    private $betSyncId;
     private $requestedAt;
 
     public static function create(Member $member): self
@@ -300,68 +297,6 @@ class CustomerProduct extends Entity implements ActionInterface, TimestampInterf
         return $this;
     }
 
-    public function setBrokerageSyncId($brokerageSyncId)
-    {
-        if ($this->getProduct()->getDetail('betadmin.tosync')) {
-            $params = [
-                "sync_id" => (int)$brokerageSyncId,
-                "sync_status" => CustomerProduct::BROKERAGE_SYNC_STAUS_PROCESSED,
-            ];
-
-            return $this->setDetail('brokerage', $params);
-        }
-    }
-
-    public function unsetBrokerage()
-    {
-        if ($this->getDetail('brokerage')) {
-            $detailParams = $this->getDetails();
-            unset($detailParams['brokerage']);
-
-            return $this->setDetails($detailParams);
-        }
-    }
-
-    public function getBrokerageSyncId()
-    {
-        return $this->getDetail('brokerage.sync_id');
-    }
-
-    public function getBrokerageSyncIdString()
-    {
-        $syncIdStr = '';
-
-        if ($this->getDetail('brokerage.sync_id')) {
-            $syncIdStr = (string) $this->getDetail('brokerage.sync_id');
-        }
-
-        return $syncIdStr;
-    }
-
-    public function setBrokerageFirstName($brokerageFirstName)
-    {
-        if ($this->getProduct()->getDetail('betadmin.tosync')) {
-            return $this->setDetail('brokerage.details.first_name', $brokerageFirstName);
-        }
-    }
-
-    public function getBrokerageFirstName()
-    {
-        return $this->getDetail('brokerage.details.first_name');
-    }
-
-    public function setBrokerageLastName($brokerageLastName)
-    {
-        if ($this->getProduct()->getDetail('betadmin.tosync')) {
-            return $this->setDetail('brokerage.details.last_name', $brokerageLastName);
-        }
-    }
-
-    public function getBrokerageLastName()
-    {
-        return $this->getDetail('brokerage.details.last_name');
-    }
-
     public function getCurrencyId()
     {
         return $this->getCustomer()->getCurrency()->getId();
@@ -428,42 +363,12 @@ class CustomerProduct extends Entity implements ActionInterface, TimestampInterf
         }
     }
 
-    /**
-     * Check whether the customer product should have
-     * a balance or not.
-     */
-    public function hasBalance(): bool
-    {
-        if ($this->getProduct()->isSkypeBetting()) {
-            if (!$this->getId() || !$this->getCustomer()->isEnabled()) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public function isActiveSkypeBettingProduct(): bool
-    {
-        return $this->isSkypeBetting() && $this->getIsActive();
-    }
-
-    public function isSkypeBetting(): bool
-    {
-        return $this->getProduct()->isSkypeBetting();
-    }
-
-    public function getOldBrokerageSyncId(): ?int
-    {
-        return $this->betSyncId;
-    }
-
     public function revertBalanceFromSubtransaction(SubTransaction $subTransaction): void
     {
         $currentBalance = new Number($this->getBalance());
         $amount = $subTransaction->getConvertedAmount();
 
-        if ($subTransaction->isDeposit() || $subTransaction->isDWL()) {
+        if ($subTransaction->isDeposit()) {
             $revertedBalance = $currentBalance->minus($amount);
         } else {
             $revertedBalance = $currentBalance->plus($amount);

@@ -12,7 +12,7 @@
 
 {% block medialibrary_widget %}
     <div id="{{ block_id }}" class="row">
-        <div class="list col-md-8">
+        <div class="list col-md-12">
             <div class="media-actions">
                 <button class="btn btn-primary btn-sm btn-upload">
                     <span class="btn-label"><i class="fa fa-upload"></i></span>
@@ -23,40 +23,63 @@
             <div id="{{ id }}List" >
             </div>
         </div>
-        <div class="col-md-4 media-details-container">
-            <div class="media-file-none">
-                <i class="fa fa-file"></i>
-                <p>Nothing was selected</p>
-            </div>
-            <div class="media-file-selected hide">
-                <h3 class="media-selected-title">
-                    <a data-info="title" data-type="text" data-placeholder="Enter Title" data-title="Title"></a>
-                </h3>
-                <div class="media-selected-thumb">
-                    <div class="media-selected-thumb-container">
-                        <div class="icon"><i></i></div>
-                        <div class="img">
-                            <div class='img-c'>
-                                <div><img src="" /></div>
+        <div class="media-details-container">
+          <!-- Modal -->
+          <div class="modal fade" id="myModal" role="dialog">
+            <div class="modal-dialog">
+
+              <!-- Modal content-->
+              <div class="modal-content">
+                <!-- <div class="media-file-none">
+                    <i class="fa fa-file"></i>
+                    <p>Nothing was selected</p>
+                </div> -->
+                <div class="modal-header">
+                  <button type="button" class="close btn-close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="media-file-selected hide">
+                    <div class="media-selected-thumb">
+                        <div class="media-selected-thumb-container">
+                            <div class="icon"><i></i></div>
+                            <div class="img">
+                                <div class='img-c'>
+                                    <div><img src="" /></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="media-selected-actions">
+                        {# <button class="btn btn-sm btn-info btn-download">
+                            <i class="fa fa-download"></i>
+                        </button> #}
+                        <div class="row">
+                            <div class="col-md-6">
+                              <button class="btn btn-sm btn-danger btn-delete" data-dismiss="modal">
+                                  <i class="fa fa-trash"></i>
+                              </button>
+                              <div class="media-selected-info">
+                                  <div class="row">
+                                      <div class="col-md-3 media-selected-info-label text-muted">Type</div>
+                                      <div class="col-md-9 media-selected-info-value" data-info="type"></div>
+                                  </div>
+                              </div>
+                            </div>
+                            <div>
+                              <div class="col-md-6">
+                                <div class="cls-title">
+                                  <h3 class="media-selected-title">
+                                      <a data-info="title" class="kyc-download" data-type="text" data-placeholder="Enter Title" data-title="Title"></a>
+                                  </h3>
+                                </div>
+                              </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="media-selected-actions">
-                    {# <button class="btn btn-sm btn-info btn-download">
-                        <i class="fa fa-download"></i>
-                    </button> #}
-                    <button class="btn btn-sm btn-danger btn-delete">
-                        <i class="fa fa-trash"></i>
-                    </button>
-                </div>
-                <div class="media-selected-info">
-                    <div class="row">
-                        <div class="col-md-4 media-selected-info-label text-muted">Type</div>
-                        <div class="col-md-8 media-selected-info-value" data-info="type"></div>
-                    </div>
-                </div>
+              </div>
+
             </div>
+          </div>
         </div>
     </div>
 
@@ -206,7 +229,7 @@
 
         .media-selected-thumb {
             background: #f5f5f5;
-            height: 200px;
+            height: 100%;
             width: 100%;
             max-width: 100%;
             margin-bottom: 20px;
@@ -257,7 +280,7 @@
         }
 
         .media-selected-info {
-            margin-bottom: 10px;
+            margin: 10px 0 0 0;
         }
 
         .media-selected-actions {
@@ -269,6 +292,33 @@
             overflow: hidden;
             white-space: nowrap;
         }
+
+        .media-selected-title .fa-download {
+            color: #337ab7;
+        }
+
+        .cls-title {
+            text-align: right;
+        }
+
+        .media-selected-title i {
+            margin: 0 8px;
+        }
+
+        button.close.btn-close {
+            color: black;
+        }
+
+        .modal .modal-dialog .modal-content .modal-header {
+            margin: 0;
+            padding: 0;
+            padding-bottom: 15px;
+        }
+
+        .modal-header {
+            border-bottom: none;
+        }
+
     </style>
 {% endblock medialibrary_stylesheet %}
 
@@ -277,14 +327,17 @@
         function {{id}}ExecPage()
         {
             $(function () {
+
                 $('#{{ id }}List').on('fileClick', function(event, file) {
                     //$('.media-selected-info-value[data-info="description"]').editable('destroy');
                     //$('.media-selected-title a').editable('destroy');
-
+                    $(this).attr("data-toggle", "modal");
+                    $(this).attr("data-target", "#myModal");
                     $('.media-details-container .media-file-none').addClass('hide');
                     $('.media-details-container .media-file-selected ').removeClass('hide');
 
-                    $('.media-selected-title a').html(file.getInfo('title'));
+                    $('.media-selected-title a').html('<i class="fa fa-download"></i>' + file.getInfo('title'));
+                    $('.media-selected-title a').attr('href', file.getInfo('route').render);
                     if(file.getType() == 'image') {
                         $('.media-selected-thumb .icon').addClass('hide');
                         $('.media-selected-thumb .img').removeClass('hide');
@@ -302,6 +355,8 @@
                         $(this).html(file.getInfo(info));
                     });
                 });
+
+
                 $('#{{ id }}List').mediaLibrary({
                     'url': {
                         'list': {{ widget.hasProperty('documentsPath') ? "'" ~ widget.property('documentsPath') ~ "'" : 'window.location' }}
@@ -372,7 +427,7 @@
                                         'X-WIDGET-PATH': '{{ widget_path }}',
                                         'X-WIDGET-ID': '{{ id }}'
                                     },
-                                    'data': {'data': {'filename': selectedFile.fileInfo.filename}},
+                                    'data': {'data': {'filename': selectedFile.fileInfo.filename, 'folder': selectedFile.fileInfo.folder}},
                                     'success': function () {
                                         swal({
                                             'type': 'success',

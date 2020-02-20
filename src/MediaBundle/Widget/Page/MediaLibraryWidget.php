@@ -82,7 +82,7 @@ class MediaLibraryWidget extends AbstractPageWidget
 
     protected function getRootPath(): string
     {
-        return $this->property('rootPath', '');
+        return $this->getMediaManager()->getCustomerDocumentRoot();
     }
 
     protected function getBlockName(): string

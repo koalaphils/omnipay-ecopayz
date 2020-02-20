@@ -24,10 +24,6 @@ transaction.create_page:
     path:       /{type}
     defaults:    { _controller: TransactionBundle:TransactionOld:createPage }
 
-transaction.view_dwl:
-    path: /dwl/{id}
-    defaults: { _controller: TransactionBundle:TransactionOld:viewDwlTransaction }
-
 transaction.gateways:
     path: /{type}/gateways
     defaults: { _controller: TransactionBundle:TransactionOld:getGatewayByTransaction }

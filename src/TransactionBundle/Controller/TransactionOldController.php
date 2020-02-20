@@ -139,9 +139,7 @@ class TransactionOldController extends AbstractController
         $memberRunningCommission = null;
         $commissionPeriod = null;
 
-        if ($transaction->isDwl()) {
-            $dwl = $this->getDWLRepository()->find($transaction->getDwlId());
-        } elseif ($transaction->isCommission()) {
+        if ($transaction->isCommission()) {
             $memberRunningCommission = $this->getRepository('DbBundle:MemberRunningCommission')->findOneByCommissionTransaction($transaction->getId());
             $commissionPeriod = $this->getRepository('DbBundle:CommissionPeriod')->findOneById($memberRunningCommission->getCommissionPeriodId());
         }
@@ -251,7 +249,7 @@ class TransactionOldController extends AbstractController
                     ], Response::HTTP_UNPROCESSABLE_ENTITY);
                 }
                 throw new \Doctrine\ORM\NoResultException;
-            } elseif (!$transaction->isVoided() && !$transaction->isDwl()) {
+            } elseif (!$transaction->isVoided()) {
                 $transaction->setReasonToVoidOrDecline($reasonForVoiding);
                 $this->getManager()->processTransaction($transaction, 'void');
                 $this->getManager()->commit();
@@ -286,23 +284,6 @@ class TransactionOldController extends AbstractController
             $this->getManager()->rollBack();
 
             throw $e;
-        }
-    }
-
-    public function viewDwlTransactionAction(int $id): Response
-    {
-        $this->getSession()->save();
-        try {
-            $transaction = $this->getManager()->getTransactionById($id);
-            if (!$transaction->isDwl()) {
-                throw $this->createNotFoundException('Not found');
-            }
-
-            $dwl = $this->getDWLRepository()->find($transaction->getDwlId());
-
-            return $this->render('TransactionBundle:Transaction/view:dwl.html.twig', ['transaction' => $transaction, 'dwl' => $dwl]);
-        } catch (\Doctrine\ORM\NoResultException $e) {
-            throw $this->createNotFoundException('Not found', $e);
         }
     }
 

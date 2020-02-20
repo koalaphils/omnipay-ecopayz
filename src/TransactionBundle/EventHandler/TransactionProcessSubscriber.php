@@ -76,14 +76,12 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
 
             $transactionDate = new \DateTime('now');
             $transactionDate->setTimezone(new \DateTimeZone('UTC'));
-            $transaction->setDate($transactionDate);
             $transaction->setDetail('transaction_dates.' . $transaction->getStatus(), $transactionDate->format('c'));
         } else {            
             if ($this->getTransactionWorkflow()->can($transaction, 'void')) {
                 $this->getTransactionWorkflow()->apply($transaction, 'void');
                 $transactionDate = new \DateTime('now');
                 $transactionDate->setTimezone(new \DateTimeZone('UTC'));
-                $transaction->setDate($transactionDate);
                 $transaction->setDetail('transaction_dates.void', $transactionDate->format('c'));
             } else {
                 throw new TransitionGuardException('Unable to void the transaction');

@@ -1,0 +1,33 @@
+services:
+    member_request.manager:
+        class: MemberRequestBundle\Manager\MemberRequestManager
+        parent: app.base_manager
+
+    member_reauest.form_type.member_request:
+        class: MemberRequestBundle\Form\MemberRequestType
+        arguments: [ "@router" ]
+        tags:
+            - { name: form.type }
+    
+    member_request.process_subscriber:
+        class: MemberRequestBundle\EventHandler\RequestProcessSubscriber
+        calls:
+            - [ 'setContainer', ['@service_container']]
+        tags:
+            - { name: kernel.event_subscriber }
+
+    member_request.request_subscriber_for_websocket:
+        class: MemberRequestBundle\EventHandler\RequestSubscriberForWebsocket
+        arguments: ['@app.publisher', '@translator', '@doctrine.orm.entity_manager', '@router', '@event_dispatcher']
+        tags:
+            - { name: kernel.event_subscriber }
+
+    member_request.workflow:
+        factory: [MemberRequestBundle\Factory\RequestWorkflowFactory, "generateRequestWorkflow"]
+        arguments: ['@app.setting_manager', '@event_dispatcher']
+
+    member_request.service:
+        class: MemberRequestBundle\Service\MemberRequestService
+        calls:
+            - [ "setContainer", ["@service_container"] ]
+        shared: false

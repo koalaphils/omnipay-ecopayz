@@ -186,6 +186,10 @@ DbBundle\Entity\Customer:
             targetEntity: DbBundle\Entity\CustomerProduct
             mappedBy: customer
             cascade: [ persist ]
+        memberRequests:
+            targetEntity: DbBundle\Entity\MemberRequest
+            mappedBy: member
+            orphanRemoval: true
         referrals:
             targetEntity: DbBundle\Entity\Customer
             mappedBy: affiliate

@@ -14,7 +14,9 @@ use DbBundle\Entity\CustomerProduct;
 use DbBundle\Entity\Customer as Member;
 use MemberBundle\Events as MemberEvents;
 use MemberBundle\Event\ReferralEvent;
+use MemberBundle\Event\VerifyEvent;
 use WebSocketBundle\Topics;
+use MemberRequestBundle\WebsocketTopics;
 
 class CustomerSubscriberForWebsocket implements EventSubscriberInterface
 {
@@ -34,6 +36,8 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
             MemberEvents::EVENT_REFERRAL_LINKED => ['onReferralLinked'],
             MemberEvents::EVENT_REFERRAL_UNLINKED => ['onReferralUnlinked'],
             MemberEvents::EVENT_MEMBER_PRODUCT_REQUESTED => ['onMemberProductRequested', 300],
+            MemberEvents::EVENT_MEMBER_KYC_FILE_UPLOADED => ['onMemberKycFileUploaded', 300],
+            MemberEvents::MEMBER_VERIFICATION => ['onMemberVerification', 300],
         ];
     }
 
@@ -45,6 +49,15 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
 
         $payload = $this->createPayloadFromCustomerProduct($customerProduct);
         $this->publisher->publish(Topics::TOPIC_CUSTOMER_PRODUCT_SAVE . '.' . $channel, json_encode($payload));
+    }
+
+    public function onMemberVerification(VerifyEvent $event)
+    {
+        $member = $event->getMember();
+        $channel = $member->getWebsocketDetails()['channel_id'];
+        $payload['isVerified'] = $member->isVerified();
+
+        $this->publisher->publishUsingWamp(WebsocketTopics::TOPIC_MEMBER_REQUEST_PROCESSED . '.' . $channel, $payload);
     }
 
     public function onCustomerProductSuspended(CustomerProductSuspendedEvent $event)
@@ -76,8 +89,6 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
 
         $payload['username'] = $customerProduct->getUserName();
         $payload['isActive'] = $customerProduct->getIsActive();
-        $payload['syncId'] = $customerProduct->getBrokerageSyncId();
-        $payload['oldSyncId'] = $customerProduct->getOldBrokerageSyncId();
 
         return $payload;
     }
@@ -91,6 +102,64 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
 
         $this->createNotification($referrer, 'New referral ' . $referral->getId() . ' has been linked. ' . '(' . $this->getCurrentDatetime() . ')');
         $this->publisher->publish(Topics::TOPIC_REFERRAL_LINKED . '.' . $channel, json_encode($payload));
+    }
+
+    public function onMemberKycFileUploaded($event): void
+    {
+        $member = $event->getCustomer();
+        $details = $event->getDetails();
+        $channel = $member->getWebsocketDetails()['channel_id'];
+
+        /////$payload = $event->getFiles();
+        /////$this->createNotification($member, sprintf($payload['message'] ?? ''. ' (%s)', $member->getFullName()));
+
+        ////$this->publisher->publish(Topics::TOPIC_MEMBER_KYC_FILE_UPLOADED . '.' . $channel, json_encode($payload));
+
+        //if ($payload['fromApi']) {
+            ///////$payload['message'] = 'testsetsetsetest';
+            /////////$this->publisher->publish(Topics::TOPIC_MEMBER_API_KYC_UPLOADED, json_encode($payload));
+        //}
+
+        /*$member = $event->getCustomer();
+        $this->publisher->publishUsingWamp('created.transaction', [
+            'title' => 'Transaction Requested',
+            'message' => 'Transaction ' . $transaction->getNumber() . ' has been requested.',
+            'otherDetails' => [
+                'id' => $transaction->getId(),
+                'type' => 'deposit',
+            ],
+        ]);*/
+        
+        $member = $event->getCustomer();
+        $this->publisher->publishUsingWamp(Topics::TOPIC_MEMBER_API_KYC_UPLOADED, [
+            'title' => $details['notificationTitle'],
+            'message' => $details['notificationMessage'],
+            'type' => 'docs',
+            'otherDetails' => [
+                'id' => $details['id'],
+                'type' => $details['type'],
+            ],
+        ]);
+
+        $this->publisher->publishUsingWamp('ms.topic.kyc_file_uploaded', [
+            'title' => $details['notificationTitle'],
+            'message' => $details['notificationMessage'],
+            'type' => 'docs',
+            'otherDetails' => [
+                'id' => $details['id'],
+                'type' => $details['type'],
+            ],
+        ]);
+
+        $this->publisher->publishUsingWamp('created.transaction', [
+            'title' => $details['notificationTitle'],
+            'message' => $details['notificationMessage'],
+            'type' => 'docs',
+            'otherDetails' => [
+                'id' => $details['id'],
+                'type' => $details['type'],
+            ],
+        ]);
     }
 
     public function onReferralUnlinked(ReferralEvent $event): void

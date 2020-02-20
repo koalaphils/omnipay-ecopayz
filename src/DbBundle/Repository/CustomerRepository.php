@@ -4,6 +4,7 @@ namespace DbBundle\Repository;
 
 use DateTime;
 use DbBundle\Entity\Customer as Member;
+use DbBundle\Entity\User;
 use DbBundle\Entity\CustomerProduct;
 use DbBundle\Entity\MemberBanner;
 use DbBundle\Entity\MemberReferralName;
@@ -179,7 +180,8 @@ class CustomerRepository extends BaseRepository
         }
 
         if (isset($filters['hasAffiateTag']) && $filters['hasAffiateTag'] === true) {
-            $queryBuilder->andWhere("JSON_CONTAINS(c.tags, '\"AFF\"') = 1");
+            $queryBuilder->andWhere("u.type = :type");
+            $queryBuilder->setParameter('type', User::USER_TYPE_AFFILIATE);
         }
 
         return $queryBuilder;
@@ -524,12 +526,13 @@ class CustomerRepository extends BaseRepository
             $exp = $queryBuilder->expr()->orX();
             foreach ($filters['tag'] as $value) {
                 if ($value === Member::ACRONYM_AFFILIATE) {
-                    $exp->add("JSON_CONTAINS(c.tags, '\"AFF\"') = 1");
+                    $exp->add("u.type = :type");
+                    $queryBuilder->setParameter('type', User::USER_TYPE_AFFILIATE);
                 }
                 if ($value === Member::ACRONYM_MEMBER) {
-                    $exp->add("JSON_CONTAINS(c.tags, '\"MBR\"') = 1");
+                    $exp->add("u.type = :type");
+                    $queryBuilder->setParameter('type', User::USER_TYPE_MEMBER);
                 }
-
             }
             $queryBuilder->andWhere($exp);
         }

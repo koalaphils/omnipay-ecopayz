@@ -1,0 +1,118 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}{{ "page.title.request.google_auth"|trans({},"MemberRequestBundle") }}{% endblock %}
+
+{% block stylesheets %}
+    <!-- DataTables -->
+    <link href="{{ asset('/assets/plugins/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('/assets/plugins/datatables/buttons.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('/assets/plugins/datatables/responsive.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('/assets/plugins/datatables/dataTables.colVis.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('/assets/plugins/datatables/dataTables.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('/assets/css/custom-memberRequest.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block pageTitle -%} {{ "menus.MemberRequest"|trans({},"MemberRequestBundle") }} {%- endblock pageTitle %}
+
+{% block breadcrumb -%}
+<li>{{ "breadcrumb.memberRequest"|trans({},"AppBundle") }}</li>
+{%- endblock breadcrumb %}
+
+{% block pageHeaderExtra %}
+<div class="pull-right">
+    <a class="btn btn-inverse waves-effect waves-light pull-right m-b-10" href="{{ path("member_request.pending") }}">
+        <i class="ti-arrow-left m-r-10"></i>{{ "Back to Pending List"|trans({}, 'MemberRequestBundle') }}
+    </a>
+    <ul class="list-inline quicklinks font-13 font-normal text-right">
+        <li>Quick Links:</li>
+        {% if is_granted('ROLE_MEMBER_REQUEST_VIEW') %}
+        <li><a href="{{ path("member_request.pending") }}">Pending</a></li>|
+        <li><a href="{{ path("member_request.history") }}">History</a></li>
+        <li>&nbsp;</li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock pageHeaderExtra %}
+
+{% block page %}
+  <div class="row">
+    <div class="col-md-12">
+      <div class="col-md-3">
+        <div class="card-box" id="customer-container">
+          <h4 class="m-t-0 header-title">Member</h4>
+          <span class="form-control"> <i class="fa fa-user"></i> | {{memberRequest.getMember().getFullName()}} ({{memberRequest.getMember().getUser().getUsername()}})</span>
+        </div>
+      </div>
+      {{ form_start(form) }}
+      <div class="col-md-5">
+        <div class="card-box">
+          <div class="card-box">
+            <div class="row">
+                {{ form_row(form.number) }}
+                {{ form_row(form.date) }}
+            </div>
+          </div>
+          <div class="card-box">
+            <div class="row">
+                <div class="col-sm-12">
+                    {{ form_row(form.notes) }}
+                </div>
+            </div>
+          </div>
+          <div class="row">
+              <div class="col-sm-12">
+              {{ form_row(form.actions) }}
+              </div>
+          </div>
+        </div>
+      </div>
+      {{ form_end(form) }}    
+    </div>
+  </div>
+{% endblock page %}
+
+{% block javascripts %}
+<script src="{{ asset('bundles/transaction/js/transaction/form.js') }}"></script>
+<script type="text/javascript" >
+    $(function(){
+        var requestStatus = {{memberRequest.getStatus()}};
+        
+        $('#{{ form.vars.id }}').form({
+            'action': '{{ form.vars.action }}',
+            'ajax': {
+                'success': function (data) {
+                    if (data.success) {
+                        notification('Saved', 'You have successfully saved request', 'success');
+                        setTimeout(function () {
+                            window.location = window.location.href;
+                        }, 1000);
+                    } else if (typeof data.errors !== 'undefined') {
+                        for (var i in data.errors) {
+                            var error = data.errors[i];
+                            $('#' + error.formId)
+                                .closest('.form-group')
+                                .addClass('has-error')
+                                .find('.help-block ul')
+                                .append('<li>' + error.message + '</li>');
+                        }
+                        notification('Validation Failed', 'Some fields are invalid', 'error');
+                    }
+                },
+                'beforeSend': function (xhr, settings) {
+                    $('#{{ form.vars.id }}').find('.form-group').removeClass('has-error');
+                    $('#{{ form.vars.id }}').find('.help-block ul li').remove();
+                    $('#btnSave').attr('disabled', 'disabled');
+                },
+                'complete': function (xhr, textStatus) {
+                    $('#btnSave').removeAttr('disabled');
+                }
+            }
+        });
+        
+        $('.btn-action').click(function () {     
+            var submitButton = this;
+            $('#{{ form.vars.id }}').trigger('form:submit', [submitButton]);
+        });
+    });
+  </script>
+{% endblock javascripts %}

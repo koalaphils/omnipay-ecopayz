@@ -1318,3 +1318,22 @@ button[data-id=update_profileForm_data_userType] {
     cursor: not-allowed;
     pointer-events: none;
 }
+
+.flex-center-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dropzone .dz-preview.dz-error:hover .dz-error-message {
+  display: none;
+}
+.dropzone .dz-preview.dz-error .dz-error-message {
+  display: none;
+}
+.kyc-label-status {
+  margin-right: 5px;
+}
+#customer-container .form-control {
+  height: auto !important;
+}

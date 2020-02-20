@@ -236,7 +236,7 @@ class TransactionType extends AbstractType
                 return $customerEntity;
             }
         ));
-        
+
         if ($options['isCommission'] === false && $options['isRevenueShare'] === false && $options['hasAdjustment'] === false) {
             $builder->get('gateway')->addModelTransformer(new CallbackTransformer(
                 function ($data) {
@@ -245,7 +245,6 @@ class TransactionType extends AbstractType
                     }
                     $context = \JMS\Serializer\SerializationContext::create();
                     $context->setGroups(['Default', 'balance', 'details']);
-
                     return json_decode($this->jmsSerializer->serialize($data, 'json', $context), true);
                 },
                 function ($data) {

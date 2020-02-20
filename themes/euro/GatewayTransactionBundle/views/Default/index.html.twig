@@ -43,9 +43,6 @@
         {% if is_granted('ROLE_GATEWAY_VIEW') %}
         <li><a href="{{ path("gateway.list_page") }}">{{ "quickLinks.gateway"|trans({},"GatewayTransactionBundle") }}</a></li>|
         {% endif %}
-        {% if is_granted('ROLE_DWL_VIEW') %}
-        <li><a href="{{ path("dwl.list_page") }}">{{ "quickLinks.dwl"|trans({},"GatewayTransactionBundle") }}</a></li>
-        {% endif %}
     </ul>
 </div>
 {% endblock pageHeaderExtra %}

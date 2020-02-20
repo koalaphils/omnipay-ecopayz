@@ -1,0 +1,346 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}{{ "page.title.list"|trans({},"MemberRequestBundle") }}{% endblock %}
+
+{% block stylesheets %}
+    <!-- DataTables -->
+    <link href="{{ asset('/assets/plugins/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('/assets/plugins/datatables/buttons.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('/assets/plugins/datatables/responsive.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('/assets/plugins/datatables/dataTables.colVis.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('/assets/plugins/datatables/dataTables.bootstrap.min.css') }}" rel="stylesheet" type="text/css"/>
+{% endblock %}
+
+{% block pageTitle -%} {{ "menus.MemberRequest"|trans({},"MemberRequestBundle") }} {%- endblock pageTitle %}
+
+{% block breadcrumb -%}
+<li>{{ "breadcrumb.memberRequest"|trans({},"AppBundle") }}</li>
+<li>{{listLabel}} {{ "breadcrumb.list"|trans({},"MemberRequestBundle") }}</li>
+{%- endblock breadcrumb %}
+
+{% block pageHeaderExtra %}
+<div class="pull-right">
+    <ul class="list-inline quicklinks font-13 font-normal text-right">
+        <li>Quick Links:</li>
+        {% if is_granted('ROLE_MEMBER_REQUEST_VIEW') %}
+        <li><a href="{{ path("member_request.pending") }}">Pending</a></li>|
+        <li><a href="{{ path("member_request.history") }}">History</a></li>
+        <li>&nbsp;</li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock pageHeaderExtra %}
+
+{% block page %}
+    <div class="col-sm-12">
+        <div class="card-box">
+            <div id="memberRequestList">
+                <table id="datatable-responsive"
+                    class="table table-bordered table-striped dt-responsive nowrap" cellspacing="0"
+                    width="100%">
+                    <thead>
+                        <tr>
+                            <th data-priority="1">{{ "fields.number"|trans({}, "MemberRequestBundle") }}</th>
+                            <th>{{ "fields.date"|trans({}, "MemberRequestBundle") }}</th>
+                            <th>{{ "fields.member"|trans({}, "MemberRequestBundle") }}</th>
+                            <th>{{ "fields.status"|trans({}, "MemberRequestBundle") }}</th>
+                            <th>{{ "fields.type"|trans({}, "MemberRequestBundle") }}</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot></tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock%}
+
+{% block javascripts %}
+    <script src="{{ asset('bundles/app/js/ZTable.js') }}"></script>
+    <script src="{{ asset('/assets/plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('/assets/plugins/datatables/dataTables.bootstrap.js') }}"></script>
+
+    <script src="{{ asset('/assets/plugins/datatables/dataTables.buttons.min.js') }}"></script>
+    <script src="{{ asset('/assets/plugins/datatables/buttons.bootstrap.min.js') }}"></script>
+    <script src="{{ asset('/assets/plugins/datatables/vfs_fonts.js') }}"></script>
+    <script src="{{ asset('/assets/plugins/datatables/buttons.html5.min.js') }}"></script>
+    <script src="{{ asset('/assets/plugins/datatables/dataTables.responsive.min.js') }}"></script>
+    <script src="{{ asset('/assets/plugins/datatables/responsive.bootstrap.min.js') }}"></script>
+    <script src="{{ asset('/assets/plugins/datatables/dataTables.colVis.js') }}"></script>
+
+    <script type="text/javascript" >
+        (function($){
+            var statuses = {{ statuses|json_encode()|raw }};
+            var statusChoices = {};
+
+            for (var i in statuses) {
+                if (statuses[i].label.toLowerCase() != 'voided') {
+                    statusChoices[i] = statuses[i].label;
+                }
+            }
+
+            $.fn.list = function(options, params) {
+                var settings = options;
+                params = params || [];
+                return this.each(function() {
+                    var elem = $(this);
+                    settings = $.extend(true,_defaults(),options);
+                    init(elem, settings);
+                });
+            };
+
+            function init(elem, settings) {
+                initTable(elem, settings);
+            }
+
+            function initTable(elem, settings) {
+                var table = $(elem).find('table');
+                var listUrl = settings.url.list;
+                var userPreferences = {{ app.user.getPreference('ui.memberRequest.list.column.visibility')|json_encode()|raw }};
+                var dataTable = new ZTable('#memberRequestList',  {
+                    'ajax': {
+                        'url': settings.url.list,
+                        'data': function (data, dataTable) {
+                            window.lodash.merge(data.filters, {'include_status': statusChoices});
+                            return {
+                                'search': data.filters.search,
+                                'length': data.length,
+                                'start': dataTable.start,
+                                'datatable': true,
+                                'route': true,
+                                'draw': dataTable.draw,
+                                'order': data.order,
+                                'filter' : data.filters
+                            };
+                        },
+                        'dataFilter': function (str) {
+                            return str;
+                        }
+                    },
+                    'colvis': {
+                        'hidden': function () {
+                            var hidden = ['mrs.id'];
+                            for (var i in userPreferences) {
+                                if (userPreferences[i] == 'false') {
+                                    hidden.push(eval(i));
+                                }
+                            }
+                            return hidden;
+                        },
+                        'exclude': ['mrs.id']
+                    },
+                    'featuresDom': "<'form-inline'"
+                    + "<'form-group m-r-10 ft-date'<'xs-date'ft>>"
+                    + "ftysdb"
+                    + "<'form-group m-r-10'<'m-t-10'sb>>",
+                    'features': {
+                        'from': {
+                            'dom': "<'form-group form-group-sm m-r-10 cst-date'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>",
+                            'type': 'date',
+                            'label': 'From',
+                            'symbol': 'f',
+                            'attrs': {
+                                'placeholder': 'From'
+                            },
+                            'applyOnChanged': false
+                        },
+                        'to': {
+                            'dom': "<'form-group form-group-sm m-r-10 cst-date'<'input-group'i<^span 'input-group-addon bg-white text-default'<!'fa fa-calendar'!>>>>",
+                            'type': 'date',
+                            'label': 'To',
+                            'symbol': 't',
+                            'attrs': {
+                                'placeholder': 'To'
+                            },
+                            'applyOnChanged': false
+                        },
+                        'types': {
+                            'dom': "<'form-group form-group-sm m-r-10 xs-filter'i>",
+                            'type': 'select',
+                            'label': 'Type',
+                            'symbol': 'y',
+                            'class': 'selectpicker',
+                            'applyOnChanged': false,
+                            'attrs': {
+                                'data-style': 'btn-white btn-sm',
+                                'multiple': 'multiple',
+                                'title': 'Select Type',
+                                'data-selected-text-format': 'count > 3',
+                                'data-width': 'auto',
+                                'data-size': 5
+                            },
+                            'resetValue': function (feature) {
+                                $(feature.input).selectpicker('val', feature.feature.value);
+                            },
+                            'rendered': function (feature) {
+                                $(feature.input).val(feature.feature.value);
+                            },
+                            'choices': {
+                                {{ constant("DbBundle\\Entity\\MemberRequest::MEMBER_REQUEST_TYPE_KYC") }}: "{{ "types.kyc"|trans({}, "MemberRequestBundle") }}",
+                            },
+                            'value': {{ app.request.get("type", [])|json_encode|raw }}
+                        },
+                        'status': {
+                            'dom': "<'form-group form-group-sm m-r-10 xs-filter'i>",
+                            'type': 'select',
+                            'label': 'Member Status',
+                            'symbol': 's',
+                            'class': 'selectpicker',
+                            'applyOnChanged': false,
+                            'attrs': {
+                                'data-style': 'btn-white btn-sm',
+                                'multiple': 'multiple',
+                                'data-none-selected-text': 'Select Status',
+                                'data-width': 'auto',
+                            },
+                            'resetValue': function (feature) {
+                                $(feature.input).selectpicker('val', feature.feature.value);
+                            },
+                            'rendered': function (feature) {
+                                $(feature.input).val(feature.feature.value);
+                            },
+                            'choices': statusChoices,
+                            'value': {{ app.request.get("status", [])|json_encode|raw }}
+                        },
+                        'applyFilter': {
+                            'type': 'button',
+                            'label': 'Apply Filter',
+                            'symbol': 'd',
+                            'attrs': {
+                                'type': 'button',
+                                'class': 'btn btn-sm btn-default',
+                                'title': 'Apply Filter'
+                            },
+                            'initialized': function (feature) {
+                                $(feature.input).click(function () {
+                                    feature.ztable.reloadTable();
+                                });
+                            }
+                        },
+                        'resetFilter': {
+                            'type': 'button',
+                            'label': 'Reset Filter',
+                            'symbol': 'b',
+                            'attrs': {
+                                'type': 'button',
+                                'class': 'btn btn-sm btn-inverse',
+                                'title': 'Reset Filter'
+                            },
+                            'initialized': function (feature) {
+                                $(feature.input).click(function () {
+                                    $("select.ztable_length_input").val('10').change();
+                                    feature.ztable.reset();
+                                });
+                            }
+                        },
+                    },
+                    'ordering': true,
+                    'columnDefs': [
+                        { "orderable": false, "targets": [4] }
+                    ],
+                    'columns': settings.columns
+                });
+
+                $(table).on('click', 'td a.active-state-action', function(e) {
+                    settings.rowOnclick(e, dataTable);
+                });
+
+                $(elem).on('refresh', { "dataTable": dataTable}, function(event){
+                    dataTable.reloadTable();
+                });
+            }
+
+            function _defaults() {
+                return {
+                    'columns': [
+                        {
+                            'name': 'mrs.number',
+                            'data': 'memberRequest.number',
+                            'defaultContent': '',
+                            'responsivePriority': 1,
+                            'render': function (requestNumber, type, full) {
+                                var numberOutput = "<a href='" + full.routes.view + "' target='_blank'>" + requestNumber + "</a>";
+
+                                return numberOutput;
+                            }
+                        },
+                        {
+                            'name': 'mrs.date',
+                            'data': 'memberRequest.date',
+                            'defaultContent': '',
+                            'render': function (date, type, full) {
+                                return moment(date).format('MMM D, YYYY h:mm A');
+                            }
+                        },
+                        {
+                            'name': 'm.fullName',
+                            'data': 'memberRequest.member_full_name',
+                            'defaultContent': '',
+                            'render': function (fullName, type, full) {
+                                return fullName;
+                            }
+                        },
+                        {
+                            'name': 'mrs.status',
+                            'data': 'memberRequest.status_text',
+                            'defaultContent': '',
+                            'render': function(status, text, full) {
+                                var statusText = {
+                                    'acknowledged': "{{ "statuses.acknowledged"|trans({}, "MemberRequestBundle") }}",
+                                    'processed': "{{ "statuses.processed"|trans({}, "MemberRequestBundle") }}",
+                                    'declined': "{{ "statuses.declined"|trans({}, "MemberRequestBundle") }}",
+                                    'requested': "{{ "statuses.requested"|trans({}, "MemberRequestBundle") }}",
+                                };
+
+                                return statusText[status];
+                            }
+                        },
+                        {
+                            'name': 'mrs.type',
+                            'data': 'memberRequest.type_text',
+                            'defaultContent': '',
+                            'responsivePriority': 1,
+                            'render': function(data, text, full) {
+                                var typeText = {
+                                    'kyc': "{{ "types.kyc"|trans({}, "MemberRequestBundle") }}",
+                                };
+
+                                return typeText[data];
+                            }
+                        }
+                    ]
+                };
+            }
+
+    })(jQuery);
+    </script>
+    <script type="text/javascript" >
+        $(function() {
+            $('#memberRequestList').list({
+                'url': {
+                    'list': '{{ path("member_request.list_search") }}'
+                },
+                'rowOnclick': function (e, zTable) {
+                    dataTable = zTable.dataTable.api();
+                    e.preventDefault();
+                    var currentRow = $(e.target).parents('tr');
+                    if (currentRow.hasClass('child'))
+                    currentRow = currentRow.prev();
+                    var data = dataTable.row(currentRow).data() ;
+                    var anchor = $(e.target).closest('a');
+                    var mode = anchor.attr('action');
+                }
+
+            });
+
+            $('#memberRequestList').on('ztable.change.column.visible', function (e, colvis, ztable) {
+                saveUserPreferences({'ui.memberRequest.list.column.visibility': ztable.getColumnVisibility()});
+            });
+        });
+    </script>
+    <script type="text/javascript" >
+    $(function(){
+        // script here
+    });
+    </script>
+{% endblock %}

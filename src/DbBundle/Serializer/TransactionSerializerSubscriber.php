@@ -49,17 +49,7 @@ class TransactionSerializerSubscriber implements \JMS\Serializer\EventDispatcher
 
         $context = $event->getContext();
         $groups = $this->getGroupsFor($context->attributes->get('groups')->get(), $context);
-        if (in_array('dwl', $groups) && $object->isDwl()) {
-
-            if (!empty($object->getDwlId())) {
-                $dwl = $this->getDWLRepository()->find($object->getDwlId());
-                $visitor->setData(
-                    'dwl',
-                    ['id' => $dwl->getId(), 'date' => $dwl->getDate()->format('Y-m-d')]
-                );
-            }
-        }
-
+        
         if ($object->isTransactionPaymentBitcoin()) {
             $timeRemaining = $this->bitcoinManager->getBitcoinTransactionTimeRemaining($object);
             $lockDownRateTimeRemaining = $this->bitcoinManager->getBitcoinTransactionLockdownRateRemaining($object);

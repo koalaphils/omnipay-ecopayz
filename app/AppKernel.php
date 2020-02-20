@@ -44,10 +44,8 @@ class AppKernel extends Kernel
             new MediaBundle\MediaBundle(),
             new SessionBundle\SessionBundle(),
             new ThemeBundle\ThemeBundle(),
-            new DWLBundle\DWLBundle(),
             new WebSocketBundle\WebSocketBundle(),
             new ApiBundle\ApiBundle(),
-            new BrokerageBundle\BrokerageBundle(),
             new GatewayTransactionBundle\GatewayTransactionBundle(),
             new AuditBundle\AuditBundle(),
             new ReportBundle\ReportBundle(),
@@ -59,6 +57,8 @@ class AppKernel extends Kernel
             new PinnacleBundle\PinnacleBundle(),
             new \TwoFactorBundle\TwoFactorBundle(),
             new \Snc\RedisBundle\SncRedisBundle(),
+            new \Aws\Symfony\AwsBundle(),
+            new MemberRequestBundle\MemberRequestBundle(),
         );
 
         if (in_array($this->getEnvironment(), array('dev', 'test'), true)) {

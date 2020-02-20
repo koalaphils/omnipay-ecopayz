@@ -29,9 +29,6 @@
             {% if is_granted('ROLE_PRODUCT_VIEW') %}
             <li><a href="{{ path("product.list_page") }}">Product</a></li>|
             {% endif %}
-            {% if is_granted('ROLE_DWL_VIEW') %}
-            <li><a href="{{ path("dwl.list_page") }}">DWL</a></li>
-            {% endif %}
         </ul>
     </div>
 {% endblock pageHeaderExtra %}

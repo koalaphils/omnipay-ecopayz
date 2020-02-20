@@ -225,11 +225,9 @@ class CommissionPeriodRepository extends BaseRepository
             ->innerJoin(Member::class, 'r', Join::WITH, $queryBuilder->expr()->andX('r.affiliate = m.id'))
             ->innerJoin(Transaction::class, 't', Join::WITH, $queryBuilder->expr()->andX()->addMultiple([
                 $queryBuilder->expr()->eq('t.customer', 'r.id'),
-                $queryBuilder->expr()->isNotNull('t.dwlId'),
                 $queryBuilder->expr()->eq('t.type', ':type')
             ]))
             ->innerJoin(DWL::class, 'd', Join::WITH, $queryBuilder->expr()->andX()->addMultiple([
-                $queryBuilder->expr()->eq('d.id', 't.dwlId'),
                 $queryBuilder->expr()->gte('d.date', ':fromDate'),
                 $queryBuilder->expr()->lte('d.date', ':toDate')
             ]))
@@ -257,7 +255,6 @@ class CommissionPeriodRepository extends BaseRepository
             ->select('t', 'm', 'd')
             ->from(Transaction::class, 't')
             ->innerJoin(DWL::class, 'd', Join::WITH, $queryBuilder->expr()->andX()->addMultiple([
-                $queryBuilder->expr()->eq('d.id', 't.dwlId'),
                 $queryBuilder->expr()->gte('d.date', ':fromDate'),
                 $queryBuilder->expr()->lte('d.date', ':toDate')
             ]))
@@ -267,7 +264,6 @@ class CommissionPeriodRepository extends BaseRepository
                 $queryBuilder->expr()->eq('m.affiliate', ':memberId'),
             ]))
             ->where($queryBuilder->expr()->andX()->addMultiple([
-                $queryBuilder->expr()->isNotNull('t.dwlId'),
                 $queryBuilder->expr()->eq('t.type', ':type'),
             ]))
             ->setMaxResults($limit)

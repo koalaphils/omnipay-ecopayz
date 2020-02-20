@@ -165,16 +165,6 @@ class AppBundle extends Bundle
             'dateFormat' => 'm/d/Y',
             'dateTimeFormat' => 'm/d/Y g:i:s A',
             'dashboard.default_widgets' => [
-                "dwlSearch_20180129120953" => [
-                    "type" => "dwlSearch",
-                    "definition" => [
-                        "id" => "dwlSearch_20180129120953"
-                    ],
-                    "properties" => [
-                        "size" => 6,
-                        "title" => "DWL search"
-                    ]
-                ],
                 "customerCount_20180129120744" => [
                     "type" => "customerCount",
                     "definition" => [

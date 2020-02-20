@@ -3,5 +3,4 @@ services:
         class: MediaBundle\Manager\MediaManager
         calls:
             - [ 'setContainer', ['@service_container'] ]
-            - [ 'init' ]
-    MediaBundle\Manager\MediaManager: '@media.manager'
+            - [ 'init',  ['@aws.s3']]
