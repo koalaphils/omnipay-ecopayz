@@ -4,6 +4,7 @@
         this.dateTimeFormat = phpjs_dateFormat("{{ setting('dateTimeFormat')|e("js") }}");
         this.dummyTransactionUrl = "{{ path('transaction.update_page', {'type': '__type__', 'id': '__id__' }) }}";
         this.dummyCustomerProfileUrl = "{{ path('member.update_page', {'id': '__id__', 'activeTab': '__activeTab__' }) }}";
+        this.dummyMemberRequestUrl = "{{ path('member_request.pending') }}";
         this.links = {
             user: {
                 'preferences_save': '{{ path('user.preferences_save') }}'
@@ -244,7 +245,7 @@
                     title = 'PRODUCT REQUEST';
                     message = 'Product ' + details.product.name + ' has been added. (' + details.customer.fullName + ')';
                 } else if (data.list[i].notificationType == 'docs') {
-                    url = 'pending'; 
+                    url = Global.dummyMemberRequestUrl;
                     title = "KYC REQUEST";
                     message = data.list[i].message;
                 } else if (data.list[i].notificationType == 'member_request') {
