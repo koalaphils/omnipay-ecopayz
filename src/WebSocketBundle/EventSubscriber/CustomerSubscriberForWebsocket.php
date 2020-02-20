@@ -14,7 +14,9 @@ use DbBundle\Entity\CustomerProduct;
 use DbBundle\Entity\Customer as Member;
 use MemberBundle\Events as MemberEvents;
 use MemberBundle\Event\ReferralEvent;
+use MemberBundle\Event\VerifyEvent;
 use WebSocketBundle\Topics;
+use MemberRequestBundle\WebsocketTopics;
 
 class CustomerSubscriberForWebsocket implements EventSubscriberInterface
 {
@@ -35,6 +37,7 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
             MemberEvents::EVENT_REFERRAL_UNLINKED => ['onReferralUnlinked'],
             MemberEvents::EVENT_MEMBER_PRODUCT_REQUESTED => ['onMemberProductRequested', 300],
             MemberEvents::EVENT_MEMBER_KYC_FILE_UPLOADED => ['onMemberKycFileUploaded', 300],
+            MemberEvents::MEMBER_VERIFICATION => ['onMemberVerification', 300],
         ];
     }
 
@@ -46,6 +49,15 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
 
         $payload = $this->createPayloadFromCustomerProduct($customerProduct);
         $this->publisher->publish(Topics::TOPIC_CUSTOMER_PRODUCT_SAVE . '.' . $channel, json_encode($payload));
+    }
+
+    public function onMemberVerification(VerifyEvent $event)
+    {
+        $member = $event->getMember();
+        $channel = $member->getWebsocketDetails()['channel_id'];
+        $payload['isVerified'] = $member->isVerified();
+
+        $this->publisher->publishUsingWamp(WebsocketTopics::TOPIC_MEMBER_REQUEST_PROCESSED . '.' . $channel, $payload);
     }
 
     public function onCustomerProductSuspended(CustomerProductSuspendedEvent $event)
@@ -129,7 +141,7 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
             ],
         ]);
 
-        $this->publisher->publishUsingWamp(Topics::TOPIC_MEMBER_KYC_FILE_UPLOADED, [
+        $this->publisher->publishUsingWamp('ms.topic.kyc_file_uploaded', [
             'title' => $details['notificationTitle'],
             'message' => $details['notificationMessage'],
             'type' => 'docs',

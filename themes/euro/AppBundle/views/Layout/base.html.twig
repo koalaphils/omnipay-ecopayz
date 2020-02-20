@@ -559,7 +559,7 @@
                             message = data.list[i].fName + ' '+ data.list[i].lName +' was created.';
                         }
                     } else if (data.list[i].notificationType == 'docs') {
-                        url = Global.dummyMemberRequestUrl.replace('/__type__', '/'+ 'kyc').replace('/__id__', '/'+ data.list[i].id);
+                        url = 'pending/'; 
                         title = "KYC REQUEST";
                         message = data.list[i].message;
                     } else if (data.list[i].notificationType == 'requestProduct') {

@@ -118,9 +118,6 @@ class RequestSubscriberForWebsocket implements EventSubscriberInterface
     private function publishWebsocketTopic(MemberRequest $memberRequest, string $channel, array $payload = []) :void
     {
         $this->publisher->publish(WebsocketTopics::TOPIC_MEMBER_REQUEST_SAVED . '.' . $channel, json_encode($payload));
-        /*if ($memberRequest->isGoogleAuth() && $memberRequest->getStatus() === MemberRequest::MEMBER_REQUEST_STATUS_END) {
-            $this->publisher->publish(WebsocketTopics::TOPIC_MEMBER_REQUEST_GAUTH_PROCESSED . '.' . $channel, json_encode($payload));
-        }*/
     }
 
     protected function getEntityManager(): EntityManagerInterface
