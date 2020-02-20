@@ -244,7 +244,7 @@
                     title = 'PRODUCT REQUEST';
                     message = 'Product ' + details.product.name + ' has been added. (' + details.customer.fullName + ')';
                 } else if (data.list[i].notificationType == 'docs') {
-                    url = 'pending/'; 
+                    url = 'pending'; 
                     title = "KYC REQUEST";
                     message = data.list[i].message;
                 } else if (data.list[i].notificationType == 'member_request') {
