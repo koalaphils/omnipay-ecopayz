@@ -46,18 +46,8 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
             'workflow.transaction.entered' => [
                 ['onTransitionEntered', 90],
             ],
-            // NotifyEvent::EVENT_NAME => [['onBitcoinNotified', 100]],
         ];
     }
-
-    // public function onBitcoinNotified(NotifyEvent $event): void
-    // {
-    //     $transaction = $event->getTransaction();
-    //     $jwt = $this->jwtGenerator->generate([]);
-    //     if (!$transaction->isVoided() && $transaction->isDeposit() && $transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
-    //         $this->credit($jwt, $subTransaction->getAmount(), $subTransaction->getCustomerProduct());
-    //     }
-    // }
 
     public function onTransitionEntered(WorkflowEvent $event)
     {
