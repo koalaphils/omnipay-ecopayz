@@ -342,10 +342,8 @@ class MemberManager extends AbstractManager
     public function getDateTo($schemas, $key, $lastKey, $filters)
     {   
         if ($key == $lastKey) {
-            dump('ssss');
             return $filters['dwlDateTo'];
         } else {
-            dump('ccc');
             $key += 1;
             $date = \DateTime::createFromFormat('Y-m-d', $schemas[$key]['createdAt']);
             $date->modify('-1 day');
@@ -426,7 +424,7 @@ class MemberManager extends AbstractManager
                     }
                 }
 
-                if (!($newTo < $newFrom)){
+                if ($newTo >= $newFrom){
                     // Get Pinnacle Data
                     $pinnacleData = $this->pinnacleService->getReportComponent()->winLoss($row['pinUserCode'], $newFrom, $newTo);
                     if ($pinnacleData instanceof WinLossResponse) {
