@@ -424,27 +424,29 @@ class MemberManager extends AbstractManager
                     }
                 }
 
-                // Get Pinnacle Data
-                $pinnacleData = $this->pinnacleService->getReportComponent()->winLoss($row['pinUserCode'], $newFrom, $newTo);
-                if ($pinnacleData instanceof WinLossResponse) {
-                    $winLoss = $pinnacleData->getTotalDetail('payout');
-                    $turnover = $pinnacleData->getTotalDetail('turnover');
-                    $totalWinLoss += $winLoss;
-                    $totalTurnover += $turnover;
+                if ($newTo >= $newFrom){
+                    // Get Pinnacle Data
+                    $pinnacleData = $this->pinnacleService->getReportComponent()->winLoss($row['pinUserCode'], $newFrom, $newTo);
+                    if ($pinnacleData instanceof WinLossResponse) {
+                        $winLoss = $pinnacleData->getTotalDetail('payout');
+                        $turnover = $pinnacleData->getTotalDetail('turnover');
+                        $totalWinLoss += $winLoss;
+                        $totalTurnover += $turnover;
+                    }
+
+                    $filters['bonusDateFrom'] = $newFrom;
+                    $filters['bonusDateTo'] = $newTo;
+
+                    // Get Transaction Bonus
+                    $memberBonus = $subTransactionRepository->getBonusByMember($filters, $orders, $row['memberId']);
+                    if ($memberBonus){
+                        $bonus = $memberBonus['totalBonus'];
+                        $totalBonus += $bonus;
+                    }
+
+                    $revenueShare = $this->getRevenueShare($schema, $winLoss, $bonus, $row['currencyCode'], $referrerDetails->getCurrencyCode());
+                    $totalRevenueShare += $revenueShare;
                 }
-
-                $filters['bonusDateFrom'] = $newFrom;
-                $filters['bonusDateTo'] = $newTo;
-
-                // Get Transaction Bonus
-                $memberBonus = $subTransactionRepository->getBonusByMember($filters, $orders, $row['memberId']);
-                if ($memberBonus){
-                    $bonus = $memberBonus['totalBonus'];
-                    $totalBonus += $bonus;
-                }
-
-                $revenueShare = $this->getRevenueShare($schema, $winLoss, $bonus, $row['currencyCode'], $referrerDetails->getCurrencyCode());
-                $totalRevenueShare += $revenueShare;
             }
 
             $memberRecord['totalWinLoss'] = $this->formatCommissionAmount($totalWinLoss);
