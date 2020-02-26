@@ -52,13 +52,13 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
 
     public function onBitcoinNotified(NotifyEvent $event): void
     {
-        $transaction = $event->getTransaction();
-        if (!$transaction->isVoided()
-            && $transaction->isDeposit()
-            && $transaction->getStatus() == $this->settingManager->getSetting('pinnacle.transaction.deposit.status')
-        ) {
-            $this->processSubtransactions($transaction);
-        }
+        // $transaction = $event->getTransaction();
+        // if (!$transaction->isVoided()
+        //     && $transaction->isDeposit()
+        //     && $transaction->getStatus() == $this->settingManager->getSetting('pinnacle.transaction.deposit.status')
+        // ) {
+        //     $this->processSubtransactions($transaction);
+        // }
     }
 
     public function onTransitionEntered(WorkflowEvent $event)
