@@ -1,0 +1,58 @@
+menus:
+    MemberRequest: Member Request
+    List:
+        Pending: Pending
+        History: History
+    Create: Create
+    Update: Update
+
+page:
+    title:
+        list: Member Request | History
+        request:
+            kyc: Member Request | KYC
+            product_password: Member Request | Product Password
+            google_auth: Google Auth
+
+fields:
+    id: ID
+    number: Request Number
+    member: Member
+    type: Type
+    status: Status
+    date: Date
+    action: Action
+    notes: Notes
+
+kyc_fields:
+    filename: File Name
+    link: Link
+    remark: Remark
+    actions:
+        valid: Valid
+        invalid: Invalid
+product_password_fields:
+    password: Password
+
+breadcrumb:
+    list: List
+ 
+roles:
+    groups:
+        memberRequest: Member Request
+    memberRequest:
+        view: View Member Request
+        update: Update Member Request
+        create: Create Member Request
+        delete: Delete Member Request
+
+types:
+    product_password: Product Password
+    kyc: KYC
+    google_auth: Google Auth
+
+statuses:
+    acknowledged: Acknowledged
+    processed: Processed
+    declined: Declined
+    requested: Requested

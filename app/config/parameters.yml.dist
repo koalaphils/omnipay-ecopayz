@@ -22,6 +22,7 @@ parameters:
 
     app_locales: en|ko
     upload_folder: "${UPLOAD_FOLDER}"
+    customer_folder: "${CUSTOMER_FOLDER}"
     php_command: php
 
     #session expiration time
@@ -39,20 +40,6 @@ parameters:
     websocket.url: '${WS_URL}'
     websocket.realm: '${WS_REALM}'
     websocket.wamp: '${WS_WAMP_URL}'
-
-    # Brokerage Url
-    betadmin.url: '${BA_URL}'
-    betadmin.security.access_token: '${BA_TOKEN}'
-    betadmin.security.token_type: '${BA_TOKEN_TYPE}'
-
-    brokerage:
-        url: '${BA_URL}/'
-        access_token: '${BA_TOKEN}'
-        token_type: '${BA_TOKEN_TYPE}'
-        paths:
-            sync_customer_product: customer/
-            search_brokers_name: customer/search
-            sync_transaction: transaction/
 
     # activation
     activation.expiration_duration: '+1 week'
@@ -108,3 +95,12 @@ parameters:
     product_integration:
         evolution:
             url: ${EVOLUTION_SERVICE_URL}
+
+    aws_sdk.version: "${AWS_SDK_VERSION}"
+    aws_sdk.region: "${AWS_REGION}"
+    aws_sdk.key: "${AWS_KEY}"
+    aws_sdk.secret: "${AWS_SECRET}"
+    aws_s3.version: "${AWS_S3_VERSION}"
+    aws_s3.region: "${AWS_REGION}"
+    aws_s3.bucket: "${AWS_BUCKET}"
+

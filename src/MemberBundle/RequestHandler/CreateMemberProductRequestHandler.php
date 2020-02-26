@@ -2,7 +2,6 @@
 
 namespace MemberBundle\RequestHandler;
 
-use BrokerageBundle\Manager\BrokerageManager;
 use DbBundle\Entity\CustomerProduct;
 use DbBundle\Entity\Product;
 use DbBundle\Repository\ProductRepository;
@@ -20,12 +19,10 @@ class CreateMemberProductRequestHandler
     private $brokerageManager;
     private $customerProductManager;
 
-    public function __construct(Registry $doctrine, $dispatcher, BrokerageManager $brokerageManager, CustomerProductManager $customerProductManager)
+    public function __construct(Registry $doctrine, $dispatcher, CustomerProductManager $customerProductManager)
     {
         $this->doctrine = $doctrine;
         $this->dispatcher = $dispatcher;
-
-        $this->brokerageManager = $brokerageManager;
         $this->customerProductManager = $customerProductManager;
     }
 
@@ -39,17 +36,7 @@ class CreateMemberProductRequestHandler
         $customerProduct->setIsActive($request->getActive());
         $customerProduct->setProduct($product);
         $customerProduct->setUpdatedAt(new \DateTime());
-
-        if ($product->canSyncToBetAdmin() && $request->getBrokerage()) {
-            $customerProduct->setBrokerageSyncId($request->getBrokerage());
-            $customerProduct->setBrokerageFirstName($request->getBrokerageFirstName());
-            $customerProduct->setBrokerageLastName($request->getBrokerageLastName());
-        }
-
-
-        $this->customerProductManager->preventMultipleActiveSkypeBettingProduct($customerProduct);
         $this->dispatcher->dispatch(Events::EVENT_CUSTOMER_PRODUCT_SAVE, new CustomerProductSaveEvent($customerProduct));   
-
         $this->doctrine->getManager()->persist($customerProduct);
         $this->doctrine->getManager()->flush($customerProduct);
 

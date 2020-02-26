@@ -71,12 +71,6 @@ services:
         tags:
             - { name: validator.constraint_validator, alias: alias }
 
-    validator.member.sync_id_constraint_validator:
-        class: MemberBundle\Constraints\SyncIdConstraintValidator
-        arguments: [ "@customerproduct.manager" ]
-        tags:
-            - { name: validator.constraint_validator, alias: alias }
-
     validator.member.max_active_website_validator:
         class: MemberBundle\Constraints\MaxActiveWebsiteConstraintValidator
         arguments: [ "@doctrine", "@app.setting_manager" ]

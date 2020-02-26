@@ -357,21 +357,6 @@ class CustomerProductRepository extends BaseRepository
         ;
     }
 
-    public function isBrokerageSynced(string $syncId, string $customerProductId): bool
-    {
-        $count = $this->createQueryBuilder('cp')
-            ->select('COUNT(cp) as ct')
-            ->where('cp.betSyncId = :syncId')
-            ->setParameter('syncId', $syncId)
-            ->andWhere('cp.id = :customerProductId')
-            ->setParameter('customerProductId', $customerProductId)
-            ->getQuery()
-            ->getSingleScalarResult()
-        ;
-
-        return $count > 0;
-    }
-
     public function hasSyncedWithCustomerProduct(string $syncId): bool
     {
 

@@ -9,13 +9,23 @@ use DbBundle\Entity\BannerImage;
 use DbBundle\Entity\CommissionPeriod;
 use DbBundle\Entity\Customer as Member;
 use DbBundle\Entity\MemberBanner;
+use DbBundle\Entity\MemberRequest;
 use DbBundle\Entity\MemberRunningCommission;
+use DbBundle\Entity\Notification;
 use DbBundle\Repository\CommissionPeriodRepository;
 use DbBundle\Repository\CustomerRepository as MemberRepository;
 use DbBundle\Repository\MemberBannerRepository;
 use DbBundle\Repository\MemberRunningCommissionRepository;
+use MediaBundle\Manager\MediaManager;
+use MemberBundle\Event\KycFileEvent;
+use MemberBundle\Events;
+use MemberRequestBundle\Manager\MemberRequestManager;
 use Symfony\Component\HttpFoundation\Response;
 use MemberBundle\Manager\MemberManager as MemberBundleManager;
+
+
+use ApiBundle\Event\TransactionCreatedEvent;
+use DbBundle\Entity\Transaction;
 
 class MemberManager extends AbstractManager
 {
@@ -102,6 +112,139 @@ class MemberManager extends AbstractManager
         return ['member' => $member, 'code' => Response::HTTP_OK];
     }
 
+    public function getMemberFiles(): array
+    {
+        $member = $this->getUser()->getMember();
+
+        return $this->getMemberBundleManager()->getMemberFiles($member, false);
+    }
+
+    public function uploadMemberFile(array $files, ?string $folder = null, ?string $filename = null): array
+    {
+        $member = $this->getUser()->getMember();
+        $memberRequest = $this->getMemberRequestManager()->getMemberKYCPendingRequest($member->getMemberRequests());
+        $subRequestCount = null;
+
+        if (is_null($memberRequest)) {
+            $memberRequest = new MemberRequest();
+            $memberRequest->setMember($member);
+            $memberRequest->setDate(new DateTime());
+            $memberRequest->setType(MemberRequest::MEMBER_REQUEST_TYPE_KYC);
+            $memberRequest->setNumber($this->getMemberRequestManager()->generateRequestNumber('kyc'));
+            $memberRequest->setNotes();
+        } else {
+            $subRequestCount = count($memberRequest->getSubRequests());
+        }
+
+        $response = ['title'=> 'KYC', 'details' => [], 'otherDetails' => ['id' => $member->getId(), 'type' => 'docs']];
+        $success = 0;
+        foreach($files as $file){
+            $result = $this->getMediaManager()->uploadFile($file, $folder, $filename);
+            if(array_get($result, 'success', false)){
+                $member->addFile([
+                    'folder' => $result['folder'],
+                    'file' => $result['filename'],
+                    'title' => $result['filename'],
+                    'description' => '',
+                ]);
+
+                $memberRequest->setRequests($subRequestCount ?? $success, 'remark', '');
+                $memberRequest->setRequests($subRequestCount ?? $success, 'status', null);
+                $memberRequest->setRequests($subRequestCount ?? $success, 'filename', $result['filename']);
+                $memberRequest->setRequests($subRequestCount ?? $success, 'is_deleted', false);
+                $memberRequest->setRequests($subRequestCount ?? $success, 'requested_at', new DateTime());
+
+                if (!is_null($subRequestCount)) {
+                    $subRequestCount++;
+                }
+                $success++;
+            }
+            $response['details'][] = $result;
+        }
+
+        $memberRequestKycRoute = '';
+        if($success){
+            $response['message'] = sprintf($this->getTranslator()->trans('KYC %d file(s) uploaded. (%s)'), $success, $member->getFullName());
+            $this->save($member);
+            $this->save($memberRequest);
+            $memberRequestKycRoute = $this->getRouter()->generate('member_request.update_page', [
+                    'type' => $memberRequest->getTypeText(),
+                    'id' => $memberRequest->getId()]
+            );
+            $response['member_request_route'] = $memberRequestKycRoute;
+            $response['id'] = $memberRequest->getId();
+            $response['type'] = $memberRequest->getTypeText();
+        }
+
+        $notifMessage = sprintf('KYC %d file(s) uploaded. (%s)', $success, $member->getFullName());
+        $response['notificationTitle'] = 'KYC Request';
+        $response['notificationMessage'] = $notifMessage;
+        $response['fromApi'] = true;
+        $response['success'] = $success;
+        $response['id'] = $memberRequest->getId();
+
+
+        $notification = new Notification();
+        $notification->setMessage($notifMessage);
+        $notification->setUserId(1);
+        $notification->setStyle('green');
+        $notification->setCreatedAt(new \DateTime());
+        $notification->type ='docs';
+
+       if($success){
+           $this->save($notification);
+       }
+
+        $event = new KycFileEvent($member, $result, $response);
+        $this->get('event_dispatcher')->dispatch(Events::EVENT_MEMBER_KYC_FILE_UPLOADED, $event);
+
+        return $response;
+    }
+
+    public function deleteMemberFile(string $filename, ?string $folder = null): array
+    {
+        try {
+            $member = $this->getUser()->getMember();
+
+            $documentToBeDeleted = $this->getMemberRequestManager()->getMemberKYCDocumentToBeDeleted($member->getMemberRequests(), $filename);
+            if (!is_null($documentToBeDeleted)) {
+                $memberRequest = $documentToBeDeleted['memberRequest'];
+                $memberRequest->deleteDocumentRecord($documentToBeDeleted['index']);
+                $this->save($memberRequest);
+            }
+            $result = ['title'=> 'KYC', 'message' => sprintf($this->getTranslator()->trans('KYC File %s deleted. (%s)'), $filename, $member->getFullName()), 'otherDetails' => ['id' => $member->getId(), 'type' => 'docs']];
+
+            $folder = $this->getMediaManager()->getPath($folder);
+            $file = $this->getMediaManager()->getFile($folder . $filename, true);
+            $member->deleteFile($file['filename'], $file['folder']);
+
+            $result['details'] = $this->getMediaManager()->deleteFile($folder . $filename);
+
+            $notification = new Notification();
+            $notification->setChannel(Notification::NOTIFICATION_CHANNEL_BACKOFFICE);
+            $notification->setTitle('KYC');
+            $notification->setDetail('files', [$file]);
+            $notification->setMessage(sprintf('KYC File %s deleted. (%s)', $filename, $member->getFullName()));
+            $notification->setMember($member);
+            $notification->setType('docs');
+
+            $response['notificationMessage'] = $notification->getMessage();
+            $response['fromApi'] = true;
+            $event = new KycFileEvent($member, $result);
+            $this->get('event_dispatcher')->dispatch(Events::EVENT_MEMBER_KYC_FILE_DELETED, $event);
+
+            $this->save($member);
+            $this->save($notification);
+
+        } catch (FileNotFoundException $fne) {
+            return ['message' => $fne->getMessage(), 'code' => Response::HTTP_NOT_FOUND];
+        } catch (\Exception $e) {
+            return ['message' => $e->getMessage(), 'code' => Response::HTTP_INTERNAL_SERVER_ERROR];
+        }
+
+        return $result;
+    }
+
     protected function getRepository(): MemberRepository
     {
         return $this->getDoctrine()->getRepository(Member::class);
@@ -127,8 +270,18 @@ class MemberManager extends AbstractManager
         return $this->get('app.referral_tool_generator');
     }
 
+    private function getMediaManager(): MediaManager
+    {
+        return $this->get('media.manager');
+    }
+
     private function getMemberBundleManager(): MemberBundleManager
     {
         return $this->get('member.manager');
+    }
+
+    private function getMemberRequestManager(): MemberRequestManager
+    {
+        return $this->get('member_request.manager');
     }
 }

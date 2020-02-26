@@ -182,24 +182,7 @@ class AuditListener
             }
         }
 
-        if ($entity instanceof \DbBundle\Entity\Transaction || $entity instanceof \DbBundle\Entity\SubTransaction) {
-            $entityDetails = array_merge($entityDetails, $this->additionalAuditDetailsForTransaction($entity));
-        }
-
         return $entityDetails;
-    }
-
-    private function additionalAuditDetailsForTransaction(AuditInterface $entity): array
-    {
-        $details = [];
-        if ($entity instanceof \DbBundle\Entity\Transaction || $entity instanceof \DbBundle\Entity\SubTransaction) {
-            if ($entity->getDwlId() !== null) {
-                $dwl = $this->em->find(\DbBundle\Entity\DWL::class, $entity->getDwlId());
-                $details['dwl'] = $this->getAuditDetails($dwl);
-            }
-        }
-
-        return $details;
     }
 
     private function audit($key, AuditInterface $entity, $operation, $changedProperties = null, $category = null, array $auditDetails = [])

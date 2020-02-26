@@ -23,7 +23,6 @@ class ProductManager extends AbstractManager
             $product->setCode($productRequest->getCode());
             $product->setName($productRequest->getName());
             $product->setUrl($productRequest->getUrl());
-            $product->setBetadminToSync($productRequest->getBetadminToSync());
             $product->setIsActive($productRequest->getIsActive());
             $this->getRepository()->save($product);
             if ($productRequest->isCommissionIsUpdated()) {
@@ -90,20 +89,9 @@ class ProductManager extends AbstractManager
             } else {
                 $results = $this->getProductCommissions($this->getRepository()->getProductList($filters));
                 $results = array_map(function ($result) {
-                    if (isset($result['details']['betadmin']['tosync'])) {
-                        $toSync = $result['details']['betadmin']['tosync'];
-                        if ($toSync) {
-                            $result['text'] = $result['name'] . ' (' . $result['code'] . ')' . ' (BETADMIN)';
-                        } else {
-                            $result['text'] = $result['name'] . ' (' . $result['code'] . ')';
-                        }
-
-                        $result['toSync'] = $toSync;
-                    } else {
-                        $result['text'] = $result['name'] . ' (' . $result['code'] . ')';
-                        $result['toSync'] =  false;
-                    }
-
+                    $result['text'] = $result['name'] . ' (' . $result['code'] . ')';
+                    $result['toSync'] =  false;
+                    
                     return $result;
                 }, $results);
             }

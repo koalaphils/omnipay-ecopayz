@@ -170,7 +170,14 @@ ENV TIMEZONE=Etc/GMT+4 \
     MSERVICE_USERNAME= \
     MSERVICE_PASSWORD= \
     SSH_USER=piwi \
-    SSH_PASS=piwipass
+    SSH_PASS=piwipass \
+    CUSTOMER_FOLDER= \
+    AWS_SDK_VERSION= \
+    AWS_REGION= \
+    AWS_KEY= \
+    AWS_SECRET= \
+    AWS_S3_VERSION= \
+    AWS_BUCKET= 
 
 WORKDIR /var/www/html
 RUN sed -i "s/;emergency_restart_threshold\s*=\s*.*/emergency_restart_threshold = 10/g" /usr/local/etc/php-fpm.conf \
@@ -188,8 +195,8 @@ COPY src /var/www/html/src
 COPY themes /var/www/html/themes
 COPY var /var/www/html/var
 COPY web /var/www/html/web
-#COPY /opt/docker/php/cronjobs /etc/cron.d/crontab
-#RUN chmod 0644 /etc/cron.d/crontab && touch /var/log/cron.log && /usr/bin/crontab /etc/cron.d/crontab
+COPY /opt/docker/php/cronjobs /etc/cron.d/crontab
+RUN chmod 0644 /etc/cron.d/crontab && touch /var/log/cron.log && /usr/bin/crontab /etc/cron.d/crontab
 COPY /opt/docker/php/entrypoint*.sh /
 RUN chmod +x /entrypoint*.sh
 COPY --from=vendor /app/vendor /var/www/html/vendor

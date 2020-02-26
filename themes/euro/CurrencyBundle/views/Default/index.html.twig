@@ -42,9 +42,6 @@
         {% if is_granted('ROLE_GATEWAY_VIEW') %}
         <li><a href="{{ path("gateway.list_page") }}">Gateway</a></li>|
         {% endif %}
-        {% if is_granted('ROLE_DWL_VIEW') %}
-        <li><a href="{{ path("dwl.list_page") }}">Daily Win/Loss</a></li>
-        {% endif %}
     </ul>
 </div>
 {% endblock pageHeaderExtra %}

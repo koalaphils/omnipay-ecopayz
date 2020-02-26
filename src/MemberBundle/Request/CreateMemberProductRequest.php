@@ -11,9 +11,6 @@ class CreateMemberProductRequest
     private $product;
     private $balance;
     private $active;
-    private $brokerage;
-    private $brokerageFirstName;
-    private $brokerageLastName;
     private $customerProduct;
 
     public static function fromEntity(Customer $customer): CreateMemberProductRequest
@@ -22,7 +19,6 @@ class CreateMemberProductRequest
         $request->customerProduct = new CustomerProduct();
         $request->customerProduct->setCustomer($customer);
         $request->customerProduct->setCustomerID($customer->getId());
-        $request->brokerage = $request->customerProduct->getBrokerageSyncId();
         
         return $request;
     }
@@ -31,8 +27,6 @@ class CreateMemberProductRequest
         $this->username = '';
         $this->balance = 0;
         $this->active = true;
-        $this->brokerageFirstName = '';
-        $this->brokerageLastName = '';
     }
 
     public function getCustomerProduct(): CustomerProduct
@@ -78,43 +72,5 @@ class CreateMemberProductRequest
     public function setActive(bool $active): void
     {
         $this->active = $active;
-    }
-
-    public function getBrokerage(): ?string
-    {
-        return $this->brokerage;
-    }
-
-    public function setBrokerage(string $brokerage): void
-    {
-        $this->brokerage = $brokerage;
-    }
-
-    public function getBrokerageFirstName(): string
-    {
-        if (is_null($this->brokerageFirstName)) {
-            return '';
-        } else {
-            return $this->brokerageFirstName;
-        }
-    }
-
-    public function setBrokerageFirstName(?string $firstName): void
-    {
-        $this->brokerageFirstName = $firstName;
-    }
-
-    public function getBrokerageLastName(): string
-    {
-        if (is_null($this->brokerageLastName)) {
-            return '';
-        } else {
-            return $this->brokerageLastName;
-        }
-    }
-
-    public function setBrokerageLastName(?string $lastName): void
-    {
-        $this->brokerageLastName = $lastName;
     }
 }

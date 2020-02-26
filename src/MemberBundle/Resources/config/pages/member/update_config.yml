@@ -440,20 +440,6 @@ widgets:
                         label: Balance
                         required: true
                     type: text
-                brokerage:
-                    options:
-                        label: Brokerage Account
-                        required: false
-                    type: dropdown
-                    isAjax: true
-                    minimumInputLength: 3
-                    ajax:
-                        delay: 2000
-                        request: onFindSkypeBettors
-                brokerageFirstName:
-                    type: hidden
-                brokerageLastName:
-                    type: hidden
     updateProductForm:
         type: \AppBundle\Widget\Page\FormWidget
         data: '@pageManager.customer'
@@ -486,19 +472,6 @@ widgets:
                         label: Balance
                         required: true
                     type: text
-                brokerage:
-                    options:
-                        label: Brokerage Account
-                        required: false
-                    type: dropdown
-                    isAjax: true
-                    minimumInputLength: 3
-                    ajax:
-                        request: onFindSkypeBettors
-                brokerageFirstName:
-                    type: hidden
-                brokerageLastName:
-                    type: hidden
                 customerProduct:
                     type: hidden
     transactionList:
@@ -644,9 +617,7 @@ widgets:
                         withdraw: Withdraw
                         transfer: Transfer
                         p2ptransfer: P2P Transfer
-                        dwl: Win/Loss
                         bonus: Bonus
-                        bet: Bet
                         commission: Commission
                         revenue_share: Revenue Share
                         debit_adjustment: Debit

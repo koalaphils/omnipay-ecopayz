@@ -96,39 +96,6 @@ class CustomerProductManager
         return $results;
     }
 
-    public function preventMultipleActiveSkypeBettingProduct(CustomerProduct $customerProduct)
-    {
-        $repo =  $this->getRepository();
-        $customerProducts = $repo->getCustomerProducts($customerProduct->getCustomer());
-        
-        if ($customerProduct->isSkypeBetting() && $this->hasActiveSkypeBettingProduct($customerProducts) && $this->doesNotHaveOneActiveSkypeBettingProduct($customerProducts)) {
-            $customerProduct->suspend();
-        }
-    }
-
-    public function doesNotHaveOneActiveSkypeBettingProduct($customerProducts): bool
-    {
-        $countActiveSkypeBettingProduct = 0;
-        foreach ($customerProducts as $product) {
-            if ($product->isActiveSkypeBettingProduct()) {
-                $countActiveSkypeBettingProduct++;
-            }
-        }
-
-        return $countActiveSkypeBettingProduct > 1 ? true : false;
-    }
-    
-    public function hasActiveSkypeBettingProduct($customerProducts): bool
-    {
-        foreach ($customerProducts as $product) {
-            if ($product->isActiveSkypeBettingProduct()) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public function canSyncToCustomerProduct(string $syncId, string $customerProductId): bool
     {
         $repository = $this->getRepository();

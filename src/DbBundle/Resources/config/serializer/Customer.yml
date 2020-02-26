@@ -112,8 +112,3 @@ DbBundle\Entity\Customer:
             expose: true
             type: boolean
             serialized_name: allow_revenue_share
-#        brokerageSyncId:
-#            exp: object.getBrokerageProductSyncId()
-#            expose: true
-#            type: integer
-#            serialized_name: brokerage_sync_id

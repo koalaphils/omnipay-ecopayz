@@ -634,8 +634,6 @@ class TransactionRepository extends BaseRepository
             'transfer' => Transaction::TRANSACTION_TYPE_TRANSFER,
             'p2ptransfer' => Transaction::TRANSACTION_TYPE_P2P_TRANSFER,
             'bonus' => Transaction::TRANSACTION_TYPE_BONUS,
-            'dwl' => Transaction::TRANSACTION_TYPE_DWL,
-            'bet' => Transaction::TRANSACTION_TYPE_BET,
             'commission' => Transaction::TRANSACTION_TYPE_COMMISSION,
             'revenue_share' => Transaction::TRANSACTION_TYPE_REVENUE_SHARE,
             'debit_adjustment' => Transaction::TRANSACTION_TYPE_DEBIT_ADJUSTMENT,

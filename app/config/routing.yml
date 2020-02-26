@@ -37,36 +37,11 @@ api:
     defaults:
         _locale: "%locale%"
 
-brokerage_api:
-    resource: "@BrokerageBundle/Resources/config/routing_api.yml"
-    prefix:   /{_locale}/api
-    requirements:
-        _locale: "%app_locales%"
-        _format: json|xml
-    defaults:
-        _locale: "%locale%"
-
-brokerage:
-    resource: "@BrokerageBundle/Resources/config/routing.yml"
-    prefix:   /{_locale}/brokerage
-    requirements:
-        _locale: "%app_locales%"
-    defaults:
-        _locale: "%locale%"
-
 fos_oauth_server_token:
     resource: "@FOSOAuthServerBundle/Resources/config/routing/token.xml"
 
 fos_oauth_server_authorize:
     resource: "@FOSOAuthServerBundle/Resources/config/routing/authorize.xml"
-
-dwl:
-    resource: "@DWLBundle/Resources/config/routing.yml"
-    prefix:   /{_locale}/dwl
-    requirements:
-        _locale: "%app_locales%"
-    defaults:
-        _locale: "%locale%"
 
 media:
     resource: "@MediaBundle/Resources/config/routing.yml"
@@ -107,6 +82,14 @@ ticket:
 #        _locale: "%app_locales%"
 #    defaults:
 #        _locale: "%locale%"
+
+member_requests:
+    resource: "@MemberRequestBundle/Resources/config/routing.yml"
+    prefix:   /{_locale}/member-request
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
 
 affiliate:
     resource: "@CustomerBundle/Resources/config/affiliate_routing.yml"

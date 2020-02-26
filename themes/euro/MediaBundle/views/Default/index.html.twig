@@ -201,7 +201,7 @@
                                 'url': "{{ path('media.file_rename') }}",
                                 'type': "POST",
                                 'globalAjaxError': false,
-                                'data': {'id': id, 'filename': data.filename, 'rename': inputValue},
+                                'data': {'id': id, 'filename': data.filename, 'rename': inputValue, 'folder': data.folder},
                                 'success': function(_data) {
                                     $.each(_data.file, function(i,e) {
                                         $('#' + _data.id).data(i, this);

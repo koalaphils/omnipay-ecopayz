@@ -15,6 +15,7 @@ menus:
 breadcrumb:
     finance: Finance
     member: Member
+    memberRequest: Member Request
     transaction: Transaction
     marketing: Marketing
     report: Report

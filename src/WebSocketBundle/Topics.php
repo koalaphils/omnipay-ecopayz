@@ -11,4 +11,8 @@ final class Topics
     const TOPIC_REFERRAL_UNLINKED = 'bo.topic.member_unlinked';
     const TOPIC_BTC_EXCHANGE_RATE = 'btc.exchange_rate';
     const TOPIC_MEMBER_PRODUCT_REQUESTED = 'bo.topic.member_product.requested';
+    const TOPIC_MEMBER_KYC_FILE_UPLOADED = 'bo.topic.kyc_file_uploaded';
+    const TOPIC_MEMBER_KYC_FILE_DELETED = 'bo.topic.kyc_file_deleted';
+    const TOPIC_MEMBER_API_KYC_UPLOADED = 'ms.topic.kyc_file_uploaded';
+    const TOPIC_MEMBER_API_KYC_DELETED = 'ms.topic.kyc_file_deleted';
 }

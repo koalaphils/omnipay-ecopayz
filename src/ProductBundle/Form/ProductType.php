@@ -33,12 +33,6 @@ class ProductType extends AbstractType
             'required' => false,
             'translation_domain' => 'ProductBundle',
         ])
-        ->add('betadminToSync', CType\SwitchType::class, [
-            'label' => 'fields.betadminToSync',
-            'required' => false,
-            'translation_domain' => 'ProductBundle',
-            'empty_data' => null,
-        ])
         ->add('isActive', CType\SwitchType::class, [
             'label' => 'fields.isActive',
             'required' => false,

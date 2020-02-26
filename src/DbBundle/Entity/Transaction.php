@@ -54,7 +54,6 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     private const DETAIL_COMMISSION_PRODUCT_PERCENTAGE = 'commission.product.percentage';
     private const DETAIL_COMMISSION_COMPUTED = 'commission.computed';
     private const DETAIL_COMMISSION_CONVERTIONS = 'commission.convertions';
-    private const DETAIL_DWL_ID = 'dwl.id';
     private const DETAIL_FILE_NAME = 'file.name';
     private const DETAIL_FILE_FOLDER = 'file.folder';
     private const FILE_DAY_LIMIT = 10;
@@ -64,9 +63,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     const TRANSACTION_TYPE_TRANSFER = 3;
     const TRANSACTION_TYPE_BONUS = 4;
     const TRANSACTION_TYPE_P2P_TRANSFER = 5;
-    const TRANSACTION_TYPE_DWL = 6;
     const TRANSACTION_TYPE_COMMISSION = 7;
-    const TRANSACTION_TYPE_BET = 8;
     const TRANSACTION_TYPE_ADJUSTMENT = 9;
     const TRANSACTION_TYPE_DEBIT_ADJUSTMENT = 10;
     const TRANSACTION_TYPE_CREDIT_ADJUSTMENT = 11;
@@ -96,9 +93,6 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     private $paymentOptionType;
     private $creator;
     private $toCustomer;
-    private $dwlId;
-    private $betId;
-    private $betEventId;
     private $commissionComputedOriginal;
     private $immutablePaymentOptionData;
     private $finishedAt;
@@ -285,8 +279,6 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
             static::TRANSACTION_TYPE_TRANSFER => 'transfer',
             static::TRANSACTION_TYPE_P2P_TRANSFER => 'p2p_transfer',
             static::TRANSACTION_TYPE_BONUS => 'bonus',
-            static::TRANSACTION_TYPE_DWL => 'dwl',
-            static::TRANSACTION_TYPE_BET => 'bet',
             static::TRANSACTION_TYPE_COMMISSION => 'commission',
             static::TRANSACTION_TYPE_REVENUE_SHARE => 'revenue_share',
             static::TRANSACTION_TYPE_ADJUSTMENT => 'adjustment',
@@ -613,14 +605,6 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         }
     }
 
-    public function retainImmutableDataForDWL(): void
-    {
-        if ($this->isDwl()) {
-            $this->copyImmutableCustomerProductData();
-        }
-    }
-
-
     public function isClosedForFurtherProcessing() : bool
     {
         return ($this->hasEnded() || $this->isDeclined() || $this->isVoided());
@@ -821,16 +805,6 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         return $this->getType() === Transaction::TRANSACTION_TYPE_BONUS;
     }
 
-    public function isDwl() : bool
-    {
-        return $this->getType() === Transaction::TRANSACTION_TYPE_DWL;
-    }
-
-    public function isBet() : bool
-    {
-        return $this->getType() === Transaction::TRANSACTION_TYPE_BET;
-    }
-
     public function isCommission(): bool
     {
         return $this->getType() === Transaction::TRANSACTION_TYPE_COMMISSION;
@@ -923,8 +897,6 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
             self::TRANSACTION_TYPE_WITHDRAW => 'Withdraw',
             self::TRANSACTION_TYPE_TRANSFER => 'Transfer',
             self::TRANSACTION_TYPE_P2P_TRANSFER => 'P2P Transfer',
-            self::TRANSACTION_TYPE_BET => 'bet',
-            self::TRANSACTION_TYPE_DWL => 'dwl',
             self::TRANSACTION_TYPE_BONUS => 'bonus',
             self::TRANSACTION_TYPE_COMMISSION => 'commission',
             self::TRANSACTION_TYPE_REVENUE_SHARE => 'revenue_share',
@@ -955,10 +927,6 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
             $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_TRANSFER;
         } elseif ($this->isP2pTransfer()) {
             $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_P2P_TRANSFER;
-        } elseif ($this->isDwl()) {
-            $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_DWL;
-        } elseif ($this->isBet()) {
-            $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_BET;
         } elseif ($this->isBonus()) {
             $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_BONUS;
         } elseif ($this->isCommission()) {
@@ -1002,33 +970,6 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     public function getToCustomer(): ?int
     {
         return $this->toCustomer;
-    }
-
-    public function getDwlId(): ?int
-    {
-        if (is_null($this->dwlId) && $this->hasDetail(self::DETAIL_DWL_ID)) {
-            $this->dwlId = $this->getDetail(self::DETAIL_DWL_ID);
-        }
-
-        return $this->dwlId;
-    }
-
-    public function setDwlId(int $dwlId): self
-    {
-        $this->setDetail(self::DETAIL_DWL_ID, $dwlId);
-        $this->dwlId = $dwlId;
-
-        return $this;
-    }
-
-    public function getBetId(): ?int
-    {
-        return $this->betId;
-    }
-
-    public function getBetEventId(): ?int
-    {
-        return $this->betEventId;
     }
 
     public function getCommissionComputedOriginal(): ?float

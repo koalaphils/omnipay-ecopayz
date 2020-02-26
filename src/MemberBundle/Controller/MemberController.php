@@ -14,7 +14,6 @@ use DateTime;
 use AppBundle\Controller\PageController;
 use AppBundle\Manager\PageManager;
 use AppBundle\Widget\Page\ListWidget;
-use BrokerageBundle\Manager\BrokerageManager;
 use MemberBundle\Manager\MemberReferralNameManager;
 use MemberBundle\Manager\MemberCommissionManager;
 use MemberBundle\Manager\MemberRevenueShareManager;
@@ -117,47 +116,11 @@ class MemberController extends PageController
         return new JsonResponse(['success' => true], Response::HTTP_OK);
     }
 
-    public function processCustomerProductListResult(array $result, ListWidget $widget)
-    {
-        $brokerageManager = $this->getBrokerageManager();
-
-        $result['records'] = array_map(function(&$record) use ($brokerageManager) {
-            $record['balanceWithBA'] = $record['balance'];
-            $record['product'] = [
-                'id' => $record['product_id'],
-                'details' => $record['product_details'],
-                'name' => $record['product_name'],
-            ];
-            $record['customer'] = [
-                'id' => $record['customer_id'],
-            ];
-
-            $memberProductDetails = !is_null($record['details']) ? json_decode($record['details']) : null;
-            if (isset($memberProductDetails->brokerage->sync_id)) {
-                $syncId = $memberProductDetails->brokerage->sync_id;
-                $balance = $brokerageManager->getCustomerBalance($syncId);
-                $record['baBalance'] = $balance;
-                $record['balanceWithBA'] = $balance;
-            }
-
-            return $record;
-        }, $result['records']);
-
-        return $result;
-    }
-
     public function updateDocumentsOnGetList(PageManager $pageManager, MediaLibraryWidget $widget, array $data): array
     {
         $member = $pageManager->getData('customer');
-        $files = $member->getFiles();
 
-        foreach ($files as &$file) {
-            $path = array_get($file, 'folder', '') . '/' . $file['file'];
-            $file = array_merge($file, $this->getMediaManager()->getFile($path, true));
-        }
-        unset($customer);
-
-        return $files;
+        return $this->getMemberManager()->getMemberFiles($member);
     }
 
     public function updateDocumentsOnDeleteFile(PageManager $pageManager, MediaLibraryWidget $widget, array $data): array
@@ -172,19 +135,20 @@ class MemberController extends PageController
     public function updateDocumentsOnUploadFile(PageManager $pageManager, MediaLibraryWidget $widget, array $data): array
     {
         $member  = $pageManager->getData('customer');
-        $result = $widget->uploadFile();
-        if ($result['success']) {
+        $uploadedFile = $widget->uploadFile();
+
+        if ($uploadedFile['success']) {
             $member->addFile([
-                'folder' => $result['folder'],
-                'file' => $result['filename'],
-                'title' => $result['filename'],
+                'folder' => $uploadedFile['folder'],
+                'file' => $uploadedFile['filename'],
+                'title' => $uploadedFile['filename'],
                 'description' => '',
             ]);
             $this->getCustomerRepository()->save($member);
 
-            return $this->getMediaManager()->getFile($result['folder'] . '/' . $result['filename'], true);
-        } else {
-            return $result;
+            return $this->getMediaManager()->getFile($this->getMediaManager()->getPath($uploadedFile['folder']) . $uploadedFile['filename'], true);
+        } else { 
+            return $uploadedFile;
         }
     }
 
@@ -329,18 +293,6 @@ class MemberController extends PageController
         return [
             'items' => $records,
             'total' => $this->getCustomerRepository()->getAllPotentialReferralsOfMember($filters['excludeMemberId']),
-        ];
-    }
-
-    public function onFindSkypeBettors(PageManager $pageManager, array $data): array
-    {
-        $manager = $this->getBrokerageManager();
-        $search = $data['search'] ?? '';
-
-        $results = $manager->searchName($search);
-
-        return [
-            'items' => $results['items'],
         ];
     }
 

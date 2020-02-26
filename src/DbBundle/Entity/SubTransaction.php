@@ -18,8 +18,6 @@ class SubTransaction extends Entity implements AuditInterface
     private const DETAILS_DWL_CUSTOMER_BALANCE = 'dwl.customer.balance';
     private const DETAILS_DWL_TURNOVER = 'dwl.turnover';
     private const DETAILS_DWL_COMMISSION = 'dwl.commission';
-    private const DETAILS_DWL_BROKERAGE_STAKE = 'dwl.brokerage.stake';
-    private const DETAILS_DWL_BROKERAGE_WINLOSS = 'dwl.brokerage.winLoss';
     private const DETAILS_DWL_EXCLUDE_IN_LIST = 'dwl.exclude';
     private const DETAILS_BITCOIN_REQUESTED_AMOUNT = 'bitcoin.requested_btc';
 
@@ -52,8 +50,6 @@ class SubTransaction extends Entity implements AuditInterface
      * @var json
      */
     private $details;
-
-    private $dwlId;
 
     private $dwlTurnover;
 
@@ -123,16 +119,6 @@ class SubTransaction extends Entity implements AuditInterface
     public function isDeposit() : bool
     {
         return $this->getType() == Transaction::TRANSACTION_TYPE_DEPOSIT;
-    }
-
-    public function isDWL(): bool
-    {
-        return $this->getType() == Transaction::TRANSACTION_TYPE_DWL;
-    }
-
-    public function isBet() : bool
-    {
-        return $this->getType() === Transaction::TRANSACTION_TYPE_BET;
     }
 
     public function isVoided(): bool
@@ -346,11 +332,6 @@ class SubTransaction extends Entity implements AuditInterface
         return array_has($this->details, $key);
     }
 
-    public function isBetSettled(): bool
-    {
-        return $this->getDetail('betSettled') === true;
-    }
-
     public function getCategory()
     {
         $parent = $this->getParent();
@@ -368,10 +349,6 @@ class SubTransaction extends Entity implements AuditInterface
             $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_TRANSFER;
         } elseif ($parent->isP2pTransfer()) {
             $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_P2P_TRANSFER;
-        } elseif ($parent->isDwl()) {
-            $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_DWL;
-        } elseif ($this->isBet()) {
-            $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_BET;
         } elseif ($parent->isBonus()) {
             $category = AuditRevisionLog::CATEGORY_CUSTOMER_TRANSACTION_BONUS;
         } elseif ($parent->isCommission()) {
@@ -415,11 +392,6 @@ class SubTransaction extends Entity implements AuditInterface
     public function isAudit()
     {
         return true;
-    }
-
-    public function getDwlId(): ?int
-    {
-        return $this->dwlId;
     }
 
     public function getDwlTurnover(): ?string
@@ -469,20 +441,13 @@ class SubTransaction extends Entity implements AuditInterface
         return $this->getDetail('running_commission.id');
     }
 
-    public function setDwlId(string $id): self
-    {
-        $this->setDetail(self::DETAILS_DWL_ID, $id);
-
-        return $this;
-    }
-
     public function setDwlGrossCommission(string $grossCommission): self
     {
         $this->setDetail(self::DETAILS_DWL_GROSSCOMMISSION, $grossCommission);
 
         return $this;
     }
-
+    /*
     public function getDwlGrossCommission(): string
     {
         return $this->getDetail(self::DETAILS_DWL_GROSSCOMMISSION, '0');
@@ -521,40 +486,6 @@ class SubTransaction extends Entity implements AuditInterface
         return $this;
     }
 
-    public function getDwlBrokerageStake(): ?string
-    {
-        return $this->getDetail(self::DETAILS_DWL_BROKERAGE_STAKE);
-    }
-
-    public function setDwlBrokerageStake(string $stake): self
-    {
-        $this->setDetail(self::DETAILS_DWL_BROKERAGE_STAKE, $stake);
-
-        return $this;
-    }
-
-    public function hasDwlBrokerageStake(): bool
-    {
-        return $this->hasDetail(self::DETAILS_DWL_BROKERAGE_STAKE);
-    }
-
-    public function getDwlBrokerageWinLoss(): ?string
-    {
-        return $this->getDetail(self::DETAILS_DWL_BROKERAGE_WINLOSS);
-    }
-
-    public function setDwlBrokerageWinLoss(string $winLoss): self
-    {
-        $this->setDetail(self::DETAILS_DWL_BROKERAGE_WINLOSS, $winLoss);
-
-        return $this;
-    }
-
-    public function hasDwlBrokerageWinLoss(): bool
-    {
-        return $this->hasDetail(self::DETAILS_DWL_BROKERAGE_WINLOSS);
-    }
-
     public function setDWLExcludeInList(bool $exclude): self
     {
         if ($exclude) {
@@ -569,14 +500,5 @@ class SubTransaction extends Entity implements AuditInterface
     public function isDwlExcludeInList(): bool
     {
         return $this->getDetail(self::DETAILS_DWL_EXCLUDE_IN_LIST, 0) === 1;
-    }
-
-    public function getDwlReturn(): string
-    {
-        if ($this->hasDwlBrokerageStake() && $this->hasDwlBrokerageWinLoss()) {
-            return Number::add($this->getDwlBrokerageWinLoss(), $this->getDwlBrokerageStake())->toString();
-        }
-
-        return $this->getDwlWinLoss();
-    }
+    }*/
 }

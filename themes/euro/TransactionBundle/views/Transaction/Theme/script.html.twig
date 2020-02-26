@@ -235,21 +235,19 @@
                     {% if not form.parent.gateway.vars.view|default(false) and form.parent.gateway.vars.id is defined %}
                     $('#{{ form.parent.gateway.vars.id }}').removeAttr('disabled');
                     {% endif %}
-                        
+
                     {% if not form.parent.adjustment.vars.view|default(false) and form.parent.adjustment.vars.id is defined %}
                     $('#{{ form.parent.adjustment.vars.id }}').removeAttr('disabled');
                     {% endif %}
 
                     var transactionisNew = {{ form.parent.vars.value.customer is null ? 'true' : 'false' }};
                     {%  if form.parent.paymentOption is defined %}
-
                         {% if not form.parent.paymentOption.vars.view|default(false) %}
-                            if (transactionisNew) {
+                            if (transactionisNew) { 
                                 $('#{{ form.parent.paymentOption.vars.id }}').removeAttr('disabled');
                             }
                         {% endif %}
                     {%  endif  %}
-
 
                     objectExtend(data);
                     {%
@@ -261,7 +259,6 @@
                     %}
                             data.affiliate = {{ form.parent.vars.value.details.customer.affiliate|json_encode()|raw('js') }};
                     {% endif %}
-
                     $('.customer-data').each(function() {
                         var field = $(this).data('field');
                         $(this).html(data.array_get(field));
@@ -300,7 +297,7 @@
                         'socials': data.socials,
                         'user': data.user
                     });
-                    applySummary();
+                    applySummary(); console.log(data);
                     {% if form.parent.gateway.vars.id is defined %}
                         $('#{{ form.parent.gateway.vars.id }}').trigger('select2:select');
                     {% endif %}
@@ -938,16 +935,19 @@
                         if (actionType.toLowerCase() === 'decline') {
                             var temp = document.getElementById('declineReason');
                             var clone = temp.content.cloneNode(true);
+                            $('#decline-modal').find('.btn-void-transaction').addClass("btn-danger").removeClass("btn-success");
                         }
 
                         if (actionType.toLowerCase() === 'void') {
                             var temp = document.getElementById('voidReason');
                             var clone = temp.content.cloneNode(true);
+                            $('#decline-modal').find('.btn-void-transaction').addClass("btn-danger").removeClass("btn-success");
                         }
 
                         if(actionType.toLowerCase() === 'confirm'){
                             var temp = document.getElementById('confirmReason');
                             var clone = temp.content.cloneNode(true);
+                            $('#decline-modal').find('.btn-void-transaction').addClass("btn-success").removeClass("btn-danger");
                         }
 
                         container.appendChild(clone);

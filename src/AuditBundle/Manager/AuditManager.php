@@ -146,7 +146,6 @@ class AuditManager extends AbstractManager
     {
         $logDetails = $this->getParameter('log_details');
 
-        $logDetails['dwl']['status']['values'] = DWL::getStatusAsTexts();
         $logDetails['user']['type']['values'] = User::getTypesText();
         $logDetails['gatewayTransaction']['type']['values'] = GatewayTransaction::getTypeAsTexts();
         $logDetails['gatewayTransaction']['status']['values'] = GatewayTransaction::getStatusAsTexts();

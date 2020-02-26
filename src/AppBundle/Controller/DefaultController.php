@@ -159,9 +159,7 @@ class DefaultController extends AbstractController
         }
 
         try {
-            $relativePath = $this->getMediaManager()->renderFile($fileName, $request->get('folder'));
-
-            return new BinaryFileResponse($relativePath);
+            return $this->getMediaManager()->renderFile($fileName, $request->get('folder'));
         } catch (FileNotFoundException $e) {
             throw $this->createNotFoundException($e->getMessage());
         }
@@ -186,15 +184,7 @@ class DefaultController extends AbstractController
 
     protected function checkIfFileInUploadFolder($uploadFolder, $relativePath): bool
     {
-        $fileRealPath = realpath($relativePath);
-        $explodedFolder = explode(DIRECTORY_SEPARATOR, $uploadFolder);
-        $explodedRealPath = explode(DIRECTORY_SEPARATOR, $fileRealPath, count($explodedFolder));
-
-        $uploadDirPath = implode(DIRECTORY_SEPARATOR, $explodedFolder);
-        $filePath = implode(DIRECTORY_SEPARATOR, $explodedRealPath);
-        $beginningOfString = 0;
-        
-        return  (strpos($filePath, $uploadDirPath) === $beginningOfString);
+        return $this->getMediaManager()->checkIfFileInUploadFolder($uploadFolder, $relativePath);
     }
 
     public function getNotificationListAction()

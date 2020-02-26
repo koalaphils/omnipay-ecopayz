@@ -61,45 +61,43 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
 
     public function onTransactionPreSave(TransactionProcessEvent $event): void
     {
-        if ($event->getTransaction()->getType() !== Transaction::TRANSACTION_TYPE_DWL) {
-            $transactionNumber = $event->getTransaction()->getNumber();
-            $type = $event->getTransaction()->getTypeAsText();
-            $status = empty($event->getAction()) ? $this->getPastTense('Decline') : $this->getPastTense($event->getAction()['label']);
-            $payload['message'] = 'Transaction ' . $transactionNumber . ' ' . $type . ' has been ' . $status;
-            $payload['id'] = $event->getTransaction()->getId();
-            $payload['status'] = $status;
-            $payload['date'] = $event->getTransaction()->getDate()->format('c');
-            $payload['type'] = strtolower($event->getTransaction()->getTypeAsText());
+        $transactionNumber = $event->getTransaction()->getNumber();
+        $type = $event->getTransaction()->getTypeAsText();
+        $status = empty($event->getAction()) ? $this->getPastTense('Decline') : $this->getPastTense($event->getAction()['label']);
+        $payload['message'] = 'Transaction ' . $transactionNumber . ' ' . $type . ' has been ' . $status;
+        $payload['id'] = $event->getTransaction()->getId();
+        $payload['status'] = $status;
+        $payload['date'] = $event->getTransaction()->getDate()->format('c');
+        $payload['type'] = strtolower($event->getTransaction()->getTypeAsText());
 
-            if ($event->getTransaction()->getPaymentOptionType() !== null) {
-                $payload['payment_option'] = $event->getTransaction()->getPaymentOptionType()->getCode();
-            } else {
-                $payload['payment_option'] = null;
-            }
-            if ($payload['payment_option'] === 'BITCOIN') {
-                $payload['btc_address'] = $event->getTransaction()->getBitcoinAddress();
-            }
-            $payload['number'] = $transactionNumber;
-            $payload['reason'] = '';
-            if ($event->getTransaction()->isVoided() || $event->getTransaction()->isDeclined()) {
-                $payload['reason'] = $event->getTransaction()->getVoidingReason();
-            }
+        if ($event->getTransaction()->getPaymentOptionType() !== null) {
+            $payload['payment_option'] = $event->getTransaction()->getPaymentOptionType()->getCode();
+        } else {
+            $payload['payment_option'] = null;
+        }
+        if ($payload['payment_option'] === 'BITCOIN') {
+            $payload['btc_address'] = $event->getTransaction()->getBitcoinAddress();
+        }
+        $payload['number'] = $transactionNumber;
+        $payload['reason'] = '';
+        if ($event->getTransaction()->isVoided() || $event->getTransaction()->isDeclined()) {
+            $payload['reason'] = $event->getTransaction()->getVoidingReason();
+        }
 
 
-            if ($event->getTransaction()->isP2pTransfer()) {
-                $members = $event->getMembersInSubTransactions();
-                foreach ($members as $member) {
-                    $this->createNotification($member, $payload['message']);
-                    $this->publishWebsocketTopic($member->getWebsocketDetails()['channel_id'], $payload);
-                }
-            } else {
-                $customer = $event->getTransaction()->getCustomer();
-                $channel = $customer->getWebsocketDetails()['channel_id'];
-
-                $this->createNotification($customer, $payload['message']);                
-                // zimi
-                $this->publishWebsocketTopic($channel, $payload);
+        if ($event->getTransaction()->isP2pTransfer()) {
+            $members = $event->getMembersInSubTransactions();
+            foreach ($members as $member) {
+                $this->createNotification($member, $payload['message']);
+                $this->publishWebsocketTopic($member->getWebsocketDetails()['channel_id'], $payload);
             }
+        } else {
+            $customer = $event->getTransaction()->getCustomer();
+            $channel = $customer->getWebsocketDetails()['channel_id'];
+
+            $this->createNotification($customer, $payload['message']);                
+            // zimi
+            $this->publishWebsocketTopic($channel, $payload);
         }
     }
 

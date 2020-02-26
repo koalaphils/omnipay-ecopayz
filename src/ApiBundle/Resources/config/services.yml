@@ -80,12 +80,21 @@ services:
     #    lazy: true
     #    arguments: [ "@doctrine.orm.entity_manager", "DbBundle\\Entity\\Product" ]
 
+    api.member_request_repository:
+        class: ApiBundle\Repository\MemberRequestRepository
+        lazy: true
+        arguments: [ "@doctrine.orm.entity_manager", "DbBundle\\Entity\\MemberRequest" ]
+
     api.transaction_manager:
         class: ApiBundle\Manager\TransactionManager
         lazy: true
         parent: app.base_manager
         arguments:
             - '@media.manager'
+
+    api.member_request_manager:
+        class: ApiBundle\Manager\MemberRequestManager
+        parent: app.base_manager
 
     api.customer_transformer:
         class: ApiBundle\Form\DataTransformer\CustomerTransformer

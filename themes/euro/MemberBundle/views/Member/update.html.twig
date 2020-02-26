@@ -157,7 +157,7 @@
                         <label class="control-label" for="verifyCustomer">Verify Customer</label>
                         <input type="checkbox" id="verifyCustomer" {{ customer.isVerified() ? "checked='checked'" : "" }} data-plugin="switchery" data-color="#81c868" data-secondary-color="#f05050" />
                     </div>
-                    {#{ widget_render(page.getWidget('documents')) }#}
+                    {{ widget_render(page.getWidget('documents')) }}
                 </div>
                 <div class="tab-pane" id="referrals">
                     <div class="row">

@@ -28,7 +28,6 @@ class NoticeType extends BaseType
                 'noticeType.general' => Notice::NOTICE_TYPE_GENERAL,
                 'noticeType.deposit' => Notice::NOTICE_TYPE_DEPOSIT,
                 'noticeType.withdraw' => Notice::NOTICE_TYPE_WITHDRAW,
-                'noticeType.bet' => Notice::NOTICE_TYPE_BET,
             ],
             'label' => 'fields.type',
             'choices_as_values' => true,

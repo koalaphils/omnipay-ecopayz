@@ -14,8 +14,6 @@ DbBundle\Entity\SubTransaction:
     indexes:
         type_index:
             columns: [subtransaction_type]
-        dwl_id_index:
-            columns: [subtransaction_dwl_id]
         dwl_turnover_index:
             columns: [subtransaction_dwl_turnover]
         dwl_winloss_index:
@@ -42,13 +40,6 @@ DbBundle\Entity\SubTransaction:
             type: json
             nullable: true
             column: subtransaction_details
-        dwlId:
-            type: bigint
-            options:
-                generate: subtransaction_details->"$.dwl.id"
-                readOnly: true
-            column: subtransaction_dwl_id
-            nullable: true
         dwlTurnover:
             type: decimal
             precision: 65

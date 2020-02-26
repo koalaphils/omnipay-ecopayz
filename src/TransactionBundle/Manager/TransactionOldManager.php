@@ -21,8 +21,6 @@ class TransactionOldManager extends AbstractManager
                 'transfer' => Transaction::TRANSACTION_TYPE_TRANSFER,
                 'bonus' => Transaction::TRANSACTION_TYPE_BONUS,
                 'p2p_transfer' => Transaction::TRANSACTION_TYPE_P2P_TRANSFER,
-                'dwl' => Transaction::TRANSACTION_TYPE_DWL,
-                'bet' => Transaction::TRANSACTION_TYPE_BET,
                 'commission' => Transaction::TRANSACTION_TYPE_COMMISSION,
                 'revenue_share' => Transaction::TRANSACTION_TYPE_REVENUE_SHARE,
                 'adjustment' => Transaction::TRANSACTION_TYPE_ADJUSTMENT,
@@ -36,8 +34,6 @@ class TransactionOldManager extends AbstractManager
                 Transaction::TRANSACTION_TYPE_TRANSFER => 'transfer',
                 Transaction::TRANSACTION_TYPE_BONUS => 'bonus',
                 Transaction::TRANSACTION_TYPE_P2P_TRANSFER => 'p2p_transfer',
-                Transaction::TRANSACTION_TYPE_DWL => 'dwl',
-                Transaction::TRANSACTION_TYPE_BET => 'bet',
                 Transaction::TRANSACTION_TYPE_COMMISSION => 'commission',
                 Transaction::TRANSACTION_TYPE_REVENUE_SHARE => 'revenue_share',
                 Transaction::TRANSACTION_TYPE_ADJUSTMENT => 'adjustment',
@@ -275,36 +271,6 @@ class TransactionOldManager extends AbstractManager
                 
             }            
         }
-        
-        /* @var $subTransaction SubTransaction */        
-        // foreach ($subTransactions as $subTransaction) {
-        //     // zimi-comment
-        //     // $customerProduct = array_get($customerProducts, $subTransaction->getCustomerProduct()->getId(), $subTransaction->getCustomerProduct());
-        //     $customerBalance = new Number(array_get($customers, $customer_id, 0));
-
-        //     if ($subTransaction->isDeposit() || $subTransaction->isDWL()) {
-        //         $customerProductBalance = new Number(0);
-        //         $customerProductBalance = $customerProductBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
-                
-        //         // zimi-comment
-        //         // $customerProduct->setBalance($customerProductBalance . '');                
-                
-        //         $customerBalance = $customerBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount())) . '';
-        //     } elseif ($subTransaction->isWithdrawal()) {
-        //         $customerProductBalance = new Number($customerProduct->getBalance());
-        //         $customerProductBalance = $customerProductBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
-        //         $customerProduct->setBalance($customerProductBalance . '');
-        //         $customerBalance = $customerBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount())) . '';
-        //     }
-
-        //     // zimi-comment
-        //     // array_set($customerProducts, $customerProduct->getId(), $customerProduct);
-        //     // array_set($customers, $customerProduct->getCustomerID(), $customerBalance);
-        // }
-
-        // foreach ($customerProducts as $customerProductId => $customerProduct) {
-        //     $this->getRepository()->save($customerProduct);
-        // }
 
         if ($transaction->isDeposit()) {            
             $transaction->getCustomer()->setEnabled();            

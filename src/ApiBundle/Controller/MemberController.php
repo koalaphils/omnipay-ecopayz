@@ -3,9 +3,11 @@
 namespace ApiBundle\Controller;
 
 use ApiBundle\Form\Member\RegisterType;
+use ApiBundle\Model\File;
 use ApiBundle\Request\RegisterRequest;
 use ApiBundle\RequestHandler\MemberHandler;
 use ApiBundle\RequestHandler\RegisterHandler;
+use MediaBundle\Manager\MediaManager;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use FOS\RestBundle\View\View;
 use ApiBundle\Manager\MemberManager;
@@ -267,8 +269,93 @@ class MemberController extends AbstractController
         return $this->view($memberHandler->changeMemberLocale($request, $member, $request->get('locale')));
     }
 
+    /**
+     * @ApiDoc(
+     *     section="Member",
+     *     description="Gets the documents of the user",
+     *     views={"piwi"},
+     * )
+     */
+    public function getMemberFilesAction(): array
+    {
+        return $this->getMemberManager()->getMemberFiles();
+    }
+
+    /**
+     * @ApiDoc(
+     *    section="Member",
+     *    description="Uploads KYC file of the user",
+     *    views={"piwi"},
+     *    input={
+     *        "class"="ApiBundle\Form\Member\FileType",
+     *    }
+     * )
+     */
+    public function uploadMemberFileAction(Request $request): array
+    {
+        $files = new File();
+        $form = $this->createForm( \ApiBundle\Form\Member\FileType::class, $files);
+        $form->handleRequest($request);
+        $response = [];
+        if($form->isValid() && $form->isSubmitted()){
+            $files = $form->getData();
+            $response = $this->getMemberManager()->uploadMemberFile($files->getFiles(), $this->container->getParameter('customer_folder') ?? 'customerDocuments');
+        }
+
+        return $response;
+    }
+
+    /**
+     * @ApiDoc(
+     *     section="Member",
+     *     description="deletes customer file",
+     *     views={"piwi"},
+     *     requirements={
+     *      {"name"="filename", "dataType"="string"}
+     *     }
+     * )
+     */
+    public function deleteMemberFileAction(string $filename){
+        $response = $this->getMemberManager()->deleteMemberFile($filename, $this->container->getParameter('customer_folder') ?? 'customerDocuments');
+
+        return $response;
+    }
+
+    /**
+     * @ApiDoc(
+     *     section="Member",
+     *     description="renders customer file",
+     *     views={"piwi"},
+     *     requirements={
+     *      {"name"="filename", "dataType"="string"}
+     *     }
+     * )
+     */
+    public function renderMemberFileAction(string $filename){
+        return $this->getMediaManager()->renderFile($filename, $this->container->getParameter('customer_folder') ?? 'customerDocuments');
+    }
+
+    /**
+     * @ApiDoc(
+     *     section="Member",
+     *     description="retrieves the URI of the file",
+     *     views={"piwi"},
+     *     requirements={
+     *      {"name"="filename", "dataType"="string"}
+     *     }
+     * )
+     */
+    public function getMemberFileUriAction(string $filename){
+        return $this->getMediaManager()->getFileUri($filename, $this->container->getParameter('customer_folder') ?? 'customerDocuments');
+    }
+
     private function getMemberManager(): MemberManager
     {
         return $this->container->get('api.member.manager');
+    }
+
+    private function getMediaManager(): MediaManager
+    {
+        return $this->container->get('media.manager');
     }
 }
