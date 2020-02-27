@@ -21,9 +21,7 @@ class ProductIntegrationFactory
         if (strcasecmp($providerName, 'pinbet') == 0) {
             return new PinnacleAdapterIntegration($this->pinnacleService);
         }
-
-        dump($providerName);
-
+        
         if (!array_key_exists($providerName, $this->config)) {
             throw new NoSuchIntegrationException();
         }
