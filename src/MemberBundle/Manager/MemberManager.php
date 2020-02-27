@@ -389,80 +389,83 @@ class MemberManager extends AbstractManager
                 $lastKey = count($schemas) - 1;
             }
 
-            $subTransactionRepository = $this->getSubTransactionRepository();
-            $offset = $filters['offset'];
-            $displayCount = 0;
-            $recordCount = 0;
-            foreach ($membersAndProducts as &$row) {
-                $recordCount += 1;
-                $totalBonus = 0;
-                $totalWinLoss = 0;
-                $totalTurnover = 0;
-                $totalRevenueShare = 0;
+            if (!empty($schemas))
+            {
+                $subTransactionRepository = $this->getSubTransactionRepository();
+                $offset = $filters['offset'];
+                $displayCount = 0;
+                $recordCount = 0;
+                foreach ($membersAndProducts as &$row) {
+                    $recordCount += 1;
+                    $totalBonus = 0;
+                    $totalWinLoss = 0;
+                    $totalTurnover = 0;
+                    $totalRevenueShare = 0;
 
-                $memberRecord = [
-                    'productId' => $row['productId'],
-                    'productName' => $row['productName'],
-                    'memberId' => $row['memberId'],
-                    'memberProductId' => $row['memberProductId'],
-                    'currencyCode' => $row['currencyCode'],
-                    'totalBonus' => $this->formatCommissionAmount($totalBonus),
-                    'totalWinLoss' => $this->formatCommissionAmount($totalWinLoss),
-                    'totalTurnover' => $this->formatCommissionAmount($totalTurnover),
-                    'totalRevenueShare' => $this->formatCommissionAmount($totalRevenueShare)
-                ];
+                    $memberRecord = [
+                        'productId' => $row['productId'],
+                        'productName' => $row['productName'],
+                        'memberId' => $row['memberId'],
+                        'memberProductId' => $row['memberProductId'],
+                        'currencyCode' => $row['currencyCode'],
+                        'totalBonus' => $this->formatCommissionAmount($totalBonus),
+                        'totalWinLoss' => $this->formatCommissionAmount($totalWinLoss),
+                        'totalTurnover' => $this->formatCommissionAmount($totalTurnover),
+                        'totalRevenueShare' => $this->formatCommissionAmount($totalRevenueShare)
+                    ];
 
-                foreach ($schemas as $key => $schema) {
-                    $bonus = 0;
-                    $winLoss = 0;
-                    $turnover = 0;
-                    $revenueShare = 0;
+                    foreach ($schemas as $key => $schema) {
+                        $bonus = 0;
+                        $winLoss = 0;
+                        $turnover = 0;
+                        $revenueShare = 0;
 
-                    $newFrom = $schema['createdAt'];
-                    $newTo = $this->getDateTo($schemas, $key, $lastKey, $filters);
-                    if ($key == 0) {
-                        if ($filters['dwlDateFrom'] > $schema['createdAt']) {
-                            $newFrom = $filters['dwlDateFrom'];
+                        $newFrom = $schema['createdAt'];
+                        $newTo = $this->getDateTo($schemas, $key, $lastKey, $filters);
+                        if ($key == 0) {
+                            if ($filters['dwlDateFrom'] > $schema['createdAt']) {
+                                $newFrom = $filters['dwlDateFrom'];
+                            }
+                        }
+
+                        if ($newTo >= $newFrom){
+                            // Get Pinnacle Data
+                            $pinnacleData = $this->pinnacleService->getReportComponent()->winLoss($row['pinUserCode'], $newFrom, $newTo);
+                            if ($pinnacleData instanceof WinLossResponse) {
+                                $winLoss = $pinnacleData->getTotalDetail('payout');
+                                $turnover = $pinnacleData->getTotalDetail('turnover');
+                                $totalWinLoss += $winLoss;
+                                $totalTurnover += $turnover;
+                            }
+
+                            $filters['bonusDateFrom'] = $newFrom;
+                            $filters['bonusDateTo'] = $newTo;
+
+                            // Get Transaction Bonus
+                            $memberBonus = $subTransactionRepository->getBonusByMember($filters, $orders, $row['memberId']);
+                            if ($memberBonus){
+                                $bonus = $memberBonus['totalBonus'];
+                                $totalBonus += $bonus;
+                            }
+
+                            $revenueShare = $this->getRevenueShare($schema, $winLoss, $bonus, $row['currencyCode'], $referrerDetails->getCurrencyCode());
+                            $totalRevenueShare += $revenueShare;
                         }
                     }
 
-                    if ($newTo >= $newFrom){
-                        // Get Pinnacle Data
-                        $pinnacleData = $this->pinnacleService->getReportComponent()->winLoss($row['pinUserCode'], $newFrom, $newTo);
-                        if ($pinnacleData instanceof WinLossResponse) {
-                            $winLoss = $pinnacleData->getTotalDetail('payout');
-                            $turnover = $pinnacleData->getTotalDetail('turnover');
-                            $totalWinLoss += $winLoss;
-                            $totalTurnover += $turnover;
+                    $memberRecord['totalWinLoss'] = $this->formatCommissionAmount($totalWinLoss);
+                    $memberRecord['totalTurnover'] = $this->formatCommissionAmount($totalTurnover);
+                    $memberRecord['totalBonus'] = $this->formatCommissionAmount($totalBonus);
+                    $memberRecord['totalRevenueShare'] = $this->formatCommissionAmount($totalRevenueShare);
+                    $result['allRecords'][] = $memberRecord;
+
+                    // Filter hideZeroTurnover
+                    if (!(array_get($filters, 'hideZeroTurnover') && ($totalTurnover == 0))) {
+                        // Display Data
+                        if (($offset < $recordCount) && ($displayCount < $filters['limit'])){
+                            $displayCount += 1;
+                            $result['records'][] = $memberRecord;
                         }
-
-                        $filters['bonusDateFrom'] = $newFrom;
-                        $filters['bonusDateTo'] = $newTo;
-
-                        // Get Transaction Bonus
-                        $memberBonus = $subTransactionRepository->getBonusByMember($filters, $orders, $row['memberId']);
-                        if ($memberBonus){
-                            $bonus = $memberBonus['totalBonus'];
-                            $totalBonus += $bonus;
-                        }
-
-                        $revenueShare = $this->getRevenueShare($schema, $winLoss, $bonus, $row['currencyCode'], $referrerDetails->getCurrencyCode());
-                        $totalRevenueShare += $revenueShare;
-                    }
-                }
-
-                $memberRecord['totalWinLoss'] = $this->formatCommissionAmount($totalWinLoss);
-                $memberRecord['totalTurnover'] = $this->formatCommissionAmount($totalTurnover);
-                $memberRecord['totalBonus'] = $this->formatCommissionAmount($totalBonus);
-                $memberRecord['totalRevenueShare'] = $this->formatCommissionAmount($totalRevenueShare);
-                $result['allRecords'][] = $memberRecord;
-
-                // Filter hideZeroTurnover
-                if (!(array_get($filters, 'hideZeroTurnover') && ($totalTurnover == 0))) {
-                    // Display Data
-                    if (($offset < $recordCount) && ($displayCount < $filters['limit'])){
-                        $displayCount += 1;
-                        $result['records'][] = $memberRecord;
                     }
                 }
             }

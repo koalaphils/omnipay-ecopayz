@@ -382,6 +382,11 @@ class MemberController extends PageController
         $filters['orderBy'] = $orderBy;
         $filters['precision'] = $request->get('precision');
 
+        if((array_get($filters, 'dwlDateFrom') == "Invalid date") || (array_get($filters, 'dwlDateTo') == "Invalid date")){
+            $filters['dwlDateFrom'] = "";
+            $filters['dwlDateTo'] = "";
+        }
+
         if (array_get($filters, 'dwlDateFrom')) {
             array_set($filters, 'dwlDateFrom', date('Y-m-d', strtotime($filters['dwlDateFrom'])));
         }
