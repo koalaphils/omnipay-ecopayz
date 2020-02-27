@@ -325,7 +325,8 @@ class MemberManager extends AbstractManager
     public function getCurrentPeriodReferralTurnoversAndCommissions(int $referrerId, DateTimeInterface $currentDate, array $filters): array
     {
         if (empty($filters['dwlDateFrom'] ?? null) || empty($filters['dwlDateTo'] ?? null)) {
-            /*$currentPeriod = $this->getCommissionManager()->getCommissionPeriodForDate($currentDate);
+            /* Removed temporarily [PIW-330]
+            $currentPeriod = $this->getCommissionManager()->getCommissionPeriodForDate($currentDate);
             if (!is_null($currentPeriod)) {
                 $filters['dwlDateFrom'] = $currentPeriod->getDWLDateFrom()->format('Y-m-d');
                 $filters['dwlDateTo'] = $currentPeriod->getDWLDateTo()->format('Y-m-d');
@@ -389,8 +390,7 @@ class MemberManager extends AbstractManager
                 $lastKey = count($schemas) - 1;
             }
 
-            if (!empty($schemas))
-            {
+            if (!empty($schemas)) {
                 $subTransactionRepository = $this->getSubTransactionRepository();
                 $offset = $filters['offset'];
                 $displayCount = 0;
@@ -462,7 +462,7 @@ class MemberManager extends AbstractManager
                     // Filter hideZeroTurnover
                     if (!(array_get($filters, 'hideZeroTurnover') && ($totalTurnover == 0))) {
                         // Display Data
-                        if (($offset < $recordCount) && ($displayCount < $filters['limit'])){
+                        if (($offset < $recordCount) && ($displayCount < $filters['limit'])) {
                             $displayCount += 1;
                             $result['records'][] = $memberRecord;
                         }
