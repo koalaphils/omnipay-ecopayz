@@ -32,7 +32,7 @@ abstract class AbstractIntegration
         } catch (ClientException $e) {
             throw new IntegrationException($e->getResponse()->getBody(), $e->getResponse()->getStatusCode());
         } catch (ConnectException  $e) {
-            throw new IntegrationNotAvailableException();
+            throw new IntegrationNotAvailableException($this->url);
         }
     }
 
@@ -48,7 +48,7 @@ abstract class AbstractIntegration
         } catch (ClientException $e) {
             throw new IntegrationException($e->getResponse()->getBody(), $e->getResponse()->getStatusCode());
         } catch (ConnectException  $e) {
-            throw new IntegrationNotAvailableException();
+            throw new IntegrationNotAvailableException($this->url);
         }
     }
 

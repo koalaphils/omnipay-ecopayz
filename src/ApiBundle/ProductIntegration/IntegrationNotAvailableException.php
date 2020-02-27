@@ -9,8 +9,8 @@ namespace ApiBundle\ProductIntegration;
 
 class IntegrationNotAvailableException extends \Exception
 {
-    public function __construct()
+    public function __construct(string $url)
     {
-        parent::__construct('Integration is not currently available.');
+        parent::__construct('Integration ' . $url .  ' is not currently available.');
     }
 }

@@ -18,9 +18,11 @@ class ProductIntegrationFactory
     public function getIntegration(string $providerName): AbstractIntegration
     {
         // Return an adapter class
-        if ($providerName === 'pinbet') {
+        if (strcasecmp($providerName, 'pinbet') == 0) {
             return new PinnacleAdapterIntegration($this->pinnacleService);
         }
+
+        dump($providerName);
 
         if (!array_key_exists($providerName, $this->config)) {
             throw new NoSuchIntegrationException();

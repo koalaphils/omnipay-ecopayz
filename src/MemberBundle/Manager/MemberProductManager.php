@@ -69,7 +69,7 @@ class MemberProductManager
         } catch (IntegrationException $ex) {
             $balance = "Unable to fetch balance";
         } catch (IntegrationNotAvailableException $ex) {
-            $balance = "Unable to fetch balance";
+            $balance = $ex->getMessage();
         }
     
         if (Number::isNumber($balance)) {
