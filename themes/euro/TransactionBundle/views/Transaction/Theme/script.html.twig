@@ -297,7 +297,7 @@
                         'socials': data.socials,
                         'user': data.user
                     });
-                    applySummary(); console.log(data);
+                    applySummary(); 
                     {% if form.parent.gateway.vars.id is defined %}
                         $('#{{ form.parent.gateway.vars.id }}').trigger('select2:select');
                     {% endif %}
