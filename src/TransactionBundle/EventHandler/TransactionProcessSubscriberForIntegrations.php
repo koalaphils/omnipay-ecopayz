@@ -61,26 +61,28 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
             return; // Do nothing after voiding a transaction.
         }
 
-        try {
-            if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
-                foreach ($subTransactions as $subTransaction) {
-                    if ($subTransaction->isDeposit()) {
-                        $this->credit($jwt, $subTransaction->getAmount(), $subTransaction->getCustomerProduct());
-                    } else if ($subTransaction->isWithdrawal()) {
-                        $this->debit($jwt, $subTransaction->getAmount(), $subTransaction->getCustomerProduct());
-                    }
+        // Withrawal Transactions directly debits integrations even on Acknowledge
+        if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE && $transaction->isWithdrawal()) {
+            foreach ($subTransactions as $subTransaction) {
+                $this->debit($jwt, $subTransaction);
+            }
+            $this->gatewayMemberTransaction->processMemberTransaction($transaction);
+        }
+
+        if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
+            foreach ($subTransactions as $subTransaction) {
+                if ($subTransaction->isDeposit()) {
+                    $this->credit($jwt, $subTransaction);
+                } else if ($subTransaction->isWithdrawal() && !$subTransaction->getHasTransactedWithIntegration()) {
+                    $this->debit($jwt, $subTransaction);
                 }
             }
 
             if ($transaction->isDeposit() || $transaction->isBonus() || $transaction->isWithdrawal()) {
                 $this->gatewayMemberTransaction->processMemberTransaction($transaction);
-            }
-            
-        } catch (IntegrationNotAvailableException $ex) {
-            // TODO: Handle later
-            throw $ex;
-        }
-    }
+            }  
+        }    
+     }
 
     private function handleVoiding(string $jwt, $subTransactions): void
     {
@@ -100,24 +102,38 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         }
     }
 
-    private function credit(string $jwt, string $amount, $memberProduct)
+    private function credit(string $jwt, $subTransaction)
     {
-        $integration = $this->factory->getIntegration(strtolower($memberProduct->getProduct()->getCode()));
-        $newBalance = $integration->credit($jwt, [
-            'id' => $memberProduct->getUsername(),
-            'amount' => $amount
-        ]);
-        $memberProduct->setBalance($newBalance);
+        try {
+            $memberProduct = $subTransaction->getCustomerProduct();
+            $subTransaction->setHasTransactedWithIntegration(true);
+            $integration = $this->factory->getIntegration(strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode()));
+            $newBalance = $integration->credit($jwt, [
+                'id' => $subTransaction->getCustomerProduct()->getUsername(),
+                'amount' => $subTransaction->getAmount()
+            ]);
+            $subTransaction->setTransactionWithIntegrationStatus('succeed');
+            $memberProduct->setBalance($newBalance);
+        } catch(IntegrationNotAvailableException $ex) {
+            throw $ex;
+        }
     }
 
-    private function debit(string $jwt, string $amount, $memberProduct)
+    private function debit(string $jwt, $subTransaction)
     {
-        $integration = $this->factory->getIntegration(strtolower($memberProduct->getProduct()->getCode()));
-        $newBalance = $integration->debit($jwt, [
-            'id' => $memberProduct->getUsername(),
-            'amount' => $amount
-        ]);
-        $memberProduct->setBalance($newBalance);
+        try {
+            $memberProduct = $subTransaction->getCustomerProduct();
+            $subTransaction->setHasTransactedWithIntegration(true);
+            $integration = $this->factory->getIntegration(strtolower($memberProduct->getProduct()->getCode()));
+            $newBalance = $integration->debit($jwt, [
+                'id' => $subTransaction->getCustomerProduct()->getUsername(),
+                'amount' => $subTransaction->getAmount()
+            ]);
+            $subTransaction->setTransactionWithIntegrationStatus('succeed');
+            $memberProduct->setBalance($newBalance);
+        } catch(IntegrationNotAvailableException $ex) {
+            throw $ex;
+        }
     }
 }
 

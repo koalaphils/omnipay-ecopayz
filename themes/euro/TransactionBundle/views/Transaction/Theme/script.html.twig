@@ -297,7 +297,7 @@
                         'socials': data.socials,
                         'user': data.user
                     });
-                    applySummary(); console.log(data);
+                    applySummary(); 
                     {% if form.parent.gateway.vars.id is defined %}
                         $('#{{ form.parent.gateway.vars.id }}').trigger('select2:select');
                     {% endif %}
@@ -606,7 +606,9 @@
                         afterBalance = afterBalance.plus(this.info.amount);
                     }
                 } else if(isSubtransactionTypeWithdrawal) {
-                    afterBalance = afterBalance.minus(this.info.amount);
+                    if (this.info.hasTransactedWithIntegration == null) {
+                        afterBalance = afterBalance.minus(this.info.amount);
+                    }
                 }
 
                 var customerProduct = null;

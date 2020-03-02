@@ -94,12 +94,12 @@ DbBundle\Entity\SubTransaction:
                 type: numeric
                 groups: ['default']
                 message: customer.balance.type
-            - PinnacleBundle\Validator\PinnacleHasEnoughBalanceConstraint:
-                groups: ['withdraw']
-                userCode: object.getCustomerProduct().getUsername()
-                isAffiliate: object.getCustomerProduct().getCustomer().getIsAffiliate()
-                isUserCodeExpression: true
-                transactedExpression: object.getDetail("pinnacle.transacted")
+            # - PinnacleBundle\Validator\PinnacleHasEnoughBalanceConstraint:
+            #     groups: ['withdraw']
+            #     userCode: object.getCustomerProduct().getUsername()
+            #     isAffiliate: object.getCustomerProduct().getCustomer().getIsAffiliate()
+            #     isUserCodeExpression: true
+            #     transactedExpression: object.getDetail("pinnacle.transacted")
         type:
             - NotBlank:
                 groups: ['default']

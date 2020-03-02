@@ -112,9 +112,7 @@ class TransactionOldManager extends AbstractManager
             $sumProduct = $sumProduct->plus($subTransaction->getAmount());
             if ($subTransaction->getType() == Transaction::TRANSACTION_TYPE_WITHDRAW) {
                 $sumWithdrawProduct = $sumWithdrawProduct->plus($subTransaction->getAmount());
-            } elseif ($subTransaction->getType() == Transaction::TRANSACTION_TYPE_DEPOSIT
-                || $subTransaction->getType() == Transaction::TRANSACTION_TYPE_DWL
-            ) {
+            }  else {
                 $sumDepositProduct = $sumDepositProduct->plus($subTransaction->getAmount());
             }
 

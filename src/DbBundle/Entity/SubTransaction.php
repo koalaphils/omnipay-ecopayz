@@ -17,9 +17,12 @@ class SubTransaction extends Entity implements AuditInterface
     private const DETAILS_DWL_WINLOSS = 'dwl.winLoss';
     private const DETAILS_DWL_CUSTOMER_BALANCE = 'dwl.customer.balance';
     private const DETAILS_DWL_TURNOVER = 'dwl.turnover';
-    private const DETAILS_DWL_COMMISSION = 'dwl.commission';
-    private const DETAILS_DWL_EXCLUDE_IN_LIST = 'dwl.exclude';
+    private const DETAILS_DWL_COMMISSION = 'dwl.commission'; 
     private const DETAILS_BITCOIN_REQUESTED_AMOUNT = 'bitcoin.requested_btc';
+    // Marks a transaction whether the subtransaction transacted via integration regardless of failure.
+    private const DETAILS_HAS_TRANSACTED_WITH_INTEGRATION = 'integration.has_transacted_with_integration';
+    // Whether the last attempt on making a transaction via the integration has failed or suceed.
+    private const DETAILS_TRANSACTION_WITH_INTEGRATION_STATUS = 'integration.transaction_with_integration_status';
 
     /**
      * @var Transaction
@@ -447,6 +450,27 @@ class SubTransaction extends Entity implements AuditInterface
 
         return $this;
     }
+
+    public function setHasTransactedWithIntegration(bool $bool): void
+    {
+        $this->setDetail(self::DETAILS_HAS_TRANSACTED_WITH_INTEGRATION, $bool);
+    }
+
+    public function getHasTransactedWithIntegration(): bool
+    {
+        return $this->getDetail(self::DETAILS_HAS_TRANSACTED_WITH_INTEGRATION, false);
+    }
+
+    public function setTransactionWithIntegrationStatus(string $status): void
+    {
+        $this->setDetail(self::DETAILS_HAS_TRANSACTED_WITH_INTEGRATION, $status);
+    }
+
+    public function getTransactionWithIntegrationStatus(): bool
+    {
+        return $this->getDetail(self::DETAILS_TRANSACTION_WITH_INTEGRATION_STATUS, 'failed');
+    }
+
     /*
     public function getDwlGrossCommission(): string
     {

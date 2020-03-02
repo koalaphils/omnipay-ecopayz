@@ -90,6 +90,14 @@ services:
       - REDIS_DATABASE=0
       - MSERVICE_USERNAME=admin
       - MSERVICE_PASSWORD=admin
+      - AWS_SDK_VERSION=latest
+      - AWS_REGION=ap-northeast-1
+      - AWS_KEY=AKIAQL3DDVH5O4PHGNEV
+      - AWS_SECRET=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
+      - AWS_S3_VERSION=2006-03-01
+      - AWS_BUCKET=zmt-piwi
+      - CUSTOMER_FOLDER=customerDocuments
+      - UPLOAD_FOLDER=/uploads
     networks:
       - piwinet
 
