@@ -1,0 +1,18 @@
+ApiBundle\Request\Transaction\TransferRequest:
+  getters:
+    paymentOptionType:
+      - NotBlank: ~
+      - AppBundle\Validator\Constraints\Exists:
+          entityClass: DbBundle\Entity\PaymentOption
+          valuePath: value
+          column: code
+          ignoreNull: false
+    from:
+      - NotBlank: ~
+    to:
+      - Count:
+          min: 1
+          minMessage: Destination products should not be empty
+      - Valid: ~
+    # meta:
+    #   - Valid: ~

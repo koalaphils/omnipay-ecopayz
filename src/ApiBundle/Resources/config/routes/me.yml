@@ -40,6 +40,12 @@ api_me_withdraw:
     _controller: ApiBundle:Transaction:withdraw
   methods: [POST]
 
+api_me_transfer:
+  path: me/transactions/transfer
+  defaults:
+    _controller: ApiBundle:Transaction:transfer
+  methods: [POST]
+
 api_me_last_bitcoin_transaction:
   path: me/transaction/last-bitcoin/{type}
   defaults:
