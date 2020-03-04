@@ -6,10 +6,12 @@ namespace ApiBundle\Controller;
 
 use ApiBundle\Request\Transaction\DepositRequest;
 use ApiBundle\Request\Transaction\GetLastBitcoinRequest;
+use ApiBundle\Request\Transaction\TransferRequest;
 use ApiBundle\Request\Transaction\WithdrawRequest;
 use ApiBundle\RequestHandler\Transaction\DepositHandler;
 use ApiBundle\RequestHandler\Transaction\TransactionCommandHandler;
 use ApiBundle\RequestHandler\Transaction\TransactionQueryHandler;
+use ApiBundle\RequestHandler\Transaction\TransferHandler;
 use ApiBundle\RequestHandler\Transaction\WithdrawHandler;
 use DbBundle\Entity\Transaction;
 use Doctrine\ORM\NoResultException;
@@ -60,6 +62,7 @@ class TransactionController extends AbstractController
         if ($violations->count() > 0) {
             return $this->view($violations);
         }
+
         $transaction = $depositHandler->handle($depositRequest);
 
         return $this->view($transaction);
@@ -106,6 +109,51 @@ class TransactionController extends AbstractController
         $transaction = $withdrawHandler->handle($withdrawRequest);
 
         return $this->view($transaction);
+    }
+
+    /**
+     * @ApiDoc(
+     *     description="Request transfer transaction",
+     *     section="Transaction",
+     *     views={"piwi"},
+     *     requirements={
+     *         {"name"="payment_option_type", "dataType"="string"},
+     *         {"name"="from[username]", "dataType"="string"},
+     *         {"name"="from[product_code]", "dataType"="string"},
+     *         {"name"="from[amount]", "dataType"="string"},
+     *         {"name"="to[0][username]", "dataType"="string"},
+     *         {"name"="to[0][product_code]", "dataType"="string"},
+     *         {"name"="to[0][amount]", "dataType"="string"}
+     *     },
+     *     parameters={
+     *         {"name"="payment_option", "dataType"="string", "required"=false},
+     *         {"name"="meta[field][email]", "dataType"="string", "required"=false},
+     *         {"name"="meta[field][account_id]", "dataType"="string", "required"=false},
+     *         {"name"="meta[payment_details][bitcoin][rate_detail][range_start]", "dataType"="string", "required"=false},
+     *         {"name"="meta[payment_details][bitcoin][rate_detail][range_end]", "dataType"="string", "required"=false},
+     *         {"name"="meta[payment_details][bitcoin][rate_detail][adjustment]", "dataType"="string", "required"=false},
+     *         {"name"="meta[payment_details][bitcoin][rate_detail][adjustment_type]", "dataType"="string", "required"=false},
+     *         {"name"="meta[payment_details][bitcoin][blockchain_rate]", "dataType"="string", "required"=false},
+     *         {"name"="meta[payment_details][bitcoin][rate]", "dataType"="string", "required"=false},
+     *         {"name"="products[0][meta][payment_details][bitcoin][requested_btc]", "dataType"="string", "required"=false}
+     *     },
+     *     headers={
+     *         { "name"="Authorization", "description"="Bearer <access_token>" }
+     *     }
+     * )
+     */
+    public function transferAction(Request $request, TransferHandler $handler, ValidatorInterface $validator): View
+    {
+        $member = $this->getUser()->getCustomer();
+        $request = new TransferRequest($member, $request);
+        $violations = $validator->validate($request, null);
+        if ($violations->count() > 0) {
+            return $this->view($violations);
+        }
+
+        $handler->handle($request);
+
+        return $this->view([]);
     }
 
     /**
