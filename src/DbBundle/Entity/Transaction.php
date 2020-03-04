@@ -598,7 +598,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         if (!$this->isClosedForFurtherProcessing()) {
             $this->copyImmutableCustomerProductData();
             $this->setImmutableCustomerReferrer();
-            if ($this->isWithdrawal() || $this->isDeposit()) {
+            if ($this->isWithdrawal() || $this->isDeposit() || $this->isTransfer()) {
                 $this->setImmutablePaymentOptionData();
                 $this->setImmutablePaymentOptionOnTransactionData();
             }

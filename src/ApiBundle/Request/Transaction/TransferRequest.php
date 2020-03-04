@@ -29,14 +29,6 @@ class TransferRequest
                 $item['id'] ?? null, 
                 $item['amount'] ??  ''
             );
-
-            // $this->to[] = new Product(
-            //     $product['username'] ?? '',
-            //     $product['product_code'] ?? '',
-            //     (string) $product['amount'] ?? '',
-            //     $product['meta'] ?? [],
-            //     $this->paymentOptionType
-            // );
         }
     }
 
@@ -58,5 +50,10 @@ class TransferRequest
     public function getMemberId(): int
     {
         return (int) $this->member->getId();
+    }
+
+    public function getMember(): Member
+    {
+        return $this->member;
     }
 }
