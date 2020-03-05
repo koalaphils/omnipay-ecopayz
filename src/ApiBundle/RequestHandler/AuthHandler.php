@@ -39,6 +39,7 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use UserBundle\Manager\UserManager;
 use ApiBundle\ProductIntegration\ProductIntegrationFactory;
+use ApiBundle\ProductIntegration\IntegrationNotAvailableException;
 
 class AuthHandler
 {
@@ -263,21 +264,25 @@ class AuthHandler
         ];
     }
 
-    private function loginToEvolution(string $jwt, Customer $customer): array
+    private function loginToEvolution(string $jwt, Customer $customer): ?array
     {
-        $evolutionIntegration = $this->productIntegrationFactory->getIntegration('evolution');
-        $evolutionProduct = $this->getEvolutionProduct($customer);
-        $evolutionResponse = $evolutionIntegration->auth($jwt, [
-            'id' => $evolutionProduct->getUsername(),
-            'lastName' => $customer->getLName() || $customer->getUsername(),
-            'firstName' => $customer->getFName(),
-            'nickname' => $customer->getUsername(),
-            'country' => $customer->getCountry()->getCode(),
-            'language' => 'en',
-            'currency' => $customer->getCurrency()->getCode()
-        ]);
-
-        return $evolutionResponse;
+        try {
+            $evolutionIntegration = $this->productIntegrationFactory->getIntegration('evolution');
+            $evolutionProduct = $this->getEvolutionProduct($customer);
+            $evolutionResponse = $evolutionIntegration->auth($jwt, [
+                'id' => $evolutionProduct->getUsername(),
+                'lastName' => $customer->getLName() || $customer->getUsername(),
+                'firstName' => $customer->getFName(),
+                'nickname' => $customer->getUsername(),
+                'country' => $customer->getCountry()->getCode(),
+                'language' => 'en',
+                'currency' => $customer->getCurrency()->getCode()
+            ]);
+    
+            return $evolutionResponse;
+        } catch (IntegrationNotAvailableException $ex) {
+            return null;
+        }
     }
 
     private function getEvolutionProduct(Customer $customer): CustomerProduct
