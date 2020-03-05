@@ -176,12 +176,11 @@ class AuthHandler
 
         $this->loginUser($user);
 
-        $this->pinnacleService->getAuthComponent()->logout($user->getCustomer()->getPinUserCode());
-
         $memberLocale = $user->getCustomer()->getLocale();
         $memberLocale = strtolower(str_replace('_', '-', $memberLocale));
-
-        $pinLoginResponse = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode(), $memberLocale);
+        
+        $pinLoginResponse = $this->productIntegrationFactory->getIntegration('pinbet')
+            ->auth($user->getCustomer()->getPinUserCode(), ['locale' => $memberLocale]);
         $paymentOptionTypes = $this->paymentOptionRepository->getMemberProcessedPaymentOption($user->getCustomer()->getId());
         $processPaymentOptionTypes = [];
         foreach ($paymentOptionTypes as $paymentOption) {
@@ -193,7 +192,7 @@ class AuthHandler
 
         $loginResponse = [
             'token' => $data,
-            'pinnacle' => $pinLoginResponse->toArray(),
+            'pinnacle' => $pinLoginResponse,
             'member' => $user->getCustomer(),
             'process_payments' => $processPaymentOptionTypes,
             'evolution' => $evolutionResponse,
@@ -207,7 +206,7 @@ class AuthHandler
             $this->entityManager->flush($user->getCustomer());
         }
 
-        $this->saveSession($user, $data, $pinLoginResponse->toArray());
+        $this->saveSession($user, $data, $pinLoginResponse);
         $this->customerManager->handleAudit('login');
 
         $channel = $user->getCustomer()->getWebsocketDetails()['channel_id'];
@@ -234,7 +233,8 @@ class AuthHandler
         $pinnacleInfo = $session->getDetail('pinnacle', ['token' => '']);
 
         if ($pinnacleInfo['token'] !== $pinnacleToken) {
-            $pinnacleInfo = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode(), $memberLocale)->toArray();
+            $pinnacleInfo = $this->productIntegrationFactory->getIntegration('pinbet')
+                ->auth($user->getCustomer()->getPinUserCode(), ['locale' => $memberLocale]);
             $session->setDetail('pinnacle', $pinnacleInfo);
             $this->entityManager->persist($session);
             $this->entityManager->flush($session);
@@ -245,7 +245,8 @@ class AuthHandler
         $expirationDate = $updatedDate->modify('+' . $this->pinnacleExpiration . ' seconds')->setTimezone($now->getTimezone());
 
         if ($expirationDate <= $now) {
-            $pinnacleInfo = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode(), $memberLocale)->toArray();
+            $pinnacleInfo = $this->productIntegrationFactory->getIntegration('pinbet')
+                ->auth($user->getCustomer()->getPinUserCode(), ['locale' => $memberLocale]);
             $session->setDetail('pinnacle', $pinnacleInfo);
             $this->entityManager->persist($session);
             $this->entityManager->flush($session);
@@ -323,7 +324,9 @@ class AuthHandler
         $data = json_decode($response->getContent(), true);
         $accessToken = $this->oauthService->verifyAccessToken($data['access_token']);
         $user = $accessToken->getUser();
-        $pinLoginResponse = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode());
+        $memberLocale = $user->getCustomer()->getLocale();
+        $pinLoginResponse = $this->productIntegrationFactory->getIntegration('pinbet')
+            ->auth($user->getCustomer()->getPinUserCode(), ['locale' => $memberLocale]);
 
         return [
             'token' => $data,
