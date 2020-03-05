@@ -20,8 +20,11 @@ class PinnacleAdapterIntegration extends AbstractIntegration
 
     public function auth(string $token, $body = []): array
     {
-        // No need to implement now.
-       return [];
+        $authComponent = $this->pinnacleService->getAuthComponent();
+
+        // Body supposedly contains jsonBody for form requests.
+        // But this is an adapter class so we need to adapt.
+        return $authComponent->login($token, $body['locale'])->toArray();
     }
 
     public function getBalance(string $token, string $id): string
