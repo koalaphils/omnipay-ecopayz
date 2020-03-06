@@ -189,13 +189,15 @@ class AuthHandler
 
         $jwt = $this->generateJwtToken($user->getCustomer());
         $evolutionResponse = $this->loginToEvolution($jwt, $user->getCustomer());
+        $member = $user->getCustomer();
 
         $loginResponse = [
             'token' => $data,
             'pinnacle' => $pinLoginResponse,
-            'member' => $user->getCustomer(),
+            'member' => $member,
             'process_payments' => $processPaymentOptionTypes,
             'evolution' => $evolutionResponse,
+            'products' => $member->getProducts(),
             'jwt' => $jwt,
         ];
         $this->deleteUserAccessToken($accessToken->getUser()->getId(), [], [$accessToken->getToken()]);
@@ -272,14 +274,13 @@ class AuthHandler
             $evolutionProduct = $this->getEvolutionProduct($customer);
             $evolutionResponse = $evolutionIntegration->auth($jwt, [
                 'id' => $evolutionProduct->getUsername(),
-                'lastName' => $customer->getLName() || $customer->getUsername(),
-                'firstName' => $customer->getFName(),
+                'lastName' => $customer->getLName() ? $customer->getLname() : $customer->getUsername(),
+                'firstName' => $customer->getFName() ? $customer->getFName() : $customer->getUsername(),
                 'nickname' => $customer->getUsername(),
-                'country' => $customer->getCountry()->getCode(),
+                'country' => $customer->getCountry() ? $customer->getCountry()->getCode() : 'US',
                 'language' => 'en',
                 'currency' => $customer->getCurrency()->getCode()
             ]);
-    
             return $evolutionResponse;
         } catch (IntegrationNotAvailableException $ex) {
             return null;
