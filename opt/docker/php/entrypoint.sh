@@ -41,6 +41,17 @@ else
     composer symfony-scripts --no-dev --no-interaction
 fi
 
+php app/console doctrine:migrations:migrate --no-interaction
+#clear caches stored in redis or remote cache provider
+php app/console doctrine:cache:clear-metadata --no-interaction
+php app/console doctrine:cache:clear-query --no-interaction
+php app/console doctrine:cache:clear-result --no-interaction
+
+php app/console theme:apply euro --no-interaction
+php app/console cache:clear --no-warmup --no-optional-warmers --no-interaction
+php app/console assets:install --symlink --relative
+php app/console assetic:dump --no-interaction
+
 mkdir -p var/logs
 mkdir -p var/logs/blockchain
 mkdir -p var/cache/${SYMFONY_ENV}/jms_serializer
@@ -50,10 +61,6 @@ mkdir -p var/cache/${SYMFONY_ENV}/jms_diextra/metadata
 mkdir -p var/cache/${SYMFONY_ENV}/jms_aop
 mkdir -p var/cache/${SYMFONY_ENV}/twig
 touch var/logs/${SYMFONY_ENV}.log
-php app/console theme:apply euro
-php app/console assets:install
-php app/console assetic:dump
-# mkdir -p var/spool/default
 
 chown -Rf www-data var
 
