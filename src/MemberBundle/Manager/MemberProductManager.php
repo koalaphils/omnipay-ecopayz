@@ -61,7 +61,7 @@ class MemberProductManager
     {
         $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
         $balance = 'Unable to fetch balance';
-      
+
         try {
             $integration = $this->factory->getIntegration(strtolower($record['product_code']));
             $jwt = $this->jwtGeneratorService->generate([]);
@@ -71,9 +71,9 @@ class MemberProductManager
         } catch (IntegrationNotAvailableException $ex) {
             $balance = $ex->getMessage();
         }
-    
+
         if (Number::isNumber($balance)) {
-           $balance = Number::formatToMinimumDecimal($balance, 2);
+            $balance = Number::formatToMinimumDecimal($balance, 2);
         }
 
         return $balance;
