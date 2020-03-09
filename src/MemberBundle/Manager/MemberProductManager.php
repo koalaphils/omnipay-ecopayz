@@ -62,9 +62,7 @@ class MemberProductManager
     {
         $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
         $balance = 'Unable to fetch balance';
-
-        dump($record);
-
+        
         try {
             $integration = $this->factory->getIntegration(strtolower($record['product_code']));
             $jwt = $this->jwtGeneratorService->generate([]);
