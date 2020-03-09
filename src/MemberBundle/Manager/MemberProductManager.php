@@ -8,6 +8,7 @@ use ApiBundle\Service\JWTGeneratorService;
 use ApiBundle\ProductIntegration\ProductIntegrationFactory;
 use ApiBundle\ProductIntegration\IntegrationException;
 use ApiBundle\ProductIntegration\IntegrationNotAvailableException;
+use ApiBundle\ProductIntegration\NoSuchIntegrationException;
 use AppBundle\ValueObject\Number;
 use AppBundle\Widget\Page\ListWidget;
 use PinnacleBundle\Component\Exceptions\PinnacleError;
@@ -62,11 +63,16 @@ class MemberProductManager
         $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
         $balance = 'Unable to fetch balance';
 
+        dump($record);
+
         try {
             $integration = $this->factory->getIntegration(strtolower($record['product_code']));
             $jwt = $this->jwtGeneratorService->generate([]);
             $balance = $integration->getBalance($jwt, $record['userName']);
-        } catch (IntegrationException $ex) {
+        } catch(NoSuchIntegrationException $ex) {
+            $balance = $record['balance'];
+        } 
+        catch (IntegrationException $ex) {
             $balance = "Unable to fetch balance";
         } catch (IntegrationNotAvailableException $ex) {
             $balance = $ex->getMessage();
