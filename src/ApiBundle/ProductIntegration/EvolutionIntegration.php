@@ -16,7 +16,8 @@ class EvolutionIntegration extends AbstractIntegration
         
         return [
             'entry' => $object->entry,
-            'entry_embedded' => $object->entryEmbedded
+            'entry_embedded' => $object->entryEmbedded,
+            'session_id' => $object->sessionId,
         ];
     }
 

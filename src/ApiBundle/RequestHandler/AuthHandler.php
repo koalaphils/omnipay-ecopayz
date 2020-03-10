@@ -188,7 +188,7 @@ class AuthHandler
         }
 
         $jwt = $this->generateJwtToken($user->getCustomer());
-        $evolutionResponse = $this->loginToEvolution($jwt, $user->getCustomer());
+        $evolutionResponse = $this->loginToEvolution($jwt, $user->getCustomer(), $request);
         $member = $user->getCustomer();
 
         $loginResponse = [
@@ -267,7 +267,7 @@ class AuthHandler
         ];
     }
 
-    private function loginToEvolution(string $jwt, Customer $customer): ?array
+    private function loginToEvolution(string $jwt, Customer $customer, Request $request): ?array
     {
         try {
             $evolutionIntegration = $this->productIntegrationFactory->getIntegration('evolution');
@@ -279,7 +279,8 @@ class AuthHandler
                 'nickname' => $customer->getUsername(),
                 'country' => $customer->getCountry() ? $customer->getCountry()->getCode() : 'US',
                 'language' => 'en',
-                'currency' => $customer->getCurrency()->getCode()
+                'currency' => $customer->getCurrency()->getCode(),
+                'ip' => $request->getClientIp(),
             ]);
             return $evolutionResponse;
         } catch (IntegrationNotAvailableException $ex) {
