@@ -167,39 +167,24 @@ class AuthHandler
         }
 
         $response = $this->oauthService->grantAccessToken($request);
-
         $data = json_decode($response->getContent(), true);
         $accessToken = $this->oauthService->verifyAccessToken($data['access_token']);
-
-        /* @var $user \DbBundle\Entity\User */
         $user = $accessToken->getUser();
+        $member = $user->getCustomer();
 
         $this->loginUser($user);
 
-        $memberLocale = $user->getCustomer()->getLocale();
-        $memberLocale = strtolower(str_replace('_', '-', $memberLocale));
-        
-        $pinLoginResponse = $this->productIntegrationFactory->getIntegration('pinbet')
-            ->auth($user->getCustomer()->getPinUserCode(), ['locale' => $memberLocale]);
-        $paymentOptionTypes = $this->paymentOptionRepository->getMemberProcessedPaymentOption($user->getCustomer()->getId());
-        $processPaymentOptionTypes = [];
-        foreach ($paymentOptionTypes as $paymentOption) {
-            $processPaymentOptionTypes[$paymentOption->getCode()] = true;
-        }
-
         $jwt = $this->generateJwtToken($user->getCustomer());
-        $evolutionResponse = $this->loginToEvolution($jwt, $user->getCustomer(), $request);
-        $member = $user->getCustomer();
+        $integrationResponses = $this->loginToProducts($user, $jwt, $request->getClientIp());
 
-        $loginResponse = [
+        $loginResponse = array_merge([
             'token' => $data,
-            'pinnacle' => $pinLoginResponse,
             'member' => $member,
-            'process_payments' => $processPaymentOptionTypes,
-            'evolution' => $evolutionResponse,
+            'process_payments' => $this->getPaymentOptions($user->getCustomer()->getId()),
             'products' => $member->getProducts(),
             'jwt' => $jwt,
-        ];
+        ], $integrationResponses);
+
         $this->deleteUserAccessToken($accessToken->getUser()->getId(), [], [$accessToken->getToken()]);
 
         if ($user->getCustomer()->getWebsocketChannel() === '') {
@@ -208,13 +193,115 @@ class AuthHandler
             $this->entityManager->flush($user->getCustomer());
         }
 
-        $this->saveSession($user, $data, $pinLoginResponse);
+        $this->saveSession($user, $data, $integrationResponses['pinnacle']);
         $this->customerManager->handleAudit('login');
 
         $channel = $user->getCustomer()->getWebsocketDetails()['channel_id'];
         $this->publisher->publishUsingWamp('login.' . $channel, ['access_token' => $accessToken->getToken()]);
 
         return $loginResponse;
+    }
+
+    private function loginToProducts(User $user, string $jwt, string $ip): array
+    {
+        $memberLocale = $user->getCustomer()->getLocale();
+        $memberLocale = strtolower(str_replace('_', '-', $memberLocale));
+        $this->createPiwiWalletIfNotExisting($user->getCustomer());
+
+        return [
+            'pinnacle' => $this->loginToPinnacle($user->getCustomer()->getPinUserCode(), $memberLocale),
+            'evolution' => $this->loginToEvolution($jwt, $user->getCustomer(), $memberLocale, $ip)
+        ];
+    }
+
+    private function createPiwiWalletIfNotExisting(Customer $customer): void 
+    {
+        $customerProduct = $this->customerProductRepository->findOneByCustomerAndProductCode($customer, 'PWM');
+
+        if ($customerProduct === null) {
+            $customerProduct = CustomerProduct::create($customer);
+            $product = $this->productRepository->getProductByCode('PWM');
+            $customerProduct->setProduct($product);
+            $customerProduct->setUsername('PWM_' . uniqid());
+            $customerProduct->setBalance('0.00');
+            $customerProduct->setIsActive(true);
+            $this->entityManager->persist($customerProduct);
+            $this->entityManager->flush();
+        }
+    }
+
+    private function loginToPinnacle(string $pinUserCode, $locale): ?array
+    {   
+        try {
+            return $this->productIntegrationFactory->getIntegration('pinbet')
+                ->auth($pinUserCode, ['locale' => $locale]);
+        } catch (IntegrationNotAvailableException $ex) {
+            return null;
+        }
+    }
+
+    private function loginToEvolution(string $jwt, Customer $customer, $locale, $ip): ?array
+    {
+        try {
+            $evolutionIntegration = $this->productIntegrationFactory->getIntegration('evolution');
+            $evolutionProduct = $this->getEvolutionProduct($customer);
+            $evolutionResponse = $evolutionIntegration->auth($jwt, [
+                'id' => $evolutionProduct->getUsername(),
+                'lastName' => $customer->getLName() ? $customer->getLname() : $customer->getUsername(),
+                'firstName' => $customer->getFName() ? $customer->getFName() : $customer->getUsername(),
+                'nickname' => $customer->getUsername(),
+                'country' => $customer->getCountry() ? $customer->getCountry()->getCode() : 'US',
+                'language' => $locale,
+                'currency' => $customer->getCurrency()->getCode(),
+                'ip' => $ip,
+            ]);
+            return $evolutionResponse;
+        } catch (IntegrationNotAvailableException $ex) {
+            return null;
+        }
+    }
+
+    private function getEvolutionProduct(Customer $customer): CustomerProduct
+    {
+        $customerProduct = $this->customerProductRepository->findOneByCustomerAndProductCode($customer, 'EVOLUTION');
+
+        if ($customerProduct === null) {
+            $customerProduct = CustomerProduct::create($customer);
+            $product = $this->productRepository->getProductByCode('EVOLUTION');
+            $customerProduct->setProduct($product);
+            $customerProduct->setUsername('Evolution_' . uniqid());
+            $customerProduct->setBalance('0.00');
+            $customerProduct->setIsActive(true);
+            $this->entityManager->persist($customerProduct);
+            $this->entityManager->flush();
+        }
+
+        return $customerProduct;
+    }
+
+    private function getPaymentOptions(string $customerId): array
+    {
+        $paymentOptionTypes = $this->paymentOptionRepository->getMemberProcessedPaymentOption($customerId);
+ 
+        return array_reduce($paymentOptionTypes, function($carry, $paymentOption) {
+            $carry[$paymentOption->getCode()] = true;
+
+            return $carry;
+        }, []);
+    }
+
+    private function generateJwtToken(Customer $member): string
+    {
+        $token = [
+            'authid' => json_encode([
+                'username' => $member->getUsername(),
+                'userid' => $member->getUser()->getId(),
+                'from' => 'member_site',
+            ]),
+            'exp' => time() + $this->sessionExpiration,
+        ];
+
+        return JWT::encode($token, $this->jwtKey);
     }
 
     public function handleCheckSession(Request $request): array
@@ -265,59 +352,6 @@ class AuthHandler
             'pinnacle_updated' => $updatePinnacleLogin,
             'pinnacle' => $pinnacleInfo
         ];
-    }
-
-    private function loginToEvolution(string $jwt, Customer $customer, Request $request): ?array
-    {
-        try {
-            $evolutionIntegration = $this->productIntegrationFactory->getIntegration('evolution');
-            $evolutionProduct = $this->getEvolutionProduct($customer);
-            $evolutionResponse = $evolutionIntegration->auth($jwt, [
-                'id' => $evolutionProduct->getUsername(),
-                'lastName' => $customer->getLName() ? $customer->getLname() : $customer->getUsername(),
-                'firstName' => $customer->getFName() ? $customer->getFName() : $customer->getUsername(),
-                'nickname' => $customer->getUsername(),
-                'country' => $customer->getCountry() ? $customer->getCountry()->getCode() : 'US',
-                'language' => 'en',
-                'currency' => $customer->getCurrency()->getCode(),
-                'ip' => $request->getClientIp(),
-            ]);
-            return $evolutionResponse;
-        } catch (IntegrationNotAvailableException $ex) {
-            return null;
-        }
-    }
-
-    private function getEvolutionProduct(Customer $customer): CustomerProduct
-    {
-        $customerProduct = $this->customerProductRepository->findOneByCustomerAndProductCode($customer, 'EVOLUTION');
-
-        if ($customerProduct === null) {
-            $customerProduct = CustomerProduct::create($customer);
-            $product = $this->productRepository->getProductByCode('EVOLUTION');
-            $customerProduct->setProduct($product);
-            $customerProduct->setUsername('Evolution_' . uniqid());
-            $customerProduct->setBalance('0.00');
-            $customerProduct->setIsActive(true);
-            $this->entityManager->persist($customerProduct);
-            $this->entityManager->flush();
-        }
-
-        return $customerProduct;
-    }
-
-    private function generateJwtToken(Customer $member): string
-    {
-        $token = [
-            'authid' => json_encode([
-                'username' => $member->getUsername(),
-                'userid' => $member->getUser()->getId(),
-                'from' => 'member_site',
-            ]),
-            'exp' => time() + $this->sessionExpiration,
-        ];
-
-        return JWT::encode($token, $this->jwtKey);
     }
 
     public function handleRefreshToken(Request $request): array
