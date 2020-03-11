@@ -16,22 +16,27 @@ use PinnacleBundle\Component\Exceptions\PinnacleException;
 use PinnacleBundle\Service\PinnacleService;
 use DbBundle\Repository\CustomerProductRepository;
 
+use ProductIntegrationBundle\Integration\EvolutionIntegration;
+
 class MemberProductManager
 {
     private $pinnacleService;
     private $factory;
     private $jwtGeneratorService;
     private $customerRepository;
+    private $evoIntegration;
 
     public function __construct(PinnacleService $pinnacleService, 
         ProductIntegrationFactory $factory, 
         JWTGeneratorService $jwtGeneratorService,
-        CustomerProductRepository $customerProductRepository)
+        CustomerProductRepository $customerProductRepository,
+        EvolutionIntegration $evoIntegration)
     {
         $this->pinnacleService = $pinnacleService;
         $this->jwtGeneratorService = $jwtGeneratorService;
         $this->factory = $factory;
         $this->customerProductRepository = $customerProductRepository;
+        $this->evoIntegration = $evoIntegration;
     }
 
     public function processMemberProductListWidget(array $result, ListWidget $listWidget): array
@@ -64,9 +69,14 @@ class MemberProductManager
         $balance = 'Unable to fetch balance';
 
         try {
-            $integration = $this->factory->getIntegration(strtolower($record['product_code']));
             $jwt = $this->jwtGeneratorService->generate([]);
-            $balance = $integration->getBalance($jwt, $record['userName']);
+            if ($record['product_code'] === 'EVOLUTION') {
+                $balance = $this->evoIntegration->getBalance($jwt, $record['userName']);
+            } else {
+                $integration = $this->factory->getIntegration(strtolower($record['product_code']));
+                $balance = $integration->getBalance($jwt, $record['userName']);
+            }
+
         } catch(NoSuchIntegrationException $ex) {
             $balance = $record['balance'];
         } 

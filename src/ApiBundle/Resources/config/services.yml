@@ -193,9 +193,16 @@ services:
 
     ApiBundle\ProductIntegration\ProductIntegrationFactory:
         autowire: true
-        autoconfigure: true
         arguments:
             $config: '%product_integration%'
+    
+    ApiBundle\ProductIntegration\PinnacleAdapterIntegration:
+        autowire: true
+    
+    ApiBundle\ProductIntegration\EvolutionIntegration:
+        autowire: true
+        arguments:
+            $url: 'sample'
 
     ApiBundle\Service\JWTGeneratorService:
         arguments:

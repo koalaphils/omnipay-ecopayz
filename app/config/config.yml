@@ -27,6 +27,7 @@ imports:
     - { resource: "@CommissionBundle/Resources/config/services.yml" }
     - { resource: "@MemberRequestBundle/Resources/config/services.yml" }
     - { resource: packages/ }
+    - { resource: "@ProductIntegrationBundle/Resources/config/services.yml" }
 
 # Put parameters here that don't need to change on each machine where the app is deployed
 # http://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
@@ -178,4 +179,12 @@ aws:
         secret: '%aws_sdk.secret%' # this will be escaped as '@not-a-real-secret'
     S3:
         version: '%aws_s3.version%'
-        region: '%aws_s3.region%'        
+        region: '%aws_s3.region%'   
+        
+product_integration:
+    integrations:
+        evolution:
+            url: '%evolution_url%'
+            class: 'ProductIntegrationBundle\Integration\EvolutionIntegration'
+        pinbet:
+            class: 'ProductIntegrationBundle\Integration\PinnacleIntegration'
