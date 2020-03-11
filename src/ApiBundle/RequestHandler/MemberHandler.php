@@ -6,9 +6,11 @@ namespace ApiBundle\RequestHandler;
 
 use AppBundle\Helper\Publisher;
 use DbBundle\Entity\Customer;
+use DbBundle\Repository\CountryRepository;
 use DbBundle\Repository\CustomerPaymentOptionRepository;
 use DbBundle\Repository\SessionRepository;
 use Doctrine\ORM\EntityManager;
+use OAuth2\OAuth2AuthenticateException;
 use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
@@ -42,13 +44,19 @@ class MemberHandler
      */
     private $entityManager;
 
+    /**
+     * @var CountryRepository
+     */
+    private $countryRepository;
+
     public function __construct(
         PinnacleService $pinnacleService,
         CustomerPaymentOptionRepository $memberPaymentOptionRepository,
         EntityManager $entityManager,
         SessionRepository $sessionRepository,
         TokenStorage $tokenStorage,
-        Publisher $publisher
+        Publisher $publisher,
+        CountryRepository $countryRepository
     ) {
         $this->pinnacleService = $pinnacleService;
         $this->memberPaymentOptionRepository = $memberPaymentOptionRepository;
@@ -56,6 +64,7 @@ class MemberHandler
         $this->sessionRepository = $sessionRepository;
         $this->tokenStorage = $tokenStorage;
         $this->publisher = $publisher;
+        $this->countryRepository = $countryRepository;
     }
 
     public function handleGetBalance(Customer $member): array
@@ -108,5 +117,23 @@ class MemberHandler
         $this->publisher->publishUsingWamp('pinnacle.update.' . $channel, ['login_url' => $pinLoginResponse->loginUrl()]);
 
         return ['success' => true, 'pinnacle' => $pinLoginResponse->toArray()];
+    }
+
+    public function changeMemberCountry(Customer $member, string $countryCode): array
+    {
+        try {
+            $country = $this->countryRepository->findByCode($countryCode);
+            $member = $member->setCountry($country);
+
+            $this->entityManager->persist($member);
+            $this->entityManager->flush($member);
+
+            $response = ['error' => false, 'data' => $country, 'status' => 200];
+
+        } catch (OAuth2AuthenticateException $exception) {
+            $response = ['error' => true, 'data' => $exception->getMessage(), 'status' => $exception->getCode()];
+        }
+
+        return $response;
     }
 }
