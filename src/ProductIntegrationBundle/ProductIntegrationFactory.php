@@ -19,7 +19,7 @@ class ProductIntegrationFactory
 
     public function getIntegration(string $integrationName): ProductIntegrationInterface
     {
-        if (!isset(strlower($integrationName))) {
+        if (!isset($this->resolvedIntegrations[strtolower($integrationName)])) {
             throw new NoSuchIntegrationException();
         }
 

@@ -38,8 +38,8 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use UserBundle\Manager\UserManager;
-use ApiBundle\ProductIntegration\ProductIntegrationFactory;
-use ApiBundle\ProductIntegration\IntegrationNotAvailableException;
+use ProductIntegrationBundle\ProductIntegrationFactory;
+use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
 
 class AuthHandler
 {

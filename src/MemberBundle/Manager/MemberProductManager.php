@@ -16,23 +16,16 @@ class MemberProductManager
 {
     private $factory;
     private $jwtGeneratorService;
-    private $customerRepository;
-    private $evoIntegration;
 
-    public function __construct(
-        ProductIntegrationFactory $factory, 
-        JWTGeneratorService $jwtGeneratorService,
-)
+    public function __construct(ProductIntegrationFactory $factory, JWTGeneratorService $jwtGeneratorService)
     {
-        $this->pinnacleService = $pinnacleService;
         $this->jwtGeneratorService = $jwtGeneratorService;
         $this->factory = $factory;
     }
 
     public function processMemberProductListWidget(array $result, ListWidget $listWidget): array
     {
-        $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
-        $result['records'] = array_map(function(&$record) use ($pinnacleProduct) {
+        $result['records'] = array_map(function(&$record) {
             $record['product'] = $this->getProductDetails($record);
             $record['customer'] = [ 'id' => $record['customer_id']];
             $record['balance'] = $this->getProductBalance($record);
@@ -55,7 +48,6 @@ class MemberProductManager
 
     private function getProductBalance($record)
     {
-        $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
         $balance = 'Unable to fetch balance';
 
         try {

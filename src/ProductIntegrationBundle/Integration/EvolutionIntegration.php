@@ -15,7 +15,7 @@ class EvolutionIntegration implements ProductIntegrationInterface
 
     public function auth(string $token, $body = []): array
     {
-        $response = $this->post('/auth', $token, $body);
+        $response = $this->http->post('/auth', $token, $body);
         $object = json_decode(((string) $response->getBody()));
         
         return [
@@ -37,7 +37,7 @@ class EvolutionIntegration implements ProductIntegrationInterface
     {
         $transactionId = 'Credit_' . uniqid();
         $url = sprintf('/credit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $transactionId);
-        $response = $this->get($url, $token);
+        $response = $this->http->get($url, $token);
         $object = json_decode(((string) $response->getBody()));
         
         return $object->transfer->balance;
@@ -47,7 +47,7 @@ class EvolutionIntegration implements ProductIntegrationInterface
     {  
         $transactionId = 'Debit_' . uniqid();
         $url = sprintf('/debit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $transactionId);
-        $response = $this->get($url, $token);
+        $response = $this->http->get($url, $token);
         $object = json_decode(((string) $response->getBody()));
 
         return $object->transfer->balance;

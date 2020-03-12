@@ -2,13 +2,22 @@
 
 namespace ProductIntegrationBundle\Integration;
 
+// TODO: We can move Integrations to other folder so as to make this
+// bundle reusable.
+
 use ProductIntegrationBundle\Exception\IntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
+Use DbBundle\Repository\CustomerProductRepository;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class PiwiWalletIntegration implements ProductIntegrationInterface
 {
-    public function __construct()
+    private $storage;
+    private $repository;
+
+    public function __construct(CustomerProductRepository $repository)
     {
+        $this->repository = $repository;
     }
 
     public function auth(string $token, $body = []): array
@@ -17,8 +26,11 @@ class PiwiWalletIntegration implements ProductIntegrationInterface
     }
 
     public function getBalance(string $token, string $id): string
-    {
-        return '0.00';
+    {   
+        // We will use $id as the Product's Username
+        $product = $this->repository->findByUsername($id);
+
+        return $product->getBalance();
     }
 
     public function credit(string $token, array $params): string
