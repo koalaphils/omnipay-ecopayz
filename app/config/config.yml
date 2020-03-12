@@ -188,3 +188,5 @@ product_integration:
             class: 'ProductIntegrationBundle\Integration\EvolutionIntegration'
         pinbet:
             class: 'ProductIntegrationBundle\Integration\PinnacleIntegration'
+        pwm:
+            class: 'ProductIntegrationBundle\Integration\PiwiWalletIntegration'

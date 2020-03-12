@@ -2,6 +2,7 @@
 
 namespace ProductIntegrationBundle\DependencyInjection;
 
+use ProductIntegrationBundle\ProductIntegrationFactory;
 use ProductIntegrationBundle\Persistence\HttpPersistence;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -9,6 +10,7 @@ use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
+
 
 class ProductIntegrationExtension extends Extension
 {
@@ -36,7 +38,10 @@ class ProductIntegrationExtension extends Extension
         }
 
         $factoryDefinition = new Definition(ProductIntegrationFactory::class);
-        $factoryDefinition->setArguments($factoryParameters);
+        $factoryDefinition->setArguments([
+            new Reference('service_container'),
+            $factoryParameters
+        ]);
         $container->setDefinition(ProductIntegrationFactory::class, $factoryDefinition);
     }
 

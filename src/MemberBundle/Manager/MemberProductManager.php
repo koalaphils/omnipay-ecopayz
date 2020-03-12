@@ -5,38 +5,28 @@ declare(strict_types = 1);
 namespace MemberBundle\Manager;
 
 use ApiBundle\Service\JWTGeneratorService;
-use ApiBundle\ProductIntegration\ProductIntegrationFactory;
-use ApiBundle\ProductIntegration\IntegrationException;
-use ApiBundle\ProductIntegration\IntegrationNotAvailableException;
-use ApiBundle\ProductIntegration\NoSuchIntegrationException;
 use AppBundle\ValueObject\Number;
 use AppBundle\Widget\Page\ListWidget;
-use PinnacleBundle\Component\Exceptions\PinnacleError;
-use PinnacleBundle\Component\Exceptions\PinnacleException;
-use PinnacleBundle\Service\PinnacleService;
-use DbBundle\Repository\CustomerProductRepository;
-
-use ProductIntegrationBundle\Integration\EvolutionIntegration;
+use ProductIntegrationBundle\ProductIntegrationFactory;
+use ProductIntegrationBundle\Exception\IntegrationException;
+use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
+use ProductIntegrationBundle\Exception\NoSuchIntegrationException;
 
 class MemberProductManager
 {
-    private $pinnacleService;
     private $factory;
     private $jwtGeneratorService;
     private $customerRepository;
     private $evoIntegration;
 
-    public function __construct(PinnacleService $pinnacleService, 
+    public function __construct(
         ProductIntegrationFactory $factory, 
         JWTGeneratorService $jwtGeneratorService,
-        CustomerProductRepository $customerProductRepository,
-        EvolutionIntegration $evoIntegration)
+)
     {
         $this->pinnacleService = $pinnacleService;
         $this->jwtGeneratorService = $jwtGeneratorService;
         $this->factory = $factory;
-        $this->customerProductRepository = $customerProductRepository;
-        $this->evoIntegration = $evoIntegration;
     }
 
     public function processMemberProductListWidget(array $result, ListWidget $listWidget): array
@@ -70,13 +60,8 @@ class MemberProductManager
 
         try {
             $jwt = $this->jwtGeneratorService->generate([]);
-            if ($record['product_code'] === 'EVOLUTION') {
-                $balance = $this->evoIntegration->getBalance($jwt, $record['userName']);
-            } else {
-                $integration = $this->factory->getIntegration(strtolower($record['product_code']));
-                $balance = $integration->getBalance($jwt, $record['userName']);
-            }
-
+            $integration = $this->factory->getIntegration(strtolower($record['product_code']));
+            $balance = $integration->getBalance($jwt, $record['userName']);
         } catch(NoSuchIntegrationException $ex) {
             $balance = $record['balance'];
         } 

@@ -23,7 +23,6 @@ class HttpPersistence
 
     public function get(string $url, string $token) 
     {
-        dump($this->url);
         try {
             return $this->client->get($url, [
                 'headers' => [
