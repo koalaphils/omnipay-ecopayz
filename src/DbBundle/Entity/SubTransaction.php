@@ -19,10 +19,9 @@ class SubTransaction extends Entity implements AuditInterface
     private const DETAILS_DWL_TURNOVER = 'dwl.turnover';
     private const DETAILS_DWL_COMMISSION = 'dwl.commission'; 
     private const DETAILS_BITCOIN_REQUESTED_AMOUNT = 'bitcoin.requested_btc';
-    // Marks a transaction whether the subtransaction transacted via integration regardless of failure.
-    private const DETAILS_HAS_TRANSACTED_WITH_INTEGRATION = 'integration.has_transacted_with_integration';
-    // Whether the last attempt on making a transaction via the integration has failed or suceed.
-    private const DETAILS_TRANSACTION_WITH_INTEGRATION_STATUS = 'integration.transaction_with_integration_status';
+
+    private const DETAILS_HAS_TRANSACTED_WITH_PIWI_MEMBER_WALLET = 'integration.has_transacted_with_piwi_member_wallet';
+    private const DETAILS_HAS_FAILED_PROCESSING_INTEGRATION = 'integration.failed_processing';
 
     /**
      * @var Transaction
@@ -451,24 +450,24 @@ class SubTransaction extends Entity implements AuditInterface
         return $this;
     }
 
-    public function setHasTransactedWithIntegration(bool $bool): void
+    public function setHasTransactedWithPiwiWalletMember(bool $bool): void
     {
-        $this->setDetail(self::DETAILS_HAS_TRANSACTED_WITH_INTEGRATION, $bool);
+        $this->setDetail(self::DETAILS_HAS_TRANSACTED_WITH_PIWI_MEMBER_WALLET, $bool);
     }
 
-    public function getHasTransactedWithIntegration(): bool
+    public function getHasTransactedWithPiwiWalletMember(): bool
     {
-        return $this->getDetail(self::DETAILS_HAS_TRANSACTED_WITH_INTEGRATION, false);
+        return $this->getDetail(self::DETAILS_HAS_TRANSACTED_WITH_PIWI_MEMBER_WALLET, false);
     }
 
-    public function setTransactionWithIntegrationStatus(string $status): void
+    public function setFailedProcessingWithIntegration(bool $bool): void
     {
-        $this->setDetail(self::DETAILS_HAS_TRANSACTED_WITH_INTEGRATION, $status);
+        $this->setDetail(self::DETAILS_HAS_FAILED_PROCESSING_INTEGRATION, $bool);
     }
 
-    public function getTransactionWithIntegrationStatus(): bool
+    public function getFailedProcessingWithIntegration(bool $bool): bool
     {
-        return $this->getDetail(self::DETAILS_TRANSACTION_WITH_INTEGRATION_STATUS, 'failed');
+        return $this->getDetail(self::DETAILS_HAS_FAILED_PROCESSING_INTEGRATION, false);
     }
 
     /*

@@ -134,6 +134,11 @@ class CustomerProductRepository extends BaseRepository
         return $qb->getQuery()->getOneOrNullResult();
     }
 
+    public function getMemberPiwiMemberWallet(Member $member): MemberProduct
+    {
+        return $this->findOneByCustomerAndProductCode($member, 'PWM');
+    }
+
     /**
      * Create Query Builder.
      *

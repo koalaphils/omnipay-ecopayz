@@ -9,6 +9,7 @@ use ProductIntegrationBundle\Exception\IntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
 Use DbBundle\Repository\CustomerProductRepository;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use AppBundle\ValueObject\Number;
 
 class PiwiWalletIntegration implements ProductIntegrationInterface
 {
@@ -35,11 +36,25 @@ class PiwiWalletIntegration implements ProductIntegrationInterface
 
     public function credit(string $token, array $params): string
     {
-        return '0.00';
+        $product = $this->repository->getMemberPiwiMemberWallet($params[
+            'member'
+        ]);
+
+        $sum = Number::add($product->getBalance(), $params['amount']);
+        $product->setBalance($sum->toString());
+
+        return $product->getBalance();
     }
 
     public function debit(string $token, array $params): string
     {
-        return '0.00';
+        $product = $this->repository->getMemberPiwiMemberWallet($params[
+            'member'
+        ]);
+
+        $diff = Number::sub($product->getBalance(), $params['amount']);
+        $product->setBalance($diff->toString());
+
+        return $product->getBalance();
     }
 }
