@@ -351,7 +351,7 @@ class TransactionOldController extends AbstractController
             } catch (\AppBundle\Exceptions\FormValidationException $e) {
                 $response['success'] = false;
                 $response['errors'] = $e->getErrors();
-            } catch (\ApiBundle\ProductIntegration\IntegrationNotAvailableException  $e) {
+            } catch (\ProductIntegrationBundle\Exception\IntegrationNotAvailableException  $e) {
                 $response['success'] = false;
                 $response['errorMessage'] = $e->getMessage();
             }  

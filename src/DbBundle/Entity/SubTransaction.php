@@ -465,7 +465,7 @@ class SubTransaction extends Entity implements AuditInterface
         $this->setDetail(self::DETAILS_HAS_FAILED_PROCESSING_INTEGRATION, $bool);
     }
 
-    public function getFailedProcessingWithIntegration(bool $bool): bool
+    public function getFailedProcessingWithIntegration(): bool
     {
         return $this->getDetail(self::DETAILS_HAS_FAILED_PROCESSING_INTEGRATION, false);
     }

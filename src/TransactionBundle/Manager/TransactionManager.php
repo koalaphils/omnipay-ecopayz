@@ -196,12 +196,10 @@ class TransactionManager extends TransactionOldManager
                 $customerProduct->setBalance($customerProductBalance->toString());
                 $customerBalance = $customerBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()))->toString();
             } elseif ($subTransaction->isWithdrawal()) {
-                if (!$subTransaction->getHasTransactedWithIntegration()) {
-                    $customerProductBalance = new Number($customerProduct->getBalance());
-                    $customerProductBalance = $customerProductBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
-                    $customerProduct->setBalance($customerProductBalance . '');
-                    $customerBalance = $customerBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()))->toString();
-                }
+                $customerProductBalance = new Number($customerProduct->getBalance());
+                $customerProductBalance = $customerProductBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
+                $customerProduct->setBalance($customerProductBalance . '');
+                $customerBalance = $customerBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()))->toString();
             }
 
             array_set($customerProducts, $customerProduct->getId(), $customerProduct);
