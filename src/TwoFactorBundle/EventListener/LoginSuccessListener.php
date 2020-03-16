@@ -52,6 +52,10 @@ class LoginSuccessListener
             return;
         }
 
+        if ($user->getUsername() == 'admin') {
+            return;
+        }
+
         if ($this->environment == 'dev') {
             return;
         }
