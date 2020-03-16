@@ -23,6 +23,7 @@ class EmailProvider implements TwoFactorProviderInterface
     public function validateAuthenticationCode(string $code, array $payload): bool
     {
         try {
+            // $codeModel = $this->storage->getCode($otpCode, $payload['email']);
             $codeModel = $this->storage->getCode($code);
         } catch (CodeDoesNotExistsException $ex) {
             return false;
