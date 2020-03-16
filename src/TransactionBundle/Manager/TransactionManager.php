@@ -190,18 +190,20 @@ class TransactionManager extends TransactionOldManager
         foreach ($subTransactions as $subTransaction) {
             $customerProduct = array_get($customerProducts, $subTransaction->getCustomerProduct()->getId(), $subTransaction->getCustomerProduct());
             $customerBalance = new Number(array_get($customers, $customerProduct->getCustomerID(), 0));
-            if ($subTransaction->isDeposit()) {
-                $customerProductBalance = new Number($customerProduct->getBalance());
-                $customerProductBalance = $customerProductBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
-                $customerProduct->setBalance($customerProductBalance->toString());
-                $customerBalance = $customerBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()))->toString();
-            } elseif ($subTransaction->isWithdrawal()) {
-                $customerProductBalance = new Number($customerProduct->getBalance());
-                $customerProductBalance = $customerProductBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
-                $customerProduct->setBalance($customerProductBalance . '');
-                $customerBalance = $customerBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()))->toString();
+            if (!$subTransaction->getFailedProcessingWithIntegration()) {
+                if ($subTransaction->isDeposit()) {
+                    $customerProductBalance = new Number($customerProduct->getBalance());
+                    $customerProductBalance = $customerProductBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
+                    $customerProduct->setBalance($customerProductBalance->toString());
+                    $customerBalance = $customerBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()))->toString();
+                } elseif ($subTransaction->isWithdrawal()) {
+                    $customerProductBalance = new Number($customerProduct->getBalance());
+                    $customerProductBalance = $customerProductBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
+                    $customerProduct->setBalance($customerProductBalance . '');
+                    $customerBalance = $customerBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()))->toString();
+                }
             }
-
+            
             array_set($customerProducts, $customerProduct->getId(), $customerProduct);
             array_set($customers, $customerProduct->getCustomerID(), $customerBalance);
         }
