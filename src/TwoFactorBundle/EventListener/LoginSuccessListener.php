@@ -19,17 +19,20 @@ class LoginSuccessListener
     private $storage;
     private $emailMessenger;
     private $settingManager;
+    private $environment;
     
     public function __construct(
         EmailCodeGenerator $codeGenerator,
         StorageInterface $storage,
         EmailMessenger $emailMessenger,
-        SettingManager $settingManager)
+        SettingManager $settingManager,
+        $environment)
     {
         $this->codeGenerator = $codeGenerator;
         $this->storage = $storage;
         $this->emailMessenger = $emailMessenger;
         $this->settingManager = $settingManager;
+        $this->environment = $environment;
     }
 
     public function onSecurityInteractiveLogin(InteractiveLoginEvent $event)
@@ -49,10 +52,6 @@ class LoginSuccessListener
         }
 
         if ($user->getUsername() == 'system') {
-            return;
-        }
-
-        if ($user->getUsername() == 'admin') {
             return;
         }
 
