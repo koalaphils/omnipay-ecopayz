@@ -470,6 +470,11 @@ class SubTransaction extends Entity implements AuditInterface
         return $this->getDetail(self::DETAILS_HAS_FAILED_PROCESSING_INTEGRATION, false);
     }
 
+    public function getHasTransactedToIntegration(): bool
+    {
+        return $this->getDetail(self::DETAILS_HAS_FAILED_PROCESSING_INTEGRATION, null) !== null;
+    }
+
     /*
     public function getDwlGrossCommission(): string
     {
