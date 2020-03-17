@@ -42,8 +42,21 @@ class LoginSuccessListener
         //Check if user can do two-factor authentication
         $token = $event->getAuthenticationToken();
         $user = $token->getUser();
+
         if (!$user instanceof User)
         {
+            return;
+        }
+
+        if ($user->getUsername() == 'system') {
+            return;
+        }
+
+        if ($user->getUsername() == 'admin') {
+            return;
+        }
+
+        if ($this->environment == 'dev') {
             return;
         }
 
