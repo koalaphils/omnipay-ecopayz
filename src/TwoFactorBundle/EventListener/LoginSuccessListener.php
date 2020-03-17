@@ -55,9 +55,9 @@ class LoginSuccessListener
             return;
         }
 
-        // if ($this->environment == 'dev') {
-        //     return;
-        // }
+        if ($this->environment == 'dev') {
+            return;
+        }
 
         $email = $user->getEmail();
         $payload = [
