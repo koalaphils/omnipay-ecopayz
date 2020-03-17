@@ -53,6 +53,7 @@ class PiwiWalletIntegration implements ProductIntegrationInterface
         ]);
 
         $diff = Number::sub($product->getBalance(), $params['amount']);
+        dump($diff);
         $product->setBalance($diff->toString());
 
         return $product->getBalance();

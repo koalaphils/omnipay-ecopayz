@@ -56,6 +56,12 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         $subTransactions = $transaction->getSubTransactions();
         $jwt = $this->jwtGenerator->generate([]);
 
+        if ($event->getTransition()->getName() === 'void') {
+            // $this->handleVoiding($jwt, $subTransactions);
+            $this->gatewayMemberTransaction->voidMemberTransaction($transaction);
+            return; 
+        }
+
         foreach ($subTransactions as $subTransaction) {
             if ($subTransaction->isDeposit()) {
                 if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE) {
@@ -90,19 +96,10 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         if ($transaction->isDeposit() || $transaction->isBonus() || $transaction->isWithdrawal()) {
             $this->gatewayMemberTransaction->processMemberTransaction($transaction);
         }  
-        
-        // if ($event->getTransition()->getName() === 'void') {
-        //     $this->handleVoiding($jwt, $subTransactions);
-        //     $this->gatewayMemberTransaction->voidMemberTransaction($transaction);
-        //     return; // Do nothing after voiding a transaction.
-        // }
     }
 
     private function creditToPiwiWallet($subTransaction, string $jwt)
     {
-        if ($subTransaction->getHasTransactedWithPiwiWalletMember())
-            return;
-        
         $amount = $subTransaction->getAmount();
         $piwiIntegration = $this->factory->getIntegration('pwm');
         $piwiBalance = $piwiIntegration->credit($jwt, [
@@ -114,9 +111,6 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
     
     private function debitFromPiwiWallet($subTransaction, string $jwt)
     {
-        if ($subTransaction->getHasTransactedWithPiwiWalletMember())
-            return;
-
         $amount = $subTransaction->getAmount();
         $piwiIntegration = $this->factory->getIntegration('pwm');
         $piwiBalance = $piwiIntegration->debit($jwt, [

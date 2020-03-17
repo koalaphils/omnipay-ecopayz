@@ -84,10 +84,10 @@ class TransferHandler
             $transaction->setFee('company_fee', 0);
     
             // Get CustomerPaymentOption
-            $memberPaymentOption = $this->memberPaymentOptionRepository->findByFields((int) $member->getId(), $request->getPaymentOptionType());
-            $transaction->setPaymentOption($memberPaymentOption);
-            $transaction->autoSetPaymentOptionType();
-            $transaction->setPaymentOptionOnTransaction($memberPaymentOption);
+            // $memberPaymentOption = $this->memberPaymentOptionRepository->findByFields((int) $member->getId(), $request->getPaymentOptionType());
+            // $transaction->setPaymentOption($memberPaymentOption);
+            // $transaction->autoSetPaymentOptionType();
+            // $transaction->setPaymentOptionOnTransaction($memberPaymentOption);
             $transaction->retainImmutableData();
 
             $action = ['label' => 'Save', 'status' => Transaction::TRANSACTION_STATUS_START];
