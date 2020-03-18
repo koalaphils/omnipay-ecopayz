@@ -10,6 +10,12 @@ api_me_pinnacle_balance:
     _controller: ApiBundle:Member:getPinnacleBalance
   methods: [GET]
 
+api_me_balance:
+  path: me/balance
+  defaults:
+    _controller: ApiBundle:Member:getBalance
+  methods: [GET]
+
 api_me_process_payment_options:
   path: me/processed-paymentoptions
   defaults:

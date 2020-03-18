@@ -6,9 +6,11 @@ namespace ApiBundle\RequestHandler;
 
 use AppBundle\Helper\Publisher;
 use DbBundle\Entity\Customer;
+use DbBundle\Entity\Product;
 use DbBundle\Repository\CountryRepository;
 use DbBundle\Repository\CustomerPaymentOptionRepository;
 use DbBundle\Repository\SessionRepository;
+use DbBundle\Collection\Collection;
 use Doctrine\ORM\EntityManager;
 use OAuth2\OAuth2AuthenticateException;
 use PinnacleBundle\Service\PinnacleService;
@@ -65,16 +67,26 @@ class MemberHandler
         $this->tokenStorage = $tokenStorage;
         $this->publisher = $publisher;
         $this->countryRepository = $countryRepository;
+
     }
 
     public function handleGetBalance(Customer $member): array
     {
         $userCode = $member->getPinUserCode();
         $player = $this->pinnacleService->getPlayerComponent()->getPlayer($userCode);
+        $customerProducts = $member->getActiveProducts();
+
+        $productBalance = [];
+
+        foreach ($customerProducts as $customerProduct) {
+            $productBalance[$customerProduct->getProduct()->getCode()] = $customerProduct->getBalance();
+        }
 
         return [
-            'available_balance' => $player->availableBalance(),
-            'outstanding' => $player->outstanding(),
+            'available_balance' => $member->getAvailableBalance(),
+            'pinnacle_balance' => $player->availableBalance(),
+            'product_balance' => $productBalance,
+            'outstanding' => $player->outstanding()
         ];
     }
 

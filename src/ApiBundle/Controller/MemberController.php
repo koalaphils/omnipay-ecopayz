@@ -229,6 +229,23 @@ class MemberController extends AbstractController
     /**
      * @ApiDoc(
      *     section="Current Login Member",
+     *     description="Get Balance",
+     *     views={"default", "piwi"},
+     *     headers={
+     *         { "name"="Authorization", "description"="Bearer <access_token>" }
+     *     }
+     * )
+     */
+    public function getBalanceAction(MemberHandler $memberHandler): View
+    {
+        $user = $this->getUser();
+
+        return $this->view($memberHandler->handleGetBalance($user->getCustomer()));
+    }
+
+    /**
+     * @ApiDoc(
+     *     section="Current Login Member",
      *     description="Get active payment options",
      *     views={"piwi"},
      *     filters={
