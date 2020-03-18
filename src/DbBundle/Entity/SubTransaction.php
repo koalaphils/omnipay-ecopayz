@@ -20,6 +20,7 @@ class SubTransaction extends Entity implements AuditInterface
     private const DETAILS_DWL_COMMISSION = 'dwl.commission'; 
     private const DETAILS_BITCOIN_REQUESTED_AMOUNT = 'bitcoin.requested_btc';
 
+    private const DETAILS_HAS_TRANSACTED_INTEGRATION = 'integration.has_transacted_with_integration';
     private const DETAILS_HAS_TRANSACTED_WITH_PIWI_MEMBER_WALLET = 'integration.has_transacted_with_piwi_member_wallet';
     private const DETAILS_HAS_FAILED_PROCESSING_INTEGRATION = 'integration.failed_processing';
 
@@ -470,9 +471,14 @@ class SubTransaction extends Entity implements AuditInterface
         return $this->getDetail(self::DETAILS_HAS_FAILED_PROCESSING_INTEGRATION, false);
     }
 
-    public function getHasTransactedToIntegration(): bool
+    public function hasTransactedWithIntegration(): bool
     {
-        return $this->getDetail(self::DETAILS_HAS_FAILED_PROCESSING_INTEGRATION, null) !== null;
+        return $this->getDetail(self::DETAILS_HAS_TRANSACTED_INTEGRATION, false);
+    }
+
+    public function setHasTransactedWithIntegration(bool $bool): bool
+    {
+        $this->setDetail(self::DETAILS_HAS_TRANSACTED_INTEGRATION, $bool);
     }
 
     public function includesPiwiWalletMemberProduct(): bool

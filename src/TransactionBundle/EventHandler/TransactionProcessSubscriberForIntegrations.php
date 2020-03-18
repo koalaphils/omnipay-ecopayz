@@ -79,22 +79,16 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         if ($transaction->isTransfer()) {
             foreach ($subTransactions as $subTransaction) {
                 // If the source product is piwi wallet
-                if ($subTransaction->isWithdrawal() && $subTransaction->includesPiwiWalletMemberProduct()) {
+                if ($subTransaction->isWithdrawal() && $subTransaction->includesPiwiWalletMemberProduct() && !$subTransaction->getHasTransactedWithPiwiWalletMember()) {
                     $this->debitFromPiwiWallet($subTransaction, $jwt);
-                }
-
-                // If the source product is not piwi wallet
-                if ($subTransaction->isWithdrawal() && !$subTransaction->includesPiwiWalletMemberProduct()) {
+                } else if ($subTransaction->isWithdrawal() && !$subTransaction->hasTransactedWithIntegration()) {
                     $this->debitFromIntegration($subTransaction, $jwt);
                 }
 
                 // If the destination product is piwi wallet
-                if ($subTransaction->isDeposit() && $subTransaction->includesPiwiWalletMemberProduct()) {
+                if ($subTransaction->isDeposit() && $subTransaction->includesPiwiWalletMemberProduct() && !$subTransaction->getHasTransactedWithPiwiWalletMember()) {
                     $this->creditToPiwiWallet($subTransaction, $jwt);
-                }
-
-                 // If the destination product is not piwi wallet
-                if ($subTransaction->isDeposit() && !$subTransaction->includesPiwiWalletMemberProduct()) {
+                } else if ($subTransaction->isDeposit() && !$subTransaction->hasTransactedWithIntegration()) {
                     $this->creditToIntegration($subTransaction, $jwt);
                 }
             }
@@ -182,6 +176,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
             'amount' => $subTransaction->getAmount()
         ]);
         $memberProduct->setBalance($newBalance);
+        $subTransaction->setHasTransactedWithIntegration(true);
     }
 
     private function debitFromIntegration($subTransaction, string $jwt)
@@ -193,6 +188,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
             'amount' => $subTransaction->getAmount()
         ]);
         $memberProduct->setBalance($newBalance);
+        $subTransaction->setHasTransactedWithIntegration(true);
     }
 }
 

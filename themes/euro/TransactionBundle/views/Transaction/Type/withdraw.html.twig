@@ -119,7 +119,7 @@
                 'errors': {{ form_errors(child) }},
                 'hasFee': {{ (child.vars.data.details.hasFee|default(false)) ? "true" : "false" }},
                 'bitcoinRequestedAmount' : {% if child.vars.data.details.bitcoin.requested_btc is defined -%} {{ child.vars.data.details.bitcoin.requested_btc | round_format(8, '.', ',', constant('AppBundle\\ValueObject\\Number::ROUND_DOWN')) }} {%- else -%} 0 {% endif -%},
-                'hasTransactedWithIntegration': '{{ child.vars.data.getHasTransactedToIntegration() }}'
+                'hasTransactedWithIntegration': '{{ child.vars.data.hasTransactedWithIntegration() }}'
             });
             if(cp.info.hasFee == true) {
                 cp.view.find('.subtransaction-has-fee')[0].checked = true;
