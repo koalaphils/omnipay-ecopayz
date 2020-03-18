@@ -1,3 +1,8 @@
+product_integration:
+    resource: "@ProductIntegrationBundle/Controller/"
+    type:     annotation
+    prefix:   /
+
 report:
     resource: "@ReportBundle/Resources/config/routing.yml"
     prefix:   /{_locale}

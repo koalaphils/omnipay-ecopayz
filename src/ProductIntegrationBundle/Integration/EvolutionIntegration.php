@@ -1,17 +1,21 @@
 <?php
 
-namespace ApiBundle\ProductIntegration;
+namespace ProductIntegrationBundle\Integration;
 
-class EvolutionIntegration extends AbstractIntegration
+use ProductIntegrationBundle\Persistence\HttpPersistence;
+
+class EvolutionIntegration implements ProductIntegrationInterface
 {
-    public function __construct(string $url)
+    private $http;
+
+    public function __construct(HttpPersistence $http)
     {
-        parent::__construct($url);
+        $this->http = $http;
     }
 
     public function auth(string $token, $body = []): array
     {
-        $response = $this->post('/auth', $token, $body);
+        $response = $this->http->post('/auth', $token, $body);
         $object = json_decode(((string) $response->getBody()));
         
         return [
@@ -23,9 +27,9 @@ class EvolutionIntegration extends AbstractIntegration
 
     public function getBalance(string $token, string $id): string
     {
-        $response = $this->get('/balance' . '?id=' . $id, $token);
+        $response = $this->http->get('/balance' . '?id=' . $id, $token);
         $object = json_decode(((string) $response->getBody()));
-        
+
         return $object->userbalance->tbalance;
     }
 
@@ -33,7 +37,7 @@ class EvolutionIntegration extends AbstractIntegration
     {
         $transactionId = 'Credit_' . uniqid();
         $url = sprintf('/credit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $transactionId);
-        $response = $this->get($url, $token);
+        $response = $this->http->get($url, $token);
         $object = json_decode(((string) $response->getBody()));
         
         return $object->transfer->balance;
@@ -43,7 +47,7 @@ class EvolutionIntegration extends AbstractIntegration
     {  
         $transactionId = 'Debit_' . uniqid();
         $url = sprintf('/debit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $transactionId);
-        $response = $this->get($url, $token);
+        $response = $this->http->get($url, $token);
         $object = json_decode(((string) $response->getBody()));
 
         return $object->transfer->balance;

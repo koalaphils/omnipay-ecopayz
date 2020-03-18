@@ -1,20 +1,20 @@
 <?php
 
-namespace ApiBundle\ProductIntegration;
+namespace ProductIntegrationBundle\Integration;
 
 use AppBundle\ValueObject\Number;
 use PinnacleBundle\Service\PinnacleService;
 use PinnacleBundle\Component\Exceptions\PinnacleError;
 use PinnacleBundle\Component\Exceptions\PinnacleException;
+use ProductIntegrationBundle\Exception\IntegrationException;
+use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
 
-class PinnacleAdapterIntegration extends AbstractIntegration
+class PinnacleIntegration implements ProductIntegrationInterface
 {
     private $pinnacleService;
 
     public function __construct(PinnacleService $pinnacleService)
     {
-        parent::__construct('');
-
         $this->pinnacleService = $pinnacleService;
     }
 

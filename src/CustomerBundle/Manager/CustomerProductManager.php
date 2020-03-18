@@ -1,9 +1,4 @@
 <?php
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 namespace CustomerBundle\Manager;
 
@@ -11,6 +6,7 @@ use DbBundle\Entity\CustomerProduct;
 use DbBundle\Repository\CustomerProductRepository;
 use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\Routing\RouterInterface;
+use PinnacleBundle\Component\Exceptions\PinnacleException;
 
 class CustomerProductManager
 {

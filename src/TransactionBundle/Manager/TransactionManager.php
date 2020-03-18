@@ -184,33 +184,35 @@ class TransactionManager extends TransactionOldManager
     public function endTransaction(&$transaction)
     {
         $subTransactions = $transaction->getSubTransactions();
-        $customerProducts = [];
-        $customers = [];
+        // $customerProducts = [];
+        // $customers = [];
 
-        foreach ($subTransactions as $subTransaction) {
-            $customerProduct = array_get($customerProducts, $subTransaction->getCustomerProduct()->getId(), $subTransaction->getCustomerProduct());
-            $customerBalance = new Number(array_get($customers, $customerProduct->getCustomerID(), 0));
-            if ($subTransaction->isDeposit()) {
-                $customerProductBalance = new Number($customerProduct->getBalance());
-                $customerProductBalance = $customerProductBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
-                $customerProduct->setBalance($customerProductBalance->toString());
-                $customerBalance = $customerBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()))->toString();
-            } elseif ($subTransaction->isWithdrawal()) {
-                if (!$subTransaction->getHasTransactedWithIntegration()) {
-                    $customerProductBalance = new Number($customerProduct->getBalance());
-                    $customerProductBalance = $customerProductBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
-                    $customerProduct->setBalance($customerProductBalance . '');
-                    $customerBalance = $customerBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()))->toString();
-                }
-            }
+        // Balance is being set on TransactionProcessSubscriberForIntegrations
+        // foreach ($subTransactions as $subTransaction) {
+        //     $customerProduct = array_get($customerProducts, $subTransaction->getCustomerProduct()->getId(), $subTransaction->getCustomerProduct());
+        //     $customerBalance = new Number(array_get($customers, $customerProduct->getCustomerID(), 0));
+        //     if (!$subTransaction->getFailedProcessingWithIntegration()) {
+        //         dump($subTransaction->getFailedProcessingWithIntegration());
+        //         if ($subTransaction->isDeposit()) {
+        //             $customerProductBalance = new Number($customerProduct->getBalance());
+        //             $customerProductBalance = $customerProductBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
+        //             $customerProduct->setBalance($customerProductBalance->toString());
+        //             $customerBalance = $customerBalance->plus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()))->toString();
+        //         } elseif ($subTransaction->isWithdrawal()) {
+        //             $customerProductBalance = new Number($customerProduct->getBalance());
+        //             $customerProductBalance = $customerProductBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()));
+        //             $customerProduct->setBalance($customerProductBalance . '');
+        //             $customerBalance = $customerBalance->minus($subTransaction->getDetail('convertedAmount', $subTransaction->getAmount()))->toString();
+        //         }
 
-            array_set($customerProducts, $customerProduct->getId(), $customerProduct);
-            array_set($customers, $customerProduct->getCustomerID(), $customerBalance);
-        }
+        //         array_set($customerProducts, $customerProduct->getId(), $customerProduct);
+        //         array_set($customers, $customerProduct->getCustomerID(), $customerBalance);
+        //     }  
+        // }
 
-        foreach ($customerProducts as $customerProductId => $customerProduct) {
-            $this->getRepository()->save($customerProduct);
-        }
+        // foreach ($customerProducts as $customerProductId => $customerProduct) {
+        //     $this->getRepository()->save($customerProduct);
+        // }
 
         if ($transaction->isDeposit()) {
             $transaction->getCustomer()->setEnabled();

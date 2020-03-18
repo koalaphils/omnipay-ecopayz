@@ -29,6 +29,8 @@
                         {{ form_widget(form.immutableCustomerProductData, {'attr': {'class':'immutableCustomerProductData hidden'}}) }}
                     {% endif %}
                 </div>
+                <div class="integration-error-message help-block text-danger">
+                </div>
                 <div class="help-block">
                     <ul class="list-unstyled"></ul>
                 </div>
@@ -91,6 +93,8 @@
                 'amount': '{{ child.vars.data.amount }}',
                 'enabled': {% if child.vars.view -%} false {%- else -%} true {%- endif -%},
                 'errors': '{{ form_errors(child) }}',
+                'hasFailedWithIntegration': '{{ child.vars.data.getFailedProcessingWithIntegration() }}',
+                'hasTransactedWithIntegration': '{{ child.vars.data.getHasTransactedToIntegration() }}',
                 'bitcoinRequestedAmount' : {% if child.vars.data.details.bitcoin.requested_btc is defined -%} {{ child.vars.data.details.bitcoin.requested_btc | round_format(8, '.', constant('AppBundle\\ValueObject\\Number::ROUND_DOWN')) }} {%- else -%} 0 {% endif -%}
             });
             {% else %}

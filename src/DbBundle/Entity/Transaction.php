@@ -656,6 +656,10 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
      */
     public function setImmutablePaymentOptionData()
     {
+        if ($this->paymentOption == null) {
+            return;
+        }
+
         $this->setDetail('paymentOption.email', array_get($this->paymentOption->getFields(),'email'));
         $this->setDetail('paymentOption.code', $this->paymentOption->getPaymentOption()->getCode());
         $this->setDetail('paymentOption.name', $this->paymentOption->getPaymentOption()->getName());
@@ -1518,5 +1522,21 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         $this->setDetail(self::DETAIL_BITCOIN_MANUAL_CONFIRMATION, true);
 
         return $this;
+    }
+
+    public function wasCreatedFromMemberSite(): bool
+    {
+        return $this->getCreator() === null ? false : $this->getCreator()->isCustomer();
+    }
+
+    public function includesPiwiWalletMemberProduct(): bool
+    {
+        foreach ($this->getSubTransactions() as $subTransaction) {
+            if ($subTransaction->includesPiwiWalletMemberProduct()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

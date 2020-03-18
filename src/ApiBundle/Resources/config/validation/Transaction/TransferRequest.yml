@@ -1,12 +1,5 @@
 ApiBundle\Request\Transaction\TransferRequest:
   getters:
-    paymentOptionType:
-      - NotBlank: ~
-      - AppBundle\Validator\Constraints\Exists:
-          entityClass: DbBundle\Entity\PaymentOption
-          valuePath: value
-          column: code
-          ignoreNull: false
     from:
       - NotBlank: ~
     to:

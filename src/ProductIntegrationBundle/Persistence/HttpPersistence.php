@@ -1,17 +1,17 @@
 <?php
 
-namespace ApiBundle\ProductIntegration;
+namespace ProductIntegrationBundle\Persistence;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
+use ProductIntegrationBundle\Exception\IntegrationException;
+use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
 
-// TODO: Create HTTPService
-
-abstract class AbstractIntegration
+class HttpPersistence
 {
-    protected $url;
-    protected $client;
+    private $url;
+    private $client;
 
     public function __construct(string $url) 
     {
@@ -21,7 +21,7 @@ abstract class AbstractIntegration
         ]);
     }
 
-    protected function get(string $url, string $token) 
+    public function get(string $url, string $token) 
     {
         try {
             return $this->client->get($url, [
@@ -36,7 +36,7 @@ abstract class AbstractIntegration
         }
     }
 
-    protected function post(string $url, string $token, $body = [])
+    public function post(string $url, string $token, $body = [])
     {
         try {
             return $this->client->post($url, [
@@ -51,9 +51,4 @@ abstract class AbstractIntegration
             throw new IntegrationNotAvailableException($this->url);
         }
     }
-
-    abstract public function auth(string $token, array $auth = []): array;
-    abstract public function getBalance(string $token, string $id): string;
-    abstract public function credit(string $token, array $params): string;
-    abstract public function debit(string $token, array $params): string;
 }

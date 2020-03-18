@@ -5,7 +5,7 @@
  * in which case either the integration is down
  * or we have problem in connecting to the particular integration
  */
-namespace ApiBundle\ProductIntegration;
+namespace ProductIntegrationBundle\Exception;
 
 class IntegrationNotAvailableException extends \Exception
 {

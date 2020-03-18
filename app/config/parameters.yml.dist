@@ -95,6 +95,8 @@ parameters:
     product_integration:
         evolution:
             url: ${EVOLUTION_SERVICE_URL}
+    
+    evolution_url: ${EVOLUTION_SERVICE_URL}
 
     aws_sdk.version: "${AWS_SDK_VERSION}"
     aws_sdk.region: "${AWS_REGION}"

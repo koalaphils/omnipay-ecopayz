@@ -3,7 +3,7 @@
 /**
  * Thrown when trying to get non-existing integration.
  */
-namespace ApiBundle\ProductIntegration;
+namespace ProductIntegrationBundle\Exception;
 
 class NoSuchIntegrationException extends \Exception
 {

@@ -5,39 +5,27 @@ declare(strict_types = 1);
 namespace MemberBundle\Manager;
 
 use ApiBundle\Service\JWTGeneratorService;
-use ApiBundle\ProductIntegration\ProductIntegrationFactory;
-use ApiBundle\ProductIntegration\IntegrationException;
-use ApiBundle\ProductIntegration\IntegrationNotAvailableException;
-use ApiBundle\ProductIntegration\NoSuchIntegrationException;
 use AppBundle\ValueObject\Number;
 use AppBundle\Widget\Page\ListWidget;
-use PinnacleBundle\Component\Exceptions\PinnacleError;
-use PinnacleBundle\Component\Exceptions\PinnacleException;
-use PinnacleBundle\Service\PinnacleService;
-use DbBundle\Repository\CustomerProductRepository;
+use ProductIntegrationBundle\ProductIntegrationFactory;
+use ProductIntegrationBundle\Exception\IntegrationException;
+use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
+use ProductIntegrationBundle\Exception\NoSuchIntegrationException;
 
 class MemberProductManager
 {
-    private $pinnacleService;
     private $factory;
     private $jwtGeneratorService;
-    private $customerRepository;
 
-    public function __construct(PinnacleService $pinnacleService, 
-        ProductIntegrationFactory $factory, 
-        JWTGeneratorService $jwtGeneratorService,
-        CustomerProductRepository $customerProductRepository)
+    public function __construct(ProductIntegrationFactory $factory, JWTGeneratorService $jwtGeneratorService)
     {
-        $this->pinnacleService = $pinnacleService;
         $this->jwtGeneratorService = $jwtGeneratorService;
         $this->factory = $factory;
-        $this->customerProductRepository = $customerProductRepository;
     }
 
     public function processMemberProductListWidget(array $result, ListWidget $listWidget): array
     {
-        $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
-        $result['records'] = array_map(function(&$record) use ($pinnacleProduct) {
+        $result['records'] = array_map(function(&$record) {
             $record['product'] = $this->getProductDetails($record);
             $record['customer'] = [ 'id' => $record['customer_id']];
             $record['balance'] = $this->getProductBalance($record);
@@ -60,12 +48,11 @@ class MemberProductManager
 
     private function getProductBalance($record)
     {
-        $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
         $balance = 'Unable to fetch balance';
 
         try {
-            $integration = $this->factory->getIntegration(strtolower($record['product_code']));
             $jwt = $this->jwtGeneratorService->generate([]);
+            $integration = $this->factory->getIntegration(strtolower($record['product_code']));
             $balance = $integration->getBalance($jwt, $record['userName']);
         } catch(NoSuchIntegrationException $ex) {
             $balance = $record['balance'];
