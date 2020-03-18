@@ -86,7 +86,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
 
     private function processTransaction($transaction, $jwt): void
     {
-        $transaction = $transaction->getSubTransactions();
+        $subTransactions = $transaction->getSubTransactions();
         foreach ($subTransactions as $subTransaction) {
             if ($subTransaction->isDeposit()) {
                 if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE) {
