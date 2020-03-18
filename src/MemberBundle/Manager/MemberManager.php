@@ -22,6 +22,7 @@ use DbBundle\Entity\SubTransaction;
 use DbBundle\Entity\AuditRevision;
 use DbBundle\Entity\AuditRevisionLog;
 use DbBundle\Entity\Currency;
+use DbBundle\Entity\Winloss;
 use DbBundle\Repository\CustomerPaymentOptionRepository as MemberPaymentOptionRepository;
 use DbBundle\Repository\CustomerProductRepository as MemberProductRepository;
 use DbBundle\Repository\CustomerRepository as MemberRepository;
@@ -34,6 +35,7 @@ use DbBundle\Repository\SubTransactionRepository;
 use DbBundle\Repository\AuditRevisionRepository;
 use DbBundle\Repository\MemberRevenueShareRepository;
 use DbBundle\Repository\MemberRunningRevenueShareRepository;
+use DbBundle\Repository\WinlossRepository;
 use MemberRequestBundle\WebsocketTopics;
 use DbBundle\Repository\CurrencyRepository;
 use Doctrine\ORM\EntityManager;
@@ -377,25 +379,31 @@ class MemberManager extends AbstractManager
 
 
         if (!(empty($filters['dwlDateFrom'] ?? null) || empty($filters['dwlDateTo'] ?? null))) {
+            $this->precision = isset($filters['precision']) ? $filters['precision'] : 2;
             $membersAndProducts = $memberRepository->getAllReferralProductListByReferrer(
                     $filters, $orders, $referrerId, $filters['offset'], $filters['limit']
                 );
-
-            $this->precision = isset($filters['precision']) ? $filters['precision'] : 2;
-            $lookupPinBet = array_search(MemberRevenueShare::PINNACLE_PRODUCT_ID, array_column($membersAndProducts, 'productId'));
-
-            $schemas = [];
-            if (!is_null($lookupPinBet)) {
-                $schemas = $this->getMemberRevenueShareRepository()->findSchemeByRange($referrerId, MemberRevenueShare::PINNACLE_PRODUCT_ID, $filters);
-                $lastKey = count($schemas) - 1;
+            
+            $products = [];
+            $allProducts = array_column($membersAndProducts, 'productId');
+            foreach ($allProducts as $product) {
+                $products[$product]['id'] = $product;
+                $products[$product]['schemas'] = $this->getMemberRevenueShareRepository()->findSchemeByRange($referrerId, $product, $filters);
+                $products[$product]['lastKey'] = count($products[$product]['schemas']) - 1;
             }
 
-            if (!empty($schemas)) {
-                $subTransactionRepository = $this->getSubTransactionRepository();
-                $offset = $filters['offset'];
-                $displayCount = 0;
-                $recordCount = 0;
-                foreach ($membersAndProducts as &$row) {
+            $subTransactionRepository = $this->getSubTransactionRepository();
+            $offset = $filters['offset'];
+            $displayCount = 0;
+            $recordCount = 0;
+            foreach ($membersAndProducts as &$row) {
+                $isExist = array_search($row['productId'], $allProducts);
+
+                if ($isExist !== false) {
+                    $productId = $row['productId'];
+                    $schemas = $products[$productId]['schemas'];
+                    $lastKey = $products[$productId]['lastKey'];
+
                     $recordCount += 1;
                     $totalBonus = 0;
                     $totalWinLoss = 0;
@@ -430,10 +438,11 @@ class MemberManager extends AbstractManager
 
                         if ($newTo >= $newFrom){
                             // Get Pinnacle Data
-                            $pinnacleData = $this->pinnacleService->getReportComponent()->winLoss($row['pinUserCode'], $newFrom, $newTo);
-                            if ($pinnacleData instanceof WinLossResponse) {
-                                $winLoss = $pinnacleData->getTotalDetail('payout');
-                                $turnover = $pinnacleData->getTotalDetail('turnover');
+                            $pinnacleData = $this->getWinlossRepository()->getWinlossByDateMember($row['memberId'], $newFrom, $newTo, $productId);
+
+                            if ($pinnacleData) {
+                                $winLoss = $pinnacleData['totalPayout'];
+                                $turnover = $pinnacleData['totalTurnover'];
                                 $totalWinLoss += $winLoss;
                                 $totalTurnover += $turnover;
                             }
@@ -871,6 +880,11 @@ class MemberManager extends AbstractManager
     private function getMemberProductRepository(): MemberProductRepository
     {
         return $this->memberProductRepository;
+    }
+
+    private function getWinlossRepository(): WinlossRepository
+    {
+        return $this->getDoctrine()->getRepository(Winloss::class);
     }
 
     private function getMemberPaymentOptionRepository(): MemberPaymentOptionRepository
