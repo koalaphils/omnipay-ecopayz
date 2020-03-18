@@ -482,8 +482,20 @@ class MemberManager extends AbstractManager
 
         $currencyPerRecord = array_column($result['allRecords'], 'currencyCode');
         $currencies = array_unique($currencyPerRecord);
-        $currenciesRecords = [];
+        $currenciesRecords = $this->getCurrenciesRecords($currencies, $currencyPerRecord, $result);      
 
+        $result['totals'] = $currenciesRecords;
+        $result['period'] = [
+            'dwlDateFrom' => $filters['dwlDateFrom'],
+            'dwlDateTo' => $filters['dwlDateTo'],
+        ];
+
+        return $result;
+    }
+
+
+    public function getCurrenciesRecords(array $currencies = [], array $currencyPerRecord = [], array $result = []){
+        $records = [];
         foreach ($currencies as $currency) {
             $totalWinLoss = new Number(0);
             $totalTurnover = new Number(0);
@@ -512,17 +524,12 @@ class MemberManager extends AbstractManager
             $perCurrency['totalTurnover'] = $this->formatCommissionAmount($totalTurnover);
             $perCurrency['totalAffiliateRevenueShare'] = $this->formatCommissionAmount($totalAffiliateRevenueShare);
             $perCurrency['totalAffiliateBonus'] = $this->formatCommissionAmount($totalAffiliateBonus);
-            $currenciesRecords[] = $perCurrency;
+            $records[] = $perCurrency;
         }
 
-        $result['totals'] = $currenciesRecords;
-        $result['period'] = [
-            'dwlDateFrom' => $filters['dwlDateFrom'],
-            'dwlDateTo' => $filters['dwlDateTo'],
-        ];
-
-        return $result;
+        return $records;
     }
+
 
     public function getRevenueShare(array $schema,  float $winLoss, float $bonus, string $fromCurrencyCode, string $toCurrencyCode)
     {
