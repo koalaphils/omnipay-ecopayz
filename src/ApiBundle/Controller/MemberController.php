@@ -271,6 +271,29 @@ class MemberController extends AbstractController
 
     /**
      * @ApiDoc(
+     *     section="Current Login Member",
+     *     description="Change member country",
+     *     views={"piwi"},
+     *     requirements={
+     *          {
+     *             "name"="country",
+     *             "dataType"="string"
+     *         }
+     *     },
+     *     headers={
+     *         { "name"="Authorization", "description"="Bearer <access_token>" }
+     *     }
+     * )
+     */
+    public function changeCountryAction(Request $request, MemberHandler $memberHandler): View
+    {
+        $member = $this->getUser()->getCustomer();
+
+        return $this->view($memberHandler->changeMemberCountry($member, $request->get('country')));
+    }
+
+    /**
+     * @ApiDoc(
      *     section="Member",
      *     description="Gets the documents of the user",
      *     views={"piwi"},

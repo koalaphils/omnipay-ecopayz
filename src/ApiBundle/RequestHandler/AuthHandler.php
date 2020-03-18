@@ -250,8 +250,8 @@ class AuthHandler
                 'lastName' => $customer->getLName() ? $customer->getLname() : $customer->getUsername(),
                 'firstName' => $customer->getFName() ? $customer->getFName() : $customer->getUsername(),
                 'nickname' => $customer->getUsername(),
-                'country' => $customer->getCountry() ? $customer->getCountry()->getCode() : 'US',
-                'language' => $locale,
+                'country' => $customer->getCountry() ? $customer->getCountry()->getCode() : 'UK',
+                'language' => 'en',
                 'currency' => $customer->getCurrency()->getCode(),
                 'ip' => $ip,
             ]);
