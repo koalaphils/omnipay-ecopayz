@@ -18,7 +18,7 @@
         var message = details.message + ' Please proceed to pending tab to view.';
 
         var url = "";
-        try {console.log(notificationType);
+        try {
             url = Global.dummyTransactionUrl.replace('/__type__', '/'+ details.otherDetails.type).replace('/__id__', '/'+ details.otherDetails.id);
             if (notificationType == 'registration' || notificationType == 'requestProduct') {
                 message = details.message + ' Please proceed to member list to view.';
@@ -31,10 +31,8 @@
                 }
             }
         } catch (e) {
-            console.log(e);
+
         }
-
-
 
         prependToList(title, details.message, url);
         updateNotificationListCounter();

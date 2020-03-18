@@ -47,9 +47,12 @@ class TwoFactorController extends AbstractController
     public function requestCodeAction(Request $request, TwoFactorCodeHandler $handler, ValidatorInterface $validator): View
     {
         $registrationCodeRequest = TwoFactorCodeRequest::createFromRequest($request);
-        $violations = $validator->validate($registrationCodeRequest, null);
-        if ($violations->count() > 0) {
-            return $this->view($violations);
+
+        if ($registrationCodeRequest->getPurpose() !== 'register') {
+            $violations = $validator->validate($registrationCodeRequest, null);
+            if ($violations->count() > 0) {
+                return $this->view($violations);
+            }
         }
 
         $code = $handler->handle($registrationCodeRequest);

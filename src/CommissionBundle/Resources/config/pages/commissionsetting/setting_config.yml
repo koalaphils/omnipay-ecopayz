@@ -42,10 +42,10 @@ widgets:
                     choices:
                         !php/const:DbBundle\Entity\CommissionPeriod::STATUS_NOT_YET_COMPUTED: Not Yet Executed
                         !php/const:DbBundle\Entity\CommissionPeriod::STATUS_COMPUTING: Computing
-                        !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION: Successfull Computation
+                        !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION: Successful Computation
                         !php/const:DbBundle\Entity\CommissionPeriod::STATUS_FAILED_COMPUTATION: Failed Computation
                         !php/const:DbBundle\Entity\CommissionPeriod::STATUS_EXECUTING_PAYOUT: Executing Payout
-                        !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT: Successfull Payout
+                        !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT: Successful Payout
                         !php/const:DbBundle\Entity\CommissionPeriod::STATUS_FAILED_PAYOUT: Failed Payout
                         !php/const:DbBundle\Entity\CommissionPeriod::STATUS_NOT_COMPUTED: Not Computed
                 action:
