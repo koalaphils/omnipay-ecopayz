@@ -75,9 +75,9 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         $subTransactions = $transaction->getSubTransactions();
         foreach ($subTransactions as $subTransaction) {
             if ($subTransaction->isDeposit()) {
-                $this->creditToPiwiWallet($subTransaction, string $jwt);
+                $this->creditToPiwiWallet($subTransaction, $jwt);
             } else if ($subTransaction->isWithdrawal()) {
-                $this->debitFromPiwiWallet($subTransaction, string $jwt);
+                $this->debitFromPiwiWallet($subTransaction, $jwt);
             }
         }
     }
