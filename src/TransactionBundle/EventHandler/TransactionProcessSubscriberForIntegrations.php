@@ -117,6 +117,8 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
             'amount' => $amount,
             'member' => $subTransaction->getParent()->getCustomer(),
         ]);
+
+        $subTransaction->setHasTransactedWithPiwiWalletMember(true);
     }
 
     private function creditToIntegration($subTransaction, string $jwt)

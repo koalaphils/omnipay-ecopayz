@@ -464,8 +464,6 @@
                     this.view.find('.integration-error-message').append('<p>Failed processing with 3rd party integration.</p>');
                 }
 
-                console.log('APPEND DITO', this.info);
-
                 var thisproduct = this;
                 this.view.find('.subtransaction-product').selectpicker({})
                     .on('shown.bs.select', function(e) {
