@@ -53,7 +53,6 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
     public function onTransitionEntered(WorkflowEvent $event)
     {
         $transaction = $event->getSubject();
-        $subTransactions = $transaction->getSubTransactions();
         $jwt = $this->jwtGenerator->generate([]);
 
         if ($event->getTransition()->getName() === 'void') {
@@ -62,6 +61,30 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
             return; 
         }
 
+        if ($transaction->includesPiwiWalletMemberProduct()) {
+            $this->processPiwiWalletTransaction($transaction, $jwt);
+        } else {
+            $this->processTransaction($transaction, $jwt);
+        }        
+    }
+
+    // This would be called if one of the involved subtransaction is 
+    // PIWI Wallet
+    private function processPiwiWalletTransaction($transaction, $jwt): void
+    {   
+        $subTransactions = $transaction->getSubTransactions();
+        foreach ($subTransactions as $subTransaction) {
+            if ($subTransaction->isDeposit()) {
+                $this->creditToPiwiWallet($subTransaction, string $jwt);
+            } else if ($subTransaction->isWithdrawal()) {
+                $this->debitFromPiwiWallet($subTransaction, string $jwt);
+            }
+        }
+    }
+
+    private function processTransaction($subTransactions, $jwt): void
+    {
+        $subTransactions = $transaction->getSubTransactions();
         foreach ($subTransactions as $subTransaction) {
             if ($subTransaction->isDeposit()) {
                 if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE) {
@@ -141,24 +164,6 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
             'amount' => $subTransaction->getAmount()
         ]);
         $memberProduct->setBalance($newBalance);
-    }
-
-    private function handleVoiding(string $jwt, $subTransactions): void
-    {
-        try {
-            foreach($subTransactions as $subTransaction) {
-                $memberProduct = $subTransaction->getCustomerProduct();
-                $subTransactionAmount = $subTransaction->getAmount();
-                if ($subTransaction->isDeposit()) {
-                    $this->debit($jwt, $subTransaction->getAmount(), $subTransaction->getCustomerProduct());
-                } else if ($subTransaction->isWithdrawal()) {
-                    $this->credit($jwt, $subTransaction->getAmount(), $subTransaction->getCustomerProduct());
-                }
-            }
-        } catch (IntegrationNotAvailableException $ex) {
-            // TODO: Handle Later
-            throw $ex;
-        }
     }
 }
 

@@ -1528,4 +1528,15 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     {
         return $this->getCreator() === null ? false : $this->getCreator()->isCustomer();
     }
+
+    public function includesPiwiWalletMemberProduct(): bool
+    {
+        foreach ($this->getSubTransactions() as $subTransaction) {
+            if ($subTransaction->includesPiwiWalletMemberProduct()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
