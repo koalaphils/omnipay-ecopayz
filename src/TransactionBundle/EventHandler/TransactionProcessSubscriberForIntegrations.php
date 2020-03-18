@@ -61,135 +61,177 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
             return; 
         }
 
-        if ($transaction->includesPiwiWalletMemberProduct()) {
-            $this->processPiwiWalletTransaction($transaction, $jwt);
-        } else {
-            $this->processTransaction($transaction, $jwt);
-        }        
-    }
+        $subTransactions = $transaction->getSubtransactions();
 
-    // This would be called if one of the involved subtransaction is 
-    // PIWI Wallet
-    private function processPiwiWalletTransaction($transaction, $jwt): void
-    {   
-        $subTransactions = $transaction->getSubTransactions();
-
-
-        // Transfer flow is different
-        if ($transaction->isTransfer()) {
-            foreach ($subTransactions as $subTransaction) {
-                // If the source product is piwi wallet
-                if ($subTransaction->isWithdrawal() && $subTransaction->includesPiwiWalletMemberProduct() && !$subTransaction->getHasTransactedWithPiwiWalletMember()) {
-                    $this->debitFromPiwiWallet($subTransaction, $jwt);
-                } else if ($subTransaction->isWithdrawal() && !$subTransaction->hasTransactedWithIntegration()) {
-                    $this->debitFromIntegration($subTransaction, $jwt);
-                }
-
-                // If the destination product is piwi wallet
-                if ($subTransaction->isDeposit() && $subTransaction->includesPiwiWalletMemberProduct() && !$subTransaction->getHasTransactedWithPiwiWalletMember()) {
-                    $this->creditToPiwiWallet($subTransaction, $jwt);
-                } else if ($subTransaction->isDeposit() && !$subTransaction->hasTransactedWithIntegration()) {
-                    $this->creditToIntegration($subTransaction, $jwt);
-                }
-            }
-        } else {
-            foreach ($subTransactions as $subTransaction) {
-                if (!$subTransaction->getHasTransactedWithPiwiWalletMember()) {
-                    if ($subTransaction->isDeposit()) {
-                        $this->creditToPiwiWallet($subTransaction, $jwt);    
-                    } else if ($subTransaction->isWithdrawal()) {
-                        $this->debitFromPiwiWallet($subTransaction, $jwt);
-                    }
-                }
-            }
-        }   
-    }
-
-    private function processTransaction($transaction, $jwt): void
-    {
-        $subTransactions = $transaction->getSubTransactions();
         foreach ($subTransactions as $subTransaction) {
-            if ($subTransaction->isDeposit()) {
-                if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE) {
-                    $this->creditToPiwiWallet($subTransaction, $jwt);
-                } else if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
-                    if (!$subTransaction->getParent()->wasCreatedFromMemberSite()) {
-                        $this->creditToPiwiWallet($subTransaction, $jwt);
-                    }
-                    
-                    try {
-                        $this->creditToIntegration($subTransaction, $jwt);
-                        $this->debitFromPiwiWallet($subTransaction, $jwt);
-                    } catch (IntegrationNotAvailableException $ex) {
-                        $subTransaction->setFailedProcessingWithIntegration(true);
-                    }
-                }
-            } else if ($subTransaction->isWithdrawal()) {
-                if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE) {
-                    $this->debitFromIntegration($subTransaction, $jwt);
-                    $this->creditToPiwiWallet($subTransaction, $jwt);
-                } else if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
-                    if (!$subTransaction->getParent()->wasCreatedFromMemberSite()) {
-                        $this->debitFromIntegration($subTransaction, $jwt);
-                        $this->creditToPiwiWallet($subTransaction, $jwt);
-                    }
+            $amount = $subTransaction->getAmount();
+            $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode());
+            $customerProductUsername = $subTransaction->getCustomerProduct()->getUsername();
 
-                    $this->debitFromPiwiWallet($subTransaction, $jwt);
+            if ($subTransaction->isDeposit()) {
+                try {
+                    if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE) {
+                        $this->credit('pwm', $customerProductUsername, $amount, $jwt);
+                    } else if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
+                        $this->credit($productCode, $customerProductUsername, $amount, $jwt);
+                        $this->debit('pwm', $customerProductUsername, $amount, $jwt);
+                    }
+                } catch (IntegrationNotAvailableException $ex) {
+                    $this->credit('pwm',  $customerProductUsername, $amount, $jwt);
                 }
             }
         }
 
-        if ($transaction->isDeposit() || $transaction->isBonus() || $transaction->isWithdrawal()) {
-            $this->gatewayMemberTransaction->processMemberTransaction($transaction);
-        }  
+        // if ($transaction->includesPiwiWalletMemberProduct()) {
+        //     $this->processPiwiWalletTransaction($transaction, $jwt);
+        // } else {
+        //     $this->processTransaction($transaction, $jwt);
+        // }    
     }
 
-    private function creditToPiwiWallet($subTransaction, string $jwt)
-    {
-        $amount = $subTransaction->getAmount();
-        $piwiIntegration = $this->factory->getIntegration('pwm');
-        $piwiBalance = $piwiIntegration->credit($jwt, [
-            'amount' => $amount,
-            'member' => $subTransaction->getParent()->getCustomer(),
-        ]);
-        $subTransaction->setHasTransactedWithPiwiWalletMember(true);
-    }
-    
-    private function debitFromPiwiWallet($subTransaction, string $jwt)
-    {
-        $amount = $subTransaction->getAmount();
-        $piwiIntegration = $this->factory->getIntegration('pwm');
-        $piwiBalance = $piwiIntegration->debit($jwt, [
-            'amount' => $amount,
-            'member' => $subTransaction->getParent()->getCustomer(),
-        ]);
 
-        $subTransaction->setHasTransactedWithPiwiWalletMember(true);
-    }
-
-    private function creditToIntegration($subTransaction, string $jwt)
+    private function credit(string $productCode, string $customerProductUsername, $amount, $jwt): void
     {
-        $memberProduct = $subTransaction->getCustomerProduct();
-        $integration = $this->factory->getIntegration(strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode()));
+        $integration = $this->factory->getIntegration(strtolower($productCode));
         $newBalance = $integration->credit($jwt, [
-            'id' => $subTransaction->getCustomerProduct()->getUsername(),
-            'amount' => $subTransaction->getAmount()
+            'id' => $customerProductUsername,
+            'amount' => $amount 
         ]);
         $memberProduct->setBalance($newBalance);
-        $subTransaction->setHasTransactedWithIntegration(true);
     }
 
-    private function debitFromIntegration($subTransaction, string $jwt)
+    private function debit(string $productCode, string $customerProductUsername, $amount, $jwt): void
     {
-        $memberProduct = $subTransaction->getCustomerProduct();
-        $integration = $this->factory->getIntegration(strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode()));
+        $integration = $this->factory->getIntegration(strtolower($productCode));
         $newBalance = $integration->debit($jwt, [
-            'id' => $subTransaction->getCustomerProduct()->getUsername(),
-            'amount' => $subTransaction->getAmount()
+            'id' => $customerProductUsername,
+            'amount' => $amount
         ]);
         $memberProduct->setBalance($newBalance);
-        $subTransaction->setHasTransactedWithIntegration(true);
     }
+
+    // This would be called if one of the involved subtransaction is 
+    // PIWI Wallet
+    // private function processPiwiWalletTransaction($transaction, $jwt): void
+    // {   
+    //     $subTransactions = $transaction->getSubTransactions();
+
+
+    //     // Transfer flow is different
+    //     if ($transaction->isTransfer()) {
+    //         foreach ($subTransactions as $subTransaction) {
+    //             // If the source product is piwi wallet
+    //             if ($subTransaction->isWithdrawal() && $subTransaction->includesPiwiWalletMemberProduct() && !$subTransaction->getHasTransactedWithPiwiWalletMember()) {
+    //                 $this->debitFromPiwiWallet($subTransaction, $jwt);
+    //             } else if ($subTransaction->isWithdrawal() && !$subTransaction->hasTransactedWithIntegration()) {
+    //                 $this->debitFromIntegration($subTransaction, $jwt);
+    //             }
+
+    //             // If the destination product is piwi wallet
+    //             if ($subTransaction->isDeposit() && $subTransaction->includesPiwiWalletMemberProduct() && !$subTransaction->getHasTransactedWithPiwiWalletMember()) {
+    //                 $this->creditToPiwiWallet($subTransaction, $jwt);
+    //             } else if ($subTransaction->isDeposit() && !$subTransaction->hasTransactedWithIntegration()) {
+    //                 $this->creditToIntegration($subTransaction, $jwt);
+    //             }
+    //         }
+    //     } else {
+    //         foreach ($subTransactions as $subTransaction) {
+    //             if (!$subTransaction->getHasTransactedWithPiwiWalletMember()) {
+    //                 if ($subTransaction->isDeposit()) {
+    //                     $this->creditToPiwiWallet($subTransaction, $jwt);    
+    //                 } else if ($subTransaction->isWithdrawal()) {
+    //                     $this->debitFromPiwiWallet($subTransaction, $jwt);
+    //                 }
+    //             }
+    //         }
+    //     }   
+    // }
+
+    // private function processTransaction($transaction, $jwt): void
+    // {
+    //     $subTransactions = $transaction->getSubTransactions();
+    //     foreach ($subTransactions as $subTransaction) {
+    //         if ($subTransaction->isDeposit()) {
+    //             if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE) {
+    //                 $this->creditToPiwiWallet($subTransaction, $jwt);
+    //             } else if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
+    //                 if (!$subTransaction->getParent()->wasCreatedFromMemberSite()) {
+    //                     $this->creditToPiwiWallet($subTransaction, $jwt);
+    //                 }
+                    
+    //                 try {
+    //                     $this->creditToIntegration($subTransaction, $jwt);
+    //                     $this->debitFromPiwiWallet($subTransaction, $jwt);
+    //                 } catch (IntegrationNotAvailableException $ex) {
+    //                     $subTransaction->setFailedProcessingWithIntegration(true);
+    //                 }
+    //             }
+    //         } else if ($subTransaction->isWithdrawal()) {
+    //             if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE) {
+    //                 $this->debitFromIntegration($subTransaction, $jwt);
+    //                 $this->creditToPiwiWallet($subTransaction, $jwt);
+    //             } else if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
+    //                 if (!$subTransaction->getParent()->wasCreatedFromMemberSite()) {
+    //                     $this->debitFromIntegration($subTransaction, $jwt);
+    //                     $this->creditToPiwiWallet($subTransaction, $jwt);
+    //                 }
+
+    //                 $this->debitFromPiwiWallet($subTransaction, $jwt);
+    //             }
+    //         }
+    //     }
+
+    //     if ($transaction->isDeposit() || $transaction->isBonus() || $transaction->isWithdrawal()) {
+    //         $this->gatewayMemberTransaction->processMemberTransaction($transaction);
+    //     }  
+    // }
+
+    // private function creditToPiwiWallet($subTransaction, string $jwt)
+    // {
+    //     $amount = $subTransaction->getAmount();
+    //     $piwiIntegration = $this->factory->getIntegration('pwm');
+    //     $piwiBalance = $piwiIntegration->credit($jwt, [
+    //         'amount' => $amount,
+    //         'member' => $subTransaction->getParent()->getCustomer(),
+    //     ]);
+    //     $subTransaction->setHasTransactedWithPiwiWalletMember(true);
+    // }
+    
+    // private function debitFromPiwiWallet($subTransaction, string $jwt)
+    // {
+    //     $amount = $subTransaction->getAmount();
+    //     $piwiIntegration = $this->factory->getIntegration('pwm');
+    //     $piwiBalance = $piwiIntegration->debit($jwt, [
+    //         'amount' => $amount,
+    //         'member' => $subTransaction->getParent()->getCustomer(),
+    //     ]);
+
+    //     $subTransaction->setHasTransactedWithPiwiWalletMember(true);
+    // }
+
+    // private function creditToIntegration($subTransaction, string $jwt)
+    // {
+    //     $memberProduct = $subTransaction->getCustomerProduct();
+    //     $integration = $this->factory->getIntegration(strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode()));
+    //     $newBalance = $integration->credit($jwt, [
+    //         'id' => $subTransaction->getCustomerProduct()->getUsername(),
+    //         'amount' => $subTransaction->getAmount()
+    //     ]);
+    //     $memberProduct->setBalance($newBalance);
+    //     $subTransaction->setHasTransactedWithIntegration(true);
+    // }
+
+    // private function debitFromIntegration($subTransaction, string $jwt)
+    // {
+    //     $memberProduct = $subTransaction->getCustomerProduct();
+    //     $integration = $this->factory->getIntegration(strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode()));
+    //     $newBalance = $integration->debit($jwt, [
+    //         'id' => $subTransaction->getCustomerProduct()->getUsername(),
+    //         'amount' => $subTransaction->getAmount()
+    //     ]);
+    //     $memberProduct->setBalance($newBalance);
+    //     $subTransaction->setHasTransactedWithIntegration(true);
+    // }
 }
 
 
