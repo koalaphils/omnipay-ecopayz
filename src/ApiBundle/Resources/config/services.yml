@@ -191,19 +191,6 @@ services:
         tags:
             - { name: validator.constraint_validator }
 
-    ApiBundle\ProductIntegration\ProductIntegrationFactory:
-        autowire: true
-        arguments:
-            $config: '%product_integration%'
-    
-    ApiBundle\ProductIntegration\PinnacleAdapterIntegration:
-        autowire: true
-    
-    ApiBundle\ProductIntegration\EvolutionIntegration:
-        autowire: true
-        arguments:
-            $url: 'sample'
-
     ApiBundle\Service\JWTGeneratorService:
         arguments:
             $jwtKey: "%jwt_key%"

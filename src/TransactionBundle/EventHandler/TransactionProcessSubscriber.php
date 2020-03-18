@@ -64,7 +64,6 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
                 $paymentOptionMode = $transaction->getPaymentOptionType()->getPaymentMode();
             }
             
-            dump($transitionName);
             if ($this->getTransactionWorkflow()->can($transaction, $paymentOptionMode . '-' . $transitionName)) {
                 $this->getTransactionWorkflow()->apply($transaction, $paymentOptionMode . '-' . '-' . $transitionName);
             } elseif ($this->getTransactionWorkflow()->can($transaction, $transaction->getTypeText() . '-' . $transitionName)) {

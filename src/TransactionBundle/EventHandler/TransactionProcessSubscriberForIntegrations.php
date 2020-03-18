@@ -74,17 +74,19 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
     {   
         $subTransactions = $transaction->getSubTransactions();
         foreach ($subTransactions as $subTransaction) {
-            if ($subTransaction->isDeposit()) {
-                $this->creditToPiwiWallet($subTransaction, $jwt);
-            } else if ($subTransaction->isWithdrawal()) {
-                $this->debitFromPiwiWallet($subTransaction, $jwt);
+            if (!$subTransaction->getHasTransactedWithPiwiWalletMember()) {
+                if ($subTransaction->isDeposit()) {
+                    $this->creditToPiwiWallet($subTransaction, $jwt);    
+                } else if ($subTransaction->isWithdrawal()) {
+                    $this->debitFromPiwiWallet($subTransaction, $jwt);
+                }
             }
         }
     }
 
-    private function processTransaction($subTransactions, $jwt): void
+    private function processTransaction($transaction, $jwt): void
     {
-        $subTransactions = $transaction->getSubTransactions();
+        $transaction = $transaction->getSubTransactions();
         foreach ($subTransactions as $subTransaction) {
             if ($subTransaction->isDeposit()) {
                 if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE) {
