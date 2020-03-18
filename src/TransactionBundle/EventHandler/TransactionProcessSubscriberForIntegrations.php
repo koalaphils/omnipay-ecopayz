@@ -73,15 +73,42 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
     private function processPiwiWalletTransaction($transaction, $jwt): void
     {   
         $subTransactions = $transaction->getSubTransactions();
-        foreach ($subTransactions as $subTransaction) {
-            if (!$subTransaction->getHasTransactedWithPiwiWalletMember()) {
-                if ($subTransaction->isDeposit()) {
-                    $this->creditToPiwiWallet($subTransaction, $jwt);    
-                } else if ($subTransaction->isWithdrawal()) {
+
+
+        // Transfer flow is different
+        if ($transaction->isTransfer()) {
+            foreach ($subTransactions as $subTransaction) {
+                // If the source product is piwi wallet
+                if ($subTransaction->isWithdrawal() && $subTransaction->includesPiwiWalletMemberProduct()) {
                     $this->debitFromPiwiWallet($subTransaction, $jwt);
                 }
+
+                // If the source product is not piwi wallet
+                if ($subTransaction->isWithdrawal() && !$subTransaction->includesPiwiWalletMemberProduct()) {
+                    $this->debitFromIntegration($subTransaction, $jwt);
+                }
+
+                // If the destination product is piwi wallet
+                if ($subTransaction->isDeposit() && $subTransaction->includesPiwiWalletMemberProduct()) {
+                    $this->creditToPiwiWallet($subTransaction, $jwt);
+                }
+
+                 // If the destination product is not piwi wallet
+                if ($subTransaction->isDeposit() && !$subTransaction->includesPiwiWalletMemberProduct()) {
+                    $this->creditToIntegration($subTransaction, $jwt);
+                }
             }
-        }
+        } else {
+            foreach ($subTransactions as $subTransaction) {
+                if (!$subTransaction->getHasTransactedWithPiwiWalletMember()) {
+                    if ($subTransaction->isDeposit()) {
+                        $this->creditToPiwiWallet($subTransaction, $jwt);    
+                    } else if ($subTransaction->isWithdrawal()) {
+                        $this->debitFromPiwiWallet($subTransaction, $jwt);
+                    }
+                }
+            }
+        }   
     }
 
     private function processTransaction($transaction, $jwt): void
