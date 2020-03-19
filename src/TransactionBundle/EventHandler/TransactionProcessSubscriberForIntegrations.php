@@ -13,16 +13,15 @@ namespace TransactionBundle\EventHandler;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Workflow\Event\Event as WorkflowEvent;
 
-use ProductIntegrationBundle\Exception\NoSuchIntegrationException;
-use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
-use ProductIntegrationBundle\ProductIntegrationFactory;
 use ApiBundle\Service\JWTGeneratorService;
 use DbBundle\Entity\Transaction;
 use DbBundle\Entity\CustomerProduct;
 use DbBundle\Entity\Customer as Member;
-use GatewayTransactionBundle\Manager\GatewayMemberTransaction;
-use PinnacleBundle\Service\PinnacleService;
 Use DbBundle\Repository\CustomerProductRepository;
+use GatewayTransactionBundle\Manager\GatewayMemberTransaction;
+use ProductIntegrationBundle\Exception\NoSuchIntegrationException;
+use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
+use ProductIntegrationBundle\ProductIntegrationFactory;
 
 class TransactionProcessSubscriberForIntegrations implements EventSubscriberInterface
 {
@@ -34,14 +33,12 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
 
     public function __construct(
         ProductIntegrationFactory $factory, 
-        JWTGeneratorService $jwtGenerator, 
-        PinnacleService $pinnacleService,
+        JWTGeneratorService $jwtGenerator,
         GatewayMemberTransaction $gatewayMemberTransaction,
         CustomerProductRepository $customerProductRepository)
     {
         $this->factory = $factory;
         $this->jwtGenerator = $jwtGenerator;
-        $this->pinnacleService = $pinnacleService;
         $this->gatewayMemberTransaction = $gatewayMemberTransaction;
         $this->customerProductRepository = $customerProductRepository;
     }
@@ -55,7 +52,6 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         ];
     }
 
-    // TODO: Adjust transition to improve logic coherence
     public function onTransitionEntered(WorkflowEvent $event)
     {
         $transaction = $event->getSubject();
@@ -66,21 +62,23 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
             return; 
         }
 
+        $transitionName = $event->getTransition()->getName();
         $subTransactions = $transaction->getSubtransactions();
         $customerPiwiWalletProduct = $this->getCustomerPiwiWalletProduct($transaction->getCustomer());
 
+        // Acknowledged
         if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE) {
             foreach ($subTransactions as $subTransaction) {
                 $amount = $subTransaction->getAmount();
                 $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode());
                 $customerProductUsername = $subTransaction->getCustomerProduct()->getUsername();
     
-                    if ($subTransaction->isDeposit()) {
-                        try {
-                            $this->credit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
-                        } catch (IntegrationNotAvailableException $ex) {
-                            $this->credit('pwm',  $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
-                        }
+                if ($subTransaction->isDeposit()) {
+                    try {
+                        $this->credit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                    } catch (IntegrationNotAvailableException $ex) {
+                        $this->credit('pwm',  $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                    }
                 }
 
                 if ($subTransaction->isWithdrawal()) {
@@ -96,6 +94,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
             }
         }
 
+        // Processed
         if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
             foreach ($subTransactions as $subTransaction) {
                 $amount = $subTransaction->getAmount();
@@ -119,6 +118,27 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                     } catch (IntegrationNotAvailableException $ex) {
                         $this->credit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                     }
+                }
+            }
+        }
+
+        // Declined
+        if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_DECLINE) {
+            foreach ($subTransactions as $subTransaction) {
+                $amount = $subTransaction->getAmount();
+                $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode());
+                $customerProductUsername = $subTransaction->getCustomerProduct()->getUsername();
+
+                // If the transition is from Acknowledged to Declined
+                if ($subTransaction->isDeposit() && $transitionName == Transaction::TRANSACTION_STATUS_ACKNOWLEDGE . '_' . Transaction::TRANSACTION_STATUS_DECLINE) {
+                    $this->debit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                }
+
+                 // If the transition is from Acknowledged to Declined
+                if ($subTransaction->isWithdrawal() && $transitionName == Transaction::TRANSACTION_STATUS_ACKNOWLEDGE . '_' . Transaction::TRANSACTION_STATUS_DECLINE) {
+                    $newBalance = $this->credit($productCode, $customerProductUsername, $amount, $jwt);
+                    $subTransaction->getCustomerProduct()->setBalance($newBalance);
+                    $this->debit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                 }
             }
         }
