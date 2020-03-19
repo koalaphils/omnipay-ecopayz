@@ -98,7 +98,8 @@ class TransferHandler
             $event = new TransactionCreatedEvent($transaction);
             $this->eventDispatcher->dispatch('transaction.created', $event);
 
-            return $transaction;
+            return ['error' => false, 'status' => 200];
+
         } catch (\Exception $exception) {
             $this->em->rollback();
             throw $exception;

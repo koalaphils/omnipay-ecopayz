@@ -17,6 +17,7 @@ use DbBundle\Entity\Transaction;
 use Doctrine\ORM\NoResultException;
 use FOS\RestBundle\View\View;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
@@ -142,7 +143,7 @@ class TransactionController extends AbstractController
      *     }
      * )
      */
-    public function transferAction(Request $request, TransferHandler $handler, ValidatorInterface $validator): View
+    public function transferAction(Request $request, TransferHandler $handler, ValidatorInterface $validator): JsonResponse
     {
         $member = $this->getUser()->getCustomer();
         $request = new TransferRequest($member, $request);
@@ -151,9 +152,9 @@ class TransactionController extends AbstractController
             return $this->view($violations);
         }
 
-        $handler->handle($request);
+        $response = $handler->handle($request);
 
-        return $this->view([]);
+        return new JsonResponse($response);
     }
 
     /**

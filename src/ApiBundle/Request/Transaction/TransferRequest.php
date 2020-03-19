@@ -26,7 +26,7 @@ class TransferRequest
 
         foreach ($request->get('to', []) as $item) {
             $this->to[] = new TransactionItemRequest(
-                (int)$item['id'] ?? null,
+                $item['id'] ? (int)$item['id'] : null,
                 (string)$item['amount'] ??  ''
             );
         }
