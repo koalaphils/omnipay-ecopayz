@@ -24,73 +24,25 @@ use Doctrine\ORM\EntityManager;
 use PinnacleBundle\Service\PinnacleService;
 use TwoFactorBundle\Provider\Message\StorageInterface;
 use UserBundle\Manager\UserManager;
+use ProductIntegrationBundle\ProductIntegrationFactory;
+use ProductInegrationBundle\Integration\PinnaclePlayerInterface;
 
 class RegisterHandler
 {
-    /**
-     * @var PinnacleService
-     */
     private $pinnacleService;
-
-    /**
-     * @var UserManager
-     */
     private $userManager;
-
-    /**
-     * @var CurrencyRepository
-     */
     private $currencyRepository;
-
-    /**
-     * @var CountryRepository
-     */
     private $countryRepository;
-
-    /**
-     * @var ProductRepository
-     */
     private $productRepository;
-
-    /**
-     * @var SettingManager
-     */
     private $settingManager;
-
-    /**
-     * @var EntityManager
-     */
     private $entityManager;
-
-    /**
-     * @var StorageInterface
-     */
     private $codeStorage;
-
-    /**
-     * @var TwoFactorCodeRepository
-     */
     private $twoFactorCodeRepository;
-
-    /**
-     * @var CustomerGroupRepository
-     */
     private $memberGroupRepository;
-
-    /**
-     * @var Publisher
-     */
     private $publisher;
-
-    /**
-     * @var MemberWebsiteRepository
-     */
     private $memberWebsiteRepository;
-
-    /**
-     * @var MailerManager
-     */
     private $mailerManager;
+    private $productIntegrationFactory;
 
     public function __construct(
         PinnacleService $pinnacleService,
@@ -105,7 +57,8 @@ class RegisterHandler
         TwoFactorCodeRepository $twoFactorCodeRepository,
         Publisher $publisher,
         MemberWebsiteRepository $memberWebsiteRepository,
-        MailerManager $mailerManager
+        MailerManager $mailerManager,
+        ProductIntegrationFactory $productIntegrationFactory
     ) {
         $this->pinnacleService = $pinnacleService;
         $this->userManager = $userManager;
@@ -120,6 +73,7 @@ class RegisterHandler
         $this->memberGroupRepository = $memberGroupRepository;
         $this->memberWebsiteRepository = $memberWebsiteRepository;
         $this->mailerManager = $mailerManager;
+        $this->productIntegrationFactory =$productIntegrationFactory;
     }
 
     public function handle(RegisterRequest $registerRequest): Member
@@ -187,19 +141,10 @@ class RegisterHandler
         $defaultMemberGroup = $this->memberGroupRepository->getDefaultGroup();
         $currency = $this->currencyRepository->findByCode($registerRequest->getCurrency());
         $pinnacleProduct = $this->getPinnacleProduct();
-        $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->createPlayer();
-
-        $memberProduct = new MemberProduct();
-        $memberProduct->setProduct($pinnacleProduct);
-        $memberProduct->setUserName($pinnaclePlayer->userCode());
-        $memberProduct->setBalance('0.00');
-        $memberProduct->setIsActive(true);
 
         $member = new Member();
         $member->setUser($user);
         $member->setCurrency($currency);
-        $member->setPinLoginId($pinnaclePlayer->loginId());
-        $member->setPinUserCode($pinnaclePlayer->userCode());
         $member->setIsCustomer(true);
         $member->setTransactionPassword();
         $member->setLevel();
@@ -208,7 +153,28 @@ class RegisterHandler
         $member->setFName('');
         $member->setLName('');
         $member->setFullName('');
-        $member->addProduct($memberProduct);
+
+        // Create Pinnacle
+        try {
+            $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->createPlayer();
+
+            $integration = $this->productIntegrationFactory->getIntegration('pinbet');
+            $response = $integration->create();
+
+            $memberProduct = new MemberProduct();
+            $memberProduct->setProduct($pinnacleProduct);
+            $memberProduct->setUserName($response['userCode']);
+            $memberProduct->setBalance('0.00');
+            $memberProduct->setIsActive(true);
+
+            $member->addProduct($memberProduct);
+            
+            $member->setPinLoginId($pinnaclePlayer->loginId());
+            $member->setPinUserCode($pinnaclePlayer->userCode());  
+        } catch(\Exception $ex) {
+            //Catch generic exception since we on what error to throw.
+        }       
+       
         $member->addGroup($defaultMemberGroup);
         $member->setDetails([
             'websocket' => [

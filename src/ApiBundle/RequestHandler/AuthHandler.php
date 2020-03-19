@@ -40,6 +40,7 @@ use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use UserBundle\Manager\UserManager;
 use ProductIntegrationBundle\ProductIntegrationFactory;
 use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
+use ProductIntegrationBundle\Exception\NoPinnacleProductException;
 
 class AuthHandler
 {
@@ -230,14 +231,18 @@ class AuthHandler
         }
     }
 
-    private function loginToPinnacle(string $pinUserCode, $locale): ?array
+    private function loginToPinnacle(?string $pinUserCode, $locale): ?array
     {   
         try {
+            if ($pinUserCode === null) {
+                return null;
+            }
+
             return $this->productIntegrationFactory->getIntegration('pinbet')
                 ->auth($pinUserCode, ['locale' => $locale]);
         } catch (IntegrationNotAvailableException $ex) {
             return null;
-        }
+        } 
     }
 
     private function loginToEvolution(string $jwt, Customer $customer, $locale, $ip): ?array
@@ -378,7 +383,10 @@ class AuthHandler
         try {
             $token = $this->oauthService->verifyAccessToken($tokenString);
 
-            $this->pinnacleService->getAuthComponent()->logout($token->getUser()->getCustomer()->getPinUserCode());
+            if ($token->getUser()->getCustomer()->getPinUserCode()) {
+                $this->pinnacleService->getAuthComponent()->logout($token->getUser()->getCustomer()->getPinUserCode());
+            }
+           
             $this->deleteUserAccessToken(null, [$tokenString]);
             $this->loginUser($token->getUser());
             $this->customerManager->handleAudit('logout');
@@ -446,7 +454,7 @@ class AuthHandler
         $this->tokenStorage->setToken($token);
     }
 
-    private function saveSession(User $user, array $accessToken, array $pinnacleInfo)
+    private function saveSession(User $user, array $accessToken, ?array $pinnacleInfo)
     {
         $session = new Session();
         $session->setDetails([
