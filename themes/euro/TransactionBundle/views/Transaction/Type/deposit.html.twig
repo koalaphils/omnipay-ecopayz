@@ -94,7 +94,7 @@
                 'enabled': {% if child.vars.view -%} false {%- else -%} true {%- endif -%},
                 'errors': '{{ form_errors(child) }}',
                 'hasFailedWithIntegration': '{{ child.vars.data.getFailedProcessingWithIntegration() }}',
-                'hasTransactedWithIntegration': '{{ child.vars.data.getHasTransactedToIntegration() }}',
+                'hasTransactedWithIntegration': '{{ child.vars.data.hasTransactedWithIntegration() }}',
                 'bitcoinRequestedAmount' : {% if child.vars.data.details.bitcoin.requested_btc is defined -%} {{ child.vars.data.details.bitcoin.requested_btc | round_format(8, '.', constant('AppBundle\\ValueObject\\Number::ROUND_DOWN')) }} {%- else -%} 0 {% endif -%}
             });
             {% else %}

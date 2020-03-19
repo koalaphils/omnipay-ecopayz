@@ -610,9 +610,7 @@
                         afterBalance = afterBalance.plus(this.info.amount);
                     }
                 } else if(isSubtransactionTypeWithdrawal) {
-                    if (this.info.hasTransactedWithIntegration == null) {
-                        afterBalance = afterBalance.minus(this.info.amount);
-                    }
+                    afterBalance = afterBalance.minus(this.info.amount);
                 }
 
                 var customerProduct = null;

@@ -36,8 +36,8 @@ class PiwiWalletIntegration implements ProductIntegrationInterface
 
     public function credit(string $token, array $params): string
     {
-        $product = $this->repository->getMemberPiwiMemberWallet($params[
-            'member'
+        $product = $this->repository->findByUsername($params[
+            'id'
         ]);
 
         $sum = Number::add($product->getBalance(), $params['amount']);
@@ -48,8 +48,8 @@ class PiwiWalletIntegration implements ProductIntegrationInterface
 
     public function debit(string $token, array $params): string
     {
-        $product = $this->repository->getMemberPiwiMemberWallet($params[
-            'member'
+        $product = $this->repository->findByUsername($params[
+            'id'
         ]);
 
         $diff = Number::sub($product->getBalance(), $params['amount']);
