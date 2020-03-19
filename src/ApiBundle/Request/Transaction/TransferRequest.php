@@ -21,13 +21,13 @@ class TransferRequest
         $this->paymentOptionType = $request->get('payment_option_type', '');
         
         if (!empty($request->get('from', null))) { 
-            $this->from = $request->get('from');
+            $this->from = (int)$request->get('from');
         }
 
         foreach ($request->get('to', []) as $item) {
             $this->to[] = new TransactionItemRequest(
-                $item['id'] ?? null, 
-                $item['amount'] ??  ''
+                (int)$item['id'] ?? null,
+                (string)$item['amount'] ??  ''
             );
         }
     }
