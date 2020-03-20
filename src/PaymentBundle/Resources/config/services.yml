@@ -73,6 +73,7 @@ services:
     payment.bitcoin.capture:
         class: PaymentBundle\Controller\Bitcoin\CaptureAction
         calls:
+            - ['setMemberManager', ['@member.manager']]
             - ['setBlockchain', ['@payment.blockchain']]
             - ['setRouteName', ['payment.member_notify_bitcoin']]
             - ['setTokenFactory', ['@payment.member_token_factory']]
