@@ -17,6 +17,7 @@ use Payum\Core\Security\TokenFactoryInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Psr\Log\LoggerInterface;
+use MemberBundle\Manager\MemberManager;
 use function GuzzleHttp\json_decode;
 
 class CaptureAction implements ActionInterface
@@ -53,6 +54,11 @@ class CaptureAction implements ActionInterface
 
     private $callbackHost;
 
+    /**
+     * @var MemberManager
+     */
+    private $memberManager;
+
     public function execute($request)
     {
         RequestNotSupportedException::assertSupports($this, $request);
@@ -69,16 +75,16 @@ class CaptureAction implements ActionInterface
         );
 
         $callback = $notifyToken->getTargetUrl();
+        $payment = $request->getModel();
+        $gateway = $payment['gateway'];
+        $xpub = trim($gateway->getConfig()['receiverXpub']);
 
-        if (!$member->equalsToBitcoinCallback($callback)) {
-            $payment = $request->getModel();
-            $gateway = $payment['gateway'];
-            $gateway_configs = $gateway->getConfig();
-            $xpub = $gateway_configs['receiverXpub'];
+        if (!$member->equalsToBitcoinCallback($callback) || !$member->bitcoinAddressBelongsToXpub($xpub)) {
             
             try {
                 $result = $this->generateReceivingAddress($callback, $xpub, $gateway);
                 $member->setBitcoinDetails($result);
+                $this->memberManager->save($member);
                 // $transaction->getPaymentOption()->setBitcoinAddress($member->getBitcoinAddress());
             } catch (HttpException $e) {
                 $response = $e->getResponse();
@@ -125,6 +131,11 @@ class CaptureAction implements ActionInterface
 
         $sender = $this->blockchain->getWallet()->getSingleAccount($credentials, $gateway->getConfig()['senderXpub']);
         $this->blockchain->getWallet()->payment($credentials, $address, '0.00001', (string) $sender->getIndex());
+    }
+
+    public function setMemberManager(MemberManager $memberManager)
+    {
+        $this->memberManager = $memberManager;
     }
 
     public function setBlockchain(Blockchain $blockchain): void
@@ -176,6 +187,8 @@ class CaptureAction implements ActionInterface
                 $xpub
             );
         }
+
+        $receivingAddress['xpub'] = $xpub;
 
         return $receivingAddress;
     }
