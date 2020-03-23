@@ -11,7 +11,7 @@ class PlayerComponent extends PinnacleComponent
     private const CREATE_PLAYER_PATH = '/player/create';
     private const GET_PLAYER_PATH = '/player/info';
 
-    public function createPlayer(string $loginId = '', string $agentCode = ''): Player
+    public function createPlayer(string $loginId = '', string $agentCode = '')
     {
         $input = [];
         if ($loginId !== '') {
@@ -23,9 +23,11 @@ class PlayerComponent extends PinnacleComponent
         }
 
         $data = $this->get(self::CREATE_PLAYER_PATH, $input);
-        if (array_has($data, 'userCode')) {
-            return $this->getPlayer($data['userCode']);
-        }
+
+        return $data;
+        // if (array_has($data, 'userCode')) {
+        //     return $this->getPlayer($data['userCode']);
+        // }
     }
 
     public function getPlayer(string $userCode): Player

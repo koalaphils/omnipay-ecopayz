@@ -8,8 +8,9 @@ use PinnacleBundle\Component\Exceptions\PinnacleError;
 use PinnacleBundle\Component\Exceptions\PinnacleException;
 use ProductIntegrationBundle\Exception\IntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
+use ProductIntegrationBundle\Exception\NoPinnacleProductException;
 
-class PinnacleIntegration implements ProductIntegrationInterface
+class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayerInterface
 {
     private $pinnacleService;
 
@@ -66,5 +67,10 @@ class PinnacleIntegration implements ProductIntegrationInterface
         } catch (PinnacleError $exception) {
             throw new IntegrationNotAvailableException($exception->getMessage(), 422);
         }
+    }
+
+    public function create(): array
+    {
+        return $this->pinnacleService->getPlayerComponent()->createPlayer();
     }
 }
