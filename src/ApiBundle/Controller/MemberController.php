@@ -14,6 +14,7 @@ use ApiBundle\Manager\MemberManager;
 use PinnacleBundle\Component\Exceptions\PinnacleException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class MemberController extends AbstractController
@@ -387,6 +388,21 @@ class MemberController extends AbstractController
      */
     public function getMemberFileUriAction(string $filename){
         return $this->getMediaManager()->getFileUri($filename, $this->container->getParameter('customer_folder') ?? 'customerDocuments');
+    }
+
+    /**
+     * @ApiDoc(
+     *     section="Member",
+     *     description="Check Pinnacle Product if existing, otherwise create the Product",
+     *     views={"piwi"}
+     * )
+     */
+    public function loginToPinnacleAction()
+    {
+        $manager = $this->getMemberManager();
+        $response = $manager->loginToPinnacle($this->getUser()->getMember());
+        
+        return new JsonResponse($response ?? []);
     }
 
     private function getMemberManager(): MemberManager

@@ -28,6 +28,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     public const DETAIL_BITCOIN_INDEX = 'bitcoin.index';
     public const DETAIL_BITCOIN_ADDRESS = 'bitcoin.address';
     public const DETAIL_BITCOIN_CALLBACK = 'bitcoin.callback';
+    public const DETAIL_BITCOIN_XPUB = 'bitcoin.xpub';
 
     /**
      * @var string
@@ -1363,7 +1364,16 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
             return false;
         }
 
-        return $this->getBitcoinCallback() === $callback;
+        if(preg_match('/callback\/(.+)$/', $this->getBitcoinCallback(), $mathes) === 1 && preg_match('/callback\/(.+)$/', $callback, $paramMatches) === 1) {
+            return current($paramMatches[1]) == current($mathes[1]);
+        }
+
+        return false;
+    }
+
+    public function bitcoinAddressBelongsToXpub(string $xpub): bool
+    {
+        return strcasecmp($this->getDetail(self::DETAIL_BITCOIN_XPUB), $xpub) === 0;
     }
 
     public function getLocale(): ?string

@@ -1,15 +1,1 @@
 services:
-#    product_integration.example:
-#        class: ProductIntegrationBundle\Example
-#        arguments: ["@service_id", "plain_value", "%parameter%"]
-    # ProductIntegrationBundle\Persistence\HttpPersistence:
-    #     autowire: true
-    #     autoconfigure: true
-    #     public: true
-    #     arguments:
-    #         $url: 'sample'
-    # ProductIntegrationBundle\Integration\EvolutionIntegration:
-    #     autowire: true
-    #     autoconfigure: true
-    #     public: true
-  

@@ -25,6 +25,7 @@
         <li>Create Transaction:</li>
         <li><a href="{{ path("transaction.create_page", {'type': 'deposit'}) }}">{{ "menus.Deposit"|trans({},"TransactionBundle") }}</a></li>|
         <li><a href="{{ path("transaction.create_page", {'type': 'withdraw'}) }}">{{ "menus.Withdraw"|trans({},"TransactionBundle") }}</a></li>
+        <li><a href="{{ path("transaction.create_page", {'type': 'transfer'}) }}">{{ "menus.Transfer"|trans({},"TransactionBundle") }}</a></li>
         </li>
     </ul>
 </div>

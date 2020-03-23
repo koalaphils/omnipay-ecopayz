@@ -173,6 +173,7 @@ class TransactionController extends AbstractController
     public function getLastBitcoinTransactionAction(TokenStorage $tokenStorage, TransactionQueryHandler $handler, string $type): View
     {
         $member = $tokenStorage->getToken()->getUser()->getCustomer();
+
         $request = new GetLastBitcoinRequest((int) $member->getId(), $type);
 
         $transaction = $handler->handleGetLastBitcoin($request);
