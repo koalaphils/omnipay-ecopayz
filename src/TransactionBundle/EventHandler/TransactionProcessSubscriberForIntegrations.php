@@ -86,8 +86,8 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                         $subTransaction->setHasBalanceAdjusted(true);
                         $this->credit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                     } catch (IntegrationNotAvailableException $ex) {
-                        $this->credit('pwm',  $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         $subTransaction->setFailedProcessingWithIntegration(true);
+                        throw $ex;
                     }
                 }
             }
@@ -107,7 +107,6 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                         $subTransaction->setHasBalanceAdjusted(true);
                         $this->debit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);           
                     } catch (IntegrationNotAvailableException $ex) {
-                        $this->credit('pwm',  $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         $subTransaction->setFailedProcessingWithIntegration(true);
                     }
                 }
@@ -116,7 +115,6 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                     try {
                         $this->debit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                     } catch (IntegrationNotAvailableException $ex) {
-                        $this->credit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         $subTransaction->setFailedProcessingWithIntegration(true);
                     }
                 }
