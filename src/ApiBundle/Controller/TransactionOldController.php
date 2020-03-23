@@ -59,9 +59,8 @@ class TransactionOldController extends AbstractController
             $tran['isVoided'] = $t->isVoided();
             $tran['amount'] = number_format((float)$t->getAmount(), 2, '.', '');
 
-            // DateTime
             foreach ($t->getSubTransactions() as $subTransaction) {
-                $tran['customerProduct'] = $subTransaction->getCustomerProduct()->getProduct()->getName();
+                $tran['customerProduct'][] = $subTransaction->getCustomerProduct()->getProduct()->getName();
                 /* @var $subTransaction SubTransaction */
                 foreach ($subTransaction->getDetail('pinnacle.transaction_dates', []) as $data) {
                     $newDate = new \DateTimeImmutable($data['date']);
