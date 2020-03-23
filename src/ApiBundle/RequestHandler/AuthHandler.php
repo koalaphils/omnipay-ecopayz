@@ -385,7 +385,7 @@ class AuthHandler
 
             if ($token->getUser()->getCustomer()->getPinUserCode()) {
                 $this->pinnacleService->getAuthComponent()->logout($token->getUser()->getCustomer()->getPinUserCode());
-            }
+            }   
            
             $this->deleteUserAccessToken(null, [$tokenString]);
             $this->loginUser($token->getUser());

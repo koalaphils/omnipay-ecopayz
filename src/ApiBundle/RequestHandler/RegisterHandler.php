@@ -156,8 +156,6 @@ class RegisterHandler
 
         // Create Pinnacle
         try {
-            $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->createPlayer();
-
             $integration = $this->productIntegrationFactory->getIntegration('pinbet');
             $response = $integration->create();
 
@@ -169,8 +167,8 @@ class RegisterHandler
 
             $member->addProduct($memberProduct);
             
-            $member->setPinLoginId($pinnaclePlayer->loginId());
-            $member->setPinUserCode($pinnaclePlayer->userCode());  
+            $member->setPinLoginId($response['loginId']);
+            $member->setPinUserCode($response['userCode']);  
         } catch(\Exception $ex) {
             //Catch generic exception since we on what error to throw.
         }       

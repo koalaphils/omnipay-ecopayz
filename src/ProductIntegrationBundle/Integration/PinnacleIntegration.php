@@ -71,13 +71,6 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
 
     public function create(): array
     {
-        $response = $this->pinnacleService->getPlayerComponent()->createPlayer();
-
-        throw new \Exception('Meow');
-    }
-
-    public function view(string $userCode)
-    {
-        
+        return $this->pinnacleService->getPlayerComponent()->createPlayer();
     }
 }

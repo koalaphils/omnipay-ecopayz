@@ -86,3 +86,8 @@ api_customers.me_products:
   path: me/products
   defaults: { _controller: ApiBundle:Customer:customerProducts }
   methods: [GET]
+
+api_customers.login_to_pinnacle:
+  path: me/pinnacle
+  defaults: { _controller: ApiBundle:Member:loginToPinnacle }
+  methods: [GET]

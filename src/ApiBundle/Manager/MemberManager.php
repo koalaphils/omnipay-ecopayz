@@ -8,12 +8,16 @@ use AppBundle\Manager\AbstractManager;
 use DbBundle\Entity\BannerImage;
 use DbBundle\Entity\CommissionPeriod;
 use DbBundle\Entity\Customer as Member;
+use DbBundle\Entity\CustomerProduct as MemberProduct;
 use DbBundle\Entity\MemberBanner;
 use DbBundle\Entity\MemberRequest;
 use DbBundle\Entity\MemberRunningCommission;
 use DbBundle\Entity\Notification;
+use DbBundle\Entity\Product;
 use DbBundle\Repository\CommissionPeriodRepository;
+use DbBundle\Repository\ProductRepository;
 use DbBundle\Repository\CustomerRepository as MemberRepository;
+use DbBundle\Repository\CustomerProductRepository as MemberProductRepository;
 use DbBundle\Repository\MemberBannerRepository;
 use DbBundle\Repository\MemberRunningCommissionRepository;
 use MediaBundle\Manager\MediaManager;
@@ -23,9 +27,9 @@ use MemberRequestBundle\Manager\MemberRequestManager;
 use Symfony\Component\HttpFoundation\Response;
 use MemberBundle\Manager\MemberManager as MemberBundleManager;
 
-
 use ApiBundle\Event\TransactionCreatedEvent;
 use DbBundle\Entity\Transaction;
+use ProductIntegrationBundle\ProductIntegrationFactory;
 
 class MemberManager extends AbstractManager
 {
@@ -245,14 +249,72 @@ class MemberManager extends AbstractManager
         return $result;
     }
 
+    public function loginToPinnacle(Member $member): ?array
+    {
+        $pinnacleProduct = $this->getProductRepository()->getProductByCode('pinbet');
+        $memberProduct = $this->getMemberProductRepository()->getPinnacleProduct($member);
+        $integration = $this->getProductIntegrationFactory()->getIntegration('pinbet');
+        
+        if ($memberProduct == null) {
+            try {
+                $response =$integration->create();
+
+                dump($response);
+    
+                $memberProduct = new MemberProduct();
+                $memberProduct->setProduct($pinnacleProduct);
+                $memberProduct->setUserName($response['userCode']);
+                $memberProduct->setBalance('0.00');
+                $memberProduct->setIsActive(true);
+    
+                $userCode = $response['userCode'];
+                $loginId = $response['loginId'];
+                $member->addProduct($memberProduct);
+
+                dump('PUTANGINA!', $userCode);
+                $member->setPinLoginId($loginId);
+                $member->setPinUserCode($userCode);      
+
+                // $this->save($memberProduct);
+                $this->save($member);
+            } catch(\Exception $ex) {
+                dump($ex->getMessage());
+                return null;
+            }       
+        }
+
+        try {
+            dump($member);
+            return $integration->auth($member->getPinUserCode(), ['locale' => $member->getLocale()]);
+        } catch (\Exception $ex) {
+            dump($ex->getMessage());
+            return null;
+        }      
+    }
+
     protected function getRepository(): MemberRepository
     {
         return $this->getDoctrine()->getRepository(Member::class);
     }
 
+    private function getProductRepository(): ProductRepository
+    {
+        return $this->getDoctrine()->getRepository(Product::class);
+    }
+
+    private function getMemberProductRepository(): MemberProductRepository
+    {
+        return $this->getDoctrine()->getRepository(MemberProduct::class);
+    }
+
     private function getMemberBannerRepository(): MemberBannerRepository
     {
         return $this->getDoctrine()->getRepository(MemberBanner::class);
+    }
+
+    private function getProductIntegrationFactory(): ProductIntegrationFactory
+    {
+        return $this->get(ProductIntegrationFactory::class);
     }
 
     private function getMemberRunningCommissionRepository(): MemberRunningCommissionRepository
