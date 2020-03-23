@@ -60,9 +60,6 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         $subTransactions = $transaction->getSubtransactions();
         $customerPiwiWalletProduct = $this->getCustomerPiwiWalletProduct($transaction->getCustomer());
 
-        dump($transitionName);
-        dump($transaction);
-
         // Acknowledged
         if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE) {
             foreach ($subTransactions as $subTransaction) {
@@ -157,7 +154,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                     $this->credit($productCode, $customerProductUsername, $amount, $jwt);
                 }
 
-                 // If the transition is from Acknowledged to Declined
+                // If the transition is from Acknowledged to Declined
                 // if ($subTransaction->isWithdrawal() && $transitionName == Transaction::TRANSACTION_STATUS_ACKNOWLEDGE . '_' . Transaction::TRANSACTION_STATUS_DECLINE) {
                 //     $newBalance = $this->credit($productCode, $customerProductUsername, $amount, $jwt);
                 //     $subTransaction->getCustomerProduct()->setBalance($newBalance);
