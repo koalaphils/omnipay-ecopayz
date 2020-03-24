@@ -234,7 +234,7 @@ class AuthHandler
     private function loginToPinnacle(?string $pinUserCode, $locale): ?array
     {   
         try {
-            if ($pinUserCode === null) {
+            if ($pinUserCode === null || empty($pinUserCode)) {
                 return null;
             }
 
