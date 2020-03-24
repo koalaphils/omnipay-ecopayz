@@ -42,6 +42,7 @@ class GatewayMemberTransaction
 
     public function processMemberTransaction(Transaction $transaction): void
     {
+        dump('PROCESS GATEWAY');
         $gatewayLog = $this->gatewayLogManager->findLastGatewayLogByClassAndNumberOrIdentifier(Transaction::class, (string) $transaction->getId(), $transaction->getNumber());
         $gateway = $transaction->getGateway();
         $isDeclined = $transaction->getStatus() === Transaction::TRANSACTION_STATUS_DECLINE;
