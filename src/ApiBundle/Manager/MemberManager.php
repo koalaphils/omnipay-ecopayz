@@ -251,7 +251,7 @@ class MemberManager extends AbstractManager
 
     public function loginToPinnacle(Member $member): ?array
     {
-        $member = $this->getMemberRepository->getById($member->getId());
+        $member = $this->getRepository()->getById($member->getId());
         $pinnacleProduct = $this->getProductRepository()->getProductByCode('pinbet');
         $memberProduct = $this->getMemberProductRepository()->getPinnacleProduct($member);  
         $integration = $this->getProductIntegrationFactory()->getIntegration('pinbet');
@@ -276,14 +276,14 @@ class MemberManager extends AbstractManager
                 $this->save($member);
             } catch(\Exception $ex) {
                 return null;
-            }       
+            } 
         }
 
         try {
             return $integration->auth($member->getPinUserCode(), ['locale' => $member->getLocale()]);
         } catch (\Exception $ex) {
             return null;
-        }      
+        }
     }
 
     protected function getRepository(): MemberRepository
