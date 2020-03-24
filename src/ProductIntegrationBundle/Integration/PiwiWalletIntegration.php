@@ -10,15 +10,19 @@ use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
 Use DbBundle\Repository\CustomerProductRepository;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use AppBundle\ValueObject\Number;
+use CustomerBundle\Manager\CustomerProductManager;
+use Doctrine\ORM\EntityManagerInterface;
 
 class PiwiWalletIntegration implements ProductIntegrationInterface
 {
-    private $storage;
     private $repository;
+    private $manager;
 
-    public function __construct(CustomerProductRepository $repository)
+    public function __construct(CustomerProductRepository $repository,
+        EntityManagerInterface $manager)
     {
         $this->repository = $repository;
+        $this->manager = $manager;
     }
 
     public function auth(string $token, $body = []): array
@@ -42,6 +46,7 @@ class PiwiWalletIntegration implements ProductIntegrationInterface
 
         $sum = Number::add($product->getBalance(), $params['amount']);
         $product->setBalance($sum->toString());
+        $this->save($product);
 
         return $product->getBalance();
     }
@@ -54,7 +59,14 @@ class PiwiWalletIntegration implements ProductIntegrationInterface
 
         $diff = Number::sub($product->getBalance(), $params['amount']);
         $product->setBalance($diff->toString());
+        $this->save($product);
 
         return $product->getBalance();
+    }
+
+    private function save($product): void
+    {   
+        $this->manager->persist($product);
+        $this->manager->flush($product);
     }
 }

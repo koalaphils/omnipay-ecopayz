@@ -7,8 +7,9 @@ use DbBundle\Repository\CustomerProductRepository;
 use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\Routing\RouterInterface;
 use PinnacleBundle\Component\Exceptions\PinnacleException;
+use AppBundle\Manager\AbstractManager;
 
-class CustomerProductManager
+class CustomerProductManager extends AbstractManager 
 {
     /**
      * @var PinnacleService
@@ -108,7 +109,7 @@ class CustomerProductManager
         return true;
     }
 
-    private function getRouter(): RouterInterface
+    public function getRouter(): RouterInterface
     {
         return $this->router;
     }

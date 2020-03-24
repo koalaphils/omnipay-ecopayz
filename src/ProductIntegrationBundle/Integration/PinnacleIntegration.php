@@ -8,6 +8,7 @@ use PinnacleBundle\Component\Exceptions\PinnacleError;
 use PinnacleBundle\Component\Exceptions\PinnacleException;
 use ProductIntegrationBundle\Exception\IntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
+use Http\Client\Exception\NetworkException;
 use ProductIntegrationBundle\Exception\NoPinnacleProductException;
 
 class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayerInterface
@@ -52,6 +53,8 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
             throw new IntegrationException($exception->getMessage(), 422);
         } catch (PinnacleError $exception) {
             throw new IntegrationNotAvailableException($exception->getMessage(), 422);
+        } catch (NetworkException $exception) {
+            throw new IntegrationNotAvailableException($exception->getMessage(), 422);
         }
     }
 
@@ -65,6 +68,8 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
         } catch (PinnacleException $exception) {
             throw new IntegrationException($exception->getMessage(), 422);
         } catch (PinnacleError $exception) {
+            throw new IntegrationNotAvailableException($exception->getMessage(), 422);
+        } catch (NetworkException $exception) {
             throw new IntegrationNotAvailableException($exception->getMessage(), 422);
         }
     }
