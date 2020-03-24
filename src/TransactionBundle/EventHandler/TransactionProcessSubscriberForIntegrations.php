@@ -91,7 +91,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         }
 
         // Processed
-        if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
+        if (($transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) && ($event->getTransition()->getName() !== 'void')) {
             foreach ($subTransactions as $subTransaction) {
                 $amount = $subTransaction->getAmount();
                 $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode());
@@ -146,15 +146,26 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                 $customerProductUsername = $subTransaction->getCustomerProduct()->getUsername();
 
                 if ($subTransaction->isDeposit()) {
-                    $newBalance = $this->debit($productCode, $customerProductUsername, $amount, $jwt);
-                    $subTransaction->getCustomerProduct()->setBalance($newBalance);
+                    try {
+                        $newBalance = $this->debit($productCode, $customerProductUsername, $amount, $jwt);
+                        $subTransaction->getCustomerProduct()->setBalance($newBalance);
+                    } catch (IntegrationNotAvailableException $ex) {
+                        $this->debit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                        $subTransaction->setFailedProcessingWithIntegration(true);
+                    }
                 }
 
                 if ($subTransaction->isWithdrawal()) {
-                    $this->credit($productCode, $customerProductUsername, $amount, $jwt);
+                    try {
+                        $newBalance = $this->credit($productCode, $customerProductUsername, $amount, $jwt);
+                        $subTransaction->getCustomerProduct()->setBalance($newBalance);
+                    } catch (IntegrationNotAvailableException $ex) {
+                        $this->credit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                        $subTransaction->setFailedProcessingWithIntegration(true);
+                    }
                 }
 
-                // If the transition is from Acknowledged to Declined
+                 // If the transition is from Acknowledged to Declined
                 // if ($subTransaction->isWithdrawal() && $transitionName == Transaction::TRANSACTION_STATUS_ACKNOWLEDGE . '_' . Transaction::TRANSACTION_STATUS_DECLINE) {
                 //     $newBalance = $this->credit($productCode, $customerProductUsername, $amount, $jwt);
                 //     $subTransaction->getCustomerProduct()->setBalance($newBalance);
@@ -162,11 +173,9 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                 // }
             }
 
-
             $this->gatewayMemberTransaction->voidMemberTransaction($transaction);
             return; 
         }
-
        
         if ($transaction->isDeposit() || $transaction->isBonus() || $transaction->isWithdrawal()) {
             $this->gatewayMemberTransaction->processMemberTransaction($transaction);
