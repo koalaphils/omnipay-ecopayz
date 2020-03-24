@@ -89,7 +89,7 @@ class GatewayMemberTransaction
     public function voidMemberTransaction(Transaction $transaction): void
     {
         $gatewayLog = $this->gatewayLogManager->findLastGatewayLogByClassAndNumberOrIdentifier(Transaction::class, (string) $transaction->getId(), $transaction->getNumber());
-
+        dump($gatewayLog);
         if ($gatewayLog === null) {
             return;
         } elseif ($transaction->isBonus() && !$gatewayLog->isWithdraw()) {

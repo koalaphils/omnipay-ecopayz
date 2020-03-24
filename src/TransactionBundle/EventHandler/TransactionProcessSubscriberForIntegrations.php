@@ -116,6 +116,11 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                     }
                 }
             }
+
+
+            if ($transaction->isDeposit() || $transaction->isBonus() || $transaction->isWithdrawal()) {
+                $this->gatewayMemberTransaction->processMemberTransaction($transaction);
+            } 
         }
 
         // Declined
@@ -137,6 +142,10 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                     $this->debit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                 }
             }
+
+            if ($transaction->isDeposit() || $transaction->isBonus() || $transaction->isWithdrawal()) {
+                $this->gatewayMemberTransaction->processMemberTransaction($transaction);
+            } 
         }
 
         if ($event->getTransition()->getName() === 'void') {
@@ -176,10 +185,6 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
             $this->gatewayMemberTransaction->voidMemberTransaction($transaction);
             return; 
         }
-       
-        if ($transaction->isDeposit() || $transaction->isBonus() || $transaction->isWithdrawal()) {
-            $this->gatewayMemberTransaction->processMemberTransaction($transaction);
-        } 
     }
 
 
