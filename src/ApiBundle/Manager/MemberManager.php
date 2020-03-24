@@ -251,6 +251,7 @@ class MemberManager extends AbstractManager
 
     public function loginToPinnacle(Member $member): ?array
     {
+        $member = $this->getMemberRepository->getById($member->getId());
         $pinnacleProduct = $this->getProductRepository()->getProductByCode('pinbet');
         $memberProduct = $this->getMemberProductRepository()->getPinnacleProduct($member);  
         $integration = $this->getProductIntegrationFactory()->getIntegration('pinbet');
