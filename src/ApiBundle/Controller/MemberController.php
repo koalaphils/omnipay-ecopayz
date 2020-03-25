@@ -284,7 +284,7 @@ class MemberController extends AbstractController
     {
         $member = $this->getUser()->getCustomer();
 
-        return $this->view($memberHandler->changeMemberLocale($request, $member, $request->get('locale')));
+        return $this->view($memberHandler->changeMemberLocale($request, $member, $request->get('locale'), $request->getClientIp()));
     }
 
     /**
