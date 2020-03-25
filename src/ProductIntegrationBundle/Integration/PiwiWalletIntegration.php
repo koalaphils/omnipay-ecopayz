@@ -64,9 +64,9 @@ class PiwiWalletIntegration implements ProductIntegrationInterface
         return $product->getBalance();
     }
 
-    private function save($product): void
+    private function save($product): void   
     {   
         $this->manager->persist($product);
-        $this->manager->flush($product);
+        $this->manager->flush();
     }
 }
