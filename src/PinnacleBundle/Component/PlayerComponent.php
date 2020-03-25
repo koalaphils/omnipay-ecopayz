@@ -24,10 +24,9 @@ class PlayerComponent extends PinnacleComponent
 
         $data = $this->get(self::CREATE_PLAYER_PATH, $input);
 
-        return $data;
-        // if (array_has($data, 'userCode')) {
-        //     return $this->getPlayer($data['userCode']);
-        // }
+        if (array_has($data, 'userCode')) {
+            return $this->getPlayer($data['userCode']);
+        }
     }
 
     public function getPlayer(string $userCode): Player
