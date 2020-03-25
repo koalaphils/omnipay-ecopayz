@@ -19,9 +19,13 @@ use DbBundle\Entity\Customer;
 use DbBundle\Entity\OAuth2\AccessToken;
 use DbBundle\Entity\Session;
 use DbBundle\Entity\User;
+use DbBundle\Entity\CustomerProduct;
+use DbBundle\Repository\SessionRepositoryRepository;
 use DbBundle\Repository\PaymentOptionRepository;
 use DbBundle\Repository\SessionRepository;
 use DbBundle\Repository\UserRepository;
+use DbBundle\Repository\CustomerProductRepository;
+use DbBundle\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Firebase\JWT\JWT;
 use FOS\OAuthServerBundle\Security\Authentication\Token\OAuthToken;
@@ -34,6 +38,9 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use UserBundle\Manager\UserManager;
+use ProductIntegrationBundle\ProductIntegrationFactory;
+use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
+use ProductIntegrationBundle\Exception\NoPinnacleProductException;
 
 class AuthHandler
 {
@@ -106,6 +113,9 @@ class AuthHandler
      * @var string
      */
     private $pinnacleExpiration;
+    private $customerProductRepository;
+    private $productRepository;
+    private $productIntegrationFactory;
 
     public function __construct(
         OAuth2 $oauthService,
@@ -119,6 +129,9 @@ class AuthHandler
         UserManager $userManager,
         SettingManager $settingManager,
         SessionRepository $sessionRepository,
+        CustomerProductRepository $customerProductRepository,
+        ProductRepository $productRepository,
+        ProductIntegrationFactory $productIntegrationFactory,
         string $jwtKey
     ) {
         $this->oauthService = $oauthService;
@@ -135,6 +148,9 @@ class AuthHandler
         $this->sessionExpiration = $this->settingManager->getSetting('session.timeout');
         $this->pinnacleExpiration = $this->settingManager->getSetting('session.pinnacle_timeout');
         $this->sessionRepository = $sessionRepository;
+        $this->productIntegrationFactory = $productIntegrationFactory;
+        $this->customerProductRepository = $customerProductRepository;
+        $this->productRepository = $productRepository;
     }
 
     /**
@@ -152,31 +168,24 @@ class AuthHandler
         }
 
         $response = $this->oauthService->grantAccessToken($request);
-
         $data = json_decode($response->getContent(), true);
         $accessToken = $this->oauthService->verifyAccessToken($data['access_token']);
-
-        /* @var $user \DbBundle\Entity\User */
         $user = $accessToken->getUser();
-        $this->pinnacleService->getAuthComponent()->logout($user->getCustomer()->getPinUserCode());
+        $member = $user->getCustomer();
 
-        $memberLocale = $user->getCustomer()->getLocale();
-        $memberLocale = strtolower(str_replace('_', '-', $memberLocale));
+        $this->loginUser($user);
 
-        $pinLoginResponse = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode(), $memberLocale);
-        $paymentOptionTypes = $this->paymentOptionRepository->getMemberProcessedPaymentOption($user->getCustomer()->getId());
-        $processPaymentOptionTypes = [];
-        foreach ($paymentOptionTypes as $paymentOption) {
-            $processPaymentOptionTypes[$paymentOption->getCode()] = true;
-        }
+        $jwt = $this->generateJwtToken($user->getCustomer());
+        $integrationResponses = $this->loginToProducts($user, $jwt, $request->getClientIp());
 
-        $loginResponse = [
+        $loginResponse = array_merge([
             'token' => $data,
-            'pinnacle' => $pinLoginResponse->toArray(),
-            'member' => $user->getCustomer(),
-            'process_payments' => $processPaymentOptionTypes,
-            'jwt' => $this->generateJwtToken($user->getCustomer()),
-        ];
+            'member' => $member,
+            'process_payments' => $this->getPaymentOptions($user->getCustomer()->getId()),
+            'products' => $member->getProducts(),
+            'jwt' => $jwt,
+        ], $integrationResponses);
+
         $this->deleteUserAccessToken($accessToken->getUser()->getId(), [], [$accessToken->getToken()]);
 
         if ($user->getCustomer()->getWebsocketChannel() === '') {
@@ -185,15 +194,119 @@ class AuthHandler
             $this->entityManager->flush($user->getCustomer());
         }
 
-        $this->saveSession($user, $data, $pinLoginResponse->toArray());
-
-        $this->loginUser($user);
+        $this->saveSession($user, $data, $integrationResponses['pinnacle']);
         $this->customerManager->handleAudit('login');
 
         $channel = $user->getCustomer()->getWebsocketDetails()['channel_id'];
         $this->publisher->publishUsingWamp('login.' . $channel, ['access_token' => $accessToken->getToken()]);
 
         return $loginResponse;
+    }
+
+    private function loginToProducts(User $user, string $jwt, string $ip): array
+    {
+        $memberLocale = $user->getCustomer()->getLocale();
+        $memberLocale = strtolower(str_replace('_', '-', $memberLocale));
+        $this->createPiwiWalletIfNotExisting($user->getCustomer());
+
+        return [
+            'pinnacle' => $this->loginToPinnacle($user->getCustomer()->getPinUserCode(), $memberLocale),
+            'evolution' => $this->loginToEvolution($jwt, $user->getCustomer(), $memberLocale, $ip)
+        ];
+    }
+
+    private function createPiwiWalletIfNotExisting(Customer $customer): void 
+    {
+        $customerProduct = $this->customerProductRepository->findOneByCustomerAndProductCode($customer, 'PWM');
+
+        if ($customerProduct === null) {
+            $customerProduct = CustomerProduct::create($customer);
+            $product = $this->productRepository->getProductByCode('PWM');
+            $customerProduct->setProduct($product);
+            $customerProduct->setUsername('PWM_' . uniqid());
+            $customerProduct->setBalance('0.00');
+            $customerProduct->setIsActive(true);
+            $this->entityManager->persist($customerProduct);
+            $this->entityManager->flush();
+        }
+    }
+
+    private function loginToPinnacle(?string $pinUserCode, $locale): ?array
+    {   
+        try {
+            if ($pinUserCode === null || empty($pinUserCode)) {
+                return null;
+            }
+
+            return $this->productIntegrationFactory->getIntegration('pinbet')
+                ->auth($pinUserCode, ['locale' => $locale]);
+        } catch (IntegrationNotAvailableException $ex) {
+            return null;
+        } 
+    }
+
+    private function loginToEvolution(string $jwt, Customer $customer, $locale, $ip): ?array
+    {
+        try {
+            $evolutionIntegration = $this->productIntegrationFactory->getIntegration('evolution');
+            $evolutionProduct = $this->getEvolutionProduct($customer);
+            $evolutionResponse = $evolutionIntegration->auth($jwt, [
+                'id' => $evolutionProduct->getUsername(),
+                'lastName' => $customer->getLName() ? $customer->getLname() : $customer->getUsername(),
+                'firstName' => $customer->getFName() ? $customer->getFName() : $customer->getUsername(),
+                'nickname' => $customer->getUsername(),
+                'country' => $customer->getCountry() ? $customer->getCountry()->getCode() : 'UK',
+                'language' => 'en',
+                'currency' => $customer->getCurrency()->getCode(),
+                'ip' => $ip,
+            ]);
+            return $evolutionResponse;
+        } catch (IntegrationNotAvailableException $ex) {
+            return null;
+        }
+    }
+
+    private function getEvolutionProduct(Customer $customer): CustomerProduct
+    {
+        $customerProduct = $this->customerProductRepository->findOneByCustomerAndProductCode($customer, 'EVOLUTION');
+
+        if ($customerProduct === null) {
+            $customerProduct = CustomerProduct::create($customer);
+            $product = $this->productRepository->getProductByCode('EVOLUTION');
+            $customerProduct->setProduct($product);
+            $customerProduct->setUsername('Evolution_' . uniqid());
+            $customerProduct->setBalance('0.00');
+            $customerProduct->setIsActive(true);
+            $this->entityManager->persist($customerProduct);
+            $this->entityManager->flush();
+        }
+
+        return $customerProduct;
+    }
+
+    private function getPaymentOptions(string $customerId): array
+    {
+        $paymentOptionTypes = $this->paymentOptionRepository->getMemberProcessedPaymentOption($customerId);
+ 
+        return array_reduce($paymentOptionTypes, function($carry, $paymentOption) {
+            $carry[$paymentOption->getCode()] = true;
+
+            return $carry;
+        }, []);
+    }
+
+    private function generateJwtToken(Customer $member): string
+    {
+        $token = [
+            'authid' => json_encode([
+                'username' => $member->getUsername(),
+                'userid' => $member->getUser()->getId(),
+                'from' => 'member_site',
+            ]),
+            'exp' => time() + $this->sessionExpiration,
+        ];
+
+        return JWT::encode($token, $this->jwtKey);
     }
 
     public function handleCheckSession(Request $request): array
@@ -214,7 +327,8 @@ class AuthHandler
         $pinnacleInfo = $session->getDetail('pinnacle', ['token' => '']);
 
         if ($pinnacleInfo['token'] !== $pinnacleToken) {
-            $pinnacleInfo = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode(), $memberLocale)->toArray();
+            $pinnacleInfo = $this->productIntegrationFactory->getIntegration('pinbet')
+                ->auth($user->getCustomer()->getPinUserCode(), ['locale' => $memberLocale]);
             $session->setDetail('pinnacle', $pinnacleInfo);
             $this->entityManager->persist($session);
             $this->entityManager->flush($session);
@@ -225,7 +339,8 @@ class AuthHandler
         $expirationDate = $updatedDate->modify('+' . $this->pinnacleExpiration . ' seconds')->setTimezone($now->getTimezone());
 
         if ($expirationDate <= $now) {
-            $pinnacleInfo = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode(), $memberLocale)->toArray();
+            $pinnacleInfo = $this->productIntegrationFactory->getIntegration('pinbet')
+                ->auth($user->getCustomer()->getPinUserCode(), ['locale' => $memberLocale]);
             $session->setDetail('pinnacle', $pinnacleInfo);
             $this->entityManager->persist($session);
             $this->entityManager->flush($session);
@@ -244,27 +359,15 @@ class AuthHandler
         ];
     }
 
-    private function generateJwtToken(Customer $member): string
-    {
-        $token = [
-            'authid' => json_encode([
-                'username' => $member->getUsername(),
-                'userid' => $member->getUser()->getId(),
-                'from' => 'member_site',
-            ]),
-            'exp' => time() + $this->sessionExpiration,
-        ];
-
-        return JWT::encode($token, $this->jwtKey);
-    }
-
     public function handleRefreshToken(Request $request): array
     {
         $response = $this->oauthService->grantAccessToken($request);
         $data = json_decode($response->getContent(), true);
         $accessToken = $this->oauthService->verifyAccessToken($data['access_token']);
         $user = $accessToken->getUser();
-        $pinLoginResponse = $this->pinnacleService->getAuthComponent()->login($user->getCustomer()->getPinUserCode());
+        $memberLocale = $user->getCustomer()->getLocale();
+        $pinLoginResponse = $this->productIntegrationFactory->getIntegration('pinbet')
+            ->auth($user->getCustomer()->getPinUserCode(), ['locale' => $memberLocale]);
 
         return [
             'token' => $data,
@@ -280,7 +383,10 @@ class AuthHandler
         try {
             $token = $this->oauthService->verifyAccessToken($tokenString);
 
-            $this->pinnacleService->getAuthComponent()->logout($token->getUser()->getCustomer()->getPinUserCode());
+            if ($token->getUser()->getCustomer()->getPinUserCode()) {
+                $this->pinnacleService->getAuthComponent()->logout($token->getUser()->getCustomer()->getPinUserCode());
+            }   
+           
             $this->deleteUserAccessToken(null, [$tokenString]);
             $this->loginUser($token->getUser());
             $this->customerManager->handleAudit('logout');
@@ -348,7 +454,7 @@ class AuthHandler
         $this->tokenStorage->setToken($token);
     }
 
-    private function saveSession(User $user, array $accessToken, array $pinnacleInfo)
+    private function saveSession(User $user, array $accessToken, ?array $pinnacleInfo)
     {
         $session = new Session();
         $session->setDetails([

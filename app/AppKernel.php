@@ -59,6 +59,7 @@ class AppKernel extends Kernel
             new \Snc\RedisBundle\SncRedisBundle(),
             new \Aws\Symfony\AwsBundle(),
             new MemberRequestBundle\MemberRequestBundle(),
+            new ProductIntegrationBundle\ProductIntegrationBundle(),
         );
 
         if (in_array($this->getEnvironment(), array('dev', 'test'), true)) {

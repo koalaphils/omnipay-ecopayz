@@ -1,0 +1,11 @@
+ApiBundle\Request\Transaction\TransferRequest:
+  getters:
+    from:
+      - NotBlank: ~
+    to:
+      - Count:
+          min: 1
+          minMessage: Destination products should not be empty
+      - Valid: ~
+    # meta:
+    #   - Valid: ~

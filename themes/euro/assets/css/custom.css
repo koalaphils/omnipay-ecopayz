@@ -300,6 +300,14 @@ display: flex;
   display: flex;
   position: relative !important;
 }
+#Transaction_subTransactions .from-product-list .input-group {
+  display: flex;
+  position: relative !important;
+}
+#Transaction_subTransactions .to-product-list .input-group {
+  display: flex;
+  position: relative !important;
+}
 #Transaction_subTransactions .subtransaction-product {
   position: relative !important;
   display: contents;

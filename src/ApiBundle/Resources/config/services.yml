@@ -190,3 +190,7 @@ services:
             - ['setMinBitcoinDeposit', ['@=service("app.setting_manager").getSetting("bitcoin.setting.configuration.minimumAllowedDeposit")']]
         tags:
             - { name: validator.constraint_validator }
+
+    ApiBundle\Service\JWTGeneratorService:
+        arguments:
+            $jwtKey: "%jwt_key%"

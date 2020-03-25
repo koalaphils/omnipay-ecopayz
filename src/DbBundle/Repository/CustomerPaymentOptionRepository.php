@@ -52,7 +52,7 @@ class CustomerPaymentOptionRepository extends \Doctrine\ORM\EntityRepository
         return $qb->getQuery()->getOneOrNullResult();
     }
 
-    public function findByFields(int $memberId, string $paymentOption, array $fields): ?CustomerPaymentOption
+    public function findByFields(int $memberId, string $paymentOption, array $fields = []): ?CustomerPaymentOption
     {
         $queryBuilder = $this->createQueryBuilder('cpo');
         $conditions = $queryBuilder->expr()->andX()->addMultiple([

@@ -177,7 +177,8 @@ ENV TIMEZONE=Etc/GMT+4 \
     AWS_KEY= \
     AWS_SECRET= \
     AWS_S3_VERSION= \
-    AWS_BUCKET= 
+    AWS_BUCKET= \
+    EVOLUTION_SERVICE_URL=
 
 WORKDIR /var/www/html
 RUN sed -i "s/;emergency_restart_threshold\s*=\s*.*/emergency_restart_threshold = 10/g" /usr/local/etc/php-fpm.conf \

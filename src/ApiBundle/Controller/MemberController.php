@@ -14,6 +14,7 @@ use ApiBundle\Manager\MemberManager;
 use PinnacleBundle\Component\Exceptions\PinnacleException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class MemberController extends AbstractController
@@ -229,6 +230,23 @@ class MemberController extends AbstractController
     /**
      * @ApiDoc(
      *     section="Current Login Member",
+     *     description="Get Balance",
+     *     views={"default", "piwi"},
+     *     headers={
+     *         { "name"="Authorization", "description"="Bearer <access_token>" }
+     *     }
+     * )
+     */
+    public function getBalanceAction(MemberHandler $memberHandler): View
+    {
+        $user = $this->getUser();
+
+        return $this->view($memberHandler->handleGetBalance($user->getCustomer()));
+    }
+
+    /**
+     * @ApiDoc(
+     *     section="Current Login Member",
      *     description="Get active payment options",
      *     views={"piwi"},
      *     filters={
@@ -267,6 +285,29 @@ class MemberController extends AbstractController
         $member = $this->getUser()->getCustomer();
 
         return $this->view($memberHandler->changeMemberLocale($request, $member, $request->get('locale')));
+    }
+
+    /**
+     * @ApiDoc(
+     *     section="Current Login Member",
+     *     description="Change member country",
+     *     views={"piwi"},
+     *     requirements={
+     *          {
+     *             "name"="country",
+     *             "dataType"="string"
+     *         }
+     *     },
+     *     headers={
+     *         { "name"="Authorization", "description"="Bearer <access_token>" }
+     *     }
+     * )
+     */
+    public function changeCountryAction(Request $request, MemberHandler $memberHandler): View
+    {
+        $member = $this->getUser()->getCustomer();
+
+        return $this->view($memberHandler->changeMemberCountry($member, $request->get('country')));
     }
 
     /**
@@ -347,6 +388,21 @@ class MemberController extends AbstractController
      */
     public function getMemberFileUriAction(string $filename){
         return $this->getMediaManager()->getFileUri($filename, $this->container->getParameter('customer_folder') ?? 'customerDocuments');
+    }
+
+    /**
+     * @ApiDoc(
+     *     section="Member",
+     *     description="Check Pinnacle Product if existing, otherwise create the Product",
+     *     views={"piwi"}
+     * )
+     */
+    public function loginToPinnacleAction()
+    {
+        $manager = $this->getMemberManager();
+        $response = $manager->loginToPinnacle($this->getUser()->getMember());
+        
+        return new JsonResponse($response ?? []);
     }
 
     private function getMemberManager(): MemberManager

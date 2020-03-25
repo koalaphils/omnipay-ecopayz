@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 set -eux
 
-nc -z ${DATABASE_HOST} ${DATABASE_PORT}
+until nc -z -v -w30 ${DATABASE_HOST} ${DATABASE_PORT}
+
+do
+  echo "Waiting for database connection..."
+  # wait for 5 seconds before check again
+  sleep 5
+done
 
 cd /var/www/html
 
@@ -36,12 +42,15 @@ else
 fi
 
 php app/console doctrine:migrations:migrate --no-interaction
+#clear caches stored in redis or remote cache provider
+php app/console doctrine:cache:clear-metadata --no-interaction
+php app/console doctrine:cache:clear-query --no-interaction
+php app/console doctrine:cache:clear-result --no-interaction
+
 php app/console theme:apply euro --no-interaction
 php app/console cache:clear --no-warmup --no-optional-warmers --no-interaction
 php app/console assets:install --symlink --relative
 php app/console assetic:dump --no-interaction
-php app/console app:email-setup
-php app/console app:referral-tools-setup
 
 mkdir -p var/logs
 mkdir -p var/logs/blockchain
@@ -50,11 +59,10 @@ mkdir -p var/cache/${SYMFONY_ENV}/profiler
 mkdir -p var/cache/${SYMFONY_ENV}/jms_diextra/doctrine
 mkdir -p var/cache/${SYMFONY_ENV}/jms_diextra/metadata
 mkdir -p var/cache/${SYMFONY_ENV}/jms_aop
-mkdir -p var/spool/default
+mkdir -p var/cache/${SYMFONY_ENV}/twig
 touch var/logs/${SYMFONY_ENV}.log
 
 chown -Rf www-data var
-chmod -R 777 ./var/
 
 set +e
 id -u ${SSH_USER}

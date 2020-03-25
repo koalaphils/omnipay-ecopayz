@@ -52,13 +52,13 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
 
     public function onBitcoinNotified(NotifyEvent $event): void
     {
-        $transaction = $event->getTransaction();
-        if (!$transaction->isVoided()
-            && $transaction->isDeposit()
-            && $transaction->getStatus() == $this->settingManager->getSetting('pinnacle.transaction.deposit.status')
-        ) {
-            $this->processSubtransactions($transaction);
-        }
+        // $transaction = $event->getTransaction();
+        // if (!$transaction->isVoided()
+        //     && $transaction->isDeposit()
+        //     && $transaction->getStatus() == $this->settingManager->getSetting('pinnacle.transaction.deposit.status')
+        // ) {
+        //     $this->processSubtransactions($transaction);
+        // }
     }
 
     public function onTransitionEntered(WorkflowEvent $event)
@@ -66,19 +66,19 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
         /* @var $transaction Transaction */
         $transaction = $event->getSubject();
 
-        if ($event->getTransition()->getName() === 'void') {
-            $this->processSubtransactions($transaction, true);
-        } elseif ($transaction->isDeposit() && $transaction->getStatus() == $this->settingManager->getSetting('pinnacle.transaction.deposit.status')) {
-            $this->processSubtransactions($transaction);
-        } elseif ($transaction->isBonus() && $transaction->getStatus() == $this->settingManager->getSetting('pinnacle.transaction.bonus.status')) {
-            $this->processSubtransactions($transaction);
-        } elseif ($transaction->isWithdrawal() && $transaction->getStatus() == $this->settingManager->getSetting('pinnacle.transaction.withdraw.status')) {
-            $this->processSubtransactions($transaction);
-        } elseif ($transaction->isWithdrawal() && $transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
-            $this->processSubtransactions($transaction);
-        } elseif ($transaction->isDeclined()) {
-            $this->processSubtransactions($transaction, true);
-        }
+        // if ($event->getTransition()->getName() === 'void') {
+        //     $this->processSubtransactions($transaction, true);
+        // } elseif ($transaction->isDeposit() && $transaction->getStatus() == $this->settingManager->getSetting('pinnacle.transaction.deposit.status')) {
+        //     $this->processSubtransactions($transaction);
+        // } elseif ($transaction->isBonus() && $transaction->getStatus() == $this->settingManager->getSetting('pinnacle.transaction.bonus.status')) {
+        //     $this->processSubtransactions($transaction);
+        // } elseif ($transaction->isWithdrawal() && $transaction->getStatus() == $this->settingManager->getSetting('pinnacle.transaction.withdraw.status')) {
+        //     $this->processSubtransactions($transaction);
+        // } elseif ($transaction->isWithdrawal() && $transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) {
+        //     $this->processSubtransactions($transaction);
+        // } elseif ($transaction->isDeclined()) {
+        //     $this->processSubtransactions($transaction, true);
+        // }
     }
 
     private function processSubtransactions(Transaction $transaction, bool $voided = false): void

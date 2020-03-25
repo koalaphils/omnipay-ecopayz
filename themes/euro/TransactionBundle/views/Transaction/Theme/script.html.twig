@@ -297,7 +297,7 @@
                         'socials': data.socials,
                         'user': data.user
                     });
-                    applySummary(); console.log(data);
+                    applySummary(); 
                     {% if form.parent.gateway.vars.id is defined %}
                         $('#{{ form.parent.gateway.vars.id }}').trigger('select2:select');
                     {% endif %}
@@ -460,6 +460,10 @@
                     }
                 }
 
+                if (this.info.hasFailedWithIntegration == "1") {
+                    this.view.find('.integration-error-message').append('<p>Failed processing with 3rd party integration.</p>');
+                }
+
                 var thisproduct = this;
                 this.view.find('.subtransaction-product').selectpicker({})
                     .on('shown.bs.select', function(e) {
@@ -606,7 +610,9 @@
                         afterBalance = afterBalance.plus(this.info.amount);
                     }
                 } else if(isSubtransactionTypeWithdrawal) {
-                    afterBalance = afterBalance.minus(this.info.amount);
+                    if (!this.info.hasBalanceAdjusted) {
+                        afterBalance = afterBalance.minus(this.info.amount);
+                    }
                 }
 
                 var customerProduct = null;
@@ -893,6 +899,8 @@
                             notification('Validation Failed', 'Some fields are invalid', 'error');
                             $('#{{ form.actions.vars.id }} button').removeAttr('disabled');
                             $('.btn-void-transaction').removeAttr('disabled');
+                        } else if (typeof data.errorMessage !== 'undefined') {
+                            notification('Integration Error!', data.errorMessage, 'error');
                         }
                     },
                     'beforeSend': function (xhr, settings) {

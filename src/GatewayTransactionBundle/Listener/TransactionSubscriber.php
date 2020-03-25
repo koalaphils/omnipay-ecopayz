@@ -52,18 +52,16 @@ class TransactionSubscriber implements EventSubscriberInterface
 
     public function onTransitionEntered(Event $event): void
     {
-        /* @var $transaction Transaction */
-        $transaction = $event->getSubject();
-        $newStatus = $this->getStatus($transaction->getStatus());
+        // /* @var $transaction Transaction */
+        // $transaction = $event->getSubject();
+        // $newStatus = $this->getStatus($transaction->getStatus());
 
-        if ($event->getTransition()->getName() === 'void') {
-            $this->gatewayMemberTransaction->voidMemberTransaction($transaction);
-        } elseif (array_get($newStatus, 'end', false)) {
-            $this->gatewayMemberTransaction->processMemberTransaction($transaction);
-        }
+        // if ($event->getTransition()->getName() === 'void') {
+        //     $this->gatewayMemberTransaction->voidMemberTransaction($transaction);
+        // } elseif (array_get($newStatus, 'end', false)) {
+        //     $this->gatewayMemberTransaction->processMemberTransaction($transaction);
+        // }
     }
-
-
 
     private function getStatus($status)
     {

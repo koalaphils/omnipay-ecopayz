@@ -347,11 +347,15 @@ class TransactionOldController extends AbstractController
                 }
                 $transaction = $this->getManager()->handleFormTransaction($form, $request);
                 $response['data'] = $transaction;
+                $this->getManager()->commit();
             } catch (\AppBundle\Exceptions\FormValidationException $e) {
                 $response['success'] = false;
                 $response['errors'] = $e->getErrors();
-            }
-            $this->getManager()->commit();
+            } catch (\ProductIntegrationBundle\Exception\IntegrationNotAvailableException  $e) {
+                $response['success'] = false;
+                $response['errorMessage'] = $e->getMessage();
+            }  
+
         } catch (PessimisticLockException $e) {
             $this->getManager()->rollBack();
             $notifications = [
@@ -428,11 +432,14 @@ class TransactionOldController extends AbstractController
                 $this->getManager()->insertNotificationByTransaction($transaction);
 
                 $response['data'] = $transaction;
+                $this->getManager()->commit();
             } catch (\AppBundle\Exceptions\FormValidationException $e) {
                 $response['success'] = false;
                 $response['errors'] = $e->getErrors();
-            }
-            $this->getManager()->commit();
+            } catch (\ApiBundle\ProductIntegration\IntegrationNotAvailableException  $e) {
+                $response['success'] = false;
+                $response['errorMessage'] = $e->getMessage();
+            }   
         } catch (PessimisticLockException $e) {
             $this->getManager()->rollBack();
             $notifications = [
