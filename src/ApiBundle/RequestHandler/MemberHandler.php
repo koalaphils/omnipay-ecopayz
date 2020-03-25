@@ -6,6 +6,7 @@ namespace ApiBundle\RequestHandler;
 
 use ApiBundle\Service\JWTGeneratorService;
 use AppBundle\Helper\Publisher;
+use AppBundle\ValueObject\Number;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\Product;
 use DbBundle\Repository\CountryRepository;
@@ -86,6 +87,7 @@ class MemberHandler
         $customerProducts = $member->getActiveProducts();
 
         $productBalance = [];
+        $availableBalance = new Number(0);
 
         foreach ($customerProducts as $customerProduct) {
             $productCode = $customerProduct->getProduct()->getCode();
@@ -93,10 +95,12 @@ class MemberHandler
             $token = $this->jwtGeneratorService->generate([]);
 
             $productBalance[$productCode] = $this->productFactory->getIntegration(strtolower($productCode))->getBalance($token, $productUsername);
+            $availableBalance = $availableBalance->plus($productBalance[$productCode]);
         }
 
         return [
-            'available_balance' => $member->getAvailableBalance(),
+            'balance' => $member->getBalance(),
+            'available_balance' => $availableBalance,
             'pinnacle_balance' => $player->availableBalance(),
             'product_balance' => $productBalance,
             'outstanding' => $player->outstanding()
