@@ -58,6 +58,8 @@ class MemberHandler
 
     private $jwtGeneratorService;
 
+    private $authHandler;
+
     public function __construct(
         PinnacleService $pinnacleService,
         CustomerPaymentOptionRepository $memberPaymentOptionRepository,
@@ -67,7 +69,8 @@ class MemberHandler
         Publisher $publisher,
         CountryRepository $countryRepository,
         ProductIntegrationFactory $productFactory,
-        JWTGeneratorService $jwtGeneratorService
+        JWTGeneratorService $jwtGeneratorService,
+        AuthHandler $authHandler
     ) {
         $this->pinnacleService = $pinnacleService;
         $this->memberPaymentOptionRepository = $memberPaymentOptionRepository;
@@ -78,6 +81,7 @@ class MemberHandler
         $this->countryRepository = $countryRepository;
         $this->productFactory = $productFactory;
         $this->jwtGeneratorService = $jwtGeneratorService;
+        $this->authHandler = $authHandler;
     }
 
     public function handleGetBalance(Customer $member): array
@@ -123,7 +127,7 @@ class MemberHandler
         return $groupPaymentOptions;
     }
 
-    public function changeMemberLocale(Request $request, Customer $member, string $locale): array
+    public function changeMemberLocale(Request $request, Customer $member, string $locale, string $ip): array
     {
         $token = $this->tokenStorage->getToken()->getToken();
         $session = $this->sessionRepository->findBySessionId($token);
@@ -136,16 +140,20 @@ class MemberHandler
         $memberLocale = strtolower(str_replace('_', '-', $memberLocale));
 
         $this->pinnacleService->getAuthComponent()->logout($member->getPinUserCode());
-        $pinLoginResponse = $this->pinnacleService->getAuthComponent()->login($member->getPinUserCode(), $memberLocale);
-        $session->setDetail('pinnacle', $pinLoginResponse->toArray());
+        $pinnacleDetails = $this->pinnacleService->getAuthComponent()->login($member->getPinUserCode(), $memberLocale);
+        $session->setDetail('pinnacle', $pinnacleDetails->toArray());
+
+        $token = $this->jwtGeneratorService->generate([]);
+        $evolutionDetails = $this->authHandler->loginToEvolution($token, $member, $locale, $ip);
+        $session->setDetail('evolution', $evolutionDetails);
 
         $this->entityManager->persist($session);
         $this->entityManager->flush($session);
 
         $channel = $member->getWebsocketDetails()['channel_id'];
-        $this->publisher->publishUsingWamp('pinnacle.update.' . $channel, ['login_url' => $pinLoginResponse->loginUrl()]);
+        $this->publisher->publishUsingWamp('pinnacle.update.' . $channel, ['login_url' => $pinnacleDetails->loginUrl()]);
 
-        return ['success' => true, 'pinnacle' => $pinLoginResponse->toArray()];
+        return ['success' => true, 'pinnacle' => $pinnacleDetails->toArray(), 'evolution' => $evolutionDetails];
     }
 
     public function changeMemberCountry(Customer $member, string $countryCode): array

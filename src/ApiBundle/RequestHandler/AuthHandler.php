@@ -245,7 +245,7 @@ class AuthHandler
         } 
     }
 
-    private function loginToEvolution(string $jwt, Customer $customer, $locale, $ip): ?array
+    public function loginToEvolution(string $jwt, Customer $customer, $locale, $ip): ?array
     {
         try {
             $evolutionIntegration = $this->productIntegrationFactory->getIntegration('evolution');
@@ -256,7 +256,7 @@ class AuthHandler
                 'firstName' => $customer->getFName() ? $customer->getFName() : $customer->getUsername(),
                 'nickname' => $customer->getUsername(),
                 'country' => $customer->getCountry() ? $customer->getCountry()->getCode() : 'UK',
-                'language' => 'en',
+                'language' => $locale,
                 'currency' => $customer->getCurrency()->getCode(),
                 'ip' => $ip,
             ]);
