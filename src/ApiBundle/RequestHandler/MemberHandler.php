@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace ApiBundle\RequestHandler;
 
+use ApiBundle\Service\JWTGeneratorService;
 use AppBundle\Helper\Publisher;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\Product;
@@ -14,6 +15,7 @@ use DbBundle\Collection\Collection;
 use Doctrine\ORM\EntityManager;
 use OAuth2\OAuth2AuthenticateException;
 use PinnacleBundle\Service\PinnacleService;
+use ProductIntegrationBundle\ProductIntegrationFactory;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 
@@ -51,6 +53,10 @@ class MemberHandler
      */
     private $countryRepository;
 
+    private $productFactory;
+
+    private $jwtGeneratorService;
+
     public function __construct(
         PinnacleService $pinnacleService,
         CustomerPaymentOptionRepository $memberPaymentOptionRepository,
@@ -58,7 +64,9 @@ class MemberHandler
         SessionRepository $sessionRepository,
         TokenStorage $tokenStorage,
         Publisher $publisher,
-        CountryRepository $countryRepository
+        CountryRepository $countryRepository,
+        ProductIntegrationFactory $productFactory,
+        JWTGeneratorService $jwtGeneratorService
     ) {
         $this->pinnacleService = $pinnacleService;
         $this->memberPaymentOptionRepository = $memberPaymentOptionRepository;
@@ -67,7 +75,8 @@ class MemberHandler
         $this->tokenStorage = $tokenStorage;
         $this->publisher = $publisher;
         $this->countryRepository = $countryRepository;
-
+        $this->productFactory = $productFactory;
+        $this->jwtGeneratorService = $jwtGeneratorService;
     }
 
     public function handleGetBalance(Customer $member): array
@@ -79,7 +88,11 @@ class MemberHandler
         $productBalance = [];
 
         foreach ($customerProducts as $customerProduct) {
-            $productBalance[$customerProduct->getProduct()->getCode()] = $customerProduct->getBalance();
+            $productCode = $customerProduct->getProduct()->getCode();
+            $productUsername = $customerProduct->getUserName();
+            $token = $this->jwtGeneratorService->generate([]);
+
+            $productBalance[$productCode] = $this->productFactory->getIntegration(strtolower($productCode))->getBalance($token, $productUsername);
         }
 
         return [
