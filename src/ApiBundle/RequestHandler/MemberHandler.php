@@ -92,7 +92,7 @@ class MemberHandler
             $productUsername = $customerProduct->getUserName();
             $token = $this->jwtGeneratorService->generate([]);
 
-            $productBalance[$productCode] = $this->productFactory->getIntegration($productCode)->getBalance($token, $productUsername);
+            $productBalance[$productCode] = $this->productFactory->getIntegration(strtolower($productCode))->getBalance($token, $productUsername);
         }
 
         return [
