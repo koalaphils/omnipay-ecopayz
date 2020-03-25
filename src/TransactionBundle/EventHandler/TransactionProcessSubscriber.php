@@ -93,9 +93,6 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
                 throw new TransitionGuardException('Unable to void the transaction');
             }
         }
-
-
-
     }
 
     public function onTransitionEntered(WorkflowEvent $event)
@@ -103,9 +100,7 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
         /* @var $transaction Transaction */
         $transaction = $event->getSubject();
         $newStatus = $this->getStatus($transaction->getStatus());
-        if ($event->getTransition()->getName() === 'void') {
-            $this->getTransactionManager()->voidTransaction($transaction);
-        } elseif (array_get($newStatus, 'end', false)) {
+        if (array_get($newStatus, 'end', false)) {
             $this->getTransactionManager()->endTransaction($transaction);
             $transaction->getCustomer()->setEnabled();
         }
