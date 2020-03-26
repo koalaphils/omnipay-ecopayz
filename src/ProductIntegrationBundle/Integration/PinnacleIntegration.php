@@ -76,6 +76,6 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
 
     public function create(): array
     {
-        return $this->pinnacleService->getPlayerComponent()->createPlayer();
+        return $this->pinnacleService->getPlayerComponent()->createPlayer()->toArray();
     }
 }
