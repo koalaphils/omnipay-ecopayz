@@ -207,11 +207,13 @@ class AuthHandler
     {
         $memberLocale = $user->getCustomer()->getLocale();
         $memberLocale = strtolower(str_replace('_', '-', $memberLocale));
+        $locale = !empty($memberLocale) ? $memberLocale : 'en';
+
         $this->createPiwiWalletIfNotExisting($user->getCustomer());
 
         return [
-            'pinnacle' => $this->loginToPinnacle($user->getCustomer()->getPinUserCode(), $memberLocale),
-            'evolution' => $this->loginToEvolution($jwt, $user->getCustomer(), $memberLocale, $ip)
+            'pinnacle' => $this->loginToPinnacle($user->getCustomer()->getPinUserCode(), $locale),
+            'evolution' => $this->loginToEvolution($jwt, $user->getCustomer(), $locale, $ip)
         ];
     }
 
