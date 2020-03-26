@@ -100,7 +100,9 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
         /* @var $transaction Transaction */
         $transaction = $event->getSubject();
         $newStatus = $this->getStatus($transaction->getStatus());
-        if (array_get($newStatus, 'end', false)) {
+        if ($event->getTransition()->getName() === 'void') {
+            $this->getTransactionManager()->voidTransaction($transaction);
+        } elseif (array_get($newStatus, 'end', false)) {
             $this->getTransactionManager()->endTransaction($transaction);
             $transaction->getCustomer()->setEnabled();
         }
