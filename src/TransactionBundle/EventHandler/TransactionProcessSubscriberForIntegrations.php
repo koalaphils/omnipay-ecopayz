@@ -116,7 +116,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                         if (!($transaction->isTransfer() && ($transaction->isTransferDestinationPiwiWalletProduct() || $transaction->isTransferSourcePiwiWalletProduct()))) {
                             $this->debit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         }
-                    } catch (IntegrationNotAvailable1089Exception $ex) {
+                    } catch (IntegrationNotAvailableException $ex) {
                         $subTransaction->setFailedProcessingWithIntegration(true);
                     }
                 }
