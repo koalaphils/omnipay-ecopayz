@@ -110,6 +110,7 @@ RUN set -eux; \
   php --version
 
 FROM composer:latest as vendor
+RUN composer config --global github-oauth.github.com "879aff8d276614f2b8f68e8fd50e4b6073609563"
 COPY composer.json /app/composer.json
 COPY composer.lock /app/composer.lock
 RUN cd /app && composer install --ignore-platform-reqs --apcu-autoloader -aq --no-scripts --no-interaction --no-suggest --no-dev --prefer-dist --no-autoloader
