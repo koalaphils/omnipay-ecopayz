@@ -124,7 +124,6 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
 
             }
             
-
             if ($transaction->isDeposit() || $transaction->isBonus() || $transaction->isWithdrawal()) {
                 $this->gatewayMemberTransaction->processMemberTransaction($transaction);
             } 
