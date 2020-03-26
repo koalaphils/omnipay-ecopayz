@@ -55,6 +55,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
     public function onTransitionEntered(WorkflowEvent $event)
     {
         $jwt = $this->jwtGenerator->generate([]);
+        /** @var Transaction $transaction */
         $transaction = $event->getSubject();
         $transitionName = $event->getTransition()->getName();
         $subTransactions = $transaction->getSubtransactions();
@@ -69,10 +70,9 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
     
                 if ($subTransaction->isDeposit()) {
                     try {
-                        if (!($transaction->isTransfer() && ($transaction->isTransferDestinationPiwiWalletProduct() || $transaction->isTransferSourcePiwiWalletProduct()))) {
+                        if(!$transaction->isTransferSourcePiwiWalletProduct()){
                             $this->credit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         }
-                      
                     } catch (IntegrationNotAvailableException $ex) {
                         $this->credit('pwm',  $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         $subTransaction->setFailedProcessingWithIntegration(true);
@@ -81,10 +81,12 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
 
                 if ($subTransaction->isWithdrawal()) {
                     try {
-                        $newBalance = $this->debit($productCode, $customerProductUsername, $amount, $jwt);
-                        $subTransaction->getCustomerProduct()->setBalance($newBalance);
-                        $subTransaction->setHasBalanceAdjusted(true);
-                        $this->credit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                        if(!$transaction->isTransferSourcePiwiWalletProduct()){
+                            $newBalance = $this->debit($productCode, $customerProductUsername, $amount, $jwt);
+                            $subTransaction->getCustomerProduct()->setBalance($newBalance);
+                            $subTransaction->setHasBalanceAdjusted(true);
+                            $this->credit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                        }
                     } catch (IntegrationNotAvailableException $ex) {
                         $subTransaction->setFailedProcessingWithIntegration(true);
                         throw $ex;
@@ -102,10 +104,12 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
     
                 if ($subTransaction->isDeposit()) {
                     try {
-                        $newBalance = $this->credit($productCode, $customerProductUsername, $amount, $jwt);   
-                        $subTransaction->getCustomerProduct()->setBalance($newBalance);
-                        $subTransaction->setHasBalanceAdjusted(true);
-                        $this->debit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);           
+                        if(!$transaction->isTransferDestinationPiwiWalletProduct()){
+                            $newBalance = $this->credit($productCode, $customerProductUsername, $amount, $jwt);
+                            $subTransaction->getCustomerProduct()->setBalance($newBalance);
+                            $subTransaction->setHasBalanceAdjusted(true);
+                            $this->debit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                        }
                     } catch (IntegrationNotAvailableException $ex) {
                         $subTransaction->setFailedProcessingWithIntegration(true);
                     }
@@ -113,7 +117,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
 
                 if ($subTransaction->isWithdrawal()) {
                     try {
-                        if (!($transaction->isTransfer() && ($transaction->isTransferDestinationPiwiWalletProduct() || $transaction->isTransferSourcePiwiWalletProduct()))) {
+                        if(!$transaction->isTransferDestinationPiwiWalletProduct()){
                             $this->debit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         }
                     } catch (IntegrationNotAvailableException $ex) {
