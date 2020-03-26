@@ -14,7 +14,7 @@ final class Version20200326052808 extends AbstractMigration
     {
         $this->addSql("UPDATE `product` SET `product_name` = 'Sports' WHERE `product_code` = 'PINBET'");
         $this->addSql("INSERT `product` VALUES(3, 'EVOLUTION', 'Casino', 1, NULL, NULL, 1, '2020-02-07 06:30:38', NULL, NULL, NULL, '{}' )");
-        $this->addSql("INSERT `product` VALUES(4, 'PWM', 'Member Wallet', 1, NULL, NULL, 1, '2020-02-07 06:30:38', NULL, NULL, NULL, '{}'");
+        $this->addSql("INSERT `product` VALUES(4, 'PWM', 'Member Wallet', 1, NULL, NULL, 1, '2020-02-07 06:30:38', NULL, NULL, NULL, '{}' )");
     }
 
     public function down(Schema $schema) : void
