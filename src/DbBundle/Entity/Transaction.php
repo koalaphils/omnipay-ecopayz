@@ -1546,4 +1546,11 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
        return $destination->includesPiwiWalletMemberProduct();
     }
+
+    public function isTransferSourcePiwiWalletProduct(): bool
+    {
+       $source = $this->getSubTransactions()->get(0);
+
+       return $source->includesPiwiWalletMemberProduct();
+    }
 }
