@@ -70,7 +70,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
     
                 if ($subTransaction->isDeposit()) {
                     try {
-                        if(!$transaction->isTransferSourcePiwiWalletProduct()){
+                        if(!($transaction->isTransferSourcePiwiWalletProduct() || $transaction->isTransferDestinationPiwiWalletProduct())){
                             $this->credit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         }
                     } catch (IntegrationNotAvailableException $ex) {
@@ -117,7 +117,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
 
                 if ($subTransaction->isWithdrawal()) {
                     try {
-                        if(!$transaction->isTransferDestinationPiwiWalletProduct()){
+                        if(!($transaction->isTransferDestinationPiwiWalletProduct() || $transaction->isTransferSourcePiwiWalletProduct())){
                             $this->debit('pwm', $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         }
                     } catch (IntegrationNotAvailableException $ex) {
