@@ -36,9 +36,9 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
        
             return $pinnaclePlayer->availableBalance();            
         } catch (PinnacleException $exception) {
-            throw new IntegrationException($exception->getMessage(), 422);
-        } catch (PinnacleError $exception) {
             throw new IntegrationNotAvailableException($exception->getMessage(), 422);
+        } catch (PinnacleError $exception) {
+            throw new IntegrationException($exception->getMessage(), 422);
         }
     }
 

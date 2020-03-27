@@ -1533,7 +1533,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     public function includesPiwiWalletMemberProduct(): bool
     {
         foreach ($this->getSubTransactions() as $subTransaction) {
-            if ($subTransaction->includesPiwiWalletMemberProduct()) {
+            if ($subTransaction->isPiwiWalletMemberProduct()) {
                 return true;
             }
         }
@@ -1548,7 +1548,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         }
         $destination = $this->getSubTransactions()->get(1);
 
-        return $destination->includesPiwiWalletMemberProduct();
+        return $destination->isPiwiWalletMemberProduct();
     }
 
     public function isTransferSourcePiwiWalletProduct(): bool
@@ -1558,6 +1558,6 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         }
         $source = $this->getSubTransactions()->get(0);
 
-        return $source->includesPiwiWalletMemberProduct();
+        return $source->isPiwiWalletMemberProduct();
     }
 }

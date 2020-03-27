@@ -4,6 +4,7 @@ namespace DbBundle\Entity;
 
 use AppBundle\ValueObject\Number;
 use DbBundle\Entity\Interfaces\AuditInterface;
+use DbBundle\Entity\Product;
 
 /**
  * SubTransaction.
@@ -457,7 +458,7 @@ class SubTransaction extends Entity implements AuditInterface
         $this->setDetail(self::DETAILS_HAS_TRANSACTED_WITH_PIWI_MEMBER_WALLET, $bool);
     }
 
-    public function getHasTransactedWithPiwiWalletMember(): bool
+    public function hasTransactedWithPiwiWalletMember(): bool
     {
         return $this->getDetail(self::DETAILS_HAS_TRANSACTED_WITH_PIWI_MEMBER_WALLET, false);
     }
@@ -492,9 +493,9 @@ class SubTransaction extends Entity implements AuditInterface
         return $this->getDetail(self::DETAILS_HAS_BALANCE_ADJUSTED, false);
     }
 
-    public function includesPiwiWalletMemberProduct(): bool
+    public function isPiwiWalletMemberProduct(): bool
     {
-        return $this->getCustomerProduct()->getProduct()->getCode() === 'PWM';
+        return $this->getCustomerProduct()->getProduct()->getCode() === Product::MEMBER_WALLET_CODE;
     }
 
     /*

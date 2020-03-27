@@ -4,6 +4,7 @@ namespace DbBundle\Repository;
 
 use DbBundle\Entity\Customer as Member;
 use DbBundle\Entity\CustomerProduct as MemberProduct;
+use DbBundle\Entity\Product;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
@@ -136,7 +137,7 @@ class CustomerProductRepository extends BaseRepository
 
     public function getMemberPiwiMemberWallet(Member $member): ?MemberProduct
     {
-        return $this->findOneByCustomerAndProductCode($member, 'PWM');
+        return $this->findOneByCustomerAndProductCode($member, Product::MEMBER_WALLET_CODE);
     }
 
     public function getPinnacleProduct(Member $member): ?MemberProduct
