@@ -9,8 +9,8 @@ namespace ProductIntegrationBundle\Exception;
 
 class IntegrationNotAvailableException extends \Exception
 {
-    public function __construct(string $url)
+    public function __construct(string $message)
     {
-        parent::__construct('Integration ' . $url .  ' is not currently available.');
+        parent::__construct($message);
     }
 }
