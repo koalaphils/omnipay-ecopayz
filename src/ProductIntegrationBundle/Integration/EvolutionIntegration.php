@@ -51,7 +51,7 @@ class EvolutionIntegration implements ProductIntegrationInterface
         $response = $this->http->get($url, $token);
         $object = json_decode(((string) $response->getBody()));
 
-        if (!property_exists($object, 'transfer')) {
+        if (!property_exists($object->transfer, 'balance')) {
             throw new IntegrationException('Insufficient balance', 422);
         }
 

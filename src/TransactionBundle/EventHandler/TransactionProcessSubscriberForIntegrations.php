@@ -100,7 +100,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         if (($transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) && ($event->getTransition()->getName() !== 'void')) {
             foreach ($subTransactions as $subTransaction) {
                 $amount = $subTransaction->getAmount();
-                $productCode = strtolower($subTransaction->getCustomer  Product()->getProduct()->getCode());
+                $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode());
                 $customerProductUsername = $subTransaction->getCustomerProduct()->getUsername();
     
                 if ($subTransaction->isDeposit()) {
