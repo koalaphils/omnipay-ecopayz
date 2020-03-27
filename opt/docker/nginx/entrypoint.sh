@@ -1,4 +1,4 @@
-  #!/usr/bin/env sh
+#!/usr/bin/env sh
 set -eux
 
 #check to see if the PHP host is up and exit when not
