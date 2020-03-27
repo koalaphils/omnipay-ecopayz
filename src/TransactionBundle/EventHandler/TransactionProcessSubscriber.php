@@ -93,9 +93,6 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
                 throw new TransitionGuardException('Unable to void the transaction');
             }
         }
-
-
-
     }
 
     public function onTransitionEntered(WorkflowEvent $event)

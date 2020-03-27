@@ -68,7 +68,7 @@ services:
       - TWILIO_TOKEN=e4815df706ef97c0017a7a1f2e37b928
       - TWILIO_FROM=972525436769
       - WS_URL=ws://localhost:8082/ws/
-      - WS_WAMP_URL=http://websocket:8082
+      - WS_WAMP_URL=http://websocket
       - DATABASE_DRIVER=pdo_mysql
       - DATABASE_HOST=database
       - DATABASE_NAME=backoffice_db

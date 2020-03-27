@@ -36,9 +36,9 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
        
             return $pinnaclePlayer->availableBalance();            
         } catch (PinnacleException $exception) {
-            throw new IntegrationException($exception->getMessage(), 422);
-        } catch (PinnacleError $exception) {
             throw new IntegrationNotAvailableException($exception->getMessage(), 422);
+        } catch (PinnacleError $exception) {
+            throw new IntegrationException($exception->getMessage(), 422);
         }
     }
 
@@ -76,6 +76,6 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
 
     public function create(): array
     {
-        return $this->pinnacleService->getPlayerComponent()->createPlayer();
+        return $this->pinnacleService->getPlayerComponent()->createPlayer()->toArray();
     }
 }

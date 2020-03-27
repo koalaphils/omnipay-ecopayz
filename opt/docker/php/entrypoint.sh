@@ -1,13 +1,7 @@
 #!/usr/bin/env bash
 set -eux
 
-until nc -z -v -w30 ${DATABASE_HOST} ${DATABASE_PORT}
-
-do
-  echo "Waiting for database connection..."
-  # wait for 5 seconds before check again
-  sleep 5
-done
+nc -z ${DATABASE_HOST} ${DATABASE_PORT}
 
 cd /var/www/html
 

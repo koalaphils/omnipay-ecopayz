@@ -354,7 +354,11 @@ class TransactionOldController extends AbstractController
             } catch (\ProductIntegrationBundle\Exception\IntegrationNotAvailableException  $e) {
                 $response['success'] = false;
                 $response['errorMessage'] = $e->getMessage();
-            }  
+            } catch (\ProductIntegrationBundle\Exception\IntegrationException  $e) {
+                $response['success'] = false;
+                $response['errorMessage'] = $e->getMessage();
+            }    
+            
 
         } catch (PessimisticLockException $e) {
             $this->getManager()->rollBack();

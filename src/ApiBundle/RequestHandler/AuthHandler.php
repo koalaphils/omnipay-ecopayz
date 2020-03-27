@@ -20,6 +20,7 @@ use DbBundle\Entity\OAuth2\AccessToken;
 use DbBundle\Entity\Session;
 use DbBundle\Entity\User;
 use DbBundle\Entity\CustomerProduct;
+use DbBundle\Entity\Product;
 use DbBundle\Repository\SessionRepositoryRepository;
 use DbBundle\Repository\PaymentOptionRepository;
 use DbBundle\Repository\SessionRepository;
@@ -207,23 +208,25 @@ class AuthHandler
     {
         $memberLocale = $user->getCustomer()->getLocale();
         $memberLocale = strtolower(str_replace('_', '-', $memberLocale));
+        $locale = !empty($memberLocale) ? $memberLocale : 'en';
+
         $this->createPiwiWalletIfNotExisting($user->getCustomer());
 
         return [
-            'pinnacle' => $this->loginToPinnacle($user->getCustomer()->getPinUserCode(), $memberLocale),
-            'evolution' => $this->loginToEvolution($jwt, $user->getCustomer(), $memberLocale, $ip)
+            'pinnacle' => $this->loginToPinnacle($user->getCustomer()->getPinUserCode(), $locale),
+            'evolution' => $this->loginToEvolution($jwt, $user->getCustomer(), $locale, $ip)
         ];
     }
 
     private function createPiwiWalletIfNotExisting(Customer $customer): void 
     {
-        $customerProduct = $this->customerProductRepository->findOneByCustomerAndProductCode($customer, 'PWM');
+        $customerProduct = $this->customerProductRepository->findOneByCustomerAndProductCode($customer, Product::MEMBER_WALLET_CODE);
 
         if ($customerProduct === null) {
             $customerProduct = CustomerProduct::create($customer);
-            $product = $this->productRepository->getProductByCode('PWM');
+            $product = $this->productRepository->getProductByCode(Product::MEMBER_WALLET_CODE);
             $customerProduct->setProduct($product);
-            $customerProduct->setUsername('PWM_' . uniqid());
+            $customerProduct->setUsername(Product::MEMBER_WALLET_CODE . '_' . uniqid());
             $customerProduct->setBalance('0.00');
             $customerProduct->setIsActive(true);
             $this->entityManager->persist($customerProduct);
@@ -245,7 +248,7 @@ class AuthHandler
         } 
     }
 
-    private function loginToEvolution(string $jwt, Customer $customer, $locale, $ip): ?array
+    public function loginToEvolution(string $jwt, Customer $customer, $locale, $ip): ?array
     {
         try {
             $evolutionIntegration = $this->productIntegrationFactory->getIntegration('evolution');
@@ -256,7 +259,7 @@ class AuthHandler
                 'firstName' => $customer->getFName() ? $customer->getFName() : $customer->getUsername(),
                 'nickname' => $customer->getUsername(),
                 'country' => $customer->getCountry() ? $customer->getCountry()->getCode() : 'UK',
-                'language' => 'en',
+                'language' => $locale,
                 'currency' => $customer->getCurrency()->getCode(),
                 'ip' => $ip,
             ]);
@@ -324,21 +327,12 @@ class AuthHandler
         if ($session === null) {
             return ['success' => false];
         }
+        
         $pinnacleInfo = $session->getDetail('pinnacle', ['token' => '']);
-
-        if ($pinnacleInfo['token'] !== $pinnacleToken) {
-            $pinnacleInfo = $this->productIntegrationFactory->getIntegration('pinbet')
-                ->auth($user->getCustomer()->getPinUserCode(), ['locale' => $memberLocale]);
-            $session->setDetail('pinnacle', $pinnacleInfo);
-            $this->entityManager->persist($session);
-            $this->entityManager->flush($session);
-            $updatePinnacleLogin = true;
-        }
-
         $updatedDate = \DateTimeImmutable::createFromFormat(\DateTimeImmutable::ISO8601, $pinnacleInfo['updated_date']);
         $expirationDate = $updatedDate->modify('+' . $this->pinnacleExpiration . ' seconds')->setTimezone($now->getTimezone());
 
-        if ($expirationDate <= $now) {
+        if ($pinnacleInfo['token'] !== $pinnacleToken || $expirationDate <= $now) {
             $pinnacleInfo = $this->productIntegrationFactory->getIntegration('pinbet')
                 ->auth($user->getCustomer()->getPinUserCode(), ['locale' => $memberLocale]);
             $session->setDetail('pinnacle', $pinnacleInfo);

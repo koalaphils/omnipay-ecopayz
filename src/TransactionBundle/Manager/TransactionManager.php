@@ -191,26 +191,11 @@ class TransactionManager extends TransactionOldManager
     }
 
     public function voidTransaction(&$transaction)
-    {
+    {   
         $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
 
         if (!$transaction->isVoided()) {
             $transaction->setIsVoided(true);
-            $subTransactions = $transaction->getSubTransactions();
-            foreach ($subTransactions as $subTransaction) {
-                /* @var $subTransaction SubTransaction */
-                $customerProduct = $subTransaction->getCustomerProduct();
-                $customerProductBalance = new Number($customerProduct->getBalance());
-                $subTransactionAmount = $subTransaction->getDetail('convertedAmount', $subTransaction->getAmount());
-
-                if ($subTransaction->getType() == Transaction::TRANSACTION_TYPE_DEPOSIT) {
-                    $customerProductBalance = $customerProductBalance->minus($subTransactionAmount);
-                    $customerProduct->setBalance($customerProductBalance . '');
-                } elseif ($subTransaction->getType() == Transaction::TRANSACTION_TYPE_WITHDRAW) {
-                    $customerProductBalance = $customerProductBalance->plus($subTransactionAmount);
-                    $customerProduct->setBalance($customerProductBalance . '');
-                }
-            }
         }
     }
 

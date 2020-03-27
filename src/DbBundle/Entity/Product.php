@@ -12,6 +12,8 @@ class Product extends Entity implements ActionInterface, TimestampInterface, Aud
     use Traits\ActionTrait;
     use Traits\TimestampTrait;
 
+    public const MEMBER_WALLET_CODE = 'PWM';
+
     /**
      * @var string
      */
