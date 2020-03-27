@@ -269,7 +269,9 @@ class AuthHandler
             return $evolutionResponse;
         } catch (IntegrationNotAvailableException $ex) {
             return null;
-        }
+        } catch (IntegrationException $ex) {
+            return null;
+        } 
     }
 
     private function getEvolutionProduct(Customer $customer): CustomerProduct
