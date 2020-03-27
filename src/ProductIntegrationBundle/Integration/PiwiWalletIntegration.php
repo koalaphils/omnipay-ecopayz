@@ -58,6 +58,11 @@ class PiwiWalletIntegration implements ProductIntegrationInterface
         ]);
 
         $diff = Number::sub($product->getBalance(), $params['amount']);
+        
+        if ($diff->lessThan(0)) {
+            throw new IntegrationException('Insufficient balance', 422);    
+        }
+        
         $product->setBalance($diff->toString());
         $this->save($product);
 
