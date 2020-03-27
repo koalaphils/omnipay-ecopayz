@@ -454,7 +454,15 @@ class TransactionOldController extends AbstractController
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['__notifications' => [$notifications]], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
-        } catch (Exception $e) {
+        } catch (\ProductIntegrationBundle\Exception\IntegrationNotAvailableException  $e) {
+            $this->getManager()->rollBack();
+            $response['success'] = false;
+            $response['errorMessage'] = $e->getMessage();
+        } catch (\ProductIntegrationBundle\Exception\IntegrationException  $e) {
+            $this->getManager()->rollBack();
+            $response['success'] = false;
+            $response['errorMessage'] = $e->getMessage();
+        }  catch (Exception $e) {
             $this->getManager()->rollBack();
 
             throw $e;
