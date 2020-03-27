@@ -26,9 +26,6 @@ class TransactionSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            'workflow.transaction.entered' => [
-                ['onTransitionEntered', 80],
-            ],
             'transaction.post_save' => [
                 ['onTransactionPostSave', 80],
             ],
@@ -49,20 +46,7 @@ class TransactionSubscriber implements EventSubscriberInterface
             (string) $event->getTransaction()->getId()
         );
     }
-
-    public function onTransitionEntered(Event $event): void
-    {
-        // /* @var $transaction Transaction */
-        // $transaction = $event->getSubject();
-        // $newStatus = $this->getStatus($transaction->getStatus());
-
-        // if ($event->getTransition()->getName() === 'void') {
-        //     $this->gatewayMemberTransaction->voidMemberTransaction($transaction);
-        // } elseif (array_get($newStatus, 'end', false)) {
-        //     $this->gatewayMemberTransaction->processMemberTransaction($transaction);
-        // }
-    }
-
+    
     private function getStatus($status)
     {
         $settingInfo = $this->settingManager->getSetting('transaction.status.' . $status);
