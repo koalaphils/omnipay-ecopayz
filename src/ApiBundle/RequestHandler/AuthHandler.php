@@ -41,6 +41,7 @@ use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use UserBundle\Manager\UserManager;
 use ProductIntegrationBundle\ProductIntegrationFactory;
 use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
+use ProductIntegrationBundle\Exception\IntegrationException;
 use ProductIntegrationBundle\Exception\NoPinnacleProductException;
 
 class AuthHandler
@@ -245,6 +246,8 @@ class AuthHandler
                 ->auth($pinUserCode, ['locale' => $locale]);
         } catch (IntegrationNotAvailableException $ex) {
             return null;
+        } catch (IntegrationException $ex) {
+            return null;
         } 
     }
 
@@ -266,7 +269,9 @@ class AuthHandler
             return $evolutionResponse;
         } catch (IntegrationNotAvailableException $ex) {
             return null;
-        }
+        } catch (IntegrationException $ex) {
+            return null;
+        } 
     }
 
     private function getEvolutionProduct(Customer $customer): CustomerProduct
