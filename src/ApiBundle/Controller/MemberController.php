@@ -405,6 +405,25 @@ class MemberController extends AbstractController
         return new JsonResponse($response ?? []);
     }
 
+    /**
+     * @ApiDoc(
+     *     section="Member",
+     *     description="Check Evolution Product if existing, otherwise create the Product",
+     *     views={"piwi"}
+     * )
+     */
+    public function loginToEvolutionAction(Request $request)
+    {
+        $ip = $request->get('ip');
+        $sessionId = $request->get('sessionId');
+        $manager = $this->getMemberManager();
+        $user = $this->getUser();
+    
+        $response = $manager->loginToEvolution($user->getMember(), $ip, $sessionId);
+
+        return new JsonResponse($response);
+    }
+
     private function getMemberManager(): MemberManager
     {
         return $this->container->get('api.member.manager');

@@ -26,10 +26,10 @@ use MemberBundle\Events;
 use MemberRequestBundle\Manager\MemberRequestManager;
 use Symfony\Component\HttpFoundation\Response;
 use MemberBundle\Manager\MemberManager as MemberBundleManager;
-
 use ApiBundle\Event\TransactionCreatedEvent;
 use DbBundle\Entity\Transaction;
 use ProductIntegrationBundle\ProductIntegrationFactory;
+use ApiBundle\Service\JWTGeneratorService;
 
 class MemberManager extends AbstractManager
 {
@@ -258,7 +258,7 @@ class MemberManager extends AbstractManager
         
         if ($memberProduct == null) {
             try {
-                $response =$integration->create();
+                $response = $integration->create();
 
                 $memberProduct = new MemberProduct();
                 $memberProduct->setProduct($pinnacleProduct);
@@ -284,6 +284,52 @@ class MemberManager extends AbstractManager
         } catch (\Exception $ex) {
             return null;
         }
+    }
+
+    public function loginToEvolution(Member $member, $ip, $sessionId): ?array
+    {
+        $member = $this->getRepository()->getById($member->getId());
+        $evolutionProduct = $this->getProductRepository()->getProductByCode(Product::EVOLUTION_PRODUCT_CODE);
+        $memberProduct = $this->getMemberProductRepository()->findOneByCustomerAndProductCode($member, Product::EVOLUTION_PRODUCT_CODE);  
+        $integration = $this->getProductIntegrationFactory()->getIntegration(Product::EVOLUTION_PRODUCT_CODE);
+
+        if ($memberProduct == null) {
+            try {
+                $memberProduct = new MemberProduct();
+                $memberProduct->setProduct($evolutionProduct);
+                $memberProduct->setUsername('Evolution_' . uniqid());
+                $memberProduct->setBalance('0.00');
+                $memberProduct->setIsActive(true);
+
+                $member->addProduct($memberProduct);
+     
+                $this->save($member);
+            } catch(\Exception $ex) {
+                return null;
+            } 
+        }
+
+        try {
+            $jwt = $this->getJWTGeneratorService()->generate([]);
+            return $integration->auth($jwt, [
+                'id' => $memberProduct->getUsername(),
+                'lastName' => $member->getLName() ? $member->getLname() : $member->getUsername(),
+                'firstName' => $member->getFName() ? $member->getFName() : $member->getUsername(),
+                'nickname' => $member->getUsername(),
+                'country' => $member->getCountry() ? $member->getCountry()->getCode() : 'UK',
+                'language' => $member->getLocale() ?? 'en',
+                'currency' => $member->getCurrency()->getCode(),
+                'ip' => $ip,
+                'sessionId' => $sessionId
+            ]);
+        } catch (\Exception $ex) {
+            return null;
+        }
+    }
+
+    protected function getJWTGeneratorService(): JWTGeneratorService
+    {
+        return $this->get(JWTGeneratorService::class);
     }
 
     protected function getRepository(): MemberRepository

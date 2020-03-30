@@ -91,3 +91,8 @@ api_customers.login_to_pinnacle:
   path: me/pinnacle
   defaults: { _controller: ApiBundle:Member:loginToPinnacle }
   methods: [GET]
+
+api_customers.login_to_evolution:
+  path: me/evolution
+  defaults: { _controller: ApiBundle:Member:loginToEvolution }
+  methods: [POST]
