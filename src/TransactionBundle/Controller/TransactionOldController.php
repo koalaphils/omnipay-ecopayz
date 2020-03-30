@@ -260,7 +260,6 @@ class TransactionOldController extends AbstractController
                 ];
                 if (!$request->isXmlHttpRequest()) {
                     $this->getSession()->getFlashBag()->add('notifications', $message);
-
                     return $this->redirect($request->headers->get('referer'), Response::HTTP_OK);
                 } else {
                     return new JsonResponse([
@@ -280,11 +279,21 @@ class TransactionOldController extends AbstractController
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['__notifications' => [$notifications]], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
-        } catch (Exception $e) {
+        } catch (\ProductIntegrationBundle\Exception\IntegrationException $e) {
+            $this->getManager()->rollBack();
+            $notifications = [
+                'type' => 'error',
+                'title' => 'Integration Error!',
+                'message_notification' => $e->getMessage(),
+            ];
+
+            return new JsonResponse(['__notifications' => $notifications], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Exception $e) {
             $this->getManager()->rollBack();
 
             throw $e;
         }
+
     }
 
     /**

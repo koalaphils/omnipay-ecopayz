@@ -698,8 +698,11 @@
                         '422': function(jqXHR) {
                             $.Notification.notify('error' ,'top center', jqXHR.responseJSON.__notifications.title, jqXHR.responseJSON.__notifications. message_notification);
                             $(this).data('global-ajax-error', false);
-                            $('#formModal div').closest('.form-group').addClass('has-error');
-                            $('#formModal div').next().find('ul').html('').append('<li><span class="glyphicon glyphicon-exclamation-sign"></span> '+ jqXHR.responseJSON.__notifications.message_box +'</li>');
+
+                            if ('message_box' in jqXHR.responseJSON.__notifications) {
+                                $('#formModal div').closest('.form-group').addClass('has-error');
+                                $('#formModal div').next().find('ul').html('').append('<li><span class="glyphicon glyphicon-exclamation-sign"></span> '+ jqXHR.responseJSON.__notifications.message_box +'</li>');
+                            }
                         }
                     },
                     success: function(data){
