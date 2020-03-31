@@ -900,7 +900,7 @@
                             $('#{{ form.actions.vars.id }} button').removeAttr('disabled');
                             $('.btn-void-transaction').removeAttr('disabled');
                         } else if (typeof data.errorMessage !== 'undefined') {
-                            notification('Integration Error!', data.errorMessage, 'error');
+                            notification('Transaction Error!', data.errorMessage, 'error');
                         }
                     },
                     'beforeSend': function (xhr, settings) {
