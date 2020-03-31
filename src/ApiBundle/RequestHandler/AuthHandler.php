@@ -178,7 +178,7 @@ class AuthHandler
         $this->loginUser($user);
 
         $jwt = $this->generateJwtToken($user->getCustomer());
-        $integrationResponses = $this->loginToProducts($user, $jwt, $request->getClientIp());
+        $integrationResponses = $this->loginToProducts($user, $jwt, $request);
 
         $loginResponse = array_merge([
             'token' => $data,
@@ -205,7 +205,7 @@ class AuthHandler
         return $loginResponse;
     }
 
-    private function loginToProducts(User $user, string $jwt, string $ip): array
+    private function loginToProducts(User $user, string $jwt, $request): array
     {
         $memberLocale = $user->getCustomer()->getLocale();
         $memberLocale = strtolower(str_replace('_', '-', $memberLocale));
@@ -215,7 +215,7 @@ class AuthHandler
 
         return [
             'pinnacle' => $this->loginToPinnacle($user->getCustomer()->getPinUserCode(), $locale),
-            'evolution' => $this->loginToEvolution($jwt, $user->getCustomer(), $locale, $ip)
+            'evolution' => $this->loginToEvolution($jwt, $user->getCustomer(), $locale, $request)
         ];
     }
 
@@ -251,7 +251,7 @@ class AuthHandler
         } 
     }
 
-    public function loginToEvolution(string $jwt, Customer $customer, $locale, $ip): ?array
+    public function loginToEvolution(string $jwt, Customer $customer, $locale, $request): ?array
     {
         try {
             $evolutionIntegration = $this->productIntegrationFactory->getIntegration('evolution');
@@ -264,8 +264,13 @@ class AuthHandler
                 'country' => $customer->getCountry() ? $customer->getCountry()->getCode() : 'UK',
                 'language' => $locale,
                 'currency' => $customer->getCurrency()->getCode(),
-                'ip' => $ip,
+                'ip' => $request->get('ip'),
+                'sessionId' =>$request->get('session_id')
             ]);
+
+            $this->entityManager->persist($evolutionProduct);
+            $this->entityManager->flush();
+            
             return $evolutionResponse;
         } catch (IntegrationNotAvailableException $ex) {
             return null;
@@ -285,8 +290,6 @@ class AuthHandler
             $customerProduct->setUsername('Evolution_' . uniqid());
             $customerProduct->setBalance('0.00');
             $customerProduct->setIsActive(true);
-            $this->entityManager->persist($customerProduct);
-            $this->entityManager->flush();
         }
 
         return $customerProduct;
