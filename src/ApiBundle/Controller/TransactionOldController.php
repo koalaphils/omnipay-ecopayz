@@ -152,7 +152,7 @@ class TransactionOldController extends AbstractController
             $filters['paymentOption'] = $post['filter']['paymentOption'];
         }
 
-        if (array_has($post, 'filter.customerProduct') && !empty($post['filter']['customerProduct']) && $post['filter']['customerProduct'] != -1) {
+        if (array_has($post, 'filter.customerProduct') && !empty($post['filter']['customerProduct'])) {
             $filters['customerProduct'] = $post['filter']['customerProduct'];
         }
 
