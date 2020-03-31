@@ -286,8 +286,10 @@ class MemberManager extends AbstractManager
         }
     }
 
-    public function loginToEvolution(Member $member, $ip, $sessionId): ?array
+    public function loginToEvolution(Member $member, $request): ?array
     {
+        $ip = $request->get('ip');
+        $sessionId = $request->get('sessionId');
         $member = $this->getRepository()->getById($member->getId());
         $evolutionProduct = $this->getProductRepository()->getProductByCode(Product::EVOLUTION_PRODUCT_CODE);
         $memberProduct = $this->getMemberProductRepository()->findOneByCustomerAndProductCode($member, Product::EVOLUTION_PRODUCT_CODE);  

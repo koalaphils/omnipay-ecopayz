@@ -414,12 +414,10 @@ class MemberController extends AbstractController
      */
     public function loginToEvolutionAction(Request $request)
     {
-        $ip = $request->get('ip');
-        $sessionId = $request->get('sessionId');
         $manager = $this->getMemberManager();
         $user = $this->getUser();
     
-        $response = $manager->loginToEvolution($user->getMember(), $ip, $sessionId);
+        $response = $manager->loginToEvolution($user->getMember(), $request);
 
         return new JsonResponse($response);
     }

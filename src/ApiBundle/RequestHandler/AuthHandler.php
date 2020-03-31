@@ -273,7 +273,7 @@ class AuthHandler
                 'sessionId' => $sessionId
             ]);
 
-            $this->entityManager->persist($customerProduct);
+            $this->entityManager->persist($evolutionProduct);
             $this->entityManager->flush();
             
             return $evolutionResponse;
