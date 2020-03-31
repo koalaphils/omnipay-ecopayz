@@ -82,6 +82,14 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
 
     public function create(): array
     {
-        return $this->pinnacleService->getPlayerComponent()->createPlayer()->toArray();
+        try {
+            return $this->pinnacleService->getPlayerComponent()->createPlayer()->toArray();     
+        } catch (PinnacleException $exception) {
+            throw new IntegrationException($exception->getMessage(), 422);
+        } catch (PinnacleError $exception) {
+            throw new IntegrationNotAvailableException($exception->getMessage(), 422);
+        } catch (NetworkException $exception) {
+            throw new IntegrationNotAvailableException($exception->getMessage(), 422);
+        }
     }
 }
