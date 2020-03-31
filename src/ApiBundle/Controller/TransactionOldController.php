@@ -100,6 +100,7 @@ class TransactionOldController extends AbstractController
      *         {"name"="filter[type]", "dataType"="string"},
      *         {"name"="filter[status][]"},
      *         {"name"="filter[paymentOption]", "dataType"="string"},
+     *         {"name"="filter[customerProduct]", "dataType"="string"},
      *         {"name"="filter[isVoided]", "dataType"="integer"}
      *     }
      * )
@@ -150,7 +151,11 @@ class TransactionOldController extends AbstractController
         if (array_has($post, 'filter.paymentOption') && !empty($post['filter']['paymentOption']) && $post['filter']['paymentOption'] != -1) {
             $filters['paymentOption'] = $post['filter']['paymentOption'];
         }
-           
+
+        if (array_has($post, 'filter.customerProduct') && !empty($post['filter']['customerProduct']) && $post['filter']['customerProduct'] != -1) {
+            $filters['customerProduct'] = $post['filter']['customerProduct'];
+        }
+
         if (array_has($post, 'filter.isVoided')) {
             $filters['isVoided'] = $post['filter']['isVoided'];
         }
