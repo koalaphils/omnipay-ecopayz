@@ -143,6 +143,15 @@ class TransactionRepository
             $qb->andWhere($exp)->setParameter('paymentOption', $filters['paymentOption']);
         }
 
+        if (array_has($filters, 'customerProduct')) {
+            $qb->innerJoin('t.subTransactions', 'sbs');
+            $qb->innerJoin('sbs.customerProduct', 'cp');
+            $qb->innerJoin('cp.product', 'p');
+            $qb->andWhere('p.code = :customerProduct');
+
+            $qb->setParameter('customerProduct', $filters['customerProduct']);
+        }
+
         if (array_has($filters, 'interval')) {
             $qb->andWhere('t.date <= CURRENT_TIMESTAMP() AND t.date >= :interval');
             $qb->setParameter('interval', new \DateTime("-" . $filters['interval']));
