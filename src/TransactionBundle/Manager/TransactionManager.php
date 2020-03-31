@@ -192,8 +192,6 @@ class TransactionManager extends TransactionOldManager
 
     public function voidTransaction(&$transaction)
     {   
-        $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
-
         if (!$transaction->isVoided()) {
             $transaction->setIsVoided(true);
         }
