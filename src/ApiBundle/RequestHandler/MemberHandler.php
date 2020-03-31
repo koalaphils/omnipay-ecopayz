@@ -144,7 +144,7 @@ class MemberHandler
         $session->setDetail('pinnacle', $pinnacleDetails->toArray());
 
         $token = $this->jwtGeneratorService->generate([]);
-        $evolutionDetails = $this->authHandler->loginToEvolution($token, $member, $locale, $ip);
+        $evolutionDetails = $this->authHandler->loginToEvolution($token, $member, $locale, $request);
         $session->setDetail('evolution', $evolutionDetails);
 
         $this->entityManager->persist($session);
