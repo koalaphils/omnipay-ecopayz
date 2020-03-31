@@ -251,7 +251,7 @@ class AuthHandler
         } 
     }
 
-    public function loginToEvolution(string $jwt, Customer $customer, $locale, $request): ?array
+    public function loginToEvolution(string $jwt, Customer $customer, string $locale, Request $request): ?array
     {
         try {
             $evolutionIntegration = $this->productIntegrationFactory->getIntegration('evolution');
@@ -262,9 +262,9 @@ class AuthHandler
                 'firstName' => $customer->getFName() ? $customer->getFName() : $customer->getUsername(),
                 'nickname' => $customer->getUsername(),
                 'country' => $customer->getCountry() ? $customer->getCountry()->getCode() : 'UK',
-                'language' => $locale,
+                'language' => $locale ?? 'en',
                 'currency' => $customer->getCurrency()->getCode(),
-                'ip' => $request->get('ip'),
+                'ip' => $request->getClientIp(),
                 'sessionId' =>$request->get('session_id')
             ]);
 
@@ -276,7 +276,7 @@ class AuthHandler
             return null;
         } catch (IntegrationException $ex) {
             return null;
-        } 
+        }
     }
 
     private function getEvolutionProduct(Customer $customer): CustomerProduct
