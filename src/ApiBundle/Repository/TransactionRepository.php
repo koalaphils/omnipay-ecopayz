@@ -144,8 +144,8 @@ class TransactionRepository
         }
 
         if (array_has($filters, 'customerProduct')) {
-            $qb->innerJoin('t.subTransactions', 'sb');
-            $qb->innerJoin('sb.customerProduct', 'cp');
+            $qb->innerJoin('t.subTransactions', 'sbs');
+            $qb->innerJoin('sbs.customerProduct', 'cp');
             $qb->innerJoin('cp.product', 'p');
             $qb->andWhere('p.code = :customerProduct');
 
