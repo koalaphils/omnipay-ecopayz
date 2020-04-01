@@ -607,7 +607,9 @@
                     if (this.list.type == 'p2p_transfer') {
                         afterBalance = afterBalance.plus(converted);
                     } else {
-                        afterBalance = afterBalance.plus(this.info.amount);
+                        if (!this.info.hasBalanceAdjusted) {
+                            afterBalance = afterBalance.plus(this.info.amount);
+                        }       
                     }
                 } else if(isSubtransactionTypeWithdrawal) {
                     if (!this.info.hasBalanceAdjusted) {
