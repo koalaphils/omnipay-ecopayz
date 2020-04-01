@@ -127,7 +127,7 @@ class MemberHandler
         return $groupPaymentOptions;
     }
 
-    public function changeMemberLocale(Request $request, Customer $member, string $locale, string $ip): array
+    public function changeMemberLocale(Request $request, Customer $member, string $locale): array
     {
         $token = $this->tokenStorage->getToken()->getToken();
         $session = $this->sessionRepository->findBySessionId($token);
