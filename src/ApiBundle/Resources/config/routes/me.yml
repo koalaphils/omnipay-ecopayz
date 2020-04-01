@@ -10,6 +10,12 @@ api_me_pinnacle_balance:
     _controller: ApiBundle:Member:getPinnacleBalance
   methods: [GET]
 
+api_me_balance:
+  path: me/balance
+  defaults:
+    _controller: ApiBundle:Member:getBalance
+  methods: [GET]
+
 api_me_process_payment_options:
   path: me/processed-paymentoptions
   defaults:
@@ -40,6 +46,12 @@ api_me_withdraw:
     _controller: ApiBundle:Transaction:withdraw
   methods: [POST]
 
+api_me_transfer:
+  path: me/transactions/transfer
+  defaults:
+    _controller: ApiBundle:Transaction:transfer
+  methods: [POST]
+
 api_me_last_bitcoin_transaction:
   path: me/transaction/last-bitcoin/{type}
   defaults:
@@ -64,7 +76,23 @@ api_member.change_locale:
     _controller: ApiBundle:Member:changeLocale
   methods: [POST]
 
+api_member.change_country:
+  path: me/change-country
+  defaults:
+    _controller: ApiBundle:Member:changeCountry
+  methods: [POST]
+
 api_customers.me_products:
   path: me/products
   defaults: { _controller: ApiBundle:Customer:customerProducts }
   methods: [GET]
+
+api_customers.login_to_pinnacle:
+  path: me/pinnacle
+  defaults: { _controller: ApiBundle:Member:loginToPinnacle }
+  methods: [POST]
+
+api_customers.login_to_evolution:
+  path: me/evolution
+  defaults: { _controller: ApiBundle:Member:loginToEvolution }
+  methods: [POST]

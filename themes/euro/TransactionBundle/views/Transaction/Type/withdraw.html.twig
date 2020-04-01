@@ -118,7 +118,8 @@
                 'enabled': {% if child.vars.view -%} false {%- else -%} true {%- endif -%},
                 'errors': {{ form_errors(child) }},
                 'hasFee': {{ (child.vars.data.details.hasFee|default(false)) ? "true" : "false" }},
-                'bitcoinRequestedAmount' : {% if child.vars.data.details.bitcoin.requested_btc is defined -%} {{ child.vars.data.details.bitcoin.requested_btc | round_format(8, '.', ',', constant('AppBundle\\ValueObject\\Number::ROUND_DOWN')) }} {%- else -%} 0 {% endif -%}
+                'bitcoinRequestedAmount' : {% if child.vars.data.details.bitcoin.requested_btc is defined -%} {{ child.vars.data.details.bitcoin.requested_btc | round_format(8, '.', ',', constant('AppBundle\\ValueObject\\Number::ROUND_DOWN')) }} {%- else -%} 0 {% endif -%},
+                'hasBalanceAdjusted': '{{ child.vars.data.hasBalanceAdjusted() }}'
             });
             if(cp.info.hasFee == true) {
                 cp.view.find('.subtransaction-has-fee')[0].checked = true;
@@ -323,7 +324,7 @@
                         <div class='col-md-6 col-sm-6 col-xs-6 '>
                             <span><xsl:value-of select="total_amount"/></span>
                         </div>
-                    </div><br>
+                    </div>
                     <div class='row'>
                         <div class='col-md-6 col-sm-6 col-xs-6'>
                             <b>{{ "Total amount to be received"|trans({},"TransactionBundle") }}</b>

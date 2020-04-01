@@ -30,6 +30,9 @@ class TransactionWorkflowFactory
 
         $definitionBuilder->addTransition(new Transition('new', Transaction::TRANSACTION_STATUS_START, $startStatus));
         $definitionBuilder->addTransition(new Transition('customer-new', Transaction::TRANSACTION_STATUS_START, $customerStartStatus));
+        $definitionBuilder->addTransition(new Transition('acknowledge',  $startStatus, Transaction::TRANSACTION_STATUS_ACKNOWLEDGE));
+        $definitionBuilder->addTransition(new Transition('process',  Transaction::TRANSACTION_STATUS_ACKNOWLEDGE, Transaction::TRANSACTION_STATUS_END));
+        
 
         // void
         $voidTransition = new Transition('void', Transaction::TRANSACTION_STATUS_END, Transaction::TRANSACTION_STATUS_END);

@@ -217,7 +217,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     /**
      * Set specific fee.
      *
-     * @param string          $key
+     * @param string $key
      * @param int|float|float $fee
      *
      * @return Transaction
@@ -232,7 +232,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     /**
      * Get specific fee.
      *
-     * @param string          $key
+     * @param string $key
      * @param int|float|float $default
      *
      * @return int|float|float
@@ -263,7 +263,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public function getType(): int
     {
-        return (int) $this->type;
+        return (int)$this->type;
     }
 
     public function getTypeText()
@@ -369,7 +369,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         return $this->getIsVoided();
     }
 
-    public function isDeclined() : bool
+    public function isDeclined(): bool
     {
         return $this->getStatus() === Transaction::TRANSACTION_STATUS_DECLINE;
     }
@@ -402,7 +402,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
      * Set specific detail.
      *
      * @param string $key
-     * @param mixed  $value
+     * @param mixed $value
      *
      * @return Transaction
      */
@@ -417,7 +417,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
      * Get specific detail.
      *
      * @param string $key
-     * @param mixed  $default
+     * @param mixed $default
      *
      * @return mixed
      */
@@ -598,14 +598,14 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         if (!$this->isClosedForFurtherProcessing()) {
             $this->copyImmutableCustomerProductData();
             $this->setImmutableCustomerReferrer();
-            if ($this->isWithdrawal() || $this->isDeposit()) {
+            if ($this->isWithdrawal() || $this->isDeposit() || $this->isTransfer()) {
                 $this->setImmutablePaymentOptionData();
                 $this->setImmutablePaymentOptionOnTransactionData();
             }
         }
     }
 
-    public function isClosedForFurtherProcessing() : bool
+    public function isClosedForFurtherProcessing(): bool
     {
         return ($this->hasEnded() || $this->isDeclined() || $this->isVoided());
     }
@@ -618,7 +618,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
                 'f_name' => $this->getCustomer()->getAffiliate()->getFName(),
                 'l_name' => $this->getCustomer()->getAffiliate()->getLName(),
                 'user' => ['username' => $this->getCustomer()->getAffiliate()->getUser()->getUsername()],
-                'full_name' => $this->getCustomer()->getAffiliate()->getFullName(),                
+                'full_name' => $this->getCustomer()->getAffiliate()->getFullName(),
                 'product_username' => $this->getCustomer()->getPinUserCode()
             ]);
         }
@@ -656,14 +656,18 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
      */
     public function setImmutablePaymentOptionData()
     {
-        $this->setDetail('paymentOption.email', array_get($this->paymentOption->getFields(),'email'));
+        if ($this->paymentOption == null) {
+            return;
+        }
+
+        $this->setDetail('paymentOption.email', array_get($this->paymentOption->getFields(), 'email'));
         $this->setDetail('paymentOption.code', $this->paymentOption->getPaymentOption()->getCode());
         $this->setDetail('paymentOption.name', $this->paymentOption->getPaymentOption()->getName());
 
         $paymentOption = $this->paymentOption->getPaymentOption();
 
         if ($paymentOption->isPaymentEcopayz() || $paymentOption->isPaymentBitcoin()) {
-            $this->setDetail('paymentOption.accountId', array_get($this->paymentOption->getFields(),'account_id'));
+            $this->setDetail('paymentOption.accountId', array_get($this->paymentOption->getFields(), 'account_id'));
         }
     }
 
@@ -674,12 +678,12 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     public function setImmutablePaymentOptionOnTransactionData()
     {
         if ($paymentOptionOnTransaction = $this->getPaymentOptionOnTransaction()) {
-            $this->setDetail('paymentOptionOnTransaction.email', array_get($paymentOptionOnTransaction->getFields(),'email'));
+            $this->setDetail('paymentOptionOnTransaction.email', array_get($paymentOptionOnTransaction->getFields(), 'email'));
             $this->setDetail('paymentOptionOnTransaction.code', $paymentOptionOnTransaction->getPaymentOption()->getCode());
             $this->setDetail('paymentOptionOnTransaction.name', $paymentOptionOnTransaction->getPaymentOption()->getName());
 
             if ($paymentOptionOnTransaction->getPaymentOption()->isPaymentEcopayz() || $paymentOptionOnTransaction->getPaymentOption()->isPaymentBitcoin()) {
-                $this->setDetail('paymentOptionOnTransaction.accountId', array_get($paymentOptionOnTransaction->getFields(),'account_id'));
+                $this->setDetail('paymentOptionOnTransaction.accountId', array_get($paymentOptionOnTransaction->getFields(), 'account_id'));
             }
         }
     }
@@ -688,38 +692,38 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
      * @return String the PaymentOption data info during the time that the transaction was created / requested
      * this may not be the actual payment option used to process/finalize the transaction
      */
-    public function getImmutablePaymentOptionData() : string
+    public function getImmutablePaymentOptionData(): string
     {
         $email = $this->getDetail('paymentOption.email');
         $paymentOptionCode = $this->getDetail('paymentOption.code');
         $paymentOption = $this->getPaymentOption();
-        $label = $paymentOptionCode. ' ('. $email .')';
+        $label = $paymentOptionCode . ' (' . $email . ')';
 
         if (!is_null($paymentOption)) {
             if ($paymentOption->getPaymentOption()->isPaymentEcopayz()) {
                 $accountId = $this->getDetail('paymentOption.accountId');
-                $label = $paymentOptionCode. ' ('. $accountId .')';
+                $label = $paymentOptionCode . ' (' . $accountId . ')';
             } elseif ($this->isTransactionPaymentBitcoin()) {
-                $label = $paymentOptionCode. ' ('. $this->getBitcoinAddress() .')';
+                $label = $paymentOptionCode . ' (' . $this->getBitcoinAddress() . ')';
             }
         }
 
         return $label;
     }
 
-    public function getImmutablePaymentOptionOnTransactionData() : String
+    public function getImmutablePaymentOptionOnTransactionData(): String
     {
         $email = $this->getDetail('paymentOptionOnTransaction.email');
         $paymentOptionCode = $this->getDetail('paymentOptionOnTransaction.code');
         $paymentOptionOnTransaction = $this->getPaymentOptionOnTransaction();
-        $label = $paymentOptionCode. ' ('. $email .')';
+        $label = $paymentOptionCode . ' (' . $email . ')';
 
         if (!is_null($paymentOptionOnTransaction)) {
             $paymentOption = $this->getPaymentOptionOnTransaction()->getPaymentOption();
 
             if ($paymentOption->isPaymentEcopayz() || $paymentOption->isPaymentBitcoin()) {
                 $accountId = $this->getDetail('paymentOptionOnTransaction.accountId');
-                $label = $paymentOptionCode. ' ('. $accountId .')';
+                $label = $paymentOptionCode . ' (' . $accountId . ')';
             }
         }
 
@@ -765,12 +769,13 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
         return $this;
     }
+
     public function isEnd(): bool
     {
         return $this->getStatus() === Transaction::TRANSACTION_STATUS_END;
     }
 
-    public function hasEnded() : bool
+    public function hasEnded(): bool
     {
         return $this->isEnd() === true;
     }
@@ -780,27 +785,27 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         return $this->id === null;
     }
 
-    public function isDeposit() : bool
+    public function isDeposit(): bool
     {
         return $this->getType() === Transaction::TRANSACTION_TYPE_DEPOSIT;
     }
 
-    public function isWithdrawal() : bool
+    public function isWithdrawal(): bool
     {
         return $this->getType() === Transaction::TRANSACTION_TYPE_WITHDRAW;
     }
 
-    public function isTransfer() : bool
+    public function isTransfer(): bool
     {
         return $this->getType() === Transaction::TRANSACTION_TYPE_TRANSFER;
     }
 
-    public function isP2pTransfer() : bool
+    public function isP2pTransfer(): bool
     {
         return $this->getType() === Transaction::TRANSACTION_TYPE_P2P_TRANSFER;
     }
 
-    public function isBonus() : bool
+    public function isBonus(): bool
     {
         return $this->getType() === Transaction::TRANSACTION_TYPE_BONUS;
     }
@@ -824,7 +829,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     {
         return $this->getType() === Transaction::TRANSACTION_TYPE_CREDIT_ADJUSTMENT;
     }
-    
+
     public function isAdjustment(): bool
     {
         return $this->getType() === Transaction::TRANSACTION_TYPE_ADJUSTMENT;
@@ -835,7 +840,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         return $this->isAdjustment() || $this->isDebitAdjustment() || $this->isCreditAdjustment();
     }
 
-    public function isInProgress() : bool
+    public function isInProgress(): bool
     {
         $statusesThatAreNotInProgress = [
             self::TRANSACTION_STATUS_START,
@@ -869,8 +874,8 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public function isBitcoinStatusPendingConfirmation(): bool
     {
-        if ( !$this->isDeclined() && !$this->isVoided()){
-           return $this->hasDepositUsingBitcoin()  && $this->isBitcoinPendingOnConfirmation() && !$this->isBitcoinManualConfirmation();
+        if (!$this->isDeclined() && !$this->isVoided()) {
+            return $this->hasDepositUsingBitcoin() && $this->isBitcoinPendingOnConfirmation() && !$this->isBitcoinManualConfirmation();
         }
 
         return false;
@@ -878,7 +883,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public function isBitcoinStatusConfirmed(): bool
     {
-        if( !$this->isDeclined() && !$this->isVoided()){
+        if (!$this->isDeclined() && !$this->isVoided()) {
             return $this->hasDepositUsingBitcoin() && !$this->hasEnded() && $this->isBitcoinConfirmedOnConfirmation();
         }
 
@@ -905,7 +910,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         ];
     }
 
-    public function getCreator() : ?User
+    public function getCreator(): ?User
     {
         return $this->creator;
     }
@@ -1054,7 +1059,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public function getMemberRunningCommissionId(): int
     {
-        return (int) $this->getDetail('commission.running_commission_id');
+        return (int)$this->getDetail('commission.running_commission_id');
     }
 
     public function hasMemberRunningCommissionId(): bool
@@ -1252,7 +1257,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public function getBitcoinIndex(): int
     {
-        return (int) $this->getDetail(self::DETAIL_BITCOIN_BLOCKCHAIN_INDEX, 0);
+        return (int)$this->getDetail(self::DETAIL_BITCOIN_BLOCKCHAIN_INDEX, 0);
     }
 
     public function setBitcoinIndex(int $index): self
@@ -1318,7 +1323,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     public function isBitcoinPendingOnConfirmation(): bool
     {
         $confirmations = $this->getBitcoinConfirmation();
-        
+
         if ($confirmations === null) {
             return false;
         }
@@ -1336,7 +1341,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     {
         $status = self::DETAIL_BITCOIN_STATUS_NO_CONFIRMATION;
 
-        if ($this->getBitcoinConfirmation() < 3){
+        if ($this->getBitcoinConfirmation() < 3) {
             $status = self::DETAIL_BITCOIN_STATUS_PENDING;
         } else if ($this->getBitcoinConfirmation() >= 3) {
             $status = self::DETAIL_BITCOIN_STATUS_CONFIRMED;
@@ -1362,7 +1367,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     public static function getPendingStatus(): array
     {
         return [
-            self::DETAIL_BITCOIN_STATUS_PENDING, 
+            self::DETAIL_BITCOIN_STATUS_PENDING,
             self::TRANSACTION_STATUS_START,
             self::TRANSACTION_STATUS_ACKNOWLEDGE,
         ];
@@ -1428,12 +1433,12 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     }
 
     /**
-    const TRANSACTION_STATUS_START = 1;
-    const TRANSACTION_STATUS_END = 2;
-    const TRANSACTION_STATUS_DECLINE = 3;
-    const TRANSACTION_STATUS_ACKNOWLEDGE = 4;
-    const TRANSACTION_STATUS_VOIDED = 'voided';
-    **/
+     * const TRANSACTION_STATUS_START = 1;
+     * const TRANSACTION_STATUS_END = 2;
+     * const TRANSACTION_STATUS_DECLINE = 3;
+     * const TRANSACTION_STATUS_ACKNOWLEDGE = 4;
+     * const TRANSACTION_STATUS_VOIDED = 'voided';
+     **/
     public function getStatusList(): array
     {
         return [
@@ -1441,7 +1446,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
             static::TRANSACTION_STATUS_END => 'processed',
             static::TRANSACTION_STATUS_DECLINE => 'declined',
             static::TRANSACTION_STATUS_ACKNOWLEDGE => 'acknowledged',
-            static::TRANSACTION_STATUS_VOIDED => 'voided',            
+            static::TRANSACTION_STATUS_VOIDED => 'voided',
         ];
     }
 
@@ -1518,5 +1523,41 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         $this->setDetail(self::DETAIL_BITCOIN_MANUAL_CONFIRMATION, true);
 
         return $this;
+    }
+
+    public function wasCreatedFromMemberSite(): bool
+    {
+        return $this->getCreator() === null ? false : $this->getCreator()->isCustomer();
+    }
+
+    public function includesPiwiWalletMemberProduct(): bool
+    {
+        foreach ($this->getSubTransactions() as $subTransaction) {
+            if ($subTransaction->isPiwiWalletMemberProduct()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function isTransferDestinationPiwiWalletProduct(): bool
+    {
+        if (!$this->isTransfer()) {
+            return false;
+        }
+        $destination = $this->getSubTransactions()->get(1);
+
+        return $destination->isPiwiWalletMemberProduct();
+    }
+
+    public function isTransferSourcePiwiWalletProduct(): bool
+    {
+        if (!$this->isTransfer()) {
+            return false;
+        }
+        $source = $this->getSubTransactions()->get(0);
+
+        return $source->isPiwiWalletMemberProduct();
     }
 }

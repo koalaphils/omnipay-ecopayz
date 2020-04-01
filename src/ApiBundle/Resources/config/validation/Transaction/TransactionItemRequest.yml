@@ -1,0 +1,9 @@
+ApiBundle\Request\Transaction\TransactionItemRequest:
+  properties:
+    id:
+      - NotBlank: ~
+    amount:
+      - NotBlank: ~
+      - NotEqualTo:
+          value: 0
+          message: "Amount should not be 0."

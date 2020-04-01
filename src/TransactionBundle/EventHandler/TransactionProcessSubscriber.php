@@ -63,13 +63,19 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
             if ($transaction->getPaymentOptionType() instanceof \DbBundle\Entity\PaymentOption) {
                 $paymentOptionMode = $transaction->getPaymentOptionType()->getPaymentMode();
             }
-            
+    
             if ($this->getTransactionWorkflow()->can($transaction, $paymentOptionMode . '-' . $transitionName)) {
                 $this->getTransactionWorkflow()->apply($transaction, $paymentOptionMode . '-' . '-' . $transitionName);
             } elseif ($this->getTransactionWorkflow()->can($transaction, $transaction->getTypeText() . '-' . $transitionName)) {
                 $this->getTransactionWorkflow()->apply($transaction, $transaction->getTypeText() . '-' . $transitionName);
             } elseif ($this->getTransactionWorkflow()->can($transaction, $transitionName)) {
                 $this->getTransactionWorkflow()->apply($transaction, $transitionName);
+
+                if ($transitionName === 'new') {
+                    $this->getTransactionWorkflow()->apply($transaction, 'acknowledge');
+                    $this->getTransactionWorkflow()->apply($transaction, 'process');
+
+                }
             } else {
                 throw new TransitionGuardException('Unable to transition the transaction');
             }
@@ -87,9 +93,6 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
                 throw new TransitionGuardException('Unable to void the transaction');
             }
         }
-
-
-
     }
 
     public function onTransitionEntered(WorkflowEvent $event)

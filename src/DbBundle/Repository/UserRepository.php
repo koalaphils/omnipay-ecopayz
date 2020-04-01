@@ -15,8 +15,9 @@ class UserRepository extends BaseRepository implements \Symfony\Bridge\Doctrine\
     public function loadUserByUsername($username)
     {
         return $this->createQueryBuilder('u')
-            ->select('u, g')
+            ->select('u, g, c')
             ->leftJoin('u.group', 'g')
+            ->leftJoin('u.customer', 'c')
             ->where(
                 '(u.username = :login OR u.email = :login) AND u.deletedAt IS NULL AND u.type = '
                 . User::USER_TYPE_ADMIN

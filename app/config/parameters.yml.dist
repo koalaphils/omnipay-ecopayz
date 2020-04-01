@@ -92,6 +92,11 @@ parameters:
     redis.host: ${REDIS_HOST}
     redis.port: ${REDIS_PORT}
     redis.database_id: ${REDIS_DATABASE}
+    product_integration:
+        evolution:
+            url: ${EVOLUTION_SERVICE_URL}
+    
+    evolution_url: ${EVOLUTION_SERVICE_URL}
 
     aws_sdk.version: "${AWS_SDK_VERSION}"
     aws_sdk.region: "${AWS_REGION}"
@@ -100,3 +105,4 @@ parameters:
     aws_s3.version: "${AWS_S3_VERSION}"
     aws_s3.region: "${AWS_REGION}"
     aws_s3.bucket: "${AWS_BUCKET}"
+

@@ -41,8 +41,6 @@ class TransactionOldController extends AbstractController
         $this->client = new HttpMethodsClient(new GuzzleAdapter(new GuzzleClient(['curl'=>[CURLOPT_SSL_VERIFYPEER => 0]])), $this->requestMessageFactory);    
     }
 
-    // 2ec7e87b
-    // $transactions  DbBundle\Entity\Transaction
     private function filterTrans($transactions){
         $trans = [];
         foreach($transactions as $t){
@@ -52,7 +50,6 @@ class TransactionOldController extends AbstractController
             $tran['type'] = $t->getTypeText();
             $tran['status'] = $t->getStatusText();
 
-            // DbBundle\Entity\PaymentOption
             if ($t->getPaymentOptionType() !== null) {
                 $tran['paymentOptionType'] = $t->getPaymentOptionType()->getCode();
             } else {
@@ -62,8 +59,8 @@ class TransactionOldController extends AbstractController
             $tran['isVoided'] = $t->isVoided();
             $tran['amount'] = number_format((float)$t->getAmount(), 2, '.', '');
 
-            // DateTime
             foreach ($t->getSubTransactions() as $subTransaction) {
+                $tran['customerProduct'][] = $subTransaction->getCustomerProduct()->getProduct()->getName();
                 /* @var $subTransaction SubTransaction */
                 foreach ($subTransaction->getDetail('pinnacle.transaction_dates', []) as $data) {
                     $newDate = new \DateTimeImmutable($data['date']);
@@ -82,7 +79,6 @@ class TransactionOldController extends AbstractController
             $tran['currency'] = $t->getCurrency()->getCode();
 
             $trans[] = $tran;
-            // array_push($trans, $tran);
         }
 
         return $trans;
@@ -104,6 +100,7 @@ class TransactionOldController extends AbstractController
      *         {"name"="filter[type]", "dataType"="string"},
      *         {"name"="filter[status][]"},
      *         {"name"="filter[paymentOption]", "dataType"="string"},
+     *         {"name"="filter[customerProduct]", "dataType"="string"},
      *         {"name"="filter[isVoided]", "dataType"="integer"}
      *     }
      * )
@@ -154,7 +151,11 @@ class TransactionOldController extends AbstractController
         if (array_has($post, 'filter.paymentOption') && !empty($post['filter']['paymentOption']) && $post['filter']['paymentOption'] != -1) {
             $filters['paymentOption'] = $post['filter']['paymentOption'];
         }
-           
+
+        if (array_has($post, 'filter.customerProduct') && !empty($post['filter']['customerProduct'])) {
+            $filters['customerProduct'] = $post['filter']['customerProduct'];
+        }
+
         if (array_has($post, 'filter.isVoided')) {
             $filters['isVoided'] = $post['filter']['isVoided'];
         }

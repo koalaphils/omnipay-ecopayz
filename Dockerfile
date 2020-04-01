@@ -110,6 +110,7 @@ RUN set -eux; \
   php --version
 
 FROM composer:latest as vendor
+RUN composer config --global github-oauth.github.com "879aff8d276614f2b8f68e8fd50e4b6073609563"
 COPY composer.json /app/composer.json
 COPY composer.lock /app/composer.lock
 RUN cd /app && composer install --ignore-platform-reqs --apcu-autoloader -aq --no-scripts --no-interaction --no-suggest --no-dev --prefer-dist --no-autoloader
@@ -177,7 +178,8 @@ ENV TIMEZONE=Etc/GMT+4 \
     AWS_KEY= \
     AWS_SECRET= \
     AWS_S3_VERSION= \
-    AWS_BUCKET= 
+    AWS_BUCKET= \
+    EVOLUTION_SERVICE_URL=
 
 WORKDIR /var/www/html
 RUN sed -i "s/;emergency_restart_threshold\s*=\s*.*/emergency_restart_threshold = 10/g" /usr/local/etc/php-fpm.conf \

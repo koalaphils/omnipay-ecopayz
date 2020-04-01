@@ -21,7 +21,7 @@ services:
       - "0.0.0.0:25"
     user: root
     ports:
-      - 8025:8025
+      - 8025:8025 
     networks:
       - piwinet
 
@@ -59,15 +59,16 @@ services:
       - MAIL_PASSWORD=~
       - MAIL_FROM=support@piwi247.com
       - MAIL_ENCRYPTION=~
-      - PIN_API_URL=http://proxy.pinny88.com/b2b
+      - PIN_API_URL=http://pinnacle.pinny88.com/b2b
       - PIN_API_AGENT_KEY=035c48be-9959-4556-80eb-9a0224814c88
       - PIN_API_SECRET_KEY=P6Aae0ej2dwnJe9B
       - PIN_AGENT_CODE=PS711
+      - EVOLUTION_SERVICE_URL=http://evolution-service/api/v1/evolution
       - TWILIO_SID=ACa8414b7fd5f78fa371c0aeb341931c8d
       - TWILIO_TOKEN=e4815df706ef97c0017a7a1f2e37b928
       - TWILIO_FROM=972525436769
-      - WS_URL=ws://localhost:83/ws/
-      - WS_WAMP_URL=http://websocket:9092
+      - WS_URL=ws://localhost:8082/ws/
+      - WS_WAMP_URL=http://websocket
       - DATABASE_DRIVER=pdo_mysql
       - DATABASE_HOST=database
       - DATABASE_NAME=backoffice_db
@@ -89,6 +90,14 @@ services:
       - REDIS_DATABASE=0
       - MSERVICE_USERNAME=admin
       - MSERVICE_PASSWORD=admin
+      - AWS_SDK_VERSION=latest
+      - AWS_REGION=ap-northeast-1
+      - AWS_KEY=AKIAQL3DDVH5O4PHGNEV
+      - AWS_SECRET=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
+      - AWS_S3_VERSION=2006-03-01
+      - AWS_BUCKET=zmt-piwi
+      - CUSTOMER_FOLDER=customerDocuments
+      - UPLOAD_FOLDER=/uploads
     networks:
       - piwinet
 
@@ -221,7 +230,7 @@ services:
   swagger-ui:
     image: swaggerapi/swagger-ui
     ports:
-      - 8082:8080
+      - 8087:8080
     networks:
       - piwinet
 

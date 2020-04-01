@@ -44,6 +44,8 @@
             </h4>
             <div class="to-product-list">
             </div>
+              <div class="integration-error-message help-block text-danger">
+                </div>
         </div>
     </div>
 {% endblock %}
@@ -67,6 +69,7 @@
                         'amount': '{{ child.vars.data.amount }}',
                         'enabled': false,
                         'renderTo': '.to-product-list',
+                        'hasFailedWithIntegration': '{{ child.vars.data.getFailedProcessingWithIntegration() }}',
                         'errors': {{ form_errors(child) }}
                     });
                 {%- elseif child.vars.data.type == 2 -%}

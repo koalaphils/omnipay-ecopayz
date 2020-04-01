@@ -43,14 +43,25 @@ class GatewayMemberTransaction
     public function processMemberTransaction(Transaction $transaction): void
     {
         $gatewayLog = $this->gatewayLogManager->findLastGatewayLogByClassAndNumberOrIdentifier(Transaction::class, (string) $transaction->getId(), $transaction->getNumber());
+        $gateway = $transaction->getGateway();
+        $isDeclined = $transaction->getStatus() === Transaction::TRANSACTION_STATUS_DECLINE;
 
-        if ($gatewayLog !== null) {
+        if ($gateway === null) {
             return;
         }
 
-        $gateway = $transaction->getGateway();
         $details = $gateway->getDetails();
-        $methods = array_get($details, 'methods.' . $this->getType($transaction->getType(), true));
+
+        if ($isDeclined) {
+            if ($transaction->isDeposit()) {
+                $methods = array_get($details, 'methods.withdraw');
+            } else if ($transaction->isWithdrawal()) {
+                $methods = array_get($details, 'methods.deposit');
+            }
+        } else {
+            $methods = array_get($details, 'methods.' . $this->getType($transaction->getType(), true));
+        }
+        
         if ($transaction->isBonus()) {
             $vars = [['var' => 'x', 'value' => 'total_amount']];
             $equation = $gateway->getBalance() . '-x';

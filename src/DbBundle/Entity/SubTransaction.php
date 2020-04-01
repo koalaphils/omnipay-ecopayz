@@ -4,6 +4,7 @@ namespace DbBundle\Entity;
 
 use AppBundle\ValueObject\Number;
 use DbBundle\Entity\Interfaces\AuditInterface;
+use DbBundle\Entity\Product;
 
 /**
  * SubTransaction.
@@ -17,9 +18,13 @@ class SubTransaction extends Entity implements AuditInterface
     private const DETAILS_DWL_WINLOSS = 'dwl.winLoss';
     private const DETAILS_DWL_CUSTOMER_BALANCE = 'dwl.customer.balance';
     private const DETAILS_DWL_TURNOVER = 'dwl.turnover';
-    private const DETAILS_DWL_COMMISSION = 'dwl.commission';
-    private const DETAILS_DWL_EXCLUDE_IN_LIST = 'dwl.exclude';
+    private const DETAILS_DWL_COMMISSION = 'dwl.commission'; 
     private const DETAILS_BITCOIN_REQUESTED_AMOUNT = 'bitcoin.requested_btc';
+
+    private const DETAILS_HAS_BALANCE_ADJUSTED = 'integration.has_balance_adjusted';
+    private const DETAILS_HAS_TRANSACTED_INTEGRATION = 'integration.has_transacted_with_integration';
+    private const DETAILS_HAS_TRANSACTED_WITH_PIWI_MEMBER_WALLET = 'integration.has_transacted_with_piwi_member_wallet';
+    private const DETAILS_HAS_FAILED_PROCESSING_INTEGRATION = 'integration.failed_processing';
 
     /**
      * @var Transaction
@@ -447,6 +452,52 @@ class SubTransaction extends Entity implements AuditInterface
 
         return $this;
     }
+
+    public function setHasTransactedWithPiwiWalletMember(bool $bool): void
+    {
+        $this->setDetail(self::DETAILS_HAS_TRANSACTED_WITH_PIWI_MEMBER_WALLET, $bool);
+    }
+
+    public function hasTransactedWithPiwiWalletMember(): bool
+    {
+        return $this->getDetail(self::DETAILS_HAS_TRANSACTED_WITH_PIWI_MEMBER_WALLET, false);
+    }
+
+    public function setFailedProcessingWithIntegration(bool $bool): void
+    {
+        $this->setDetail(self::DETAILS_HAS_FAILED_PROCESSING_INTEGRATION, $bool);
+    }
+
+    public function getFailedProcessingWithIntegration(): bool
+    {
+        return $this->getDetail(self::DETAILS_HAS_FAILED_PROCESSING_INTEGRATION, false);
+    }
+
+    public function hasTransactedWithIntegration(): bool
+    {
+        return $this->getDetail(self::DETAILS_HAS_TRANSACTED_INTEGRATION, false);
+    }
+
+    public function setHasTransactedWithIntegration(bool $bool): bool
+    {
+        $this->setDetail(self::DETAILS_HAS_TRANSACTED_INTEGRATION, $bool);
+    }
+
+    public function setHasBalanceAdjusted(bool $bool): void
+    {
+        $this->setDetail(self::DETAILS_HAS_BALANCE_ADJUSTED, $bool);
+    }
+
+    public function hasBalanceAdjusted(): bool
+    {
+        return $this->getDetail(self::DETAILS_HAS_BALANCE_ADJUSTED, false);
+    }
+
+    public function isPiwiWalletMemberProduct(): bool
+    {
+        return $this->getCustomerProduct()->getProduct()->getCode() === Product::MEMBER_WALLET_CODE;
+    }
+
     /*
     public function getDwlGrossCommission(): string
     {

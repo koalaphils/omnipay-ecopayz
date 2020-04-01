@@ -44,6 +44,7 @@ class CustomerRepository extends BaseRepository
         return $qb->getQuery()->getSingleResult($hydrationMode);
     }
 
+    
     public function getById(int $memberId): Member
     {
         $qb = $this->createQueryBuilder('c');
@@ -52,7 +53,7 @@ class CustomerRepository extends BaseRepository
         $qb->leftJoin('c.country', 'cco');
         $qb->leftjoin('c.groups', 'g');
         $qb->select(
-            'PARTIAL c.{id, fName, mName, lName, fullName, country, currency, balance, socials, joinedAt, birthDate, socials, details, contacts, verifiedAt, isAffiliate, isCustomer, transactionPassword, files, riskSetting, tags, notifications}'
+            'PARTIAL c.{id, fName, mName, pinUserCode, pinLoginId, lName, fullName, country, currency, balance, socials, joinedAt, birthDate, socials, details, contacts, verifiedAt, isAffiliate, isCustomer, transactionPassword, files, riskSetting, tags, notifications}'
             . ', PARTIAL u.{username, id, email, isActive, activationSentTimestamp, activationTimestamp, preferences, password, resetPasswordCode, resetPasswordSentTimestamp}'
             . ', PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}, g'
         );
