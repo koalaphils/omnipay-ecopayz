@@ -117,6 +117,11 @@ settings:
             customerLevel: Member Level
             customerGroup: Member Group
             customerCurrency: Member Currency
+    memberRequest:
+        label: Member Request
+        fields:
+            status:
+                edit_remark: Edit KYC Remark
 
 Payment Option on Record: Payment Option on Record
 Payment Option on Transaction: Payment Option on Transaction
