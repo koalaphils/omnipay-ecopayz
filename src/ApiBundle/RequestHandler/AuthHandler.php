@@ -260,7 +260,7 @@ class AuthHandler
                 'id' => $evolutionProduct->getUsername(),
                 'lastName' => $customer->getLName() ? $customer->getLname() : $customer->getUsername(),
                 'firstName' => $customer->getFName() ? $customer->getFName() : $customer->getUsername(),
-                'nickname' => $customer->getUsername(),
+                'nickname' => str_replace("Evolution_","", $evolutionProduct->getUsername()),
                 'country' => $customer->getCountry() ? $customer->getCountry()->getCode() : 'UK',
                 'language' => $locale ?? 'en',
                 'currency' => $customer->getCurrency()->getCode(),

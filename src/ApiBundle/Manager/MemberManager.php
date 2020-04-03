@@ -317,7 +317,7 @@ class MemberManager extends AbstractManager
                 'id' => $memberProduct->getUsername(),
                 'lastName' => $member->getLName() ? $member->getLname() : $member->getUsername(),
                 'firstName' => $member->getFName() ? $member->getFName() : $member->getUsername(),
-                'nickname' => $member->getUsername(),
+                'nickname' => str_replace("Evolution_","", $memberProduct->getUsername()),
                 'country' => $member->getCountry() ? $member->getCountry()->getCode() : 'UK',
                 'language' => $member->getLocale() ?? 'en',
                 'currency' => $member->getCurrency()->getCode(),
