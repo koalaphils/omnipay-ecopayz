@@ -41,6 +41,7 @@ use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use UserBundle\Manager\UserManager;
 use ProductIntegrationBundle\ProductIntegrationFactory;
 use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
+use ProductIntegrationBundle\Exception\IntegrationException;
 use ProductIntegrationBundle\Exception\NoPinnacleProductException;
 
 class AuthHandler
@@ -177,7 +178,7 @@ class AuthHandler
         $this->loginUser($user);
 
         $jwt = $this->generateJwtToken($user->getCustomer());
-        $integrationResponses = $this->loginToProducts($user, $jwt, $request->getClientIp());
+        $integrationResponses = $this->loginToProducts($user, $jwt, $request);
 
         $loginResponse = array_merge([
             'token' => $data,
@@ -204,7 +205,7 @@ class AuthHandler
         return $loginResponse;
     }
 
-    private function loginToProducts(User $user, string $jwt, string $ip): array
+    private function loginToProducts(User $user, string $jwt, $request): array
     {
         $memberLocale = $user->getCustomer()->getLocale();
         $memberLocale = strtolower(str_replace('_', '-', $memberLocale));
@@ -214,7 +215,7 @@ class AuthHandler
 
         return [
             'pinnacle' => $this->loginToPinnacle($user->getCustomer()->getPinUserCode(), $locale),
-            'evolution' => $this->loginToEvolution($jwt, $user->getCustomer(), $locale, $ip)
+            'evolution' => $this->loginToEvolution($jwt, $user->getCustomer(), $locale, $request)
         ];
     }
 
@@ -245,10 +246,12 @@ class AuthHandler
                 ->auth($pinUserCode, ['locale' => $locale]);
         } catch (IntegrationNotAvailableException $ex) {
             return null;
+        } catch (IntegrationException $ex) {
+            return null;
         } 
     }
 
-    public function loginToEvolution(string $jwt, Customer $customer, $locale, $ip): ?array
+    public function loginToEvolution(string $jwt, Customer $customer, string $locale, Request $request): ?array
     {
         try {
             $evolutionIntegration = $this->productIntegrationFactory->getIntegration('evolution');
@@ -257,14 +260,21 @@ class AuthHandler
                 'id' => $evolutionProduct->getUsername(),
                 'lastName' => $customer->getLName() ? $customer->getLname() : $customer->getUsername(),
                 'firstName' => $customer->getFName() ? $customer->getFName() : $customer->getUsername(),
-                'nickname' => $customer->getUsername(),
+                'nickname' => str_replace("Evolution_","", $evolutionProduct->getUsername()),
                 'country' => $customer->getCountry() ? $customer->getCountry()->getCode() : 'UK',
-                'language' => $locale,
+                'language' => $locale ?? 'en',
                 'currency' => $customer->getCurrency()->getCode(),
-                'ip' => $ip,
+                'ip' => $request->getClientIp(),
+                'sessionId' =>$request->get('session_id')
             ]);
+
+            $this->entityManager->persist($evolutionProduct);
+            $this->entityManager->flush();
+            
             return $evolutionResponse;
         } catch (IntegrationNotAvailableException $ex) {
+            return null;
+        } catch (IntegrationException $ex) {
             return null;
         }
     }
@@ -280,8 +290,6 @@ class AuthHandler
             $customerProduct->setUsername('Evolution_' . uniqid());
             $customerProduct->setBalance('0.00');
             $customerProduct->setIsActive(true);
-            $this->entityManager->persist($customerProduct);
-            $this->entityManager->flush();
         }
 
         return $customerProduct;

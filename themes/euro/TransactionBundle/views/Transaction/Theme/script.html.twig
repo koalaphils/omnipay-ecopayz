@@ -607,7 +607,9 @@
                     if (this.list.type == 'p2p_transfer') {
                         afterBalance = afterBalance.plus(converted);
                     } else {
-                        afterBalance = afterBalance.plus(this.info.amount);
+                        if (!this.info.hasBalanceAdjusted) {
+                            afterBalance = afterBalance.plus(this.info.amount);
+                        }       
                     }
                 } else if(isSubtransactionTypeWithdrawal) {
                     if (!this.info.hasBalanceAdjusted) {
@@ -900,7 +902,7 @@
                             $('#{{ form.actions.vars.id }} button').removeAttr('disabled');
                             $('.btn-void-transaction').removeAttr('disabled');
                         } else if (typeof data.errorMessage !== 'undefined') {
-                            notification('Integration Error!', data.errorMessage, 'error');
+                            notification('Transaction Error!', data.errorMessage, 'error');
                         }
                     },
                     'beforeSend': function (xhr, settings) {

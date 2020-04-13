@@ -284,7 +284,7 @@ class MemberController extends AbstractController
     {
         $member = $this->getUser()->getCustomer();
 
-        return $this->view($memberHandler->changeMemberLocale($request, $member, $request->get('locale'), $request->getClientIp()));
+        return $this->view($memberHandler->changeMemberLocale($request, $member, $request->get('locale')));
     }
 
     /**
@@ -403,6 +403,23 @@ class MemberController extends AbstractController
         $response = $manager->loginToPinnacle($this->getUser()->getMember());
         
         return new JsonResponse($response ?? []);
+    }
+
+    /**
+     * @ApiDoc(
+     *     section="Member",
+     *     description="Check Evolution Product if existing, otherwise create the Product",
+     *     views={"piwi"}
+     * )
+     */
+    public function loginToEvolutionAction(Request $request)
+    {
+        $manager = $this->getMemberManager();
+        $user = $this->getUser();
+    
+        $response = $manager->loginToEvolution($user->getMember(), $request);
+
+        return new JsonResponse($response);
     }
 
     private function getMemberManager(): MemberManager

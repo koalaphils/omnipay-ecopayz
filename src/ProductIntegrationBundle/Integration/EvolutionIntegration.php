@@ -52,7 +52,12 @@ class EvolutionIntegration implements ProductIntegrationInterface
         $object = json_decode(((string) $response->getBody()));
 
         if (property_exists($object->transfer, 'errormsg')) {
-            throw new IntegrationException($object->transfer->errormsg, 422);
+            $message = $object->transfer->errormsg;
+            if (strrpos($object->transfer->errormsg, 'Insufficient') !== false) {
+                $message = 'Insufficient balance';
+            }
+            
+            throw new IntegrationException($message, 422);
         }
 
         return $object->transfer->balance;

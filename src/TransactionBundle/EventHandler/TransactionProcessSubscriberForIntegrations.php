@@ -73,6 +73,9 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                     try {
                         if(!($transaction->isTransferSourcePiwiWalletProduct() || $transaction->isTransferDestinationPiwiWalletProduct())){
                             $this->credit(Product::MEMBER_WALLET_CODE, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                            if ($subTransaction->isPiwiWalletMemberProduct()) {
+                                $subTransaction->setHasBalanceAdjusted(true);
+                            }
                         }
                     } catch (IntegrationNotAvailableException $ex) {
                         $this->credit(Product::MEMBER_WALLET_CODE,  $customerPiwiWalletProduct->getUsername(), $amount, $jwt);

@@ -161,14 +161,14 @@ class RegisterHandler
 
             $memberProduct = new MemberProduct();
             $memberProduct->setProduct($pinnacleProduct);
-            $memberProduct->setUserName($response['userCode']);
+            $memberProduct->setUserName($response['user_code']);
             $memberProduct->setBalance('0.00');
             $memberProduct->setIsActive(true);
+            
+            $member->setPinLoginId($response['login_id']);
+            $member->setPinUserCode($response['user_code']);  
 
             $member->addProduct($memberProduct);
-            
-            $member->setPinLoginId($response['loginId']);
-            $member->setPinUserCode($response['userCode']);  
         } catch(\Exception $ex) {
             //Catch generic exception since we on what error to throw.
         }       

@@ -22,11 +22,17 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
 
     public function auth(string $token, $body = []): array
     {
-        $authComponent = $this->pinnacleService->getAuthComponent();
+        try {
+            $authComponent = $this->pinnacleService->getAuthComponent();
 
-        // Body supposedly contains jsonBody for form requests.
-        // But this is an adapter class so we need to adapt.
-        return $authComponent->login($token, $body['locale'])->toArray();
+            // Body supposedly contains jsonBody for form requests.
+            // But this is an adapter class so we need to adapt.
+            return $authComponent->login($token, $body['locale'])->toArray();         
+        } catch (PinnacleException $exception) {
+            throw new IntegrationNotAvailableException($exception->getMessage(), 422);
+        } catch (PinnacleError $exception) {
+            throw new IntegrationException($exception->getMessage(), 422);
+        }
     }
 
     public function getBalance(string $token, string $id): string
@@ -76,6 +82,14 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
 
     public function create(): array
     {
-        return $this->pinnacleService->getPlayerComponent()->createPlayer()->toArray();
+        try {
+            return $this->pinnacleService->getPlayerComponent()->createPlayer()->toArray();     
+        } catch (PinnacleException $exception) {
+            throw new IntegrationException($exception->getMessage(), 422);
+        } catch (PinnacleError $exception) {
+            throw new IntegrationNotAvailableException($exception->getMessage(), 422);
+        } catch (NetworkException $exception) {
+            throw new IntegrationNotAvailableException($exception->getMessage(), 422);
+        }
     }
 }

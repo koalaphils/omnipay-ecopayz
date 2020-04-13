@@ -127,7 +127,7 @@ class MemberHandler
         return $groupPaymentOptions;
     }
 
-    public function changeMemberLocale(Request $request, Customer $member, string $locale, string $ip): array
+    public function changeMemberLocale(Request $request, Customer $member, string $locale): array
     {
         $token = $this->tokenStorage->getToken()->getToken();
         $session = $this->sessionRepository->findBySessionId($token);
@@ -144,7 +144,7 @@ class MemberHandler
         $session->setDetail('pinnacle', $pinnacleDetails->toArray());
 
         $token = $this->jwtGeneratorService->generate([]);
-        $evolutionDetails = $this->authHandler->loginToEvolution($token, $member, $locale, $ip);
+        $evolutionDetails = $this->authHandler->loginToEvolution($token, $member, $locale, $request);
         $session->setDetail('evolution', $evolutionDetails);
 
         $this->entityManager->persist($session);
