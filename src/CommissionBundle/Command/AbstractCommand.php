@@ -77,7 +77,7 @@ abstract class AbstractCommand extends ContainerAwareCommand
         return $response;
     }
 
-    protected function updatePeriod(int $period, string $token, string $type){
+    protected function updatePeriod(string $period, string $token, string $type){
         $curl = curl_init();
         curl_setopt_array($curl, array(
           CURLOPT_URL => "http://api-gateway/api/v1/revenue-share/periods/".$period."/".$type,

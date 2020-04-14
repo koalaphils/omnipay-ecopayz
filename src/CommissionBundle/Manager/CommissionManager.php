@@ -118,7 +118,7 @@ class CommissionManager
 
             if ($action == 'pay'){
                 $arrayJob = [
-                    'system',
+                    $usernameForAuditLog,
                     '--period',
                     $period->getId(),
                     '--env',
@@ -126,7 +126,7 @@ class CommissionManager
                 ];
             } else {
                 $arrayJob = [
-                    'system',
+                    $usernameForAuditLog,
                     '--period',
                     $period->getId(),
                     '--env',
