@@ -37,12 +37,13 @@ services:
       context: .
       target: prod
     volumes:
-      - .:/var/www/html
-      - uploads:/uploads
+      - .:/var/www/html:cached
+      - uploads:/uploads:cached
     depends_on:
       - database
       - mailhog
       - adminer
+    restart: on-failure
     environment:
       - SYMFONY_ENV=dev
       - APP_ENV=dev

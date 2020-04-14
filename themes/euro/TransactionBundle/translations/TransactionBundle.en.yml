@@ -20,7 +20,7 @@ types:
     deposit: Deposit
     withdraw: Withdraw
     bonus: Bonus
-    p2p_transfer: P2P Transfer
+    p2p: P2P Transfer
     transfer: Transfer
     dwl: Daily Win Loss
     bet: Bet
