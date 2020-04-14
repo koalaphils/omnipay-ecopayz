@@ -23,7 +23,7 @@ class RevenueShareWinlossCommand extends AbstractCommand
                 self::OPTION_PERIOD,
                 'p',
                 InputOption::VALUE_REQUIRED,
-                'Period ID', 'current'
+                'Period ID', 'latest'
             )
         ;
         parent::configure();
