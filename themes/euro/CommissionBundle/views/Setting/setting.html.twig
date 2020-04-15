@@ -132,6 +132,26 @@
             return computeButton;
         }
 
+        function getDwlStatus(data, type, row) {
+            var dwlStatus = '';
+            switch (row.commissionPeriod.dwl_status) {
+                case Global.dwl.status.notYetDwl:
+                    dwlStatus =  '{{ "status.notYetDwl"|trans({}, "CommissionBundle") }}';
+                    break;
+                case Global.dwl.status.inProgressDwl:
+                    dwlStatus =  '{{ "status.inProgressDwl"|trans({}, "CommissionBundle") }}';
+                    break;
+                case Global.dwl.status.successfulDwl:
+                    dwlStatus =  '{{ "status.successfulDwl"|trans({}, "CommissionBundle") }}' + '<br>Updated as of ' + moment(row.commissionPeriod.dwl_updated_at).format('MMM DD, Y h:mm:ss a');
+                    break;
+                case Global.dwl.status.failedDwl:
+                    dwlStatus =  '{{ "status.failedDwl"|trans({}, "CommissionBundle") }}';
+                    break;
+            }
+            
+            return dwlStatus;
+        }
+
         function recomputeAndPayoutRevenueShareCommissionPeriod(commissionPeriodId, action, actionsAfterCompletingRecomputation) {
             var recomputeUrl = '{{ path('commission.recompute_and_payout_revenue_share',{'commissionPeriodId':'__COMMISSION_PERIOD_ID__'}) }}';
             recomputeUrl = recomputeUrl.replace('__COMMISSION_PERIOD_ID__',commissionPeriodId);

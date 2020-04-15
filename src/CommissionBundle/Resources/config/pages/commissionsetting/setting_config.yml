@@ -48,6 +48,10 @@ widgets:
                         !php/const:DbBundle\Entity\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT: Successful Payout
                         !php/const:DbBundle\Entity\CommissionPeriod::STATUS_FAILED_PAYOUT: Failed Payout
                         !php/const:DbBundle\Entity\CommissionPeriod::STATUS_NOT_COMPUTED: Not Computed
+                dwl_status:
+                    label: DWL Status
+                    type: function
+                    function: getDwlStatus
                 action:
                     label: Compute and Payout
                     type: function

@@ -4,3 +4,9 @@ Periods: Commission Periods
 tabs:
   settings: General Settings
   rate: Bitcoin Rate
+
+status:
+    notYetDwl: Download not yet executed
+    inProgressDwl: Download in progress
+    successfulDwl: Download successful
+    failedDwl: Download failed

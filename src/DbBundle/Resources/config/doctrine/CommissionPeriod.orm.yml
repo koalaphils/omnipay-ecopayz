@@ -38,6 +38,12 @@ DbBundle\Entity\CommissionPeriod:
             nullable: false
             options:
                 default: 1
+        dwlStatus:
+            type: tinyint
+            column: commission_period_dwl_status
+            nullable: false
+            options:
+                default: 1
         details:
             type: json
             column: commission_period_details
@@ -64,6 +70,10 @@ DbBundle\Entity\CommissionPeriod:
             type: datetime
             column: commission_period_created_at
             nullable: false
+        dwlUpdatedAt:
+            type: datetime
+            column: commission_period_dwl_updated_at
+            nullable: true
 
 
 

@@ -33,14 +33,21 @@ class CommissionPeriod extends Entity implements ActionInterface, TimestampInter
     const STATUS_SUCCESSFULL_PAYOUT = 6;
     const STATUS_FAILED_PAYOUT = 7;
     const STATUS_NOT_COMPUTED = 8;
+    
+    const STATUS_DWL_NOT_YET_DOWNLOADED = 1;
+    const STATUS_DWL_IN_PROGRESS = 2;
+    const STATUS_DWL_SUCCESSFUL = 3;
+    const STATUS_DWL_FAILED = 4;
 
     private $dwlDateFrom;
     private $dwlDateTo;
     private $payoutAt;
     private $status;
     private $revenueShareStatus;
+    private $dwlStatus;
     private $details;
     private $conditions;
+    private $dwlUpdatedAt;
 
     public function __construct()
     {
@@ -49,6 +56,7 @@ class CommissionPeriod extends Entity implements ActionInterface, TimestampInter
         $this->details = [];
         $this->status = self::STATUS_NOT_YET_COMPUTED;
         $this->revenueShareStatus = self::STATUS_NOT_YET_COMPUTED;
+        $this->dwlStatus = self::STATUS_DWL_NOT_YET_DOWNLOADED;
     }
 
     public function getIdentifier()
@@ -149,6 +157,31 @@ class CommissionPeriod extends Entity implements ActionInterface, TimestampInter
     public function getStatus(): int
     {
         return $this->status;
+    }
+
+    public function setDwlStatus(int $status): self
+    {
+        $this->dwlStatus = $status;
+        $this->setDwlUpdatedAt(new \DateTime());
+        
+        return $this;
+    }
+    
+    public function getDwlStatus(): int
+    {
+        return $this->dwlStatus;
+    }
+
+    public function getDwlUpdatedAt()
+    {
+        return $this->dwlUpdatedAt;
+    }
+
+    public function setDwlUpdatedAt(\DateTime $dwlUpdatedAt)
+    {
+        $this->dwlUpdatedAt = $dwlUpdatedAt;
+
+        return $this;
     }
 
     public function isNotYetComputed(): bool
