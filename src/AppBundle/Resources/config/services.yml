@@ -250,6 +250,7 @@ services:
             - { name: jms_job_queue.scheduler, command: 'fos:oauth-server:clean' }
             - { name: jms_job_queue.scheduler, command: 'transaction:decline %cron_user%' }
             - { name: jms_job_queue.scheduler, command: 'revenueshare:period:compute %cron_user% --period latest' }
+            - { name: jms_job_queue.scheduler, command: 'revenueshare:period:winloss %cron_user% --period latest' }
 
     AppBundle\Form\SchedulerType:
         autoconfigure: true

@@ -70,6 +70,7 @@
                 iconPlaceholder.addClass('fa fa-refresh fa-spin');
                 $('.compute-revenueshare-button').not(this).attr('disabled','disabled');
                 $('.payout-revenueshare-button').not(this).attr('disabled','disabled');
+                $('.dwl-revenueshare-button').not(this).attr('disabled','disabled');
                 recomputeAndPayoutRevenueShareCommissionPeriod(commissionPeriodId, 'compute', function () {
                     iconPlaceholder.removeClass('fa fa-refresh fa-spin');
                     //$('.compute-revenueshare-button').not(this).removeAttr('disabled');
@@ -83,17 +84,32 @@
                 iconPlaceholder.addClass('fa fa-refresh fa-spin');
                 $('.payout-revenueshare-button').not(this).attr('disabled','disabled');
                 $('.compute-revenueshare-button').not(this).attr('disabled','disabled');
+                $('.dwl-revenueshare-button').not(this).attr('disabled','disabled');
                 recomputeAndPayoutRevenueShareCommissionPeriod(commissionPeriodId, 'pay', function () {
                     iconPlaceholder.removeClass('fa fa-refresh fa-spin');
                     //$('.payout-revenueshare-button').not(this).removeAttr('disabled');
                     notification('Computation of Revenue Share is now in progress...');
                 });
             });
+
+            $(document).on('click','.dwl-revenueshare-button', function () {
+                var commissionPeriodId = $(this).attr('data-period-id');
+                var iconPlaceholder = $(this).parent().find('.icon-holder');
+                iconPlaceholder.addClass('fa fa-refresh fa-spin');
+                $('.payout-revenueshare-button').not(this).attr('disabled','disabled');
+                $('.compute-revenueshare-button').not(this).attr('disabled','disabled');
+                $('.dwl-revenueshare-button').not(this).attr('disabled','disabled');
+                recomputeAndPayoutRevenueShareCommissionPeriod(commissionPeriodId, 'winloss', function () {
+                    iconPlaceholder.removeClass('fa fa-refresh fa-spin');
+                    //$('.payout-revenueshare-button').not(this).removeAttr('disabled');
+                    notification('Retrieving of daily winloss is now in progress...');
+                });
+            });
         });
 
         function getComputeButton(data, type, row)
         {
-            var computeButton = '';
+            var computeButton = '<button class="btn btn-sm btn-default dwl-revenueshare-button" data-period-id="'+ row.commissionPeriod.id +'">DWL</button>&nbsp;&nbsp;&nbsp;';
             switch (row.commissionPeriod.revenue_share_status) {
                 case Global.commmission.status.successfulComputation:
                     computeButton += '<button class="btn btn-sm btn-default compute-revenueshare-button" data-period-id="'+ row.commissionPeriod.id +'">Compute</button>&nbsp;&nbsp;&nbsp;';
@@ -114,6 +130,26 @@
             }
                 
             return computeButton;
+        }
+
+        function getDwlStatus(data, type, row) {
+            var dwlStatus = '';
+            switch (row.commissionPeriod.dwl_status) {
+                case Global.dwl.status.notYetDwl:
+                    dwlStatus =  '{{ "status.notYetDwl"|trans({}, "CommissionBundle") }}';
+                    break;
+                case Global.dwl.status.inProgressDwl:
+                    dwlStatus =  '{{ "status.inProgressDwl"|trans({}, "CommissionBundle") }}';
+                    break;
+                case Global.dwl.status.successfulDwl:
+                    dwlStatus =  '{{ "status.successfulDwl"|trans({}, "CommissionBundle") }}' + '<br>Updated as of ' + moment(row.commissionPeriod.dwl_updated_at).format('MMM DD, Y h:mm:ss a');
+                    break;
+                case Global.dwl.status.failedDwl:
+                    dwlStatus =  '{{ "status.failedDwl"|trans({}, "CommissionBundle") }}';
+                    break;
+            }
+            
+            return dwlStatus;
         }
 
         function recomputeAndPayoutRevenueShareCommissionPeriod(commissionPeriodId, action, actionsAfterCompletingRecomputation) {

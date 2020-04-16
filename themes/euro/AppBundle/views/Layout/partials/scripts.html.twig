@@ -112,6 +112,14 @@
                 'notYetComputed': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_NOT_YET_COMPUTED') }}
             }
         };
+        this.dwl = {
+            'status' : {
+                'notYetDwl': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_DWL_NOT_YET_DOWNLOADED') }},
+                'inProgressDwl': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_DWL_IN_PROGRESS') }},
+                'successfulDwl': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_DWL_SUCCESSFUL') }},
+                'failedDwl': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_DWL_FAILED') }}
+            }
+        };
     };
 
     Decimal.set({ precision: 65, rounding: Decimal.ROUND_DOWN });

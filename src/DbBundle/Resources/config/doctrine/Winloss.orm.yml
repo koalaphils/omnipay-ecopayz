@@ -1,0 +1,88 @@
+DbBundle\Entity\Winloss:
+    type: entity
+    table: winloss
+    repositoryClass: DbBundle\Repository\WinlossRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: winloss_id
+            options:
+                unsigned: true
+    fields:
+        affiliate:
+            type: bigint
+            nullable: true
+            column: winloss_affiliate
+            options:
+                unsigned: true
+        date:
+            type: date
+            column: winloss_date
+            nullable: false
+        payout:
+            type: decimal
+            precision: 65
+            scale: 10
+            options:
+                default: 0
+            column: winloss_payout
+            nullable: false
+        turnover:
+            type: decimal
+            precision: 65
+            scale: 10
+            options:
+                default: 0
+            column: winloss_turnover
+            nullable: false
+        member:
+            type: bigint
+            nullable: false
+            column: winloss_member
+            options:
+                unsigned: true
+        status:
+            type: tinyint
+            column: winloss_status
+            nullable: false
+            options:
+                default: 0
+        period:
+            type: tinyint
+            column: winloss_period
+            nullable: false
+            options:
+                default: 1
+        product:
+            type: tinyint
+            column: winloss_product
+            nullable: false
+            options:
+                default: 1
+        pinUserCode:
+            type: string
+            column: winloss_pin_user_code
+            nullable: false
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: winloss_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            column: winloss_updated_at
+            nullable: true
+        createdBy:
+            type: bigint
+            column: winloss_created_by
+            options:
+                unsigned: true
+            nullable: false
+        createdAt:
+            type: datetime
+            column: winloss_created_at
+            nullable: false
