@@ -14,10 +14,12 @@ use ProductIntegrationBundle\Exception\NoPinnacleProductException;
 class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayerInterface
 {
     private $pinnacleService;
+    private $http;
 
-    public function __construct(PinnacleService $pinnacleService)
+    public function __construct(PinnacleService $pinnacleService, HttpPersistence $http)
     {
         $this->pinnacleService = $pinnacleService;
+        $this->http = $http;
     }
 
     public function auth(string $token, $body = []): array
@@ -91,5 +93,10 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
         } catch (NetworkException $exception) {
             throw new IntegrationNotAvailableException($exception->getMessage(), 422);
         }
+    }
+
+    public function configure(): array
+    {
+       dump('WAHAHA');
     }
 }

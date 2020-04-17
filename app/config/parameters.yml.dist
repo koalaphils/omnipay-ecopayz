@@ -97,6 +97,7 @@ parameters:
             url: ${EVOLUTION_SERVICE_URL}
     
     evolution_url: ${EVOLUTION_SERVICE_URL}
+    pinnacle_url: ${PINNACLE_SERVICE_URL}
 
     aws_sdk.version: "${AWS_SDK_VERSION}"
     aws_sdk.region: "${AWS_REGION}"

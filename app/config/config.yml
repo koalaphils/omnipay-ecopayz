@@ -186,7 +186,8 @@ product_integration:
         evolution:
             url: '%evolution_url%'
             class: 'ProductIntegrationBundle\Integration\EvolutionIntegration'
-        pinbet:
-            class: 'ProductIntegrationBundle\Integration\PinnacleIntegration'
-        pwm:
-            class: 'ProductIntegrationBundle\Integration\PiwiWalletIntegration'
+        # pinbet:
+        #     url: '%pinnacle_url%'
+        #     class: 'ProductIntegrationBundle\Integration\PinnacleIntegration'
+        # pwm:
+        #     class: 'ProductIntegrationBundle\Integration\PiwiWalletIntegration'
