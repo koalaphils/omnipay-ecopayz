@@ -28,7 +28,7 @@ class TransferController extends  AbstractController
 
         return $this->render('TransactionBundle:Transaction/Type:transfer.html.twig', [
             'form' => $form->createView(),
-            'type' => 'p2p',
+            'type' => 'transfer',
             'transaction' => $transaction,
             'pinnacleTransacted' => '0',
         ]);
