@@ -26,15 +26,11 @@ class Scheduler implements JobScheduler
             $queue = 'compute';
         }
 
-        if ($commandName === 'revenueshare:period:winloss') {
-            $queue = 'winloss';
-        }
-
         return new Job($commandName, $args, true, $queue);
     }
 
     public function shouldSchedule($command, \DateTime $lastRunAt)
-    {
+    {   
         $args = explode(' ', $command);
         $commandName = $args[0];
         if ($commandName === 'fos:oauth-server:clean') {
@@ -46,10 +42,6 @@ class Scheduler implements JobScheduler
         }
 
         if ($commandName === 'revenueshare:period:winloss') {
-            return time() - $lastRunAt->getTimestamp() >= 86400;
-        }
-
-        if ($commandName === 'revenueshare:period:compute') {
             return time() - $lastRunAt->getTimestamp() >= 86400;
         }
 
