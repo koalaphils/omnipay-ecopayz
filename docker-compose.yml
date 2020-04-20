@@ -64,7 +64,7 @@ services:
       - PIN_API_AGENT_KEY=035c48be-9959-4556-80eb-9a0224814c88
       - PIN_API_SECRET_KEY=P6Aae0ej2dwnJe9B
       - PIN_AGENT_CODE=PS711
-      - EVOLUTION_SERVICE_URL=http://evolution-service/api/v1/evolution
+      - EVOLUTION_SERVICE_URL=http://evolution-service
       - PINNACLE_SERVICE_URL=http://api-gateway/api/v1/pinnacle
       - TWILIO_SID=ACa8414b7fd5f78fa371c0aeb341931c8d
       - TWILIO_TOKEN=e4815df706ef97c0017a7a1f2e37b928

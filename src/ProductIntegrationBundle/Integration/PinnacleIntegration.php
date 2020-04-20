@@ -10,16 +10,17 @@ use ProductIntegrationBundle\Exception\IntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
 use Http\Client\Exception\NetworkException;
 use ProductIntegrationBundle\Exception\NoPinnacleProductException;
+use ProductIntegrationBundle\Persistence\HttpPersistence;
 
 class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayerInterface
 {
     private $pinnacleService;
     private $http;
 
-    public function __construct(PinnacleService $pinnacleService, HttpPersistence $http)
+    public function __construct(HttpPersistence $http, PinnacleService $pinnacleService)
     {
-        $this->pinnacleService = $pinnacleService;
         $this->http = $http;
+        $this->pinnacleService = $pinnacleService;
     }
 
     public function auth(string $token, $body = []): array
@@ -95,8 +96,19 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
         }
     }
 
-    public function configure(): array
+    public function configure(string $token): array
     {
-       dump('WAHAHA');
+        $response = $this->http->post('/configure', $token, [
+            'configurations' => [
+                'e-sports' => [
+                    'limit' => 2,
+                    'events' => 2
+                ]
+            ]
+        ]);
+
+        $body = json_decode(((string) $response->getBody()));
+
+        return $body;
     }
 }
