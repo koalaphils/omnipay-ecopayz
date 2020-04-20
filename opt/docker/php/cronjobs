@@ -1,5 +1,5 @@
 SHELL=/bin/bash
 BASH_ENV=/env.sh
 #* * * * * /usr/local/bin/php /var/www/html/app/console revenueshare:period:winloss system --period latest -vvv > /proc/1/fd/1 2>/proc/1/fd/2
-* * * * * /usr/local/bin/php /var/www/html/app/console revenueshare:period:winloss system --period latest -vvv >> /var/log/cron2.log 2>&1
+* * * * * /usr/local/bin/php /var/www/html/app/console revenueshare:period:winloss system --period latest --env=prod -vvv >> /var/log/cron2.log 2>&1
 
