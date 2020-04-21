@@ -8,3 +8,6 @@ BASH_ENV=/env.sh
 0 0 * * * /usr/local/bin/php /var/www/html/app/console fos:oauth-server:clean -vvv > /proc/1/fd/1 2>/proc/1/fd/2
 0 0 * * * /usr/local/bin/php /var/www/html/app/console jms-job-queue:clean-up -vvv > /proc/1/fd/1 2>/proc/1/fd/2
 0 9 * * * /usr/local/bin/php /var/www/html/app/console revenueshare:period:winloss system --period latest -vvv > /proc/1/fd/1 2>/proc/1/fd/2
+0 1 * * * /usr/local/bin/php /var/www/html/app/console revenueshare:period:winloss system --period 6 -vvv > /proc/1/fd/1 2>/proc/1/fd/2
+0 3 * * * /usr/local/bin/php /var/www/html/app/console revenueshare:period:winloss system --period 5 -vvv > /proc/1/fd/1 2>/proc/1/fd/2
+0 0 * * * /usr/local/bin/php /var/www/html/app/console revenueshare:period:winloss system --period 4 -vvv > /proc/1/fd/1 2>/proc/1/fd/2
