@@ -35,7 +35,7 @@
         "oro/doctrine-extensions": "dev-master",
         "payum/offline": "^1.4",
         "payum/omnipay-v3-bridge": "^1.0@alpha",
-        "payum/payum-bundle": "^2.2",
+        "payum/payum-bundle": "^2.4",
         "php-http/client-common": "^1.7",
         "php-http/guzzle6-adapter": "^1.1",
         "phpseclib/phpseclib": "2.0.11",
