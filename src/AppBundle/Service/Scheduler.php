@@ -30,7 +30,7 @@ class Scheduler implements JobScheduler
     }
 
     public function shouldSchedule($command, \DateTime $lastRunAt)
-    {   
+    {
         $args = explode(' ', $command);
         $commandName = $args[0];
         if ($commandName === 'fos:oauth-server:clean') {
