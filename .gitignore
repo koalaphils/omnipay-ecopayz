@@ -23,6 +23,8 @@ nbproject/
 !/var/cache
 /var/cache/*
 !var/cache/.gitkeep
+!/var/config
+/var/config/*
 !/var/logs
 /var/logs/*
 !var/logs/.gitkeep

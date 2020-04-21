@@ -12,6 +12,7 @@ use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterfac
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Yaml\Yaml;
 
 class PinnacleConfigCommand extends ContainerAwareCommand
 {
@@ -21,11 +22,6 @@ class PinnacleConfigCommand extends ContainerAwareCommand
             ->setName('integration:configure-pinnacle')
             ->setDescription('Configure Pinnacle settings')
             ->setHelp('This command calls Pinnacle Microservice to configure Pinnacle Hot Events responses such as sorting and limit.')
-            ->addOption(
-                'config',
-                null,
-                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
-            )
         ;
     }
 
@@ -34,12 +30,32 @@ class PinnacleConfigCommand extends ContainerAwareCommand
         $factory =  $this->getContainer()->get(ProductIntegrationFactory::class);
         $jwtGenerator = $this->getContainer()->get(JWTGeneratorService::class);
         $pinnacleIntegration = $factory->getIntegration('pinbet');
-        $pinnacleIntegration->configure($jwtGenerator->generate([]));
-        $config = $input->getOption('config');
-        dump(json_decode($config[0]));
 
-        $output->writeln('MEOW');
-        
-        return 0;
+        $configPath = $this->getContainer()->getParameter('kernel.root_dir') . '/../var/config/pinnacle.yaml';
+        $output->writeln('Parsing configuration file: ' . $configPath);
+        $value = Yaml::parse(file_get_contents($configPath));
+        $payload = $this->normalizeConfiguration($value['configuration']);
+
+        $output->writeln('Sending configuration to Pinnacle Service');
+        $pinnacleIntegration->configure($jwtGenerator->generate([]), $payload);
+        $output->writeln('Done.');
+    }
+
+    // Normalize values to  API Accepted Payload Format
+    private function normalizeConfiguration(array $config): array
+    {
+        $payload = [
+            'items' => []
+        ];
+
+        foreach ($config as $key => $value) {
+            $payload['items'][] = [
+                'name'  => $key,
+                'limit' => $config[$key]['limit'],
+                'events' => $config[$key]['events']
+            ];
+        }
+
+        return $payload;
     }
 }

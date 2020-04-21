@@ -96,19 +96,8 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
         }
     }
 
-    public function configure(string $token): array
+    public function configure(string $token, array $body): void
     {
-        $response = $this->http->post('/configure', $token, [
-            'configurations' => [
-                'e-sports' => [
-                    'limit' => 2,
-                    'events' => 2
-                ]
-            ]
-        ]);
-
-        $body = json_decode(((string) $response->getBody()));
-
-        return $body;
+        $this->http->post('/configure/hot-events', $token, $body);
     }
 }
