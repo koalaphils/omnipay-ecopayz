@@ -50,7 +50,7 @@ class PinnacleConfigCommand extends ContainerAwareCommand
 
         foreach ($config as $key => $value) {
             $payload['items'][] = [
-                'name'  => $key,
+                'name'  => $config[$key]['name'],
                 'limit' => $config[$key]['limit'],
                 'events' => $config[$key]['events']
             ];
