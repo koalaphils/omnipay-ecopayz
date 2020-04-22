@@ -26,10 +26,6 @@ class Scheduler implements JobScheduler
             $queue = 'compute';
         }
 
-        if ($commandName === 'revenueshare:period:winloss') {
-            $queue = 'winloss';
-        }
-
         return new Job($commandName, $args, true, $queue);
     }
 
@@ -46,10 +42,6 @@ class Scheduler implements JobScheduler
         }
 
         if ($commandName === 'revenueshare:period:winloss') {
-            return time() - $lastRunAt->getTimestamp() >= 86400;
-        }
-
-        if ($commandName === 'revenueshare:period:compute') {
             return time() - $lastRunAt->getTimestamp() >= 86400;
         }
 
