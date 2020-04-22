@@ -171,6 +171,8 @@ class DepositHandler
 
         if (!$this->isBitcoin($depositRequest->getPaymentOptionType())) {
             $memberPaymentOption->setForWithdrawal();
+        } else {
+            $memberPaymentOption->addField('is_withdrawal', 0);
         }
 
         $this->entityManager->persist($memberPaymentOption);
