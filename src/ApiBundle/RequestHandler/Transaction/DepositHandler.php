@@ -174,7 +174,7 @@ class DepositHandler
         } else {
             $memberPaymentOption->addField('is_withdrawal', 0);
         }
-        dump($memberPaymentOption);
+
         $this->entityManager->persist($memberPaymentOption);
         $this->entityManager->flush($memberPaymentOption);
 
