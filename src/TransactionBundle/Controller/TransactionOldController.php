@@ -409,7 +409,7 @@ class TransactionOldController extends AbstractController
             $transaction = $this->getRepository('DbBundle:Transaction')->findByIdAndType($id, $this->getManager()->getType($type), \Doctrine\ORM\Query::HYDRATE_OBJECT, LockMode::PESSIMISTIC_WRITE);
             $isForVoidingOrDecline = $this->isRequestToVoidOrDecline($transaction, $request);
 
-            if (array_has($request->get('Transaction'), 'actions.btn_decline')) {
+            if ($isForVoidingOrDecline) {
                 $validationGroups = ['default', 'isForVoidingOrDecline'];
             } else {
                 $validationGroups = ['default', $type]; 
