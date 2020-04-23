@@ -109,49 +109,9 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
         $member = $event->getCustomer();
         $details = $event->getDetails();
         $channel = $member->getWebsocketDetails()['channel_id'];
-
-        /////$payload = $event->getFiles();
-        /////$this->createNotification($member, sprintf($payload['message'] ?? ''. ' (%s)', $member->getFullName()));
-
-        ////$this->publisher->publish(Topics::TOPIC_MEMBER_KYC_FILE_UPLOADED . '.' . $channel, json_encode($payload));
-
-        //if ($payload['fromApi']) {
-            ///////$payload['message'] = 'testsetsetsetest';
-            /////////$this->publisher->publish(Topics::TOPIC_MEMBER_API_KYC_UPLOADED, json_encode($payload));
-        //}
-
-        /*$member = $event->getCustomer();
-        $this->publisher->publishUsingWamp('created.transaction', [
-            'title' => 'Transaction Requested',
-            'message' => 'Transaction ' . $transaction->getNumber() . ' has been requested.',
-            'otherDetails' => [
-                'id' => $transaction->getId(),
-                'type' => 'deposit',
-            ],
-        ]);*/
-        
         $member = $event->getCustomer();
-        $this->publisher->publishUsingWamp(Topics::TOPIC_MEMBER_API_KYC_UPLOADED, [
-            'title' => $details['notificationTitle'],
-            'message' => $details['notificationMessage'],
-            'type' => 'docs',
-            'otherDetails' => [
-                'id' => $details['id'],
-                'type' => $details['type'],
-            ],
-        ]);
 
-        $this->publisher->publishUsingWamp('ms.topic.kyc_file_uploaded', [
-            'title' => $details['notificationTitle'],
-            'message' => $details['notificationMessage'],
-            'type' => 'docs',
-            'otherDetails' => [
-                'id' => $details['id'],
-                'type' => $details['type'],
-            ],
-        ]);
-
-        $this->publisher->publishUsingWamp('created.transaction', [
+        $this->publisher->publishUsingWamp(MemberEvents::EVENT_MEMBER_KYC_FILE_UPLOADED, [
             'title' => $details['notificationTitle'],
             'message' => $details['notificationMessage'],
             'type' => 'docs',

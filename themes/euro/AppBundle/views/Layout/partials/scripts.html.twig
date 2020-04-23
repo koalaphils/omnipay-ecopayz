@@ -4,7 +4,7 @@
         this.dateTimeFormat = phpjs_dateFormat("{{ setting('dateTimeFormat')|e("js") }}");
         this.dummyTransactionUrl = "{{ path('transaction.update_page', {'type': '__type__', 'id': '__id__' }) }}";
         this.dummyCustomerProfileUrl = "{{ path('member.update_page', {'id': '__id__', 'activeTab': '__activeTab__' }) }}";
-        this.dummyMemberRequestUrl = "{{ path('member_request.pending') }}";
+        this.dummyMemberRequestUrl = "{{ path('member_request.update_page', {'type': '__type__', 'id': '__id__' }) }}";
         this.links = {
             user: {
                 'preferences_save': '{{ path('user.preferences_save') }}'
