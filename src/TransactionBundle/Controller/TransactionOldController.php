@@ -410,9 +410,9 @@ class TransactionOldController extends AbstractController
             $isForVoidingOrDecline = $this->isRequestToVoidOrDecline($transaction, $request);
 
             if (array_has($request->get('Transaction'), 'actions.btn_decline')) {
-                $validationGroups = ['default'];
+                $validationGroups = ['default', 'isForVoidingOrDecline'];
             } else {
-                $validationGroups = ['default', $type];
+                $validationGroups = ['default', $type]; 
             }
 
 
