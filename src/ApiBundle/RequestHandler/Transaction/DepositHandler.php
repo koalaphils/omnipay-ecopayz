@@ -174,7 +174,7 @@ class DepositHandler
         } else {
             $memberPaymentOption->addField('is_withdrawal', 0);
         }
-
+        dump($memberPaymentOption);
         $this->entityManager->persist($memberPaymentOption);
         $this->entityManager->flush($memberPaymentOption);
 
@@ -188,6 +188,6 @@ class DepositHandler
 
     private function isBitcoin(string $paymentOption): bool
     {
-        return $paymentOption === $this->settingManager->getSetting('bitcoin.setting.paymentOption');
+        return $paymentOption === 'BITCOIN';
     }
 }
