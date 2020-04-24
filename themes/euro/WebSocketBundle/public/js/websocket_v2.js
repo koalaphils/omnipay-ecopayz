@@ -26,7 +26,6 @@
             } else if (notificationType == 'docs') { 
                 message = details.message + ' Please proceed to kyc pending list to view.';
                 url = Global.dummyMemberRequestUrl.replace('/__id__', '/'+ details.otherDetails.id).replace('/__type__', '/'+ details.otherDetails.type);
-                console.log(url);
             }
         } catch (e) {
         }
