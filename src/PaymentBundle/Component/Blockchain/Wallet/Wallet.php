@@ -38,9 +38,8 @@ class Wallet extends BlockchainComponent
             $query['second_password'] = $credential->getSecondPassword();
         }
 
-        if ($from !== '') {
-            $query['from'] = $from;
-        }
+        // See: https://github.com/blockchain/service-my-wallet-v3/issues/306
+        $from = 0;
 
         if ($fee !== '') {
             $query['fee'] = $fee;
