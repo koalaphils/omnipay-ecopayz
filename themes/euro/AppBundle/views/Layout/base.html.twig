@@ -260,7 +260,7 @@
                 this.dateFormat = phpjs_dateFormat("{{ setting('dateFormat')|e("js") }}");
                 this.dateTimeFormat = phpjs_dateFormat("{{ setting('dateTimeFormat')|e("js") }}");
                 this.dummyTransactionUrl = "{{ path('transaction.update_page', {'type': '__type__', 'id': '__id__' }) }}";
-                this.dummyMemberRequestUrl = "{{ path('member_request.pending') }}";
+                this.dummyMemberRequestUrl = "{{ path('member_request.update_page', {'type': '__type__', 'id': '__id__' }) }}";
                 this.dummyCustomerProfileUrl = "{{ path('member.update_page', {'id': '__id__', 'activeTab': '__activeTab__' }) }}";
                 this.links = {
                     user: {
@@ -516,7 +516,6 @@
             var iterateDataNotification = function (data) {
                 var counter = 0;
                 for (var i in data.list) {
-
                     var creationDate = new Date(data.list[i].createdAt.date);
                     var lastRead = new Date(data.lastRead.date);
                     var notifStatus = 'read';
@@ -559,9 +558,9 @@
                             message = data.list[i].fName + ' '+ data.list[i].lName +' was created.';
                         }
                     } else if (data.list[i].notificationType == 'docs') {
-                        url = Global.dummyMemberRequestUrl;
+                        url = Global.dummyMemberRequestUrl.replace('/__id__', '/'+ data.list[i].id).replace('/__type__', '/'+ data.list[i].type);
                         title = "KYC REQUEST";
-                        message = data.list[i].message;
+                        message = 'KYC ' + data.list[i].details.sub_requests.length + ' file(s) uploaded. (' + data.list[i].member + ')';
                     } else if (data.list[i].notificationType == 'requestProduct') {
                         var details = data.list[i];
 

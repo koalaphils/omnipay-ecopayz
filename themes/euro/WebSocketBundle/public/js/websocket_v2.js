@@ -16,22 +16,18 @@
         var details = args[0];
         var title = details.title;
         var message = details.message + ' Please proceed to pending tab to view.';
-
         var url = "";
+
         try {
             url = Global.dummyTransactionUrl.replace('/__type__', '/'+ details.otherDetails.type).replace('/__id__', '/'+ details.otherDetails.id);
             if (notificationType == 'registration' || notificationType == 'requestProduct') {
                 message = details.message + ' Please proceed to member list to view.';
                 url = Global.dummyCustomerProfileUrl.replace('/__id__', '/'+ details.otherDetails.id).replace('/__activeTab__', '/'+ details.otherDetails.type);
-            } else if (notificationType == 'docs') {
-                message = details.message + 'Please proceed to member list to view.';
-                url = Global.dummyCustomerProfileUrl.replace('/__id__', '/'+ details.otherDetails.id).replace('/__activeTab__', '/'+ details.otherDetails.type);
-                if( typeof details.member_request_route !== 'undefined') {
-                    url = details.member_request_route;
-                }
+            } else if (notificationType == 'docs') { 
+                message = details.message + ' Please proceed to kyc pending list to view.';
+                url = Global.dummyMemberRequestUrl.replace('/__id__', '/'+ details.otherDetails.id).replace('/__type__', '/'+ details.otherDetails.type);
             }
         } catch (e) {
-
         }
 
         prependToList(title, details.message, url);
@@ -91,14 +87,9 @@
             triggerNotification(args, 'transaction', 'success', playDefaultSoundAlert);
         });
 
-        session.subscribe('ms.topic.kyc_file_uploaded', function(args) {
-            triggerNotification(args, 'docs', 'success');
+        session.subscribe('bo.event.kyc_file_uploaded', function(args) {
+            triggerNotification(args, 'docs', 'success', playDefaultSoundAlert);
         });
-
-        session.subscribe('ms.topic.kyc_file_deleted', function(args) {
-            triggerNotification(args, 'docs', 'success');
-        });
-
 
         if (typeof btcExchangeRateSubscription === "function") {
             btcExchangeRateSubscription(session);

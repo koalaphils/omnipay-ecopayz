@@ -15,6 +15,7 @@ class MemberRequestRepository extends BaseRepository
     public function getRequestList($filters = null, array $orders = [], $hydrationMode = Query::HYDRATE_OBJECT): array
     {
         $queryBuilder = $this->getRequestListQueryBuilder($filters);
+        $queryBuilder->select('mrs, m');
 
         if (!empty($orders)) {
             foreach ($orders as $order) {
