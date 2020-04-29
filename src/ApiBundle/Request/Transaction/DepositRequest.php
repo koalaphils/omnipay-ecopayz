@@ -10,6 +10,8 @@ use Symfony\Component\Validator\GroupSequenceProviderInterface;
 
 class DepositRequest implements GroupSequenceProviderInterface
 {
+    const PO_BTC = 'BITCOIN';
+
     /**
      * @var string
      */
@@ -105,5 +107,10 @@ class DepositRequest implements GroupSequenceProviderInterface
     public function getEmail(): string
     {
         return $this->getMetaData('field.email', '');
+    }
+
+    public function isBitcoin(string $paymentOption): bool
+    {
+        return $paymentOption === self::PO_BTC;
     }
 }
