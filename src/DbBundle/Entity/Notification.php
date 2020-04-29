@@ -16,6 +16,7 @@ class Notification extends Entity {
     private $message;
     private $style;
     private $created_at;
+    const NOTIFICATION_TYPE_DOCS = 'docs';
     
     public function getUserID()
     {

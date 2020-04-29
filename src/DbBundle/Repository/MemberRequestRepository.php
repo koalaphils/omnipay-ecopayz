@@ -8,6 +8,7 @@ use Doctrine\ORM\Query\Expr\Join;
 use \DateTime;
 use DbBundle\Entity\MemberRequest;
 use DbBundle\Entity\Customer as Member;
+use DbBundle\Entity\Notification;
 
 class MemberRequestRepository extends BaseRepository
 {
@@ -15,7 +16,16 @@ class MemberRequestRepository extends BaseRepository
     public function getRequestList($filters = null, array $orders = [], $hydrationMode = Query::HYDRATE_OBJECT): array
     {
         $queryBuilder = $this->getRequestListQueryBuilder($filters);
-        $queryBuilder->select('mrs, m');
+        $queryBuilder->select("
+                mrs.id, 
+                mrs.details,
+                mrs.updatedAt,
+                mrs.createdAt,
+                m.fullName
+            ");
+
+        $queryBuilder->addSelect("'" . Notification::NOTIFICATION_TYPE_DOCS . "' as notificationType");
+        $queryBuilder->addSelect("'" . MemberRequest::MEMBER_REQUEST_TYPE_TEXT_KYC . "' as type");
 
         if (!empty($orders)) {
             foreach ($orders as $order) {

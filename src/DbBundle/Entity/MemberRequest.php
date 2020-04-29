@@ -33,6 +33,8 @@ class MemberRequest extends Entity implements ActionInterface, TimestampInterfac
     const MEMBER_REQUEST_STATUS_END = 2;
     const MEMBER_REQUEST_STATUS_DECLINE = 3;
     const MEMBER_REQUEST_STATUS_ACKNOWLEDGE = 4;
+
+    const MEMBER_REQUEST_TYPE_TEXT_KYC = 'kyc';
     
     private $number;
     private $member;

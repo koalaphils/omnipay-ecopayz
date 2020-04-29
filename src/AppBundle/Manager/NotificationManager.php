@@ -48,28 +48,14 @@ class NotificationManager extends AbstractManager
         $filter = ['limit'=>$limit];
         $order = [['column' => 'mrs.updatedAt', 'dir' => 'desc']];
         
-        $memberRequestNotifications = $this->getMemberRequestRepository()->getRequestList($filter, $order);
-        $memberRequestNotifications = array_map(function ($memberRequest){
-            $data = $memberRequest;
-            $newData = [];
-            $date = $data->getUpdatedAt() ?? $data->getCreatedAt();
-            $newData['notificationType'] = 'docs';
-            $newData['createdAt'] = $date;
-            $newData['type'] = $data->getTypeText();
-            $newData['details'] = $data->getDetails();
-            $newData['member'] = $data->getMember()->getFullName();
-            $newData['id'] = $data->getIdentifier();
-
-            return $newData;
-        }, $memberRequestNotifications);
-        
+        $memberRequestNotifications = $this->getMemberRequestRepository()->getRequestList($filter, $order, Query::HYDRATE_ARRAY);
 
         $lastRead = $this->getLastReadNotification();
         $mergedNotifications = array_merge($latestCustomers, $latestTransactions, $latestRequestedProducts, $memberRequestNotifications);
         $dateCreated = [];
 
         foreach ($mergedNotifications as $record) {
-            $dateCreated[] = $record['createdAt'];
+            $dateCreated[] = array_get($record, 'updatedAt', $record['createdAt']);
         }
 
         array_multisort(
