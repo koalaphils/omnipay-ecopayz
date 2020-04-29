@@ -17,11 +17,11 @@ class MemberRequestRepository extends BaseRepository
     {
         $queryBuilder = $this->getRequestListQueryBuilder($filters);
         $queryBuilder->select("
-                mrs.id AS requestId, 
-                mrs.details AS details,
-                mrs.updatedAt as updatedAt,
-                mrs.createdAt as createdAt,
-                m.fullName as fullName
+                mrs.id, 
+                mrs.details,
+                mrs.updatedAt,
+                mrs.createdAt,
+                m.fullName
             ");
 
         $queryBuilder->addSelect("'" . Notification::NOTIFICATION_TYPE_DOCS . "' as notificationType");
