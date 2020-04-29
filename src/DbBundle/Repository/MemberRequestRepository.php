@@ -25,7 +25,7 @@ class MemberRequestRepository extends BaseRepository
             ");
 
         $queryBuilder->addSelect("'" . Notification::NOTIFICATION_TYPE_DOCS . "' as notificationType");
-        $queryBuilder->addSelect("'kyc' as type");
+        $queryBuilder->addSelect("'" . MemberRequest::MEMBER_REQUEST_TYPE_TEXT_KYC . "' as type");
 
         if (!empty($orders)) {
             foreach ($orders as $order) {
