@@ -40,17 +40,15 @@ class MemberRequestManager extends AbstractManager
                 }
                 $orders = (!array_has($filters, 'order')) ? [['column' => 'mrs.createdAt', 'dir' => 'desc']] : $filters['order'];
                 $results['data'] = array_map(function ($memberRequest) {
-                    if ($memberRequest instanceof MemberRequest) {
-                        return [
-                            'memberRequest' => $memberRequest,
-                            'routes' => [
-                               'view' => $this->getRouter()->generate('member_request.update_page', [
-                                   'type' => $memberRequest->getTypeText(), 
-                                   'id' => $memberRequest->getid(),
-                                ])
-                           ],   
-                        ];
-                    }
+                    return [
+                        'memberRequest' => $memberRequest,
+                        'routes' => [
+                           'view' => $this->getRouter()->generate('member_request.update_page', [
+                               'type' => $memberRequest['type'],
+                               'id' => $memberRequest['id'],
+                            ])
+                       ],
+                    ];
                 }, $this->getRepository()->getRequestList($filters, $orders));
                 
                 $results['draw'] = $filters['draw'];
