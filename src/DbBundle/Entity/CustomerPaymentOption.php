@@ -200,7 +200,7 @@ class CustomerPaymentOption extends Entity implements ActionInterface, Timestamp
         return ['type' => $this->getType(), 'customer' => $this->getCustomer(), 'paymentOption' => $this->getPaymentOption(), 'fields' => $this->getFields()];
     }
 
-    public function setForWithdrawal(?$value = 1): self
+    public function setForWithdrawal($value = 1): self
     {
         $this->setField('is_withdrawal', $value);
 
