@@ -29,11 +29,14 @@ class PinnacleConfigCommand extends ContainerAwareCommand
     {
         $factory =  $this->getContainer()->get(ProductIntegrationFactory::class);
         $jwtGenerator = $this->getContainer()->get(JWTGeneratorService::class);
+        $mediaManager = $this->getContainer()->get('media.manager');
         $pinnacleIntegration = $factory->getIntegration('pinbet');
+        
+        $filePath = $mediaManager->getFilePath('pinnacle.yaml');
+        $fileContents = $mediaManager->getContents($filePath);
 
-        $configPath = $this->getContainer()->getParameter('kernel.root_dir') . '/../var/config/pinnacle.yaml';
-        $output->writeln('Parsing configuration file: ' . $configPath);
-        $value = Yaml::parse(file_get_contents($configPath));
+        $output->writeln('Parsing configuration file: ' . $filePath);
+        $value = Yaml::parse($fileContents);
         $payload = $this->normalizeConfiguration($value['configuration']);
 
         $output->writeln('Sending configuration to Pinnacle Service');
