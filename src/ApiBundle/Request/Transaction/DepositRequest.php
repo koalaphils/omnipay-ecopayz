@@ -5,13 +5,12 @@ declare(strict_types = 1);
 namespace ApiBundle\Request\Transaction;
 
 use ApiBundle\Request\Transaction\Meta\Meta;
+use DbBundle\Entity\PaymentOption;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\GroupSequenceProviderInterface;
 
 class DepositRequest implements GroupSequenceProviderInterface
 {
-    const PO_BTC = 'BITCOIN';
-
     /**
      * @var string
      */
@@ -111,6 +110,6 @@ class DepositRequest implements GroupSequenceProviderInterface
 
     public function isBitcoin(string $paymentOption): bool
     {
-        return $paymentOption === self::PO_BTC;
+        return strtoupper($paymentOption) === strtoupper(PaymentOption::PAYMENT_MODE_BITCOIN);
     }
 }
