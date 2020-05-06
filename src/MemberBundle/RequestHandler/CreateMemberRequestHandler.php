@@ -70,11 +70,8 @@ class CreateMemberRequestHandler
 
         if ($request->getCountry() !== null && $country === null) {
             $country = $this->getCountryRepository()->getWithCurrency($request->getCountry());
-            dump($country);
         }
-        dump('request', $request);
-        dump('request', $request->getCountry());
-        dump('country', $country);
+
         $user->setUsername($username);
         $user->setEmail($request->getEmail());
         $user->setIsActive($request->getStatus());
@@ -132,7 +129,7 @@ class CreateMemberRequestHandler
             $member->setPinLoginId($pinnaclePlayer->loginId());
             $member->setPinUserCode($pinnaclePlayer->userCode());
             $member->addProduct($memberPinProduct);
-            dump('pinProduct');
+
             $walletProduct = $this->getProductRepository()->getProductByCode(Product::MEMBER_WALLET_CODE);
             $memberWalletProduct = new CustomerProduct();
             $memberWalletProduct->setProduct($walletProduct);
@@ -140,7 +137,7 @@ class CreateMemberRequestHandler
             $memberWalletProduct->setBalance('0.00');
             $memberWalletProduct->setIsActive(true);
             $member->addProduct($memberWalletProduct);
-            dump('memberWallet');
+
             $integration = $this->productIntegrationFactory->getIntegration(Product::EVOLUTION_PRODUCT_CODE);
             $evolutionProduct = $this->getProductRepository()->getProductByCode(Product::EVOLUTION_PRODUCT_CODE);
             $memberEvoProduct = new CustomerProduct();
@@ -149,7 +146,7 @@ class CreateMemberRequestHandler
             $memberEvoProduct->setBalance('0.00');
             $memberEvoProduct->setIsActive(true);
             $member->addProduct($memberEvoProduct);
-            dump('evoProduct');
+
             $a = [
                     'id' => $memberEvoProduct->getUsername(),
                     'lastName' => $request->getFullName(),
@@ -159,8 +156,7 @@ class CreateMemberRequestHandler
                     'language' => $member->getLocale() ?? 'en',
                     'currency' => $member->getCurrency()->getCode(),
                 ];
-            dump($a);
-            dump($this->requestStack->getCurrentRequest());
+
             try {
                 $jwt = $this->jwtGeneratorService->generate([]);
                 $integration->auth($jwt, [
@@ -174,12 +170,12 @@ class CreateMemberRequestHandler
                     'ip' => $this->getClientIp(),
                     'sessionId' => $this->getSessionId(),
                 ]);
-                dump('crete evo');
+
             } catch (\Exception $ex) {
-                dump('Exception',$ex);
+                return $ex;
             }
         }
-        dump('create');
+
         $member->setTags([]);
         $member->setUser($user);
         $user->setCustomer($member);
