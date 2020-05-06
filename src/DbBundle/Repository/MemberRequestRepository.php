@@ -21,11 +21,21 @@ class MemberRequestRepository extends BaseRepository
                 mrs.details,
                 mrs.updatedAt,
                 mrs.createdAt,
+                mrs.number,
                 m.fullName
             ");
 
         $queryBuilder->addSelect("'" . Notification::NOTIFICATION_TYPE_DOCS . "' as notificationType");
         $queryBuilder->addSelect("'" . MemberRequest::MEMBER_REQUEST_TYPE_TEXT_KYC . "' as type");
+        $queryBuilder->addSelect("
+                CASE mrs.status
+                    WHEN '" . MemberRequest::MEMBER_REQUEST_STATUS_START . "' THEN 'requested'
+                    WHEN '" . MemberRequest::MEMBER_REQUEST_STATUS_END . "' THEN 'processed'
+                    WHEN '" . MemberRequest::MEMBER_REQUEST_STATUS_DECLINE . "' THEN 'declined'
+                    WHEN '" . MemberRequest::MEMBER_REQUEST_STATUS_ACKNOWLEDGE . "' THEN 'acknowledged'
+                    ELSE mrs.status
+                END as status
+            ");
 
         if (!empty($orders)) {
             foreach ($orders as $order) {
