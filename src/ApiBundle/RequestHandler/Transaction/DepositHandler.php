@@ -151,7 +151,7 @@ class DepositHandler
 
         unset($fields['account_id']);
 
-        if ($depositRequest->getPaymentOptionType() === $this->settingManager->getSetting('bitcoin.setting.paymentOption')) {
+        if ($depositRequest->isBitcoin($depositRequest->getPaymentOptionType())) {
             unset($fields['email']);
         }
 
@@ -167,8 +167,8 @@ class DepositHandler
         $memberPaymentOption->setCustomer($member);
         $memberPaymentOption->addField('account_id', array_get($depositRequest->getMeta()->toArray(), 'fields.account_id', ''));
         $memberPaymentOption->addField('email', array_get($depositRequest->getMeta()->toArray(), 'fields.email', ''));
-        $memberPaymentOption->setForWithdrawal();
         $memberPaymentOption->setForDeposit();
+        $memberPaymentOption->setForWithdrawal(!$depositRequest->isBitcoin($depositRequest->getPaymentOptionType()));
 
         $this->entityManager->persist($memberPaymentOption);
         $this->entityManager->flush($memberPaymentOption);

@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace ApiBundle\Request\Transaction;
 
 use ApiBundle\Request\Transaction\Meta\Meta;
+use DbBundle\Entity\PaymentOption;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\GroupSequenceProviderInterface;
 
@@ -105,5 +106,10 @@ class DepositRequest implements GroupSequenceProviderInterface
     public function getEmail(): string
     {
         return $this->getMetaData('field.email', '');
+    }
+
+    public function isBitcoin(string $paymentOption): bool
+    {
+        return strtoupper($paymentOption) === strtoupper(PaymentOption::PAYMENT_MODE_BITCOIN);
     }
 }

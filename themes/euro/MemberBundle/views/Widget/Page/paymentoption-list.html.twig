@@ -70,6 +70,12 @@
     <div class="grid-item col-md-6 col-sm-6 col-xs-12">
         <div class="card-box p-5 payment-item" data-id="{{ item.id }}" data-type="{{ item.paymentOption.code }}">
             <div class="row">
+                {% if item.fields.is_deposit is same as(1) %}
+                    <span class="label label-info member-payment-label">Deposit</span>
+                {% endif %}
+                {% if item.fields.is_withdrawal is same as(1) %}
+                    <span class="label label-default member-payment-label">Withdrawal</span>
+                {% endif %}
                 <div class="col-md-4 payment-img-col hidden-md hidden-sm hidden-xs">
                     <div class="payment-img"><i class="fa fa-credit-card-alt fa-5x"></i></div>
                 </div>

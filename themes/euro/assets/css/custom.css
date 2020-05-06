@@ -1028,6 +1028,11 @@ th.datepicker-switch {
     background-color: #ebeff2;
     border-top-color: #fff !important;
 }
+.member-payment-label {
+  position: absolute;
+  top: -8px;
+  left: 30px;
+}
 
 /*==============================================
 ================================================

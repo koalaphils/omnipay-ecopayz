@@ -37,7 +37,8 @@ class PaymentOptionWidget extends AbstractPageWidget
         $template = $this->getTemplate();
         $paymentOptions = $this->getMember()->getPaymentOptions();
         $this->getEntityManager()->initializeObject($paymentOptions);
-        $paymentOptions = $this->listOneActiveEcopayzPaymentOnly($paymentOptions);
+        //Note: Will disable this for now since we don't have Ecopayz in PIWI.
+        //$paymentOptions = $this->listOneActiveEcopayzPaymentOnly($paymentOptions);
 
         $list = $this->renderBlock('widget', ['list' => $paymentOptions]);
 
