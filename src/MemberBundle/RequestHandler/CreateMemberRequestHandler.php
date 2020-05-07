@@ -147,16 +147,6 @@ class CreateMemberRequestHandler
             $memberEvoProduct->setIsActive(true);
             $member->addProduct($memberEvoProduct);
 
-            $a = [
-                    'id' => $memberEvoProduct->getUsername(),
-                    'lastName' => $request->getFullName(),
-                    'firstName' => $request->getFullName(),
-                    'nickname' => str_replace("Evolution_","", $memberEvoProduct->getUsername()),
-                    'country' => $country ? $country->getCode() : 'UK',
-                    'language' => $member->getLocale() ?? 'en',
-                    'currency' => $member->getCurrency()->getCode(),
-                ];
-
             try {
                 $jwt = $this->jwtGeneratorService->generate([]);
                 $integration->auth($jwt, [
@@ -201,7 +191,6 @@ class CreateMemberRequestHandler
     {
         return $this->requestStack->getCurrentRequest()->getSession()->getId();
     }
-
 
     private function encodePassword(User $user, $password): string
     {
