@@ -160,9 +160,8 @@ class CreateMemberRequestHandler
                     'ip' => $this->getClientIp(),
                     'sessionId' => $this->getSessionId(),
                 ]);
-
             } catch (\Exception $ex) {
-                return $ex;
+                throw new \Exception('Failed to create EVO Account.', Response::HTTP_UNPROCESSABLE_ENTITY);
             }
         }
 
