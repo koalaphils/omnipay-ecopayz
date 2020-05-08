@@ -151,8 +151,8 @@ class CreateMemberRequestHandler
                 $jwt = $this->jwtGeneratorService->generate([]);
                 $integration->auth($jwt, [
                     'id' => $memberEvoProduct->getUsername(),
-                    'lastName' => $request->getFullName(),
-                    'firstName' => $request->getFullName(),
+                    'lastName' => $request->getFullName() ? $request->getFullName() : $username,
+                    'firstName' => $request->getFullName() ? $request->getFullName() : $username,
                     'nickname' => str_replace("Evolution_","", $memberEvoProduct->getUsername()),
                     'country' => $country ? $country->getCode() : 'UK',
                     'language' => $member->getLocale() ?? 'en',
