@@ -11,6 +11,7 @@ use DbBundle\Entity\Product;
 use DbBundle\Entity\User;
 use DbBundle\Repository\CustomerGroupRepository;
 use DbBundle\Repository\CountryRepository;
+use DbBundle\Repository\CurrencyRepository;
 use DbBundle\Repository\ProductRepository;
 use Doctrine\ORM\EntityManager;
 use MemberBundle\Manager\MemberManager;
@@ -64,12 +65,12 @@ class CreateMemberRequestHandler
             $username = $request->getEmail();
             $user->setSignupType(User::SIGNUP_TYPE_EMAIL);
         } else {
-            $country = $this->getCountryRepository()->getWithCurrency($request->getCountry());
+            $country = $this->getCountryRepository()->findById($request->getCountry());
             $username = str_replace('+', '', $country->getPhoneCode() . $request->getPhoneNumber());
         }
 
         if ($request->getCountry() !== null && $country === null) {
-            $country = $this->getCountryRepository()->getWithCurrency($request->getCountry());
+            $country = $this->getCountryRepository()->findById($request->getCountry());
         }
 
         $user->setUsername($username);
@@ -95,8 +96,11 @@ class CreateMemberRequestHandler
         if ($request->getReferal() !== null) {
             $member->setAffiliate($this->entityManager->getPartialReference(Customer::class, $request->getReferal()));
         }
+
+        $currency = $this->getCurrencyRepository()->findById($request->getCurrency());
+        $member->setCurrency($currency);
+
         $member->setCountry($country);
-        $member->setCurrency($this->entityManager->getPartialReference(Currency::class, $request->getCurrency()));
         $member->setBirthDate($request->getBirthDate());
         $member->setGender($request->getGender());
         $member->setJoinedAt($request->getJoinedAt());
@@ -155,8 +159,8 @@ class CreateMemberRequestHandler
                     'firstName' => $request->getFullName() ? $request->getFullName() : $username,
                     'nickname' => str_replace("Evolution_","", $memberEvoProduct->getUsername()),
                     'country' => $country ? $country->getCode() : 'UK',
-                    'language' => $member->getLocale() ?? 'en',
-                    'currency' => $member->getCurrency()->getCode(),
+                    'language' => 'en',
+                    'currency' => $currency->getCode(),
                     'ip' => $this->getClientIp(),
                     'sessionId' => $this->getSessionId(),
                 ]);
@@ -205,6 +209,12 @@ class CreateMemberRequestHandler
     {
         return $this->entityManager->getRepository(Country::class);
     }
+
+    private function getCurrencyRepository(): CurrencyRepository
+    {
+        return $this->entityManager->getRepository(Currency::class);
+    }
+
 
     private function getProductRepository(): ProductRepository
     {

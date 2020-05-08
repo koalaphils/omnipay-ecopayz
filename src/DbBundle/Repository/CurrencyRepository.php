@@ -118,4 +118,13 @@ class CurrencyRepository extends BaseRepository
 
         return $qb->getQuery()->getSingleResult($hydrationMode);
     }
+
+    public function findById($id, $hydrationMode = \Doctrine\ORM\Query::HYDRATE_OBJECT)
+    {
+        $qb = $this->createQueryBuilder('c');
+        $qb->select('PARTIAL c.{id, name, code, rate}');
+        $qb->where('c.id = :id')->setParameter('id', $id);
+
+        return $qb->getQuery()->getSingleResult($hydrationMode);
+    }
 }
