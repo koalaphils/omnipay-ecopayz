@@ -34,9 +34,11 @@ use OAuth2\OAuth2;
 use OAuth2\OAuth2AuthenticateException;
 use OAuth2\OAuth2ServerException;
 use PinnacleBundle\Service\PinnacleService;
+use React\Http\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use UserBundle\Manager\UserManager;
 use ProductIntegrationBundle\ProductIntegrationFactory;
@@ -167,6 +169,10 @@ class AuthHandler
         $user = $this->userRepository->loadUserByUsernameAndType($request->get('username'), User::USER_TYPE_MEMBER);
         if ($user === null) {
             throw new UsernameNotFoundException('Account does not exist.');
+        }
+
+        if (!$user->getIsActive()) {
+            throw new AuthenticationException('Account cannot be logged in. Please contact support.');
         }
 
         $response = $this->oauthService->grantAccessToken($request);
@@ -408,6 +414,10 @@ class AuthHandler
             if (is_null($user) || empty($user)) {
                 $user = $this->userRepository->findByEmail($forgotPasswordRequest->getEmail(), User::USER_TYPE_AFFILIATE);
             }
+        }
+
+        if (!$user->getIsActive()) {
+            throw new AuthenticationException('Forgot password request cannot be process. Please contact support.');
         }
 
         $user->setPassword($this->userManager->encodePassword($user, $forgotPasswordRequest->getPassword()));
