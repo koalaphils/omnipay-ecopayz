@@ -125,17 +125,6 @@ class CustomerProductController extends AbstractController
         if (is_null($customerProduct)) {
              throw new \Doctrine\ORM\NoResultException();
         } else if (!$customerProduct->getIsActive()) {
-            $manager = $this->getManager();
-            $customerProducts = $this->_getCustomerProductRepository()->getCustomerProducts($customerProduct->getCustomer()); 
-            if ($customerProduct->isSkypeBetting() && $manager->hasActiveSkypeBettingProduct($customerProducts)) {
-                $message = [
-                    'type' => 'error',
-                    'title'=> 'Cannot activate.',
-                    'message' => 'There should be only 1 active Skype Betting Product at a time.'
-                ];
-
-                return new JsonResponse([ '__notifications' =>  $message ], JsonResponse::HTTP_OK);
-            }
             $customerProduct->activate();
             $this->dispatchEvent(Events::EVENT_CUSTOMER_PRODUCT_ACTIVATED, new CustomerProductActivatedEvent($customerProduct));
             $this->_getCustomerProductRepository()->save($customerProduct);
