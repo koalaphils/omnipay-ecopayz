@@ -11,8 +11,10 @@
         }
     });
 
-    var triggerNotification = function(args, notificationType, alertType, playSoundAlert) {
-        playSoundAlert();
+    var triggerNotification = function(args, notificationType, alertType, playSoundAlert = playDefaultSoundAlert) {
+        console.log(args);
+        console.log(notificationType);
+        console.log(alertType);
         var details = args[0];
         var title = details.title;
         var message = details.message + ' Please proceed to pending tab to view.';
@@ -28,8 +30,10 @@
                 url = Global.dummyMemberRequestUrl.replace('/__id__', '/'+ details.otherDetails.id).replace('/__type__', '/'+ details.otherDetails.type);
             }
         } catch (e) {
+            console.log(e);
         }
 
+        playSoundAlert();
         prependToList(title, details.message, url);
         updateNotificationListCounter();
         notification(title, message, alertType, 'bottom right');
@@ -89,6 +93,16 @@
 
         session.subscribe('bo.event.kyc_file_uploaded', function(args) {
             triggerNotification(args, 'docs', 'success', playDefaultSoundAlert);
+        });
+
+        session.subscribe('bo.topic.admin_user_login', function(args){
+            console.log('bo.topic.admin_user_login');
+           triggerNotification(args, 'login', 'info', playDefaultSoundAlert);
+        });
+
+        session.subscribe('bo.event.admin_user_login', function(args){
+            console.log('bo.event.admin_user_login');
+           triggerNotification(args, 'login', 'info', playDefaultSoundAlert);
         });
 
         if (typeof btcExchangeRateSubscription === "function") {
