@@ -165,9 +165,13 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
             $username = $user->getUsername();
             $lastLoginIP = $user->getPreference('lastLoginIP');
 
-            $this->publisher->publish(Topics::TOPIC_ADMIN_USER_LOGIN, json_encode(['title' => 'User4 Logged in', 'message' => "${username} logged in on ${lastLoginIP}."]));
+            /*$this->publisher->publish(Topics::TOPIC_ADMIN_USER_LOGIN, json_encode(['title' => 'User4 Logged in', 'message' => "${username} logged in on ${lastLoginIP}."]));
 
-            $this->publisher->publish(MemberEvents::EVENT_ADMIN_USER_LOGIN, json_encode(['title' => 'User3 Logged in', 'message' => "${username} logged in on ${lastLoginIP}."]));
+            $this->publisher->publish(MemberEvents::EVENT_ADMIN_USER_LOGIN, json_encode(['title' => 'User3 Logged in', 'message' => "${username} logged in on ${lastLoginIP}."]));*/
+
+            $this->publisher->publishUsingWamp(Topics::TOPIC_ADMIN_USER_LOGIN, ['title' => 'User2 Logged in', 'message' => "${username} logged in on ${lastLoginIP}."]);
+
+            $this->publisher->publishUsingWamp(MemberEvents::EVENT_ADMIN_USER_LOGIN, ['title' => 'User1 Logged in', 'message' => "${username} logged in on ${lastLoginIP}."]);
         }
     }
 
