@@ -37,21 +37,11 @@ class LoginEventListener
         $this->getUserRepository()->save($userAdmin);
 
         $session = $this->container->get('session');
-        //save to sessions
         $sessionManager = $this->container->get('session.session_manager');
         $sessionToken = generate_code(16, false, 'luds');
         $session->set('session_token', $sessionToken);
 
-        $currentSessions = $user->getSessions();
         $dispatcher = $this->container->get('event_dispatcher');
-        $hadActiveSession = false;
-        foreach($currentSessions as $oldSession){
-            $hadActiveSession = true;
-            $sessionManager->remove($oldSession);
-        }
-        /*if($hadActiveSession){
-            $dispatcher->dispatch(MemberEvents::EVENT_ADMIN_EVICT_SESSION, new GenericEntityEvent($user));
-        }*/
 
         $sessionManager->create([
             'sessionId' => $session->getId(),

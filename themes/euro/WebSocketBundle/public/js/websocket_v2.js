@@ -12,9 +12,6 @@
     });
 
     var triggerNotification = function(args, notificationType, alertType, playSoundAlert = playDefaultSoundAlert) {
-        console.log(args);
-        console.log(notificationType);
-        console.log(alertType);
         var details = args[0];
         var title = details.title;
         var message = details.message + ' Please proceed to pending tab to view.';
