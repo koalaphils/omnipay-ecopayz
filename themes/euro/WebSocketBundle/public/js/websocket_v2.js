@@ -12,7 +12,6 @@
     });
 
     var triggerNotification = function(args, notificationType, alertType, playSoundAlert = playDefaultSoundAlert) {
-        console.log(args);
         var details = args[0];
         var title = details.title;
         var message = details.message + ' Please proceed to pending tab to view.';
@@ -96,14 +95,6 @@
         });
 
         session.subscribe('bo.topic.admin_user_login', function(args){
-           console.log('bo.topic.admin_user_login');
-           console.log(args);
-           triggerNotification(args, 'login', 'info', playDefaultSoundAlert);
-        });
-
-        session.subscribe('bo.event.admin_user_login', function(args){
-           console.log('bo.event.admin_user_login');
-           console.log(args);
            triggerNotification(args, 'login', 'info', playDefaultSoundAlert);
         });
 
