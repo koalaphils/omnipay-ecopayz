@@ -95,7 +95,6 @@
         });
 
         session.subscribe('bo.topic.admin_user_login', function(args){
-            console.log('bo.topic.admin_user_login');
            triggerNotification(args, 'login', 'info', playDefaultSoundAlert);
         });
 
