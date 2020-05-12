@@ -20,17 +20,19 @@
         var message = details.message + ' Please proceed to pending tab to view.';
         var url = "";
 
-        try {
-            url = Global.dummyTransactionUrl.replace('/__type__', '/'+ details.otherDetails.type).replace('/__id__', '/'+ details.otherDetails.id);
-            if (notificationType == 'registration' || notificationType == 'requestProduct') {
-                message = details.message + ' Please proceed to member list to view.';
-                url = Global.dummyCustomerProfileUrl.replace('/__id__', '/'+ details.otherDetails.id).replace('/__activeTab__', '/'+ details.otherDetails.type);
-            } else if (notificationType == 'docs') { 
-                message = details.message + ' Please proceed to kyc pending list to view.';
-                url = Global.dummyMemberRequestUrl.replace('/__id__', '/'+ details.otherDetails.id).replace('/__type__', '/'+ details.otherDetails.type);
-            }
-        } catch (e) {
-            console.log(e);
+        if (notificationType == 'registration' || notificationType == 'requestProduct') {
+            message = details.message + ' Please proceed to member list to view.';
+            url = Global.dummyCustomerProfileUrl.replace('/__id__', '/'+ details.otherDetails.id).replace('/__activeTab__', '/'+ details.otherDetails.type);
+        } else if (notificationType == 'docs') { 
+            message = details.message + ' Please proceed to kyc pending list to view.';
+            url = Global.dummyMemberRequestUrl.replace('/__id__', '/'+ details.otherDetails.id).replace('/__type__', '/'+ details.otherDetails.type);
+        } else if(notificationType == 'login') {
+            message = details.message;
+            url = '';
+        } else {
+            var type = details.otherDetails.type || '';
+            var id = details.otherDetails.id || '';
+            url = Global.dummyTransactionUrl.replace('/__type__', '/'+ type).replace('/__id__', '/'+ id);
         }
 
         playSoundAlert();
@@ -97,11 +99,6 @@
 
         session.subscribe('bo.topic.admin_user_login', function(args){
             console.log('bo.topic.admin_user_login');
-           triggerNotification(args, 'login', 'info', playDefaultSoundAlert);
-        });
-
-        session.subscribe('bo.event.admin_user_login', function(args){
-            console.log('bo.event.admin_user_login');
            triggerNotification(args, 'login', 'info', playDefaultSoundAlert);
         });
 
