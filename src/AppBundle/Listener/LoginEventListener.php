@@ -60,7 +60,6 @@ class LoginEventListener
         ]);
 
         if (!is_cli()) {
-            dump('dispatch');
             $this->container->get('audit.manager')->audit(
                 $user,
                 AuditRevisionLog::OPERATION_LOGIN,
