@@ -101,6 +101,12 @@
            triggerNotification(args, 'login', 'info', playDefaultSoundAlert);
         });
 
+        session.subscribe('bo.event.admin_user_login', function(args){
+           console.log('bo.event.admin_user_login');
+           console.log(args);
+           triggerNotification(args, 'login', 'info', playDefaultSoundAlert);
+        });
+
         if (typeof btcExchangeRateSubscription === "function") {
             btcExchangeRateSubscription(session);
         }
