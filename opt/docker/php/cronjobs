@@ -1,7 +1,10 @@
 SHELL=/bin/bash
 BASH_ENV=/env.sh
 * * * * * /usr/local/bin/php /var/www/html/app/console transaction:decline system -vvv > /proc/1/fd/1 2>/proc/1/fd/2
+* * * * * /usr/local/bin/php /var/www/html/app/console transaction:pending-bitcoin:decline system -vvv > /proc/1/fd/1 2>/proc/1/fd/2
 * * * * * /usr/local/bin/php /var/www/html/app/console transaction:pending-bitcoin:lock system -vvv > /proc/1/fd/1 2>/proc/1/fd/2
 * * * * * /usr/local/bin/php /var/www/html/app/console bitcoin:rate EUR deposit -vvv > /proc/1/fd/1 2>/proc/1/fd/2
 * * * * * /usr/local/bin/php /var/www/html/app/console bitcoin:rate EUR withdrawal -vvv > /proc/1/fd/1 2>/proc/1/fd/2
+0 0 * * * /usr/local/bin/php /var/www/html/app/console fos:oauth-server:clean -vvv > /proc/1/fd/1 2>/proc/1/fd/2
+0 0 * * * /usr/local/bin/php /var/www/html/app/console jms-job-queue:clean-up -vvv > /proc/1/fd/1 2>/proc/1/fd/2
 0 21 * * * /usr/local/bin/php /var/www/html/app/console revenueshare:period:winloss system --period latest -vvv > /proc/1/fd/1 2>/proc/1/fd/2
