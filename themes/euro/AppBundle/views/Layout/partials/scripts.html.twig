@@ -253,11 +253,15 @@
                     title = 'PRODUCT REQUEST';
                     message = 'Product ' + details.product.name + ' has been added. (' + details.customer.fullName + ')';
                 } else if (data.list[i].notificationType == 'docs') {
-                    url = Global.dummyMemberRequestUrl;
+                    url = Global.dummyMemberRequestUrl.replace('/__id__', '/'+ data.list[i].id).replace('/__type__', '/'+ data.list[i].type);
                     title = "KYC REQUEST";
-                    message = data.list[i].message;
+                    message = 'KYC ' + data.list[i].details.sub_requests.length + ' file(s) uploaded. (' + data.list[i].fullName + ')';
                 } else if (data.list[i].notificationType == 'member_request') {
                     url = data.list[i].details.member_request_route;
+                    title = data.list[i].title;
+                    message = data.list[i].message;
+                } else if (data.list[i].notificationType == 'login'){
+                    url = 'javascript::void(0);';
                     title = data.list[i].title;
                     message = data.list[i].message;
                 }

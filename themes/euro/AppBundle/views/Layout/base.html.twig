@@ -567,6 +567,10 @@
                         url = Global.dummyCustomerProfileUrl.replace('/__id__', '/'+ details.customer.id).replace('/__activeTab__', '/product');
                         title = 'PRODUCT REQUEST';
                         message = 'Product ' + details.product.name + ' has been added. (' + details.customer.fullName + ')';
+                    } else if (data.list[i].notificationType == 'login'){
+                        url = 'javascript::void(0);';
+                        title = data.list[i].title;
+                        message = data.list[i].message;
                     }
 
                     var htmlContent = '<a href="'+ url +'" class="date-created list-group-item '+ notifStatus +'" data-date="'+ creationDate +'">'
