@@ -132,7 +132,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                 }
             }
             
-            if ($transaction->isDeposit() || $transaction->isBonus() || $transaction->isWithdrawal()) {
+            if ($transaction->isDeposit() || $transaction->isBonus() || $transaction->isWithdrawal() || $transaction->isTransfer()) {
                 $this->gatewayMemberTransaction->processMemberTransaction($transaction);
             } 
         }
@@ -145,7 +145,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                 $customerProductUsername = $subTransaction->getCustomerProduct()->getUsername();
 
                 // If the transition is from Acknowledged to Declined
-                if ($subTransaction->isDeposit() && $transitionName == Transaction::TRANSACTION_STATUS_ACKNOWLEDGE . '_' . Transaction::TRANSACTION_STATUS_DECLINE) {
+                if ($subTransaction->isDeposit() && $transitionName == Transaction::TRANSACTION_STATUS_ACKNOWLEDGE . '_' . Transaction::TRANSACTION_STATUS_DECLINE && !$transaction->isTransfer()) {
                     $this->debit(Product::MEMBER_WALLET_CODE, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                 }
 
