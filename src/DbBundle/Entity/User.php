@@ -106,6 +106,7 @@ class User extends Entity implements ActionInterface, TimestampInterface, Advanc
     private $auditRevision;
     private $restoreId;
     private $signupType;
+    private $sessions;
 
     public function __construct()
     {
@@ -596,6 +597,11 @@ class User extends Entity implements ActionInterface, TimestampInterface, Advanc
     public static function getResetPasswordCodeSalt(): string
     {
         return self::SALT_RESET_PASSWORD_CODE;
+    }
+
+    public function getSessions()
+    {
+        return $this->sessions;
     }
 
     /**

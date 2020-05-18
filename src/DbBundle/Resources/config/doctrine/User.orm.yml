@@ -144,4 +144,7 @@ DbBundle\Entity\User:
             targetEntity: DbBundle\Entity\AuditRevision
             mappedBy: user
             cascade: [ persist ]
+        sessions:
+            targetEntity: DbBundle\Entity\Session
+            mappedBy: user
     lifecycleCallbacks: {  }

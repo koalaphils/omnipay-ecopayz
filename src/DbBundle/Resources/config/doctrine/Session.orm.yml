@@ -34,6 +34,7 @@ DbBundle\Entity\Session:
     manyToOne:
         user:
             targetEntity: DbBundle\Entity\User
+            inversedBy: sessions
             joinColumn:
                 name: session_user_id
                 referencedColumnName: user_id
