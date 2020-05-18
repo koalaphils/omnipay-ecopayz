@@ -58,7 +58,6 @@
             products.clear();
 
             products.setProducts(data);
-            console.log(data);
             {% for child in form.subTransactions.children -%}
                 {%- if child.vars.data.type == 1 -%}
                     products.add({
@@ -75,7 +74,6 @@
                         'bitcoinRequestedAmount' : {% if child.vars.data.details.bitcoin.requested_btc is defined -%} {{ child.vars.data.details.bitcoin.requested_btc | round_format(8, '.', ',', constant('AppBundle\\ValueObject\\Number::ROUND_DOWN')) }} {%- else -%} 0 {% endif -%},
                         'hasBalanceAdjusted': '{{ child.vars.data.hasBalanceAdjusted() }}'
                     });
-                    console.log(products);
                 {%- elseif child.vars.data.type == 2 -%}
                     products.add({
                         'type': '{{ child.vars.data.type }}',
@@ -90,10 +88,8 @@
                         'bitcoinRequestedAmount' : {% if child.vars.data.details.bitcoin.requested_btc is defined -%} {{ child.vars.data.details.bitcoin.requested_btc | round_format(8, '.', ',', constant('AppBundle\\ValueObject\\Number::ROUND_DOWN')) }} {%- else -%} 0 {% endif -%},
                         'hasBalanceAdjusted': '{{ child.vars.data.hasBalanceAdjusted() }}'
                     });
-                    console.log(products);
                 {%- endif -%}
             {% else %}
-            console.log(products);
             products.add({
                 'type': 2,
                 'customerProduct': null,
