@@ -63,7 +63,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         $customerPiwiWalletProduct = $this->getCustomerPiwiWalletProduct($transaction->getCustomer());
 
         // Acknowledged
-        if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE) {
+        /*if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE) {
             foreach ($subTransactions as $subTransaction) {
                 $amount = $subTransaction->getAmount();
                 $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode());
@@ -101,10 +101,39 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                     }
                 }
             }
+        }*/
+
+        // Acknowledged
+        if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE) {
+            foreach ($subTransactions as $subTransaction) {
+                $amount = $subTransaction->getAmount();
+                $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode());
+                $customerProductUsername = $subTransaction->getCustomerProduct()->getUsername();
+
+                if ($subTransaction->isDeposit()) {
+                    if ($transaction->isTransfer() && $transaction->isTransferDestinationPiwiWalletProduct()){
+                        $subTransaction->setHasBalanceAdjusted(true);
+                    }
+                }
+
+                if ($subTransaction->isWithdrawal()) {
+                    try { dump($transaction->isTransferSourcePiwiWalletProduct());
+                        if(!($transaction->isTransferSourcePiwiWalletProduct() || $subTransaction->isPiwiWalletMemberProduct())){
+                            $newBalance = $this->debit($productCode, $customerProductUsername, $amount, $jwt);
+                            $subTransaction->getCustomerProduct()->setBalance($newBalance);
+                            $subTransaction->setHasBalanceAdjusted(true);
+                            $this->credit(Product::MEMBER_WALLET_CODE, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                        }
+                    } catch (IntegrationNotAvailableException $ex) {
+                        $subTransaction->setFailedProcessingWithIntegration(true);
+                        throw $ex;
+                    }
+                }
+            }
         }
 
         // Processed
-        if (($transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) && ($event->getTransition()->getName() !== 'void')) {
+        /*if (($transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) && ($event->getTransition()->getName() !== 'void')) {
             foreach ($subTransactions as $subTransaction) {
                 $amount = $subTransaction->getAmount();
                 $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode());
@@ -130,6 +159,47 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                 if ($subTransaction->isWithdrawal()) {
                     try {
                         if(!($transaction->isTransferDestinationPiwiWalletProduct() || $transaction->isTransferSourcePiwiWalletProduct()) || $transaction->isTransfer()){
+                            $this->debit(Product::MEMBER_WALLET_CODE, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                        }
+                    } catch (IntegrationNotAvailableException $ex) {
+                        $subTransaction->setFailedProcessingWithIntegration(true);
+                    }
+                }
+            }
+            
+            if ($transaction->isDeposit() || $transaction->isBonus() || $transaction->isWithdrawal()) {
+                $this->gatewayMemberTransaction->processMemberTransaction($transaction);
+            } 
+        }*/
+        if (($transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) && ($event->getTransition()->getName() !== 'void')) {
+            foreach ($subTransactions as $subTransaction) {
+                $amount = $subTransaction->getAmount();
+                $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode());
+                $customerProductUsername = $subTransaction->getCustomerProduct()->getUsername();
+    
+                if ($subTransaction->isDeposit()) {
+                    try {
+                        if(!$transaction->isTransferDestinationPiwiWalletProduct()){
+                            $newBalance = $this->credit($productCode, $customerProductUsername, $amount, $jwt);
+                            $subTransaction->getCustomerProduct()->setBalance($newBalance);
+                            $subTransaction->setHasBalanceAdjusted(true);
+                            /*if (!$transaction->isTransfer()) {
+                                $this->debit(Product::MEMBER_WALLET_CODE, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                            }*/
+                        } else {
+                            $this->credit(Product::MEMBER_WALLET_CODE, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                        }
+                    } catch (IntegrationNotAvailableException $ex) {
+                        if(!$transaction->isTransferDestinationPiwiWalletProduct()){
+                            $this->credit(Product::MEMBER_WALLET_CODE, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                        }
+                        $subTransaction->setFailedProcessingWithIntegration(true);
+                    }
+                }
+
+                if ($subTransaction->isWithdrawal()) {
+                    try {
+                        if(!($transaction->isTransferDestinationPiwiWalletProduct() || $transaction->isTransferSourcePiwiWalletProduct())){
                             $this->debit(Product::MEMBER_WALLET_CODE, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         }
                     } catch (IntegrationNotAvailableException $ex) {
