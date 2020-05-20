@@ -63,47 +63,6 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         $customerPiwiWalletProduct = $this->getCustomerPiwiWalletProduct($transaction->getCustomer());
 
         // Acknowledged
-        /*if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE) {
-            foreach ($subTransactions as $subTransaction) {
-                $amount = $subTransaction->getAmount();
-                $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode());
-                $customerProductUsername = $subTransaction->getCustomerProduct()->getUsername();
-    
-                if ($subTransaction->isDeposit()) {
-                    try {
-                        if(!($transaction->isTransferSourcePiwiWalletProduct() || $transaction->isTransferDestinationPiwiWalletProduct()) && !$transaction->isTransfer()){
-                            $this->credit(Product::MEMBER_WALLET_CODE, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
-                            if ($subTransaction->isPiwiWalletMemberProduct()) {
-                                $subTransaction->setHasBalanceAdjusted(true);
-                            }
-                        } else {
-                            if ($transaction->isTransfer() && $transaction->isTransferDestinationPiwiWalletProduct()){
-                                $subTransaction->setHasBalanceAdjusted(true);
-                            }
-                        }
-                    } catch (IntegrationNotAvailableException $ex) {
-                        $this->credit(Product::MEMBER_WALLET_CODE,  $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
-                        $subTransaction->setFailedProcessingWithIntegration(true);
-                    }
-                }
-
-                if ($subTransaction->isWithdrawal()) {
-                    try {
-                        if(!$transaction->isTransferSourcePiwiWalletProduct()){
-                            $newBalance = $this->debit($productCode, $customerProductUsername, $amount, $jwt);
-                            $subTransaction->getCustomerProduct()->setBalance($newBalance);
-                            $subTransaction->setHasBalanceAdjusted(true);
-                            $this->credit(Product::MEMBER_WALLET_CODE, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
-                        }
-                    } catch (IntegrationNotAvailableException $ex) {
-                        $subTransaction->setFailedProcessingWithIntegration(true);
-                        throw $ex;
-                    }
-                }
-            }
-        }*/
-
-        // Acknowledged
         if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE) {
             foreach ($subTransactions as $subTransaction) {
                 $amount = $subTransaction->getAmount();
@@ -117,7 +76,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                 }
 
                 if ($subTransaction->isWithdrawal()) {
-                    try { dump($transaction->isTransferSourcePiwiWalletProduct());
+                    try {
                         if(!($transaction->isTransferSourcePiwiWalletProduct() || $subTransaction->isPiwiWalletMemberProduct())){
                             $newBalance = $this->debit($productCode, $customerProductUsername, $amount, $jwt);
                             $subTransaction->getCustomerProduct()->setBalance($newBalance);
@@ -132,45 +91,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
             }
         }
 
-        // Processed
-        /*if (($transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) && ($event->getTransition()->getName() !== 'void')) {
-            foreach ($subTransactions as $subTransaction) {
-                $amount = $subTransaction->getAmount();
-                $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode());
-                $customerProductUsername = $subTransaction->getCustomerProduct()->getUsername();
-    
-                if ($subTransaction->isDeposit()) {
-                    try {
-                        if(!$transaction->isTransferDestinationPiwiWalletProduct()){
-                            $newBalance = $this->credit($productCode, $customerProductUsername, $amount, $jwt);
-                            $subTransaction->getCustomerProduct()->setBalance($newBalance);
-                            $subTransaction->setHasBalanceAdjusted(true);
-                            if (!$transaction->isTransfer()) {
-                                $this->debit(Product::MEMBER_WALLET_CODE, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
-                            }
-                        } else {
-                            $this->credit(Product::MEMBER_WALLET_CODE, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
-                        }
-                    } catch (IntegrationNotAvailableException $ex) {
-                        $subTransaction->setFailedProcessingWithIntegration(true);
-                    }
-                }
-
-                if ($subTransaction->isWithdrawal()) {
-                    try {
-                        if(!($transaction->isTransferDestinationPiwiWalletProduct() || $transaction->isTransferSourcePiwiWalletProduct()) || $transaction->isTransfer()){
-                            $this->debit(Product::MEMBER_WALLET_CODE, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
-                        }
-                    } catch (IntegrationNotAvailableException $ex) {
-                        $subTransaction->setFailedProcessingWithIntegration(true);
-                    }
-                }
-            }
-            
-            if ($transaction->isDeposit() || $transaction->isBonus() || $transaction->isWithdrawal()) {
-                $this->gatewayMemberTransaction->processMemberTransaction($transaction);
-            } 
-        }*/
+        //Processed
         if (($transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) && ($event->getTransition()->getName() !== 'void')) {
             foreach ($subTransactions as $subTransaction) {
                 $amount = $subTransaction->getAmount();
@@ -183,9 +104,9 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                             $newBalance = $this->credit($productCode, $customerProductUsername, $amount, $jwt);
                             $subTransaction->getCustomerProduct()->setBalance($newBalance);
                             $subTransaction->setHasBalanceAdjusted(true);
-                            /*if (!$transaction->isTransfer()) {
+                            if ($transaction->isTransfer()) {
                                 $this->debit(Product::MEMBER_WALLET_CODE, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
-                            }*/
+                            }
                         } else {
                             $this->credit(Product::MEMBER_WALLET_CODE, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         }
@@ -220,11 +141,6 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                 $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode());
                 $customerProductUsername = $subTransaction->getCustomerProduct()->getUsername();
 
-                // If the transition is from Acknowledged to Declined
-                if ($subTransaction->isDeposit() && $transitionName == Transaction::TRANSACTION_STATUS_ACKNOWLEDGE . '_' . Transaction::TRANSACTION_STATUS_DECLINE && !$transaction->isTransfer()) {
-                    $this->debit(Product::MEMBER_WALLET_CODE, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
-                }
-
                  // If the transition is from Acknowledged to Declined
                 if ($subTransaction->isWithdrawal() && $transitionName == Transaction::TRANSACTION_STATUS_ACKNOWLEDGE . '_' . Transaction::TRANSACTION_STATUS_DECLINE) {
                     $newBalance = $this->credit($productCode, $customerProductUsername, $amount, $jwt);
@@ -238,6 +154,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
             } 
         }
 
+        //void
         if ($event->getTransition()->getName() === 'void') {
             foreach ($subTransactions as $subTransaction) {
                 $amount = $subTransaction->getAmount();
