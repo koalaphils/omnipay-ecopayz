@@ -17,6 +17,8 @@ use MemberBundle\Event\ReferralEvent;
 use MemberBundle\Event\VerifyEvent;
 use WebSocketBundle\Topics;
 use MemberRequestBundle\WebsocketTopics;
+use AppBundle\Event\GenericEntityEvent;
+use DbBundle\Entity\User;
 
 class CustomerSubscriberForWebsocket implements EventSubscriberInterface
 {
@@ -38,6 +40,7 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
             MemberEvents::EVENT_MEMBER_PRODUCT_REQUESTED => ['onMemberProductRequested', 300],
             MemberEvents::EVENT_MEMBER_KYC_FILE_UPLOADED => ['onMemberKycFileUploaded', 300],
             MemberEvents::MEMBER_VERIFICATION => ['onMemberVerification', 300],
+            MemberEvents::EVENT_ADMIN_USER_LOGIN => ['onAdminUserLogin', 300],
         ];
     }
 
@@ -153,6 +156,16 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
             $payload['message'] = sprintf('Product %s has been added.', $memberProduct) . ' (' . $member->getFullName() . ')';
             $payload['otherDetails'] = ['type' => 'product', 'id' => $member->getId()];
             $this->publisher->publish(Topics::TOPIC_MEMBER_PRODUCT_REQUESTED, json_encode($payload));
+        }
+    }
+
+    public function onAdminUserLogin(GenericEntityEvent $event){
+        $user = $event->getEntity();
+        if($user instanceof User){
+            $username = $user->getUsername();
+            $lastLoginIP = $user->getPreference('lastLoginIP');
+
+            $this->publisher->publishUsingWamp(Topics::TOPIC_ADMIN_USER_LOGIN, ['title' => 'User Logged in', 'message' => "${username} logged in on ${lastLoginIP}."]);
         }
     }
 
