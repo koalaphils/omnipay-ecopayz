@@ -229,7 +229,7 @@ DbBundle\Entity\Transaction:
             mappedBy: parent
             cascade: ['persist']
             orderBy:
-                type: DESC
+                type: ASC
     lifecycleCallbacks:
         prePersist: [onFinish]
         preUpdate: [onFinish]
