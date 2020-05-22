@@ -70,7 +70,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                 $customerProductUsername = $subTransaction->getCustomerProduct()->getUsername();
 
                 if ($subTransaction->isDeposit()) {
-                    if ($transaction->isTransfer() && $transaction->isTransferDestinationPiwiWalletProduct()){
+                    if ($transaction->isTransferDestinationPiwiWalletProduct()){
                         $subTransaction->setHasBalanceAdjusted(true);
                     }
                 }
