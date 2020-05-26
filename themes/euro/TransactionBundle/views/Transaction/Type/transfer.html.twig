@@ -58,7 +58,6 @@
             products.clear();
 
             products.setProducts(data);
-
             {% for child in form.subTransactions.children -%}
                 {%- if child.vars.data.type == 1 -%}
                     products.add({
@@ -70,7 +69,10 @@
                         'enabled': false,
                         'renderTo': '.to-product-list',
                         'hasFailedWithIntegration': '{{ child.vars.data.getFailedProcessingWithIntegration() }}',
-                        'errors': {{ form_errors(child) }}
+                        'errors': {{ form_errors(child) }},
+                        'hasFee': {{ (child.vars.data.details.hasFee|default(false)) ? "true" : "false" }},
+                        'bitcoinRequestedAmount' : {% if child.vars.data.details.bitcoin.requested_btc is defined -%} {{ child.vars.data.details.bitcoin.requested_btc | round_format(8, '.', ',', constant('AppBundle\\ValueObject\\Number::ROUND_DOWN')) }} {%- else -%} 0 {% endif -%},
+                        'hasBalanceAdjusted': '{{ child.vars.data.hasBalanceAdjusted() }}'
                     });
                 {%- elseif child.vars.data.type == 2 -%}
                     products.add({
@@ -81,7 +83,10 @@
                         'amount': '{{ child.vars.data.amount }}',
                         'enabled': false,
                         'renderTo': '.from-product-list',
-                        'errors': {{ form_errors(child) }}
+                        'errors': {{ form_errors(child) }},
+                        'hasFee': {{ (child.vars.data.details.hasFee|default(false)) ? "true" : "false" }},
+                        'bitcoinRequestedAmount' : {% if child.vars.data.details.bitcoin.requested_btc is defined -%} {{ child.vars.data.details.bitcoin.requested_btc | round_format(8, '.', ',', constant('AppBundle\\ValueObject\\Number::ROUND_DOWN')) }} {%- else -%} 0 {% endif -%},
+                        'hasBalanceAdjusted': '{{ child.vars.data.hasBalanceAdjusted() }}'
                     });
                 {%- endif -%}
             {% else %}
