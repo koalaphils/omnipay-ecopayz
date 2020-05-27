@@ -10,13 +10,16 @@ use ProductIntegrationBundle\Exception\IntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
 use Http\Client\Exception\NetworkException;
 use ProductIntegrationBundle\Exception\NoPinnacleProductException;
+use ProductIntegrationBundle\Persistence\HttpPersistence;
 
 class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayerInterface
 {
     private $pinnacleService;
+    private $http;
 
-    public function __construct(PinnacleService $pinnacleService)
+    public function __construct(HttpPersistence $http, PinnacleService $pinnacleService)
     {
+        $this->http = $http;
         $this->pinnacleService = $pinnacleService;
     }
 
@@ -91,5 +94,10 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
         } catch (NetworkException $exception) {
             throw new IntegrationNotAvailableException($exception->getMessage(), 422);
         }
+    }
+
+    public function configure(string $token, array $body): void
+    {
+        $this->http->post('/configure/hot-events', $token, $body);
     }
 }

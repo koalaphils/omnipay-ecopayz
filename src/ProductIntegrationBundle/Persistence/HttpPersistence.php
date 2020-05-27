@@ -10,23 +10,21 @@ use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
 
 class HttpPersistence
 {
-    private $url;
+    private $baseUrl;
     private $client;
 
     public function __construct(string $url) 
     {
-        $this->url = $url;
-        $this->client = new Client([
-            'base_uri' => $this->url,
-        ]);
+        $this->baseUrl = $url;
+        $this->client = new Client([]);
     }
 
     public function get(string $url, string $token) 
     {
         try {
-            return $this->client->get($url, [
+            return $this->client->get($this->baseUrl . $url, [
                 'headers' => [
-                    'Authorization' => 'Bearer ' , $token,
+                    'Authorization' => 'Bearer ' . $token,
                 ]
             ]);
         } catch (ClientException $e) {
@@ -39,10 +37,10 @@ class HttpPersistence
     public function post(string $url, string $token, $body = [])
     {
         try {
-            return $this->client->post($url, [
+            return $this->client->post($this->baseUrl . $url, [
                 'json' => $body,
                 'headers' => [
-                    'Authorization' => 'Bearer ' , $token,
+                    'Authorization' => 'Bearer ' . $token,
                 ]
             ]);
         } catch (ClientException $e) {

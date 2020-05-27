@@ -49,19 +49,18 @@ class ProductIntegrationExtension extends Extension
     {
         $arguments = [];
 
-        if (isset($integration['url'])) { 
-            $httpPersistenceDefinition = new Definition(HttpPersistence::class);
-            $httpPersistenceDefinition->setArguments([$integration['url']]);
-
-            $serviceId = uniqid() . '_http';
-
-            $container->setDefinition($serviceId, $httpPersistenceDefinition);
-            $arguments[] = new Reference($serviceId);
-        } else {
-            $reflector = new \ReflectionClass($integration['class']);
-            $reflectParams = $reflector->getConstructor()->getParameters();
-            foreach ($reflectParams as $param) {
-                $namedType = $param->getType();
+        $reflector = new \ReflectionClass($integration['class']);
+        $reflectParams = $reflector->getConstructor()->getParameters();
+        foreach ($reflectParams as $param) {
+            $namedType = $param->getType();
+            if (strcmp(HttpPersistence::class, $namedType->getName()) === 0 && isset($integration['url'])) {
+                $httpPersistenceDefinition = new Definition(HttpPersistence::class);
+                $httpPersistenceDefinition->setArguments([$integration['url']]);
+                $serviceId = uniqid() . '_http';
+                $container->setDefinition($serviceId, $httpPersistenceDefinition);
+                $arguments[] = new Reference($serviceId);
+            } else {
+                
                 $arguments[] = new Reference($namedType->getName());
             }
         }
