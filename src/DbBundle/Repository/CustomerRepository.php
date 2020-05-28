@@ -708,6 +708,11 @@ class CustomerRepository extends BaseRepository
             ->setParameter('search', '%' . array_get($filters, 'search') . '%');
         }
 
+        if (array_has($filters, 'memberProductIds') && array_get($filters, 'memberProductIds')) {
+            $queryBuilder->andWhere($queryBuilder->expr()->in('mp.id', ':memberProductIds'))
+                ->setParameter('memberProductIds', array_get($filters, 'memberProductIds'));
+        }
+
         return $queryBuilder;
     }
 }
