@@ -180,7 +180,8 @@ ENV TIMEZONE=Etc/GMT+4 \
     AWS_S3_VERSION= \
     AWS_BUCKET= \
     EVOLUTION_SERVICE_URL= \
-    PINNACLE_SERVICE_URL=
+    PINNACLE_SERVICE_URL= \
+    SESSION_EXPIRATION_TIME=
 
 WORKDIR /var/www/html
 RUN sed -i "s/;emergency_restart_threshold\s*=\s*.*/emergency_restart_threshold = 10/g" /usr/local/etc/php-fpm.conf \
