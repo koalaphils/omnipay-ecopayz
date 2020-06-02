@@ -368,8 +368,8 @@ class MemberManager extends AbstractManager
             'filters' => $filters,
             'records' => [],
             'allRecords' => [],
-            'recordsFiltered' => $memberRepository->getReferralProductListFilterCountByReferrer($filters, $referrerId),
-            'recordsTotal' => $memberRepository->getReferralProductListTotalCountByReferrer($filters, $referrerId),
+            'recordsFiltered' => 0,
+            'recordsTotal' => 0,
         ];
 
         $orders = [
@@ -386,6 +386,7 @@ class MemberManager extends AbstractManager
             
             $products = [];
             $allProducts = array_column($membersAndProducts, 'productId');
+
             foreach ($allProducts as $product) {
                 $products[$product]['id'] = $product;
                 $products[$product]['schemas'] = $this->getMemberRevenueShareRepository()->findSchemeByRange($referrerId, $product, $filters);
@@ -465,21 +466,25 @@ class MemberManager extends AbstractManager
                 $memberRecord['totalRevenueShare'] = $this->formatCommissionAmount($totalRevenueShare);
                 $result['allRecords'][] = $memberRecord;
 
-                // Filter hideZeroTurnover
-                if (!(array_get($filters, 'hideZeroTurnover') && ($totalTurnover == 0))) {
-                    // Display Data
+                $hideZeroTurnover = array_get($filters, 'hideZeroTurnover');
+                if (($hideZeroTurnover && ($totalTurnover > 0)) || !$hideZeroTurnover) {
                     if (($offset < $recordCount) && ($displayCount < $filters['limit'])) {
                         $displayCount += 1;
                         $result['records'][] = $memberRecord;
                     }
+
+                    if ($hideZeroTurnover) {
+                        $filters['memberProductIds'][] = (int) $row['memberProductId'];
+                    }
                 }
             }
+            $result['recordsFiltered'] = $memberRepository->getReferralProductListFilterCountByReferrer($filters, $referrerId);
+            $result['recordsTotal'] = $memberRepository->getReferralProductListTotalCountByReferrer($filters, $referrerId);
         }
 
         $currencyPerRecord = array_column($result['allRecords'], 'currencyCode');
         $currencies = array_unique($currencyPerRecord);
-        $currenciesRecords = $this->getCurrenciesRecords($currencies, $currencyPerRecord, $result);      
-
+        $currenciesRecords = $this->getCurrenciesRecords($currencies, $currencyPerRecord, $result);
         $result['totals'] = $currenciesRecords;
         $result['period'] = [
             'dwlDateFrom' => $filters['dwlDateFrom'],
