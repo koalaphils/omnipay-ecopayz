@@ -6,3 +6,5 @@ snc_redis:
       dsn: 'redis://%redis.host%:%redis.port%/%redis.database_id%'
   session:
     client: default
+    locking: false
+    ttl: '%session.expiration_time%'

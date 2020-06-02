@@ -26,7 +26,7 @@ parameters:
     php_command: php
 
     #session expiration time
-    session.expiration_time: 3600
+    session.expiration_time: ${SESSION_EXPIRATION_TIME}
 
     theme: euro
     upload_dwl_filename: upload_dwl.log
