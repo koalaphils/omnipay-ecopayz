@@ -101,7 +101,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                 if ($subTransaction->isDeposit()) {
                     try {
                         if(!$transaction->isTransferDestinationPiwiWalletProduct()){
-                            if (!$transaction->isDeposit()){
+                            if (!$transaction->isDeposit() && !$transaction->isBonus()){
                                 $this->debit(Product::MEMBER_WALLET_CODE, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                             }
                             $newBalance = $this->credit($productCode, $customerProductUsername, $amount, $jwt);
