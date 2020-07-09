@@ -189,7 +189,7 @@ widgets:
                     group: marketRight
                 riskSetting:
                     options:
-                        label: RiskSetting
+                        label: Risk Setting
                         required: false
                     type: dropdown
                     size: 12
@@ -223,6 +223,13 @@ widgets:
                         function: '@user.manager::getUserTypes'
                         label: result['name']
                         value: result['id']
+                phoneNumber:
+                    options:
+                        label: Phone Number
+                        required: true
+                    type: text
+                    size: 12
+                    group: Left
 
     passwordForm:
         type: AppBundle\Widget\Page\FormWidget

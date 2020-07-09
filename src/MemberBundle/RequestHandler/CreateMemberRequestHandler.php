@@ -82,6 +82,7 @@ class CreateMemberRequestHandler
         $user->setActivationSentTimestamp(new \DateTime('now'));
         $user->setActivationTimestamp(new \DateTime('now'));
         $user->setRoles(['ROLE_MEMBER' => 2]);
+        $user->setPhoneNumber($request->getPhoneNumber());
 
         $member = new Customer();
         $member->setFullName($request->getFullName());
