@@ -19,13 +19,9 @@ ApiBundle\Request\RegisterRequest:
           expression: " e.email = :value0 "
           requiredKey: [email]
           groups: [Email]
-      - Blank:
-          groups: [Phone]
     phoneNumber:
       - NotBlank:
           groups: [Phone]
-      - Blank:
-          groups: [Email]
     phoneWithCountryCode:
       - NotBlank:
           groups: [Phone]
