@@ -224,6 +224,7 @@ class RegisterHandler
             $user->setSignupType(User::SIGNUP_TYPE_EMAIL);
             $user->setEmail($registerRequest->getEmail());
             $user->setUsername($registerRequest->getEmail());
+            $user->setPhoneNumber($registerRequest->getCountryPhoneCode() . $registerRequest->getPhoneNumber());
         }
         $user->setType(User::USER_TYPE_MEMBER);
         $user->setRoles(['ROLE_MEMBER' => 2]);

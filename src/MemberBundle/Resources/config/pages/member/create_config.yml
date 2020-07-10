@@ -58,7 +58,7 @@ widgets:
                     type: text
                     options:
                         label: Phone Number
-                        required: false
+                        required: true
                     size: 12
                     group: Left
                 password:

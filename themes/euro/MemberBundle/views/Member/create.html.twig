@@ -47,8 +47,6 @@
         function useEmail() {
             $('label[for="{{ widgets.createForm.getFormView().email.vars.id }}"]').prepend('<span class="text text-danger">* </span>');
             $('#{{ widgets.createForm.getFormView().email.vars.id }}').attr('required', true);
-            $('label[for="{{ widgets.createForm.getFormView().phoneNumber.vars.id }}"] span').remove();
-            $('#{{ widgets.createForm.getFormView().phoneNumber.vars.id }}').attr('required', false);
             $('label[for="{{ widgets.createForm.getFormView().country.vars.id }}"] span').remove();
             $('#{{ widgets.createForm.getFormView().country.vars.id }}').attr('required', false);
         }
@@ -56,8 +54,6 @@
         function usePhoneNumber() {
             $('label[for="{{ widgets.createForm.getFormView().email.vars.id }}"] span').remove();
             $('#{{ widgets.createForm.getFormView().email.vars.id }}').attr('required', false);
-            $('label[for="{{ widgets.createForm.getFormView().phoneNumber.vars.id }}"]').prepend('<span class="text text-danger">* </span>')
-            $('#{{ widgets.createForm.getFormView().phoneNumber.vars.id }}').attr('required', true);
             $('label[for="{{ widgets.createForm.getFormView().country.vars.id }}"]').prepend('<span class="text text-danger">* </span>')
             $('#{{ widgets.createForm.getFormView().country.vars.id }}').attr('required', true);
         }

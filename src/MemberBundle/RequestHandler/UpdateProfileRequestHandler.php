@@ -54,6 +54,7 @@ class UpdateProfileRequestHandler
 
         $customer->getUser()->setUsername($request->getUsername());
         $customer->getUser()->setEmail($request->getEmail());
+        $customer->getUser()->setPhoneNumber($request->getPhoneNumber());
         $customer->getUser()->setIsActive(empty($request->getStatus()) ? false : true);
 
         $customer->setFullName($request->getFullName());

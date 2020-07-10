@@ -29,6 +29,7 @@ class UpdateProfileRequest
     private $clientIp;
 
     private $locale;
+    private $phoneNumber;
 
     private function __construct() {
         $this->groups = [];
@@ -46,6 +47,8 @@ class UpdateProfileRequest
         $request->birthDate = $customer->getBirthDate();
         $request->gender = $customer->getGender();
         $request->userType = $customer->getUser()->getType();
+        $request->phoneNumber = $customer->getUser()->getPhoneNumber();
+
 
         if ($customer->getCountry() !== null) {
             $request->country = $customer->getCountry()->getId();
@@ -96,6 +99,16 @@ class UpdateProfileRequest
     public function setUsername(string $username): void
     {
         $this->username = $username;
+    }
+
+    public function getPhoneNumber(): ?string
+    {
+        return $this->phoneNumber;
+    }
+
+    public function setPhoneNumber(string $phoneNumber): void
+    {
+        $this->phoneNumber = $phoneNumber;
     }
 
     public function getEmail(): ?string
