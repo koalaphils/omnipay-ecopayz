@@ -56,7 +56,7 @@ abstract class AbstractCommand extends ContainerAwareCommand
     protected function loginApiGateway(){
         $curl = curl_init();
         curl_setopt_array($curl, array(
-          CURLOPT_URL => "http://api-gateway/api/v1/auth/login",
+          CURLOPT_URL => $this->getContainer()->getParameter('api_gateway_url')."/auth/login",
           CURLOPT_RETURNTRANSFER => true,
           CURLOPT_TIMEOUT => 30,
           CURLOPT_CUSTOMREQUEST => "POST",
@@ -80,7 +80,7 @@ abstract class AbstractCommand extends ContainerAwareCommand
     protected function updatePeriod(string $period, string $token, string $type){
         $curl = curl_init();
         curl_setopt_array($curl, array(
-          CURLOPT_URL => "http://api-gateway/api/v1/revenue-share/periods/".$period."/".$type,
+          CURLOPT_URL => $this->getContainer()->getParameter('api_gateway_url')."/revenue-share/periods/".$period."/".$type,
           CURLOPT_RETURNTRANSFER => true,
           CURLOPT_TIMEOUT => 30,
           CURLOPT_CUSTOMREQUEST => "POST",
