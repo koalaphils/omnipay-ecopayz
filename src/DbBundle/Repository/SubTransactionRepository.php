@@ -254,7 +254,7 @@ class SubTransactionRepository extends BaseRepository
         return $queryBuilder->getQuery()->iterate();
     }
 
-    public function getBonusByMember(array $filters, array $orders, int $memberId): ?array
+    public function getBonusByMember(array $filters, array $orders, int $memberId, int $memberProductId): ?array
     {
         $queryBuilder = $this->createQueryBuilder('subTransaction');
         $queryBuilder
@@ -266,12 +266,14 @@ class SubTransactionRepository extends BaseRepository
                 'transaction.status = :submitted',
                 'transaction.isVoided = :isVoided',
                 'customer.id = :memberId',
+                'subTransaction.customerProduct = :memberProductId'
             ]))
             ->setParameters([
                 'tranBonus' => Transaction::TRANSACTION_TYPE_BONUS,
                 'submitted' => Transaction::TRANSACTION_STATUS_END,
                 'isVoided' => false,
                 'memberId' => $memberId,
+                'memberProductId' => $memberProductId,
             ]);
 
         if (array_has($filters, 'bonusDateFrom')) {

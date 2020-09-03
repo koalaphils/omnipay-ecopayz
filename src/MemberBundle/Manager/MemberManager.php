@@ -449,7 +449,7 @@ class MemberManager extends AbstractManager
                         $filters['bonusDateTo'] = $newTo;
 
                         // Get Transaction Bonus
-                        $memberBonus = $subTransactionRepository->getBonusByMember($filters, $orders, $row['memberId']);
+                        $memberBonus = $subTransactionRepository->getBonusByMember($filters, $orders, $row['memberId'], $row['memberProductId']);
                         if ($memberBonus){
                             $bonus = $memberBonus['totalBonus'];
                             $totalBonus += $bonus;
