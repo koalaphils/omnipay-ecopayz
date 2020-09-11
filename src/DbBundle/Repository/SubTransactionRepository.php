@@ -7,6 +7,8 @@ use DbBundle\Entity\Transaction;
 use Doctrine\ORM\Internal\Hydration\IterableResult;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\ORM\Query;
+use Doctrine\ORM\Query\ResultSetMapping;
 
 /**
  * SubTransactionRepository.
@@ -254,7 +256,7 @@ class SubTransactionRepository extends BaseRepository
         return $queryBuilder->getQuery()->iterate();
     }
 
-    public function getBonusByMember(array $filters, array $orders, int $memberId, int $memberProductId): ?array
+    public function getBonusByMember(array $filters, int $memberId, int $memberProductId): ?array
     {
         $queryBuilder = $this->createQueryBuilder('subTransaction');
         $queryBuilder
