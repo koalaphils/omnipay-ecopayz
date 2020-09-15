@@ -131,24 +131,8 @@ class CommissionService
         $computeJob->setExecuteAfter(new DateTime($commissionPeriod->getPayoutAt()->modify('-1 day')->format(DateTime::ATOM)));
         $computeJob->addRelatedEntity($commissionPeriod);
 
-        $payoutJob = $this
-            ->getJobRepository()
-            ->findJobForRelatedEntity('revenueshare:period:pay', $commissionPeriod);
-        if (!($payoutJob instanceof Job)) {
-            $payoutJob = new Job(
-                'revenueshare:period:pay',
-                [$this->getUser()->getUsername(), '--period', $commissionPeriod->getId(), '--env', $this->getEnvironment()],
-                true, 'payout'
-            );
-        }
-        $payoutJob->addRelatedEntity($commissionPeriod);
-        $payoutJob->setExecuteAfter(new DateTime($commissionPeriod->getPayoutAt()->format(DateTime::ATOM)));
-        $payoutJob->addDependency($computeJob);
-
         $this->getEntityManager()->persist($computeJob);
-        $this->getEntityManager()->persist($payoutJob);
         $this->getEntityManager()->flush($computeJob);
-        $this->getEntityManager()->flush($payoutJob);
 
         if ($this->getMemberRunningCommissionRepository()->totalMemberRunningCommissionForCommissionPeriod($commissionPeriod) > 0) {
             $this->runComputeForPeriod($commissionPeriod);
