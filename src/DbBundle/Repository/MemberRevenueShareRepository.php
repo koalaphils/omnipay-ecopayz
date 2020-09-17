@@ -38,13 +38,12 @@ class MemberRevenueShareRepository extends BaseRepository
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }
 
-    public function findByMemberId(int $memberId, int $status): ?array
+    public function findByMemberId(int $memberId): ?array
     {
         $queryBuilder = $this->createQueryBuilder('revenue');
-        $queryBuilder->where('revenue.member = :memberId AND revenue.isLatest = :isLatest AND revenue.status = :status');
+        $queryBuilder->where('revenue.member = :memberId AND revenue.isLatest = :isLatest');
         $queryBuilder->setParameters([
             'memberId' => $memberId,
-            'status' => $status,
             'isLatest' => true,
         ]);
 
