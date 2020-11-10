@@ -91,7 +91,7 @@ widgets:
                 enable:
                     type: switch
                     options:
-                        label: Enable Commission
+                        label: Enable Revenue Share
                         required: false
                     group: Period
                 startDate:
