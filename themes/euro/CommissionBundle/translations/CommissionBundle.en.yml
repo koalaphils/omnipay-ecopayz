@@ -6,7 +6,17 @@ tabs:
   rate: Bitcoin Rate
 
 status:
-    notYetDwl: Download not yet executed
-    inProgressDwl: Download in progress
-    successfulDwl: Download successful
-    failedDwl: Download failed
+  dwl:
+    notYetExecuted: Download not yet executed
+    inProgress: Download in progress
+    successful: Download successful
+    failed: Download failed
+  revenueShare:
+    notYetComputed: Not Yet Executed
+    computing: Computing
+    successfulComputation: Successful Computation
+    failedComputation: Failed Computation
+    executingPayout: Executing Payout
+    successfulPayout: Successful Payout
+    failedPayout: Failed Payout
+    notComputed: Not Computed

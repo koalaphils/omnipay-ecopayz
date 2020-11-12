@@ -105,19 +105,23 @@
         };
         this.commmission = {
             'status' : {
+                'notYetComputed': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_NOT_YET_COMPUTED') }},
+                'computing': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_COMPUTING') }},
                 'successfulComputation': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_SUCCESSFULL_COMPUTATION') }},
-                'successfulPayout': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT') }},
                 'failedComputation': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_FAILED_COMPUTATION') }},
+                'executingPayout': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_EXECUTING_PAYOUT') }},
+                'successfulPayout': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_SUCCESSFULL_PAYOUT') }},
                 'failedPayout': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_FAILED_PAYOUT') }},
-                'notYetComputed': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_NOT_YET_COMPUTED') }}
+                'notComputed': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_NOT_COMPUTED') }}
             }
         };
+
         this.dwl = {
             'status' : {
-                'notYetDwl': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_DWL_NOT_YET_DOWNLOADED') }},
-                'inProgressDwl': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_DWL_IN_PROGRESS') }},
-                'successfulDwl': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_DWL_SUCCESSFUL') }},
-                'failedDwl': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_DWL_FAILED') }}
+                'notYetExecuted': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_DWL_NOT_YET_DOWNLOADED') }},
+                'inProgress': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_DWL_IN_PROGRESS') }},
+                'successful': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_DWL_SUCCESSFUL') }},
+                'failed': {{ constant('DbBundle\\Entity\\CommissionPeriod::STATUS_DWL_FAILED') }}
             }
         };
     };
