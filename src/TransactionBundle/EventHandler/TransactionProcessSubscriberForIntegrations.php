@@ -217,7 +217,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
     private function getCustomerPiwiWalletProduct(Member $member): CustomerProduct
     {
         $wallet = Product::MEMBER_WALLET_CODE;
-        if ($member->getIsAffiliate()) {
+        if ($member->isTagAsAffiliate()) {
             $wallet = Product::AFFILIATE_WALLET_CODE;
         }
         return $this->customerProductRepository->getMemberPiwiMemberWallet($member, $wallet);
