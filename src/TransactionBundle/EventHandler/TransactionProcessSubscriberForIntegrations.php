@@ -164,7 +164,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                         if (!$transaction->getCustomer()->getIsAffiliate()) {
                             $newBalance = $this->debit($productCode, $customerProductUsername, $amount, $jwt);
                         } else {
-                            $newBalance = $subTransaction->getCustomerProduct()->getBalance() + $amount;
+                            $newBalance = $subTransaction->getCustomerProduct()->getBalance() - $amount;
                         }
                         $subTransaction->getCustomerProduct()->setBalance($newBalance);
                     } catch (IntegrationNotAvailableException $ex) {
