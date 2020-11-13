@@ -18,6 +18,7 @@ use DbBundle\Entity\Transaction;
 use DbBundle\Entity\CustomerProduct;
 use DbBundle\Entity\Customer as Member;
 use DbBundle\Entity\Product;
+use DbBundle\Entity\User;
 Use DbBundle\Repository\CustomerProductRepository;
 use GatewayTransactionBundle\Manager\GatewayMemberTransaction;
 use ProductIntegrationBundle\Exception\NoSuchIntegrationException;
@@ -217,7 +218,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
     private function getCustomerPiwiWalletProduct(Member $member): CustomerProduct
     {
         $wallet = Product::MEMBER_WALLET_CODE;
-        if ($member->isTagAsAffiliate()) {
+        if ($member->getUser()->getType() == User::USER_TYPE_AFFILIATE) {
             $wallet = Product::AFFILIATE_WALLET_CODE;
         }
         return $this->customerProductRepository->getMemberPiwiMemberWallet($member, $wallet);
