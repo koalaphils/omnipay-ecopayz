@@ -14,6 +14,7 @@ class Product extends Entity implements ActionInterface, TimestampInterface, Aud
 
     public const MEMBER_WALLET_CODE = 'PWM';
     public const EVOLUTION_PRODUCT_CODE = 'EVOLUTION';
+    public const AFFILIATE_WALLET_CODE = 'PW';
 
     /**
      * @var string

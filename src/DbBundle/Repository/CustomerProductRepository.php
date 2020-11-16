@@ -135,9 +135,9 @@ class CustomerProductRepository extends BaseRepository
         return $qb->getQuery()->getOneOrNullResult();
     }
 
-    public function getMemberPiwiMemberWallet(Member $member): ?MemberProduct
+    public function getMemberPiwiMemberWallet(Member $member, $wallet = Product::MEMBER_WALLET_CODE): ?MemberProduct
     {
-        return $this->findOneByCustomerAndProductCode($member, Product::MEMBER_WALLET_CODE);
+        return $this->findOneByCustomerAndProductCode($member, $wallet);
     }
 
     public function getPinnacleProduct(Member $member): ?MemberProduct

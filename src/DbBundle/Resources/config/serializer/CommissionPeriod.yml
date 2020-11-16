@@ -24,3 +24,6 @@ DbBundle\Entity\CommissionPeriod:
         dwlUpdatedAt:
             expose: true
             groups: ['Default', 'periodBalance']
+        updatedAt:
+            expose: true
+            groups: ['Default', 'periodBalance']
