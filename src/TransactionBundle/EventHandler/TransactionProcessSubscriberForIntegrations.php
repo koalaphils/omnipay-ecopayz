@@ -81,7 +81,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                 if ($subTransaction->isWithdrawal()) {
                     try {
                         if(!($transaction->isTransferSourcePiwiWalletProduct() || $subTransaction->isPiwiWalletMemberProduct())){
-                            $newBalance = $this->debit($customerWalletCode, $customerProductUsername, $amount, $jwt);
+                            $newBalance = $this->debit($productCode, $customerProductUsername, $amount, $jwt);
                             $subTransaction->getCustomerProduct()->setBalance($newBalance);
                             $subTransaction->setHasBalanceAdjusted(true);
                             $this->credit($customerWalletCode, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
@@ -176,7 +176,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
 
                 if ($subTransaction->isWithdrawal()) {
                     try {
-                        $newBalance = $this->credit($customerWalletCode, $customerProductUsername, $amount, $jwt);
+                        $newBalance = $this->credit($productCode, $customerProductUsername, $amount, $jwt);
                         $subTransaction->getCustomerProduct()->setBalance($newBalance);
                     } catch (IntegrationNotAvailableException $ex) {
                         $this->credit($customerWalletCode, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
