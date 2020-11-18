@@ -191,3 +191,5 @@ product_integration:
             class: 'ProductIntegrationBundle\Integration\PinnacleIntegration'
         pwm:
             class: 'ProductIntegrationBundle\Integration\PiwiWalletIntegration'
+        pw:
+            class: 'ProductIntegrationBundle\Integration\PiwiWalletIntegration'
