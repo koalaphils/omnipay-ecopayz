@@ -27,7 +27,9 @@ class OAuthUserProvider implements UserProviderInterface
             ->select('u, c')
             ->leftJoin('u.customer', 'c')
             ->where('u.username = :username AND u.deletedAt IS NULL')
+            ->andWhere('u.type <> :affiliateType')
             ->setParameter('username', $username)
+            ->setParameter('affiliateType', User::USER_TYPE_AFFILIATE)
         ;
 
         try {
