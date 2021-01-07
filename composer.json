@@ -13,7 +13,7 @@
         "files": [ "vendor/symfony/symfony/src/Symfony/Component/VarDumper/Resources/functions/dump.php" ]
     },
     "require": {
-        "php": ">=7.1.0",
+        "php": ">=7.3",
         "ext-intl": "*",
         "ext-openssl": "*",
         "aws/aws-sdk-php-symfony": "^2.1",
@@ -76,12 +76,28 @@
         "symfony-scripts": [
             "Incenteev\\ParameterHandler\\ScriptHandler::buildParameters",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
-            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache",
+            "@cleancache",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installAssets",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installRequirementsFile",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::prepareDeploymentTarget",
             "AppBundle\\Composer\\ScriptHandler::setupEmailDirectory",
             "AppBundle\\Composer\\ScriptHandler::setupReferralToolsDirectory"
+        ],
+        "cleancache": [
+            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache"
+        ],
+        "initialize-web": [
+            "php app/console theme:apply euro --no-interaction",
+            "php app/console assets:install --symlink --relative",
+            "php app/console assetic:dump --no-interaction",
+            "@cleancache"
+        ],
+        "db-migrate": [
+            "php app/console doctrine:migrations:migrate --no-interaction",
+            "php app/console doctrine:cache:clear-result --no-interaction",
+            "php app/console doctrine:cache:clear-collection-region --no-interaction --all",
+            "php app/console doctrine:cache:clear-entity-region --no-interaction --all",
+            "@initialize-web"
         ],
         "post-install-cmd": [
             "@symfony-scripts"
@@ -92,7 +108,7 @@
     },
     "config": {
         "platform": {
-            "php": "7.1"
+            "php": "7.3"
         },
         "sort-packages": true
     },

@@ -1,119 +1,16 @@
-FROM php:7.3-fpm-buster  as base
+FROM koalaphils/php:7.3-fpm  as base
 
 RUN  set -eux; \
   apt-get update; \
   #Install runtime dependencies
   apt-get install -y --no-install-recommends \
     cron \
-    imagemagick \
     netcat \
     openssh-server \
     rsync \
-    unzip \
-    libevent-2.1 \
-    libevent-openssl-2.1 \
-    libevent-extra-2.1 \
-    libfreetype6 \
-    libjpeg62-turbo \
-    libpng16-16 \
-    libxpm4 \
-    libzip4 \
     ; \
-    cd /tmp; \
-    #Install extra libraries needed
-    curl -sSL https://github.com/redis/hiredis/archive/v0.13.3.tar.gz -o hiredis.tar.gz; \
-    tar -xvzf hiredis.tar.gz; \
-    cd hiredis-0.13.3; \
-    make -j "$(nproc)" && make install; \
-  apt-mark manual '.*' > /dev/null
-
-#Install dev dependencies and extensions
-RUN set -eux; \
-  apt-get update; \
-  savedAptMark="$(apt-mark showmanual)"; \
-  apt-get install -y --no-install-recommends \
-    $PHPIZE_DEPS \
-    gettext \
-    git \
-    libmagickwand-dev \
-    libevent-dev \
-    libfreetype6-dev \
-    libicu-dev \
-    libjpeg-dev \
-    libjpeg62-turbo-dev \
-    libpng-dev \
-    libssl-dev \
-    libwebp-dev \
-    libxpm-dev \
-    libzip-dev \
-    libbz2-dev \
-    ${PHP_EXTRA_BUILD_DEPS:-} \
-    ; \
-  export CFLAGS="$PHP_CFLAGS" CPPFLAGS="$PHP_CPPFLAGS" LDFLAGS="$PHP_LDFLAGS" \
-  ; \
-  docker-php-ext-configure zip \
-    --with-libzip=/usr/include \
-  ; \
-  docker-php-ext-configure gd \
-    --with-gd \
-    --with-freetype-dir=/usr/include/ \
-    --with-jpeg-dir=/usr/include/ \
-    --with-webp-dir=/usr/include/ \
-    --with-xpm-dir=/usr/include/ \
-    --with-png-dir=/usr/include/ \
-  ; \
-  docker-php-ext-install -j$(nproc) \
-    bz2 \
-    gd \
-    gettext \
-    intl \
-    opcache \
-    pcntl \
-    pdo_mysql \
-    sockets \
-    zip \
-  ; \
-  pecl install \
-    apcu \
-    event \
-    igbinary \
-    imagick \
-    redis \
-    xdebug \
-  ; \
-  docker-php-ext-enable \
-    apcu \
-    event \
-    igbinary \
-    imagick \
-    intl \
-    opcache \
-    redis \
-    sockets \
-  ; \
-  cp /usr/bin/envsubst /usr/local/bin/envsubst; \
-  cd /tmp; \
-  git clone https://github.com/nrk/phpiredis.git; \
-  cd phpiredis; \
-  phpize; \
-  ./configure --enable-phpiredis --with-hiredis-dir=/usr/local; \
-  make -j "$(nproc)" && make install; \
-  echo "extension=phpiredis.so" > /usr/local/etc/php/conf.d/phpiredis.ini
-
-#Reset and do cleanup
-RUN set -eux; \
-  savedAptMark="$(apt-mark showmanual)"; \
-  apt-mark auto '.*' > /dev/null; \
-  [ -z "$savedAptMark" ] || apt-mark manual $savedAptMark; \
-  apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImport=false; \
-  rm -rf /tmp/* ~/.pearrc /var/lib/apt/lists/*; \
+  rm -rf /tmp/* ~/.pearrc /var/lib/apt/lists/* /var/cache/*; \
   php --version
-
-FROM composer:latest as vendor
-RUN composer config --global github-oauth.github.com "879aff8d276614f2b8f68e8fd50e4b6073609563"
-COPY composer.json /app/composer.json
-COPY composer.lock /app/composer.lock
-RUN cd /app && composer install --ignore-platform-reqs --apcu-autoloader -aq --no-scripts --no-interaction --no-suggest --no-dev --prefer-dist --no-autoloader
 
 FROM base as prod
 ENV TIMEZONE=Etc/GMT+4 \
@@ -189,11 +86,16 @@ RUN sed -i "s/;emergency_restart_threshold\s*=\s*.*/emergency_restart_threshold 
   && sed -i "s/;emergency_restart_interval\s*=\s*.*/emergency_restart_interval = 1m/g" /usr/local/etc/php-fpm.conf \
   && sed -i "s/;process_control_timeout\s*=\s*.*/process_control_timeout = 10s/g" /usr/local/etc/php-fpm.conf
 COPY /opt/docker/php/www.conf /usr/local/etc/php-fpm.d/www.conf
-COPY /opt/docker/php/php.ini  /usr/local/etc/php/php.ini
 COPY /opt/docker/php/*.ini  /usr/local/etc/php/conf.d/
 COPY /opt/docker/php/ssh_config /etc/ssh/ssh_config
-RUN mkdir -p /var/log/php7 && chmod -Rf 777 /var/log/php7
-COPY --from=vendor /usr/bin/composer /usr/bin/composer
+
+COPY composer.json /var/www/html/composer.json
+COPY composer.lock /var/www/html/composer.lock
+RUN mkdir -p /var/log/php7 && chmod -Rf 777 /var/log/php7 \
+  ; composer config --global use-github-api false \
+  ; rm -rf vendor && mkdir -p vendor && php -d memory_limit=-1 `which composer` install -no --apcu-autoloader --no-scripts --no-progress --no-autoloader --no-cache \
+  ;
+VOLUME /var/www/html/vendor
 
 COPY app /var/www/html/app
 COPY src /var/www/html/src
@@ -201,14 +103,20 @@ COPY themes /var/www/html/themes
 COPY var /var/www/html/var
 COPY web /var/www/html/web
 COPY /opt/docker/php/cronjobs /etc/cron.d/crontab
-RUN chmod 0644 /etc/cron.d/crontab && touch /var/log/cron.log && /usr/bin/crontab /etc/cron.d/crontab
-COPY /opt/docker/php/entrypoint*.sh /
-RUN chmod +x /entrypoint*.sh
-COPY --from=vendor /app/vendor /var/www/html/vendor
-COPY --from=vendor /app/composer.* /var/www/html/
-RUN chmod -Rf 777 var/
-RUN composer dumpautoload -oa --apcu --no-dev --no-interaction
+RUN chmod 0644 /etc/cron.d/crontab \
+ ; touch /var/log/cron.log \
+ ; /usr/bin/crontab /etc/cron.d/crontab \
+ ; chmod -Rf 777 var/ \
+ ;
 
+COPY /opt/docker/php/entrypoint.sh /entrypoint.sh
+COPY /opt/docker/php/entrypoint.sh /entrypoint-nomigrate.sh
+RUN sed -i "s|exec \"\$@\"||g" /entrypoint.sh \
+  ; sed -i "s|exec \"\$@\"||g" /entrypoint-nomigrate.sh \
+  ; echo "composer dumpautoload --apcu -no --no-scripts \$COMPOSER_PARAMS;\ncomposer install -no --apcu-autoloader --no-progress;\ncomposer run db-migrate;\nchown -Rf www-data /var/www/html/var\nexec \"\$@\";" >> /entrypoint.sh \
+  ; echo "composer dumpautoload --apcu -no --no-scripts \$COMPOSER_PARAMS;\ncomposer install -no --apcu-autoloader --no-progress --no-scripts;\ncomposer run symfony-scripts;\ncomposer run cleancache;\nexec \"\$@\";" >> /entrypoint-nomigrate.sh \
+  ;
+RUN chmod +x /entrypoint*.sh
 ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
 EXPOSE 9000
 CMD ["php-fpm", "--nodaemonize"]
