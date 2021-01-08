@@ -138,10 +138,8 @@ COPY ./opt/docker/nginx/open_file_cache.conf /etc/nginx/conf.d/open_file_cache.c
 COPY ./opt/docker/nginx/proxy_headers.conf /etc/nginx/conf.d/proxy_headers.conf
 COPY ./opt/docker/nginx/nginx.conf /etc/nginx/nginx.conf
 
-RUN mkdir -p /var/www/html/web && chmod 777 /var/www/html/web
-COPY --from=prod /var/www/html/web /var/www/html/web
-COPY --from=prod /var/www/html/themes /var/www/html/themes
-COPY --from=prod /var/www/html/src /var/www/html/src
+RUN mkdir -p /var/www/html && chmod 777 /var/www/html
+COPY --from=prod /var/www/html /var/www/html
 COPY /opt/docker/nginx/entrypoint* /
 #COPY /opt/docker/nginx/cronjobs /
 RUN chmod +x /entrypoint*
