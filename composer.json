@@ -95,8 +95,6 @@
         "db-migrate": [
             "php app/console doctrine:migrations:migrate --no-interaction",
             "php app/console doctrine:cache:clear-result --no-interaction",
-            "php app/console doctrine:cache:clear-collection-region --no-interaction --all",
-            "php app/console doctrine:cache:clear-entity-region --no-interaction --all",
             "@initialize-web"
         ],
         "post-install-cmd": [
