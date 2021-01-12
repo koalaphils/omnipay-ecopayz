@@ -94,7 +94,6 @@
         ],
         "db-migrate": [
             "php app/console doctrine:migrations:migrate --no-interaction",
-            "php app/console doctrine:cache:clear-result --no-interaction",
             "@initialize-web"
         ],
         "post-install-cmd": [
