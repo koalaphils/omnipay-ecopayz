@@ -1,4 +1,6 @@
 FROM koalaphils/php:7.3-fpm  as base
+COPY opt/docker/php/*.ini $PHP_INI_DIR/conf.d/
+COPY opt/docker/php/www.conf $PHP_INI_DIR/../php-fpm.d/www.conf
 
 RUN  set -eux; \
   apt-get update; \
@@ -82,11 +84,10 @@ ENV TIMEZONE=Etc/GMT+4 \
     SESSION_EXPIRATION_TIME=
 
 WORKDIR /var/www/html
-RUN sed -i "s/;emergency_restart_threshold\s*=\s*.*/emergency_restart_threshold = 10/g" /usr/local/etc/php-fpm.conf \
-  && sed -i "s/;emergency_restart_interval\s*=\s*.*/emergency_restart_interval = 1m/g" /usr/local/etc/php-fpm.conf \
-  && sed -i "s/;process_control_timeout\s*=\s*.*/process_control_timeout = 10s/g" /usr/local/etc/php-fpm.conf
-COPY /opt/docker/php/www.conf /usr/local/etc/php-fpm.d/www.conf
-COPY /opt/docker/php/*.ini  /usr/local/etc/php/conf.d/
+RUN sed -i "s/;emergency_restart_threshold\s*=\s*.*/emergency_restart_threshold = 10/g" $PHP_INI_DIR/../php-fpm.conf \
+  && sed -i "s/;emergency_restart_interval\s*=\s*.*/emergency_restart_interval = 1m/g" $PHP_INI_DIR/../php-fpm.conf \
+  && sed -i "s/;process_control_timeout\s*=\s*.*/process_control_timeout = 10s/g" $PHP_INI_DIR/../php-fpm.conf
+
 COPY /opt/docker/php/ssh_config /etc/ssh/ssh_config
 
 COPY composer.json /var/www/html/composer.json
