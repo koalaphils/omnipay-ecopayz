@@ -256,6 +256,10 @@
         <script type="text/javascript" src="{{ asset('assets/plugins/autobahn/autobahn.min.js') }}"></script>
         <script type="text/javascript" src="{{ asset('bundles/app/js/xml.js') }}"></script>
         <script type="text/javascript">
+            //Set JWT Token
+            var jwt = "{{  app.session.get('jwt') }}";
+            sessionStorage.setItem('jwt', jwt);
+
             var Global = new function () {
                 this.dateFormat = phpjs_dateFormat("{{ setting('dateFormat')|e("js") }}");
                 this.dateTimeFormat = phpjs_dateFormat("{{ setting('dateTimeFormat')|e("js") }}");

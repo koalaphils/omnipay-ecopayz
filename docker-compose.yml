@@ -100,6 +100,7 @@ services:
       - AWS_BUCKET=zmt-piwi
       - CUSTOMER_FOLDER=customerDocuments
       - UPLOAD_FOLDER=/uploads
+      - SESSION_EXPIRATION_TIME=86400
     networks:
       - piwinet
 
