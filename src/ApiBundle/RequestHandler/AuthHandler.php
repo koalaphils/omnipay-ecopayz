@@ -184,18 +184,20 @@ class AuthHandler
         $this->loginUser($user);
 
         $jwt = $this->generateJwtToken($user->getCustomer());
-        $integrationResponses = $this->loginToProducts($user, $jwt, $request);
+        $integrationResponses = ['pinnacle' => []];
+        // $integrationResponses = $this->loginToProducts($user, $jwt, $request);
 
         $loginResponse = array_merge([
-            'token' => $data,
             'member' => $member,
             'process_payments' => $this->getPaymentOptions($user->getCustomer()->getId()),
             'products' => $member->getProducts(),
             'jwt' => $jwt,
+            'accessToken' => $accessToken->getToken()
         ], $integrationResponses);
 
+        
         $this->deleteUserAccessToken($accessToken->getUser()->getId(), [], [$accessToken->getToken()]);
-
+    
         if ($user->getCustomer()->getWebsocketChannel() === '') {
             $user->getCustomer()->setWebsocketChannel(uniqid(generate_code(10, false, 'ld')));
             $this->entityManager->persist($user->getCustomer());
