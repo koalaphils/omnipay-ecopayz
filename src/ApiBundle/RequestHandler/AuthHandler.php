@@ -184,8 +184,7 @@ class AuthHandler
         $this->loginUser($user);
 
         $jwt = $this->generateJwtToken($user->getCustomer());
-        $integrationResponses = ['pinnacle' => []];
-        // $integrationResponses = $this->loginToProducts($user, $jwt, $request);
+        $integrationResponses = $this->loginToProducts($user, $jwt, $request);
 
         $loginResponse = array_merge([
             'member' => $member,
