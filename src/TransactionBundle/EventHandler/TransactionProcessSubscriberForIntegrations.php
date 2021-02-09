@@ -90,7 +90,6 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                         }
                     } catch (IntegrationNotAvailableException $ex) {
                         $subTransaction->setFailedProcessingWithIntegration(true);
-                        dump($ex);
                         throw $ex;
                     }
                 }
@@ -115,7 +114,6 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                             $subTransaction->setHasBalanceAdjusted(true);
                         }
                     } catch (IntegrationNotAvailableException $ex) {
-                        dump($ex);
                         if(!$transaction->isTransferDestinationPiwiWalletProduct()){
                             $this->credit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         }
