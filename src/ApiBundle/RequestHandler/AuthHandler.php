@@ -379,7 +379,7 @@ class AuthHandler
             ->auth($user->getCustomer()->getPinUserCode(), ['locale' => $memberLocale]);
 
         return [
-            'token' => $data,
+            'accessToken' => $accessToken->getToken(),
             'pinnacle' => $pinLoginResponse->toArray(),
             'member' => $user->getCustomer(),
             'jwt' => $this->generateJwtToken($user->getCustomer())
