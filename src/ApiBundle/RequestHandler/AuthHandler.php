@@ -187,6 +187,7 @@ class AuthHandler
         $integrationResponses = $this->loginToProducts($user, $jwt, $request);
 
         $loginResponse = array_merge([
+            'token' => $data,
             'member' => $member,
             'process_payments' => $this->getPaymentOptions($user->getCustomer()->getId()),
             'products' => $member->getProducts(),
@@ -203,7 +204,7 @@ class AuthHandler
             $this->entityManager->flush($user->getCustomer());
         }
 
-        $this->saveSession($user, $data, $integrationResponses['pinnacle']);
+        //$this->saveSession($user, $data, $integrationResponses['pinnacle']);
         $this->customerManager->handleAudit('login');
 
         $channel = $user->getCustomer()->getWebsocketDetails()['channel_id'];
@@ -379,10 +380,11 @@ class AuthHandler
             ->auth($user->getCustomer()->getPinUserCode(), ['locale' => $memberLocale]);
 
         return [
-            'accessToken' => $accessToken->getToken(),
+            'token' => $data,
             'pinnacle' => $pinLoginResponse->toArray(),
             'member' => $user->getCustomer(),
-            'jwt' => $this->generateJwtToken($user->getCustomer())
+            'jwt' => $this->generateJwtToken($user->getCustomer()),
+            'accessToken' => $accessToken->getToken()
         ];
     }
 
