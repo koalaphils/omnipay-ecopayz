@@ -6,8 +6,7 @@
     "autoload": {
         "classmap": [
             "app/AppKernel.php",
-            "app/AppCache.php",
-            "src/*"
+            "app/AppCache.php"
         ],
         "files": [
             "src/AppBundle/Helper/helpers.php",
