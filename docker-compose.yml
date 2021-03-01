@@ -101,6 +101,7 @@ services:
       - CUSTOMER_FOLDER=customerDocuments
       - UPLOAD_FOLDER=/uploads
       - SESSION_EXPIRATION_TIME=86400
+      - EWL_URL=http://api-gateway/api/v1/ewl
     networks:
       - piwinet
 
