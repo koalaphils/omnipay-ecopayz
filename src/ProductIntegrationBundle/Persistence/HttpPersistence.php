@@ -46,7 +46,6 @@ class HttpPersistence
         } catch (ClientException $e) {
             throw new IntegrationException($e->getResponse()->getBody(), $e->getResponse()->getStatusCode());
         } catch (ConnectException  $e) {
-            dump($e);
             throw new IntegrationNotAvailableException($this->baseUrl);
         }
     }

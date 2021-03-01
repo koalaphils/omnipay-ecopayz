@@ -183,7 +183,7 @@ aws:
         
 product_integration:
     integrations:
-        ewl:
+        piwix:
             url: '%ewl_url%'
             class: 'ProductIntegrationBundle\Integration\EwlIntegration'
         evolution:
