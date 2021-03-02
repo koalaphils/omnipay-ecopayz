@@ -21,7 +21,11 @@ class EwlIntegration implements ProductIntegrationInterface
 
     public function getBalance(string $token, string $id): string
     {
-        return '';
+        $url = sprintf('/wallet/balance/%s', $id);
+        $response = $this->http->get($url, $token);
+        $body = json_decode(((string) $response->getBody()));
+
+        return $body->balance;
     }
 
     public function credit(string $token, array $params): string
