@@ -246,7 +246,7 @@ class AuthHandler
 
     private function createPiwixProductIfNotExisting(Customer $customer): void
     {
-        $customerProduct = $this->customerProductRepository->findOneByCustomerAndProductCode($customer, Product::MEMBER_WALLET_CODE);
+        $customerProduct = $this->customerProductRepository->findOneByCustomerAndProductCode($customer, Product::PIWIXCHANGE_CODE);
 
         if ($customerProduct === null) {
             $customerProduct = CustomerProduct::create($customer);
