@@ -220,6 +220,7 @@ class AuthHandler
         $locale = !empty($memberLocale) ? $memberLocale : 'en';
 
         $this->createPiwiWalletIfNotExisting($user->getCustomer());
+        $this->createPiwixProductIfNotExisting($user->getCustomer());
 
         return [
             'pinnacle' => $this->loginToPinnacle($user->getCustomer()->getPinUserCode(), $locale),
@@ -236,6 +237,22 @@ class AuthHandler
             $product = $this->productRepository->getProductByCode(Product::MEMBER_WALLET_CODE);
             $customerProduct->setProduct($product);
             $customerProduct->setUsername(Product::MEMBER_WALLET_CODE . '_' . uniqid());
+            $customerProduct->setBalance('0.00');
+            $customerProduct->setIsActive(true);
+            $this->entityManager->persist($customerProduct);
+            $this->entityManager->flush();
+        }
+    }
+
+    private function createPiwixProductIfNotExisting(Customer $customer): void
+    {
+        $customerProduct = $this->customerProductRepository->findOneByCustomerAndProductCode($customer, Product::PIWIXCHANGE_CODE);
+
+        if ($customerProduct === null) {
+            $customerProduct = CustomerProduct::create($customer);
+            $product = $this->productRepository->getProductByCode(Product::PIWIXCHANGE_CODE);
+            $customerProduct->setProduct($product);
+            $customerProduct->setUsername('PIW_' . $customer->getId());
             $customerProduct->setBalance('0.00');
             $customerProduct->setIsActive(true);
             $this->entityManager->persist($customerProduct);

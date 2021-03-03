@@ -58,7 +58,6 @@ class MemberProductManager
             $balance = $record['balance'];
         } 
         catch (IntegrationException $ex) {
-            dump($ex);
             $balance = "Unable to fetch balance";
         } catch (IntegrationNotAvailableException $ex) {
             $balance = $ex->getMessage();
