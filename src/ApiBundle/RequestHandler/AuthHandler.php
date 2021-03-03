@@ -194,7 +194,6 @@ class AuthHandler
             'jwt' => $jwt,
             'accessToken' => $accessToken->getToken()
         ], $integrationResponses);
-
         
         $this->deleteUserAccessToken($accessToken->getUser()->getId(), [], [$accessToken->getToken()]);
     
@@ -204,7 +203,7 @@ class AuthHandler
             $this->entityManager->flush($user->getCustomer());
         }
 
-        //$this->saveSession($user, $data, $integrationResponses['pinnacle']);
+        $this->saveSession($user, $data, $integrationResponses['pinnacle']);
         $this->customerManager->handleAudit('login');
 
         $channel = $user->getCustomer()->getWebsocketDetails()['channel_id'];
