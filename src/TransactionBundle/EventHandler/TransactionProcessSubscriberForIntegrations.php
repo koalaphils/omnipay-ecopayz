@@ -86,7 +86,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                             $newBalance = $this->debit($productCode, $transactionNumber, $currency, $customerProductUsername, $amount, $jwt);
                             $subTransaction->getCustomerProduct()->setBalance($newBalance);
                             $subTransaction->setHasBalanceAdjusted(true);
-                            $this->credit($customerWalletCode, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                            $this->credit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         }
                     } catch (IntegrationNotAvailableException $ex) {
                         $subTransaction->setFailedProcessingWithIntegration(true);
