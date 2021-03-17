@@ -25,7 +25,7 @@ class EwlIntegration implements ProductIntegrationInterface
         $response = $this->http->get($url, $token);
         $body = json_decode(((string) $response->getBody()));
 
-        return $body->balance;
+        return $body->availableToBet;
     }
 
     public function credit(string $token, array $params): string
@@ -37,7 +37,7 @@ class EwlIntegration implements ProductIntegrationInterface
         $response = $this->http->post($url, $token, $params);
         $body = json_decode(((string) $response->getBody()));
       
-        return $body->balance;
+        return $body->availableToBet;
     }
 
     public function debit(string $token, array $params): string
@@ -50,6 +50,6 @@ class EwlIntegration implements ProductIntegrationInterface
         $response = $this->http->post($url, $token, $params);
         $body = json_decode(((string) $response->getBody()));
         
-        return $body->balance;
+        return $body->availableToBet;
     }
 }
