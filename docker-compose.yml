@@ -70,6 +70,8 @@ services:
       - MYSQL_PASSWORD=backoffice_pass
       - MYSQL_DATABASE=backoffice_db
       - MYSQL_USER=backoffice
+      - SESSION_EXPIRATION_TIME=86400
+      - EWL_URL=http://api-gateway/api/v1/ewl
     networks:
       - piwinet
 
