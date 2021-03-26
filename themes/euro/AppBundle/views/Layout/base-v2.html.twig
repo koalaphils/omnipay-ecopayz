@@ -140,6 +140,11 @@
             ]) }}
 
         <script type="text/javascript">
+                    //Set JWT Token
+            var jwt = "{{  app.session.get('jwt') }}";
+            sessionStorage.setItem('jwt', jwt);
+
+
             moment.tz.setDefault("{{ "now"|date("e") }}");
             var resizefunc = [];
             window.lodash = _;

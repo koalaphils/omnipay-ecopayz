@@ -5,6 +5,7 @@ namespace AppBundle\Listener;
 use DbBundle\Entity\AuditRevisionLog;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 use DateTimeImmutable;
+use Firebase\JWT\JWT;
 use MemberBundle\Events as MemberEvents;
 use AppBundle\Event\GenericEntityEvent;
 
@@ -16,6 +17,13 @@ use AppBundle\Event\GenericEntityEvent;
 class LoginEventListener
 {
     use \Symfony\Component\DependencyInjection\ContainerAwareTrait;
+
+    private $jwtKey;
+
+    public function __construct(string $jwtKey)
+    {
+        $this->jwtKey = $jwtKey;
+    }
 
     /**
      * @param InteractiveLoginEvent $event
@@ -42,12 +50,20 @@ class LoginEventListener
         $session->set('session_token', $sessionToken);
 
         $dispatcher = $this->container->get('event_dispatcher');
-
         $sessionManager->create([
             'sessionId' => $session->getId(),
             'key' => $sessionToken,
             'user' => $user,
         ]);
+
+        // create JWT Token
+        $payload = [
+            'username' => $user->getUserName(),
+            'id' => $user->getId(),
+            'roles' => $user->getRoles()
+        ];
+        $jwt = JWT::encode($payload, $this->jwtKey);
+        $session->set('jwt', $jwt);
 
         if (!is_cli()) {
             $this->container->get('audit.manager')->audit(

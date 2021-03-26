@@ -111,7 +111,7 @@ widgets:
                     type: choices
                     options:
                         choices:
-                            Not set: 0 
+                            Not set: 0
                             Male: 1
                             Female: 2
                         label: Gender

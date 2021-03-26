@@ -5,28 +5,43 @@
     "description": "The \"Symfony Standard Edition\" distribution",
     "autoload": {
         "psr-4": { "": "src/" },
-        "classmap": [ "app/AppKernel.php", "app/AppCache.php" ],
-        "files": ["src/AppBundle/Helper/helpers.php", "src/AppBundle/DoctrineExtension/Persister/BasicEntityPersister.php"]
+        "classmap": [
+            "app/AppKernel.php",
+            "app/AppCache.php"
+        ],
+        "files": [
+            "src/AppBundle/Helper/helpers.php",
+            "src/AppBundle/DoctrineExtension/Persister/BasicEntityPersister.php"
+        ],
+        "exclude-from-classmap": [
+            "/Tests/",
+            "/test/",
+            "/tests/"
+        ]
     },
     "autoload-dev": {
         "psr-4": { "Tests\\": "tests/"},
         "files": [ "vendor/symfony/symfony/src/Symfony/Component/VarDumper/Resources/functions/dump.php" ]
     },
     "require": {
-        "php": ">=7.1.0",
+        "php": ">=7.3",
         "ext-intl": "*",
+        "ext-json": "*",
         "ext-openssl": "*",
-        "aws/aws-sdk-php-symfony": "^2.1",
-        "beberlei/doctrineextensions": "^1.0",
+        "aws/aws-sdk-php-symfony": "^2.2.0",
+        "beberlei/doctrineextensions": "^1.2.0",
         "composer/package-versions-deprecated": "1.11.99.1",
-        "cron/cron": "^1.3",
+        "cron/cron": "^1.4.0",
         "cydrickn/number": "^1.0",
-        "dercoder/omnipay-ecopayz": "dev-master",
-        "doctrine/doctrine-bundle": "^1.6",
-        "doctrine/doctrine-migrations-bundle": "^1.2",
+        "dercoder/omnipay-ecopayz": "^1.0.0",
+        "doctrine/cache": "^1.10.0",
+        "doctrine/dbal": "~2.10.0",
+        "doctrine/doctrine-bundle": "~1.10.0",
+        "doctrine/doctrine-migrations-bundle": "^1.3.0",
+        "doctrine/migrations": "~1.7.0",
         "doctrine/orm": "^2.5",
-        "firebase/php-jwt": "^4.0",
-        "friendsofsymfony/oauth-server-bundle": "^1.5",
+        "firebase/php-jwt": "^5.2.0",
+        "friendsofsymfony/oauth-server-bundle": "^1.6.0",
         "friendsofsymfony/rest-bundle": "^2.2",
         "incenteev/composer-parameter-handler": "^2.0",
         "jms/job-queue-bundle": "^1.4",
@@ -51,6 +66,7 @@
         "symfony/swiftmailer-bundle": "^2.3.10",
         "symfony/symfony": "3.3.*",
         "syslogic/doctrine-json-functions": "^1.0",
+        "twig/twig": "~2.6.0",
         "twilio/sdk": "^5.30",
         "zendesk/zendesk_api_client_php": "2.1.7"
     },
@@ -76,12 +92,25 @@
         "symfony-scripts": [
             "Incenteev\\ParameterHandler\\ScriptHandler::buildParameters",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
-            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache",
+            "@cleancache",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installAssets",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installRequirementsFile",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::prepareDeploymentTarget",
             "AppBundle\\Composer\\ScriptHandler::setupEmailDirectory",
             "AppBundle\\Composer\\ScriptHandler::setupReferralToolsDirectory"
+        ],
+        "cleancache": [
+            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache"
+        ],
+        "initialize-web": [
+            "php app/console theme:apply euro --no-interaction",
+            "php app/console assets:install --symlink --relative",
+            "php app/console assetic:dump --no-interaction",
+            "@cleancache"
+        ],
+        "db-migrate": [
+            "php app/console doctrine:migrations:migrate --no-interaction",
+            "@initialize-web"
         ],
         "post-install-cmd": [
             "@symfony-scripts"
@@ -92,7 +121,7 @@
     },
     "config": {
         "platform": {
-            "php": "7.1"
+            "php": "7.3"
         },
         "sort-packages": true
     },
@@ -100,6 +129,7 @@
         "symfony-app-dir": "app",
         "symfony-web-dir": "web",
         "symfony-assets-install": "relative",
+        "symfony-cache-warmup": true,
         "incenteev-parameters": {
             "file": "app/config/parameters.yml"
         },
