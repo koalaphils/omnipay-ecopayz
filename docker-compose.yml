@@ -100,9 +100,9 @@ services:
       target: prod
     image: php-container
     volumes:
-      - .:/var/www/html:cached
+      - .:/var/www/html:rw
       - bo_cache:/var/www/html/var/cache
-      - uploads:/uploads:cached
+      - uploads:/uploads
     depends_on:
       - database
       - mailhog
@@ -111,64 +111,64 @@ services:
     networks:
       - piwinet
 
-  piwibo-wsclient:
-    <<: *php-env
-    image: php-container
-    restart: unless-stopped
-    command:
-      - php
-      - app/console
-      - websocket:client
-      - ws://websocket:9090/ws
-      - realm
-      - system
-    volumes:
-      - .:/var/www/html
-      - ws_cache:/var/www/html/var/cache
-    depends_on:
-      - database
-      - mailhog
-      - adminer
-    networks:
-      - piwinet
-
-  piwibo-scheduler:
-    <<: *php-env
-    image: php-container
-    restart: unless-stopped
-    command:
-      - php
-      - app/console
-      - jms-job-queue:schedule
-      - --env=dev
-    volumes:
-      - .:/var/www/html
-      - sched_cache:/var/www/html/var/cache
-    depends_on:
-      - database
-      - mailhog
-      - adminer
-    networks:
-      - piwinet
-
-  piwibo-jobs:
-    <<: *php-env
-    image: php-container
-    restart: unless-stopped
-    command:
-      - php
-      - app/console
-      - jms-job-queue:run
-      - --env=dev
-    volumes:
-      - .:/var/www/html
-      - job_cache:/var/www/html/var/cache
-    depends_on:
-      - database
-      - mailhog
-      - adminer
-    networks:
-      - piwinet
+#  piwibo-wsclient:
+#    <<: *php-env
+#    image: php-container
+#    restart: unless-stopped
+#    command:
+#      - php
+#      - app/console
+#      - websocket:client
+#      - ws://websocket:9090/ws
+#      - realm
+#      - system
+#    volumes:
+#      - .:/var/www/html
+#      - ws_cache:/var/www/html/var/cache
+#    depends_on:
+#      - database
+#      - mailhog
+#      - adminer
+#    networks:
+#      - piwinet
+#
+#  piwibo-scheduler:
+#    <<: *php-env
+#    image: php-container
+#    restart: unless-stopped
+#    command:
+#      - php
+#      - app/console
+#      - jms-job-queue:schedule
+#      - --env=dev
+#    volumes:
+#      - .:/var/www/html
+#      - sched_cache:/var/www/html/var/cache
+#    depends_on:
+#      - database
+#      - mailhog
+#      - adminer
+#    networks:
+#      - piwinet
+#
+#  piwibo-jobs:
+#    <<: *php-env
+#    image: php-container
+#    restart: unless-stopped
+#    command:
+#      - php
+#      - app/console
+#      - jms-job-queue:run
+#      - --env=dev
+#    volumes:
+#      - .:/var/www/html
+#      - job_cache:/var/www/html/var/cache
+#    depends_on:
+#      - database
+#      - mailhog
+#      - adminer
+#    networks:
+#      - piwinet
 
   piwibo-web:
     build:

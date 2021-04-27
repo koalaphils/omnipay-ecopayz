@@ -1,17 +1,31 @@
 doctrine:
   dbal:
-    driver:   "%database_driver%"
-    host:     "%database_host%"
-    port:     "%database_port%"
-    dbname:   "%database_name%"
-    user:     "%database_user%"
-    password: "%database_password%"
-    charset:  UTF8
-    server_version: 5.7
-    platform_service: custom_mysql_platform
-    wrapper_class: AppBundle\DoctrineExtension\DBAL\Connection
-    options:
-      1002: "SET @@session.time_zone = '+00:00'"
+    default_connection: default
+    connections:
+      default:
+        driver:   pdo_mysql
+        host:     "%database_host%"
+        port:     "%database_port%"
+        dbname:   "%database_name%"
+        user:     "%database_user%"
+        password: "%database_password%"
+        charset:  UTF8
+        server_version: 8.0
+        platform_service: custom_mysql_platform
+        wrapper_class: AppBundle\DoctrineExtension\DBAL\Connection
+        options:
+          1002: "SET @@session.time_zone = '+00:00'"
+        mapping_types:
+          json: json
+          tinyinteger: tinyint
+          uuid_binary: binary
+        slaves:
+          slave1:
+            host:     "%database_replica_host%"
+            port:     "%database_port%"
+            dbname:   "%database_name%"
+            user:     "%database_user%"
+            password: "%database_password%"
     types:
       json:
         class: AppBundle\DoctrineExtension\Types\JsonType
@@ -27,10 +41,6 @@ doctrine:
       datetimetz: AppBundle\DoctrineExtension\Types\UTCDateTimeType
       datetime_immutable: AppBundle\DoctrineExtension\Types\UTCDateTimeImmutableType
       datetimetz_immutable: AppBundle\DoctrineExtension\Types\UTCDateTimeImmutableType
-    mapping_types:
-      json: json
-      tinyinteger: tinyint
-      uuid_binary: binary
 
   orm:
     auto_generate_proxy_classes: "%kernel.debug%"
@@ -39,17 +49,28 @@ doctrine:
     dql:
       string_functions:
         GROUP_CONCAT: Oro\ORM\Query\AST\Functions\String\GroupConcat
-        JSON_SET: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonSet
-        JSON_CONTAINS: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonContains
-        JSON_CONTAINS_PATH: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonContainsPath
-        JSON_REMOVE: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonRemove
-        JSON_OBJECT: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonObject
-        JSON_EXTRACT: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonExtract
+        JSON_SET: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonSet
+        JSON_CONTAINS: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonContains
+        JSON_CONTAINS_PATH: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonContainsPath
+        JSON_REMOVE: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonRemove
+        JSON_OBJECT: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonObject
+        JSON_EXTRACT: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonExtract
         JSON_MERGE: AppBundle\DoctrineExtension\ORM\Query\AST\Functions\Mysql\JsonMerge
-        JSON_UNQUOTE: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonUnquote
-        JSON_QUOTE: Syslogic\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonQuote
+        JSON_UNQUOTE: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonUnquote
+        JSON_SEARCH: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonSearch
         CAST: Oro\ORM\Query\AST\Functions\Cast
+        DATE: DoctrineExtensions\Query\Mysql\Date
         FIND_IN_SET: AppBundle\DoctrineExtension\ORM\Query\AST\Functions\Mysql\FindInSet
         IFNULL: AppBundle\DoctrineExtension\ORM\Query\AST\Functions\Mysql\IfNull
         MATCH: DoctrineExtensions\Query\Mysql\MatchAgainst
         IF: AppBundle\DoctrineExtension\ORM\Query\AST\Functions\Mysql\IfFunction
+    metadata_cache_driver: apc
+    result_cache_driver:
+      type: service
+      id: snc_redis.orm
+    query_cache_driver: apc
+    second_level_cache:
+      enabled: true
+      region_cache_driver:
+        type: service
+        id: snc_second_level_cache

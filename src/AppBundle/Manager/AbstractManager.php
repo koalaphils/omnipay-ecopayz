@@ -9,6 +9,8 @@ abstract class AbstractManager
     use \Symfony\Component\DependencyInjection\ContainerAwareTrait;
     use \AppBundle\Traits\UserAwareTrait;
 
+    protected $entityManager = [];
+
     public function getContainer()
     {
         return $this->container;
@@ -26,7 +28,15 @@ abstract class AbstractManager
 
     public function getEntityManager($name = 'default'): \Doctrine\ORM\EntityManager
     {
-        return $this->getDoctrine()->getManager($name);
+        $em = array_get($this->entityManager, $name, null);
+        if(empty($em)){
+            $this->entityManager[$name] = $em = $this->getDoctrine()->getManager($name);
+        }
+        $em->getConnection()->reconnect();
+        if(!$em->isOpen()){
+            $this->entityManager[$name] = $em = $this->getDoctrine()->resetManager($name);
+        }
+        return $em;
     }
 
     protected function dispatchEvent(string $eventName, Event $event): void
@@ -48,8 +58,9 @@ abstract class AbstractManager
     public function save($entity)
     {
         //return $this->getRepository()->save($entity);
-        $this->getDoctrine()->getManager()->persist($entity);
-        $this->getDoctrine()->getManager()->flush($entity);
+        $this->getEntityManager()->persist($entity);
+        $this->getEntityManager()->flush();
+        $this->getEntityManager()->refresh($entity);
     }
 
     public function remove($entity)
