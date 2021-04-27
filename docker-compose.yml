@@ -1,49 +1,5 @@
 version: "3.7"
-services:
-  database:
-    image: mysql:8.0.15
-    command: --default-authentication-plugin=mysql_native_password
-    volumes:
-      - database:/var/lib/mysql
-    environment:
-      - TZ=America/Manaus
-      - MYSQL_ROOT_PASSWORD=backoffice_pass
-      - MYSQL_PASSWORD=backoffice_pass
-      - MYSQL_DATABASE=backoffice_db
-      - MYSQL_USER=backoffice
-    networks:
-      - piwinet
-
-  mailhog:
-    image: mailhog/mailhog
-    command:
-      - "-smtp-bind-addr"
-      - "0.0.0.0:25"
-    user: root
-    ports:
-      - 8025:8025 
-    networks:
-      - piwinet
-
-  adminer:
-    image: adminer
-    ports:
-      - 9080:8080
-    networks:
-      - piwinet
-
-  piwibo-php:
-    build:
-      context: .
-      target: prod
-    volumes:
-      - .:/var/www/html:cached
-      - uploads:/uploads:cached
-    depends_on:
-      - database
-      - mailhog
-      - adminer
-    restart: on-failure
+x-environment: &php-env
     environment:
       - SYMFONY_ENV=dev
       - APP_ENV=dev
@@ -100,14 +56,64 @@ services:
       - AWS_BUCKET=zmt-piwi
       - CUSTOMER_FOLDER=customerDocuments
       - UPLOAD_FOLDER=/uploads
+      - SESSION_EXPIRATION_TIME=180
+
+services:
+  database:
+    image: mysql:8.0.15
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - database:/var/lib/mysql
+    environment:
+      - TZ=America/Manaus
+      - MYSQL_ROOT_PASSWORD=backoffice_pass
+      - MYSQL_PASSWORD=backoffice_pass
+      - MYSQL_DATABASE=backoffice_db
+      - MYSQL_USER=backoffice
+      - SESSION_EXPIRATION_TIME=86400
+      - EWL_URL=http://api-gateway/api/v1/ewl
+    networks:
+      - piwinet
+
+  mailhog:
+    image: mailhog/mailhog
+    command:
+      - "-smtp-bind-addr"
+      - "0.0.0.0:25"
+    user: root
+    ports:
+      - 8025:8025 
+    networks:
+      - piwinet
+
+  adminer:
+    image: adminer
+    ports:
+      - 9080:8080
+    networks:
+      - piwinet
+
+  piwibo-php:
+    <<: *php-env
+    build:
+      context: .
+      target: prod
+    image: php-container
+    volumes:
+      - .:/var/www/html:cached
+      - bo_cache:/var/www/html/var/cache
+      - uploads:/uploads:cached
+    depends_on:
+      - database
+      - mailhog
+      - adminer
+    restart: on-failure
     networks:
       - piwinet
 
   piwibo-wsclient:
-    build:
-      context: .
-      target: prod
-    entrypoint: ""
+    <<: *php-env
+    image: php-container
     restart: unless-stopped
     command:
       - php
@@ -118,6 +124,7 @@ services:
       - system
     volumes:
       - .:/var/www/html
+      - ws_cache:/var/www/html/var/cache
     depends_on:
       - database
       - mailhog
@@ -126,10 +133,8 @@ services:
       - piwinet
 
   piwibo-scheduler:
-    build:
-      context: .
-      target: prod
-    entrypoint: ""
+    <<: *php-env
+    image: php-container
     restart: unless-stopped
     command:
       - php
@@ -138,6 +143,7 @@ services:
       - --env=dev
     volumes:
       - .:/var/www/html
+      - sched_cache:/var/www/html/var/cache
     depends_on:
       - database
       - mailhog
@@ -146,11 +152,9 @@ services:
       - piwinet
 
   piwibo-jobs:
-    build:
-      context: .
-      target: prod
+    <<: *php-env
+    image: php-container
     restart: unless-stopped
-    entrypoint: ""
     command:
       - php
       - app/console
@@ -158,6 +162,7 @@ services:
       - --env=dev
     volumes:
       - .:/var/www/html
+      - job_cache:/var/www/html/var/cache
     depends_on:
       - database
       - mailhog
@@ -239,6 +244,10 @@ services:
 volumes:
   database:
   uploads:
+  bo_cache:
+  job_cache:
+  sched_cache:
+  ws_cache:
 
 networks:
   piwinet:
