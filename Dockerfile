@@ -1,13 +1,10 @@
-FROM koalaphils/php:7.3-fpm  as base
-COPY opt/docker/php/*.ini $PHP_INI_DIR/conf.d/
-COPY opt/docker/php/www.conf $PHP_INI_DIR/../php-fpm.d/www.conf
+FROM koalaphils/php:7.4-fpm  as base
 
 RUN  set -eux; \
   apt-get update; \
   #Install runtime dependencies
   apt-get install -y --no-install-recommends \
     cron \
-    netcat \
     openssh-server \
     rsync \
     ; \
@@ -84,43 +81,34 @@ ENV TIMEZONE=Etc/GMT+4 \
     SESSION_EXPIRATION_TIME=
 
 WORKDIR /var/www/html
-RUN sed -i "s/;emergency_restart_threshold\s*=\s*.*/emergency_restart_threshold = 10/g" $PHP_INI_DIR/../php-fpm.conf \
-  && sed -i "s/;emergency_restart_interval\s*=\s*.*/emergency_restart_interval = 1m/g" $PHP_INI_DIR/../php-fpm.conf \
-  && sed -i "s/;process_control_timeout\s*=\s*.*/process_control_timeout = 10s/g" $PHP_INI_DIR/../php-fpm.conf
+COPY opt/docker/php/*.ini $PHP_INI_DIR/conf.d/
+COPY opt/docker/php/www.conf $PHP_INI_DIR/../php-fpm.d/
 
-COPY /opt/docker/php/ssh_config /etc/ssh/ssh_config
-
-COPY composer.json /var/www/html/composer.json
-COPY composer.lock /var/www/html/composer.lock
-RUN mkdir -p /var/log/php7 && chmod -Rf 777 /var/log/php7 \
-  ; composer config --global use-github-api false \
-  ; rm -rf vendor && mkdir -p vendor && php -d memory_limit=-1 `which composer` install -no --apcu-autoloader --no-scripts --no-progress --no-autoloader --no-cache \
-  ;
-VOLUME /var/www/html/vendor
-
-COPY app /var/www/html/app
-COPY src /var/www/html/src
-COPY themes /var/www/html/themes
-COPY var /var/www/html/var
-COPY web /var/www/html/web
 COPY /opt/docker/php/cronjobs /etc/cron.d/crontab
 RUN chmod 0644 /etc/cron.d/crontab \
  ; touch /var/log/cron.log \
  ; /usr/bin/crontab /etc/cron.d/crontab \
- ; chmod -Rf 777 var/ \
  ;
+
+COPY . /var/www/html
+RUN mkdir -p /var/log/php7 && chmod -Rf 777 /var/log/php7 \
+RUN composer config --global use-github-api false \
+  ; rm -rf vendor && mkdir -p vendor \
+  ; php -d memory_limit=-1 `which composer` install --no-scripts --no-autoloader || exit 1 \
+  ; composer dumpautoload -no --apcu --no-scripts \
+  ;
+VOLUME /var/www/html/vendor
 
 COPY /opt/docker/php/entrypoint.sh /entrypoint.sh
 COPY /opt/docker/php/entrypoint.sh /entrypoint-nomigrate.sh
 RUN sed -i "s|exec \"\$@\"||g" /entrypoint.sh \
   ; sed -i "s|exec \"\$@\"||g" /entrypoint-nomigrate.sh \
-  ; echo "composer dumpautoload --apcu -no --no-scripts \$COMPOSER_PARAMS;\ncomposer install -no --apcu-autoloader --no-progress;\ncomposer run db-migrate;\nchown -Rf www-data /var/www/html/var\nexec \"\$@\";" >> /entrypoint.sh \
-  ; echo "composer dumpautoload --apcu -no --no-scripts \$COMPOSER_PARAMS;\ncomposer install -no --apcu-autoloader --no-progress --no-scripts;\ncomposer run symfony-scripts;\ncomposer run cleancache;\nexec \"\$@\";" >> /entrypoint-nomigrate.sh \
+  ; echo "composer run post-install-cmd;\ncomposer run db-migrate;\nchmod ugo+w -R var\nexec \"\$@\";" >> /entrypoint.sh \
+  ; echo "composer run post-install-cmd;\nchmod ugo+w -R var\nexec \"\$@\";" >> /entrypoint-nomigrate.sh \
   ;
 RUN chmod +x /entrypoint*.sh
 ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
-EXPOSE 9000
-CMD ["php-fpm", "--nodaemonize"]
+CMD ["php-fpm"]
 
 FROM nginx:latest as webservice
 ENV PHP_SSH_USER=piwi \

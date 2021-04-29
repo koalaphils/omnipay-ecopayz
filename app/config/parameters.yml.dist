@@ -3,6 +3,7 @@
 # http://symfony.com/doc/current/best_practices/configuration.html#infrastructure-related-configuration
 parameters:
     database_driver:   "${DATABASE_DRIVER}"
+    database_replica_host: ${DATABASE_REPLICA_HOST}
     database_host:     "${DATABASE_HOST}"
     database_port:     "${DATABASE_PORT}"
     database_name:     "${DATABASE_NAME}"
@@ -91,6 +92,8 @@ parameters:
 
     redis.host: ${REDIS_HOST}
     redis.port: ${REDIS_PORT}
+    redis.replica.host: ${REDIS_REPLICA_HOST}
+    redis.replica.port: ${REDIS_REPLICA_PORT}
     redis.database_id: ${REDIS_DATABASE}
     product_integration:
         evolution:

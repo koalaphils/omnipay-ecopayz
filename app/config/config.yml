@@ -57,6 +57,9 @@ framework:
     http_method_override: true
     serializer: { enabled: true }
     trusted_proxies:  "%trusted_proxies%"
+    cache:
+        app: cache.adapter.apcu
+        system: cache.adapter.apcu
 
 swiftmailer:
     transport: "%mailer_transport%"

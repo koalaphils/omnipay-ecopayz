@@ -60,8 +60,8 @@ class MailerManager
         $tmpMetadata = stream_get_meta_data($tempFile);
 
         if (!feof($tempFile)) {
-            $message = \Swift_Message::newInstance()
-                ->setSubject($subject)
+            $message = new \Swift_Message();
+                $message->setSubject($subject)
                 ->setFrom(trim($this->mailerEmailFrom))
                 ->setTo(trim($to))
                 ->setBody(
