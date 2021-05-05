@@ -56,6 +56,7 @@ DbBundle\Entity\Customer:
             expose: true
             serialized_name: locale
         websocket:
+            expose: true
             exp: object.getWebsocketDetails()
             groups: ['websocket']
             serialized_name: websocket

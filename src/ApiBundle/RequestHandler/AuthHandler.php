@@ -196,7 +196,7 @@ class AuthHandler
         ], $integrationResponses);
         
         $this->deleteUserAccessToken($accessToken->getUser()->getId(), [], [$accessToken->getToken()]);
-    
+
         if ($user->getCustomer()->getWebsocketChannel() === '') {
             $user->getCustomer()->setWebsocketChannel(uniqid(generate_code(10, false, 'ld')));
             $this->entityManager->persist($user->getCustomer());
@@ -207,6 +207,7 @@ class AuthHandler
         $this->customerManager->handleAudit('login');
 
         $channel = $user->getCustomer()->getWebsocketDetails()['channel_id'];
+        $loginResponse['channelId'] = $channel;
         $this->publisher->publishUsingWamp('login.' . $channel, ['access_token' => $accessToken->getToken()]);
 
         return $loginResponse;
