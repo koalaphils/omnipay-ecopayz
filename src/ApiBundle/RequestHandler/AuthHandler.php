@@ -179,29 +179,28 @@ class AuthHandler
         $data = json_decode($response->getContent(), true);
         $accessToken = $this->oauthService->verifyAccessToken($data['access_token']);
         $user = $accessToken->getUser();
-        $member = $user->getCustomer();
 
         $this->loginUser($user);
 
         $jwt = $this->generateJwtToken($user->getCustomer());
         $integrationResponses = $this->loginToProducts($user, $jwt, $request);
 
-        $loginResponse = array_merge([
-            'token' => $data,
-            'member' => $member,
-            'process_payments' => $this->getPaymentOptions($user->getCustomer()->getId()),
-            'products' => $member->getProducts(),
-            'jwt' => $jwt,
-            'accessToken' => $accessToken->getToken()
-        ], $integrationResponses);
-        
-        $this->deleteUserAccessToken($accessToken->getUser()->getId(), [], [$accessToken->getToken()]);
-    
         if ($user->getCustomer()->getWebsocketChannel() === '') {
             $user->getCustomer()->setWebsocketChannel(uniqid(generate_code(10, false, 'ld')));
             $this->entityManager->persist($user->getCustomer());
             $this->entityManager->flush($user->getCustomer());
         }
+
+        $loginResponse = array_merge([
+            'token' => $data,
+            'member' => $$user->getCustomer(),
+            'process_payments' => $this->getPaymentOptions($user->getCustomer()->getId()),
+            'products' => $$user->getCustomer()->getProducts(),
+            'jwt' => $jwt,
+            'accessToken' => $accessToken->getToken()
+        ], $integrationResponses);
+        
+        $this->deleteUserAccessToken($accessToken->getUser()->getId(), [], [$accessToken->getToken()]);
 
         $this->saveSession($user, $data, $integrationResponses['pinnacle']);
         $this->customerManager->handleAudit('login');
