@@ -193,9 +193,9 @@ class AuthHandler
 
         $loginResponse = array_merge([
             'token' => $data,
-            'member' => $$user->getCustomer(),
+            'member' => $user->getCustomer(),
             'process_payments' => $this->getPaymentOptions($user->getCustomer()->getId()),
-            'products' => $$user->getCustomer()->getProducts(),
+            'products' => $user->getCustomer()->getProducts(),
             'jwt' => $jwt,
             'accessToken' => $accessToken->getToken()
         ], $integrationResponses);
