@@ -33,6 +33,12 @@ x-environment: &php-env
       - DATABASE_USER=backoffice
       - DATABASE_PASSWORD=backoffice_pass
       - DATABASE_PORT=3306
+      - DATABASE_REPLICA_HOST=database
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DATABASE=0
+      - REDIS_REPLICA_HOST=
+      - REDIS_REPLICA_PORT=
       - ECOPAYZ_TEST_MODE=true
       - BC_KEY=2db87356-bfbb-412d-8403-39b669cd9a9d
       - BC_WALLET_URL=http://wallet:3000
@@ -43,9 +49,6 @@ x-environment: &php-env
       - BC_CALLBACK_HOST=https://cydrick.serveo.net
       - TRUSTED_PROXIES=172.0.0.0/8,10.0.0.0/8,192.0.0.0/8
       - TIMEZONE=Etc/GMT+4
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_DATABASE=0
       - MSERVICE_USERNAME=admin
       - MSERVICE_PASSWORD=admin
       - AWS_SDK_VERSION=latest
@@ -56,8 +59,10 @@ x-environment: &php-env
       - AWS_BUCKET=zmt-piwi
       - CUSTOMER_FOLDER=customerDocuments
       - UPLOAD_FOLDER=/uploads
-      - SESSION_EXPIRATION_TIME=180
-
+      - SESSION_EXPIRATION_TIME=3600
+      - ACCESS_TOKEN_EXPIRES_IN=3600
+      - API_GATEWAY_URL=http://api-gateway/api/v1
+      - EWL_URL=http://api-gateway/api/v1/ewl
 services:
   database:
     image: mysql:8.0.15
