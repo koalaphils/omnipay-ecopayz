@@ -9,3 +9,4 @@ fos_oauth_server:
     user_provider: api.oauth_user_provider
     options:
       supported_scopes: api
+      access_token_lifetime: "%access_token_expires_in%"
