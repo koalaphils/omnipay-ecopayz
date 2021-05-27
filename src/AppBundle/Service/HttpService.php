@@ -73,6 +73,31 @@ class HttpService
         }
     }
 
+    public function delete(string $url, $options = [])
+    {
+        $contents = "";
+
+        try{
+            $this->logger->info('HTTP SERVICE REQUEST: ' . 'DELETE ' . $url . ' ' . print_r($options, true));
+            $options['headers'] = array_merge($options['headers'], [
+                'Content-Type' => 'application/json;charset=UTF-8',
+                'Accept' => 'application/json, text/plain, */*'
+            ]);
+
+            $response = $this->client->request("DELETE", $url, $options);
+            if($response->getStatusCode() >= 200 && $response->getStatusCode() < 300){
+                $contents = \GuzzleHttp\json_decode($response->getBody()->getContents(), true);
+            }
+
+            $this->logger->info('HTTP SERVICE RESPONSE: ' . $response->getStatusCode() . ' '. print_r($contents, true));
+
+            return $contents;
+        }catch (GuzzleException $ex){
+            $this->logger->info('HTTP SERVICE RESPONSE: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
+            return $contents;
+        }
+    }
+
     public function put(string $url, $options = [])
     {
         $contents = "";

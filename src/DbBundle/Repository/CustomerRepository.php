@@ -204,10 +204,8 @@ class CustomerRepository extends BaseRepository
                 "PARTIAL c.{id, fName, mName, lName, fullName, country, currency, balance, socials, level, isAffiliate, isCustomer, details, verifiedAt, joinedAt, tags, pinUserCode}, "
                 . "PARTIAL u.{username, id, email, preferences, createdAt, isActive, activationTimestamp, creator}, "
                 . "PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}, "
-                . "PARTIAL a.{id},"
                 . "PARTIAL cr.{id, username}"
             )
-            ->leftJoin('c.affiliate', 'a')
             ->groupBy('c.id')
         ;
 
@@ -457,11 +455,8 @@ class CustomerRepository extends BaseRepository
             . "PARTIAL u.{username, id, email, preferences, createdAt, isActive,
                 activationTimestamp, creator}, "
             . "PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}, "
-            . "PARTIAL a.{id},"
-            . "PARTIAL cr.{id, username},"
-            . "(SELECT COUNT(ref.id) FROM " . \DbBundle\Entity\Customer::class . " ref WHERE ref.affiliate = c.id) referralCount"
+            . "PARTIAL cr.{id, username}"
         )
-            ->leftJoin('c.affiliate', 'a')
             ->groupBy('c.id');
 
         $qb->setMaxResults($filters["limit"]);

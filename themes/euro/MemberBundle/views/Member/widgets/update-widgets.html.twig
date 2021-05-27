@@ -475,7 +475,7 @@
 
                 $('#{{ form.vars.id }}').submit(function (e) {
                     var currentReferrer = $('#{{ form.referrer.vars.id }}').val();
-                    if (currentReferrer != originalReferrer && originalReferrer !== null) {
+                    {# if (currentReferrer != originalReferrer && originalReferrer !== null) {
                         submitProfile = false;
                         confirm2(
                             'We just found that you have removed the referrer, removing it will unlink the member to <b>' + referrer.current.name + '</b>?',
@@ -497,7 +497,7 @@
                                 }
                             }
                         );
-                    }
+                    } #}
 
                     if (!submitProfile) {
                         e.preventDefault(e);

@@ -56,7 +56,7 @@ class UpdateProfileRequest
         }
 
         $request->currency = $customer->getCurrency()->getId();
-        $request->referrer = $customer->getReferral();
+        $request->referrer = $customer->getAffiliate() ? $customer->getAffiliate() : null;
         $request->joinedAt = $customer->getJoinedAt();
         $request->affiliateLink = $customer->getUser()->getPreference('affiliateCode');
         $request->referrerSite = $customer->getDetail('registration.referrer_url', '');
@@ -68,16 +68,11 @@ class UpdateProfileRequest
         $request->riskSetting = $customer->getRiskSetting();
         $request->tags = $customer->getTags();
         $request->clientIp = $customer->getDetail('registration.ip');
-        $request->referralCode = 'MEOWMY';
+        $request->referralCode  = $customer->getDetail('referral_code');
 
         foreach ($customer->getGroups() as $group) {
             $request->groups[] = $group->getId();
         }
-
-        if ($customer->getAffiliate() !== null) {
-            $request->referrer = $customer->getAffiliate()->getId();
-        }
-
         $request->locale = $customer->getLocale();
 
         return $request;

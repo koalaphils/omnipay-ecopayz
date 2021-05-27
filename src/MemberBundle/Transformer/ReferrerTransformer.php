@@ -2,37 +2,44 @@
 
 namespace MemberBundle\Transformer;
 
-/**
- * Description of ReferrerTransformer
- *
- * @author cydrick
- */
-class ReferrerTransformer implements \Symfony\Component\Form\DataTransformerInterface
+use AppBundle\Service\AffiliateService;
+use Doctrine\Bundle\DoctrineBundle\Registry;
+use Symfony\Component\Form\DataTransformerInterface;
+
+class ReferrerTransformer implements DataTransformerInterface
 {
     private $doctrine;
+    private $affiliateService;
 
-    public function __construct(\Doctrine\Bundle\DoctrineBundle\Registry $doctrine)
+    public function __construct(Registry $doctrine, AffiliateService $affiliateService)
     {
         $this->doctrine = $doctrine;
+        $this->affiliateService = $affiliateService;
     }
 
     public function reverseTransform($value)
-    {
-        return $value;
+    {     
+       return $value;
     }
 
     public function transform($value)
     {
         if ($value) {
-            $referrer = $this->getCustomerRepository()->find($value);
-
-            return [$referrer->getFullName() . '(' . $referrer->getUser()->getUsername() . ')' => $referrer->getId()];
+            $affiliate = $this->affiliateService->getAffiliate($value)['data'];
+            
+            return [$affiliate['name'] . '(' . $affiliate['username'] . ')' => $affiliate['user_id']];
         }
+
         return $value;
     }
 
     private function getCustomerRepository(): \DbBundle\Repository\CustomerRepository
     {
         return $this->doctrine->getRepository(\DbBundle\Entity\Customer::class);
+    }
+
+    private function getUserRepository(): \DbBundle\Repository\UserRepository
+    {
+        return $this->doctrine->getRepository(\DbBundle\Entity\User::class);
     }
 }

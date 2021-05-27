@@ -226,10 +226,6 @@ class PageManager
     {
         $widgetInfo = $this->widgetsInfo[$widgetName];
         
-        if ($widgetName === 'profileForm') {
-            dump($widgetInfo);
-        }
-
         $widget = new $widgetInfo['type']($widgetInfo['action'], $widgetName, $this);
         $widget->setContainer($this->container);
         $widget->setProperties(array_merge($widgetInfo['properties'], $properties));

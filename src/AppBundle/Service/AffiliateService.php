@@ -11,6 +11,15 @@ class AffiliateService
         $this->http = $http;
     }
 
+    public function getAffiliate(int $affiliateUserId)
+    {
+        $url = sprintf('/api/v1/affiliate/%d', $affiliateUserId);
+
+        $response = $this->http->get($url, []);
+
+        return $response;
+    }
+
     public function getAffiliates(array $params)
     {
         $url = '/api/v1/affiliate?name=%s';
@@ -24,12 +33,19 @@ class AffiliateService
         return $response;
     }
 
-    public function mapMemberToAffiliate($memberUserId, $affiliateUserId)
+    public function addMember($memberUserId, $affiliateUserId)
     {
-        $this->http->post("/api/v1/affiliate/" . $affiliateUserId . "/map-member", [
+        $this->http->post("/api/v1/affiliate/" . $affiliateUserId . "/member", [
             'json' => [
                 'member_user_id' => $memberUserId
             ],
+            'headers' => []
+        ]);
+    }
+
+    public function removeMember($memberUserId, $affiliateUserId)
+    {
+        $this->http->delete("/api/v1/affiliate/" . $affiliateUserId . "/member/" . $memberUserId, [
             'headers' => []
         ]);
     }

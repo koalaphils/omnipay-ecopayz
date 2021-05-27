@@ -532,11 +532,11 @@
         }
 
         $(function () {
-            $('#{{ widgets.referrals.getFullId() }}_container').on('click', '.btn-unlink', function () {
+            {# $('#{{ widgets.referrals.getFullId() }}_container').on('click', '.btn-unlink', function () {
                 var currentRow = $(this).closest('tr');
                 var data = {{ widgets.referrals.getFullId() }}Table.dataTable.api().row(currentRow).data();
                 unlinkCustomer(data);
-            });
+            }); #}
         });
 
         $(function () {
@@ -976,7 +976,8 @@
             });
         }
 
-        $('#autoLink').click(function(e) {
+        {# {{ dump(customer.affiliate) }}We just #}
+        {# $('#autoLink').click(function(e) {
             var profileForm = $(this).closest('form');
             var referrerElement = $('#{{ widgets.profileForm.getFormView().referrer.vars.id }}');
 
@@ -1032,14 +1033,14 @@
                     }
                 }
             );
-        });
+        }); #}
 
         function toggleLinkReferrerButton() {
-            $('#autoLink').prop('disabled', true);
+            {# $('#autoLink').prop('disabled', true);
 
             if (referrer.byCode.id != '' && (referrer.byCode.id != referrer.current.id)) {
                 $('#autoLink').prop('disabled', false);
-            }
+            } #}
         };
 
         // Send Activation Email
