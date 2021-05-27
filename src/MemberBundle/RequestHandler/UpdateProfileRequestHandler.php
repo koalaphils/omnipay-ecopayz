@@ -111,11 +111,11 @@ class UpdateProfileRequestHandler
         // $customer->getUser()->setPreference('affiliateCode', $request->getAffiliateLink());
         // $customer->getUser()->setPreference('promoCode', $request->getPromoCode());
 
-        $memberGroups = [];
         foreach ($request->getGroups() as $groupId) {
-            $memberGroups[] = $this->getCustomerGroupRepository()->findOneById($groupId);
+            $group = $this->getCustomerGroupRepository()->findOneById($groupId);
+            $customer->addGroup($group);
         }
-        $customer->setGroups($memberGroups);
+
         $this->processAffiliate($request, $customer);
 
         // $this->dispatchAffiliateLinkingEvent($customer, $request->getReferrer());
