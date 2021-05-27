@@ -64,8 +64,7 @@ class LoginEventListener
         ];
         $jwt = JWT::encode($payload, $this->jwtKey);
         $session->set('jwt', $jwt);
-        dump($payload);
-
+        
         if (!is_cli()) {
             $this->container->get('audit.manager')->audit(
                 $user,

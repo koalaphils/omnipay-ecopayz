@@ -246,26 +246,29 @@ class MemberController extends PageController
 
     public function onFindMembers(PageManager $pageManager, array $data): array
     {
-        $memberId = !empty($pageManager->getCurrentRequest()->get('_route_params')['id']) ? $pageManager->getCurrentRequest()->get('_route_params')['id'] : null;
+        $affiliates = $this->get('app.service.affiliate_service')
+            ->getAffiliates($data);
 
-        $filters = [];
-        if (array_has($data, 'search')) {
-            $filters['search'] = $data['search'];
-        }
+        // $memberId = !empty($pageManager->getCurrentRequest()->get('_route_params')['id']) ? $pageManager->getCurrentRequest()->get('_route_params')['id'] : null;
 
-        $records = $this->getCustomerRepository()->getPossibleReferrers($memberId, $filters, $data['length'], $data['start']);
+        // $filters = [];
+        // if (array_has($data, 'search')) {
+        //     $filters['search'] = $data['search'];
+        // }
 
-        $records = array_map(function ($record) {
+        // $records = $this->getCustomerRepository()->getPossibleReferrers($memberId, $filters, $data['length'], $data['start']);
+
+        $records = array_map(function ($affiliate) {
             return [
-                'id' => $record['id'],
-                'text' => $record['fullName'] . ' (' . $record['user']['username'] . ')',
-                'refferer' => $record['affiliate']['id'],
+                'id' => $affiliate['user_id'],
+                'text' => $affiliate['name'],
+                // 'refferer' => $record['affiliate']['id'],
             ];
-        }, $records);
+        }, $affiliates['data']);
 
         return [
             'items' => $records,
-            'total' => $this->getCustomerRepository()->getCustomerListAllCount(),
+            // 'total' => $this->getCustomerRepository()->getCustomerListAllCount(),
         ];
     }
 

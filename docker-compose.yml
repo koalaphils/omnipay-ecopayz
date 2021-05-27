@@ -101,6 +101,7 @@ services:
       - CUSTOMER_FOLDER=customerDocuments
       - UPLOAD_FOLDER=/uploads
       - SESSION_EXPIRATION_TIME=86400
+      - API_GATEWAY_SERVICE=http://api-gateway
     networks:
       - piwinet
 

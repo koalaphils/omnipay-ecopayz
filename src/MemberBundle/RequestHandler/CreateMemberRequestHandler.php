@@ -2,6 +2,7 @@
 
 namespace MemberBundle\RequestHandler;
 
+use AppBundle\Service\AffiliateService;
 use DbBundle\Entity\Country;
 use DbBundle\Entity\Currency;
 use DbBundle\Entity\Customer;
@@ -13,11 +14,13 @@ use DbBundle\Repository\CustomerGroupRepository;
 use DbBundle\Repository\CountryRepository;
 use DbBundle\Repository\CurrencyRepository;
 use DbBundle\Repository\ProductRepository;
+use DbBundle\Repository\UserRepository;
 use Doctrine\ORM\EntityManager;
 use MemberBundle\Manager\MemberManager;
 use MemberBundle\Request\CreateMemberRequest;
 use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoder;
 use UserBundle\Manager\UserManager;
 use ApiBundle\Service\JWTGeneratorService;
@@ -34,6 +37,7 @@ class CreateMemberRequestHandler
     private $pinnacleService;
     private $jwtGeneratorService;
     private $productIntegrationFactory;
+    private $affiliateService;
 
     public function __construct(
         EntityManager $entityManager,
@@ -44,6 +48,7 @@ class CreateMemberRequestHandler
         PinnacleService $pinnacleService,
         JWTGeneratorService $jwtGeneratorService,
         ProductIntegrationFactory $productIntegrationFactory,
+        AffiliateService $affiliateService,
         string $asianconnectUrl
     ) {
         $this->entityManager = $entityManager;
@@ -55,6 +60,7 @@ class CreateMemberRequestHandler
         $this->pinnacleService = $pinnacleService;
         $this->jwtGeneratorService = $jwtGeneratorService;
         $this->productIntegrationFactory = $productIntegrationFactory;
+        $this->affiliateService = $affiliateService;
     }
 
     public function handle(CreateMemberRequest $request)
@@ -94,8 +100,11 @@ class CreateMemberRequestHandler
                 $member->addGroup($this->entityManager->getPartialReference(CustomerGroup::class, $groupId));
             }
         }
+
         if ($request->getReferal() !== null) {
-            $member->setAffiliate($this->entityManager->getPartialReference(Customer::class, $request->getReferal()));
+            $affiliate = $this->getUserRepository()->findOneById($request->getReferal())
+                ->getCustomer();
+            $member->setAffiliate($affiliate);
         }
 
         $currency = $this->getCurrencyRepository()->findById($request->getCurrency());
@@ -124,60 +133,71 @@ class CreateMemberRequestHandler
             $memberProduct->setUserName($this->generateUsername($username));
             $member->addProduct($memberProduct);
         } else {
-            $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
-            $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->createPlayer();
-            $memberPinProduct = new CustomerProduct();
-            $memberPinProduct->setBalance('0.00');
-            $memberPinProduct->setIsActive(true);
-            $memberPinProduct->setProduct($pinnacleProduct);
-            $memberPinProduct->setUserName($pinnaclePlayer->userCode());
-            $member->setPinLoginId($pinnaclePlayer->loginId());
-            $member->setPinUserCode($pinnaclePlayer->userCode());
-            $member->addProduct($memberPinProduct);
+            // $walletProduct = $this->getProductRepository()->getProductByCode(Product::MEMBER_WALLET_CODE);
+            // $memberWalletProduct = new CustomerProduct();
+            // $memberWalletProduct->setProduct($walletProduct);
+            // $memberWalletProduct->setUsername(Product::MEMBER_WALLET_CODE . '_' . uniqid());
+            // $memberWalletProduct->setBalance('0.00');
+            // $memberWalletProduct->setIsActive(true);
+            // $member->addProduct($memberWalletProduct);
 
-            $walletProduct = $this->getProductRepository()->getProductByCode(Product::MEMBER_WALLET_CODE);
-            $memberWalletProduct = new CustomerProduct();
-            $memberWalletProduct->setProduct($walletProduct);
-            $memberWalletProduct->setUsername(Product::MEMBER_WALLET_CODE . '_' . uniqid());
-            $memberWalletProduct->setBalance('0.00');
-            $memberWalletProduct->setIsActive(true);
-            $member->addProduct($memberWalletProduct);
+            // $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
+            // $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->createPlayer();
+            // $memberPinProduct = new CustomerProduct();
+            // $memberPinProduct->setBalance('0.00');
+            // $memberPinProduct->setIsActive(true);
+            // $memberPinProduct->setProduct($pinnacleProduct);
+            // $memberPinProduct->setUserName($pinnaclePlayer->userCode());
+            // $member->setPinLoginId($pinnaclePlayer->loginId());
+            // $member->setPinUserCode($pinnaclePlayer->userCode());
+            // $member->addProduct($memberPinProduct);
 
-            $integration = $this->productIntegrationFactory->getIntegration(Product::EVOLUTION_PRODUCT_CODE);
-            $evolutionProduct = $this->getProductRepository()->getProductByCode(Product::EVOLUTION_PRODUCT_CODE);
-            $memberEvoProduct = new CustomerProduct();
-            $memberEvoProduct->setProduct($evolutionProduct);
-            $memberEvoProduct->setUsername('Evolution_' . uniqid());
-            $memberEvoProduct->setBalance('0.00');
-            $memberEvoProduct->setIsActive(true);
-            $member->addProduct($memberEvoProduct);
+            // $integration = $this->productIntegrationFactory->getIntegration(Product::EVOLUTION_PRODUCT_CODE);
+            // $evolutionProduct = $this->getProductRepository()->getProductByCode(Product::EVOLUTION_PRODUCT_CODE);
+            // $memberEvoProduct = new CustomerProduct();
+            // $memberEvoProduct->setProduct($evolutionProduct);
+            // $memberEvoProduct->setUsername('Evolution_' . uniqid());
+            // $memberEvoProduct->setBalance('0.00');
+            // $memberEvoProduct->setIsActive(true);
+            // $member->addProduct($memberEvoProduct);
 
-            try {
-                $jwt = $this->jwtGeneratorService->generate([]);
-                $integration->auth($jwt, [
-                    'id' => $memberEvoProduct->getUsername(),
-                    'lastName' => $request->getFullName() ? $request->getFullName() : $username,
-                    'firstName' => $request->getFullName() ? $request->getFullName() : $username,
-                    'nickname' => str_replace("Evolution_","", $memberEvoProduct->getUsername()),
-                    'country' => $country ? $country->getCode() : 'UK',
-                    'language' => 'en',
-                    'currency' => $currency->getCode(),
-                    'ip' => $this->getClientIp(),
-                    'sessionId' => $this->getSessionId(),
-                ]);
-            } catch (\Exception $ex) {
-                throw new \Exception('Failed to create EVO Account.', Response::HTTP_UNPROCESSABLE_ENTITY);
-            }
+            // try {
+            //     $jwt = $this->jwtGeneratorService->generate([]);
+            //     $integration->auth($jwt, [
+            //         'id' => $memberEvoProduct->getUsername(),
+            //         'lastName' => $request->getFullName() ? $request->getFullName() : $username,
+            //         'firstName' => $request->getFullName() ? $request->getFullName() : $username,
+            //         'nickname' => str_replace("Evolution_","", $memberEvoProduct->getUsername()),
+            //         'country' => $country ? $country->getCode() : 'UK',
+            //         'language' => 'en',
+            //         'currency' => $currency->getCode(),
+            //         'ip' => $this->getClientIp(),
+            //         'sessionId' => $this->getSessionId(),
+            //     ]);
+            // } catch (\Exception $ex) {
+            //     throw new \Exception('Failed to create EVO Account.', Response::HTTP_UNPROCESSABLE_ENTITY);
+            // }
         }
 
         $member->setTags([]);
         $member->setUser($user);
         $user->setCustomer($member);
         $member->setTags([Customer::ACRONYM_MEMBER]);
-        
+
         $this->entityManager->persist($member);
         $this->entityManager->flush($member);
 
+        if ($user->isAffiliate()) {
+            $this->affiliateService->createAffiliate([
+                'user_id' => $user->getId(),
+                'username' => $user->getUsername(),
+                'email' => $user->getEmail(),
+                'name' => $user->getCustomer()->getFullName()
+            ]);
+        } else {
+            $this->affiliateService->mapMemberToAffiliate($user->getId(), $member->getAffiliate()->getId());
+        }
+        
         return $member;
     }
 
@@ -216,10 +236,14 @@ class CreateMemberRequestHandler
         return $this->entityManager->getRepository(Currency::class);
     }
 
-
     private function getProductRepository(): ProductRepository
     {
         return $this->entityManager->getRepository(Product::class);
+    }
+
+    private function getUserRepository(): UserRepository
+    {
+        return $this->entityManager->getRepository(User::class);
     }
 
     private function generateUsername(string $username): string

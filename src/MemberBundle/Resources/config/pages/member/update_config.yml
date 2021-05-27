@@ -166,7 +166,14 @@ widgets:
                     readonly: true
                 affiliateLink:
                     options:
-                        label: Referrer Code
+                        label: Referral Code
+                        required: false
+                    type: text
+                    size: 12
+                    group: marketLeft
+                referralCode:
+                    options:
+                        label: Referral Meow
                         required: false
                     type: text
                     size: 12

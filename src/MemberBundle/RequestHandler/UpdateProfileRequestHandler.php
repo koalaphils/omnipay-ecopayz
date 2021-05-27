@@ -70,42 +70,44 @@ class UpdateProfileRequestHandler
         $customer->setTags($request->getTags());
         $customer->setLocale($request->getLocale());
 
-        $this->setReferrerByCode($request->getAffiliateLink(), $customer);
+        dump($request);
 
-        if ($this->hasChangeAffiliateLink($request->getAffiliateLink(), $originalAffiliateLink)) {
-            $marketingTool = $this->entityManager->getRepository(MarketingTool::class)->findMarketingToolByMember($customer);
-            if ($marketingTool instanceof MarketingTool) {
-                $this->updateAffiliateLink($marketingTool, $customer, $originalAffiliateLink);
-            } else {
-                $marketingTool = new MarketingTool();
-                $this->createNewAffiliateLink($marketingTool, $customer, $originalAffiliateLink);
-            }
+        // $this->setReferrerByCode($request->getAffiliateLink(), $customer);
 
-            $affiliateLinkLogDetails = [$originalAffiliateLink, $request->getAffiliateLink()];
+        // if ($this->hasChangeAffiliateLink($request->getAffiliateLink(), $originalAffiliateLink)) {
+        //     $marketingTool = $this->entityManager->getRepository(MarketingTool::class)->findMarketingToolByMember($customer);
+        //     if ($marketingTool instanceof MarketingTool) {
+        //         $this->updateAffiliateLink($marketingTool, $customer, $originalAffiliateLink);
+        //     } else {
+        //         $marketingTool = new MarketingTool();
+        //         $this->createNewAffiliateLink($marketingTool, $customer, $originalAffiliateLink);
+        //     }
 
-            $this->logMarketingDetails($marketingTool, $affiliateLinkLogDetails, []);
-        }
+        //     $affiliateLinkLogDetails = [$originalAffiliateLink, $request->getAffiliateLink()];
 
-        if ($this->hasPreviousEmptyAffiliateLink($request->getAffiliateLink(), $originalAffiliateLink)) {
-            $marketingTool = new MarketingTool();
-            $marketingTool->setMember($customer);
+        //     $this->logMarketingDetails($marketingTool, $affiliateLinkLogDetails, []);
+        // }
 
-            $affiliateLinkLogDetails = [$originalAffiliateLink, $request->getAffiliateLink()];
+        // if ($this->hasPreviousEmptyAffiliateLink($request->getAffiliateLink(), $originalAffiliateLink)) {
+        //     $marketingTool = new MarketingTool();
+        //     $marketingTool->setMember($customer);
 
-            $this->logMarketingDetails($marketingTool, $affiliateLinkLogDetails, []);
-        }
+        //     $affiliateLinkLogDetails = [$originalAffiliateLink, $request->getAffiliateLink()];
 
-        if ($this->hasChangePromoCode($request->getPromoCode(), $originalPromoCode)) {
-            $marketingTool = new MarketingTool();
-            $marketingTool->setMember($customer);
+        //     $this->logMarketingDetails($marketingTool, $affiliateLinkLogDetails, []);
+        // }
 
-            $promoCodeLogDetails = [$customer->getUser()->getPreference('promoCode'), $request->getPromoCode()];
+        // if ($this->hasChangePromoCode($request->getPromoCode(), $originalPromoCode)) {
+        //     $marketingTool = new MarketingTool();
+        //     $marketingTool->setMember($customer);
 
-            $this->logMarketingDetails($marketingTool, [], $promoCodeLogDetails);
-        }
+        //     $promoCodeLogDetails = [$customer->getUser()->getPreference('promoCode'), $request->getPromoCode()];
 
-        $customer->getUser()->setPreference('affiliateCode', $request->getAffiliateLink());
-        $customer->getUser()->setPreference('promoCode', $request->getPromoCode());
+        //     $this->logMarketingDetails($marketingTool, [], $promoCodeLogDetails);
+        // }
+
+        // $customer->getUser()->setPreference('affiliateCode', $request->getAffiliateLink());
+        // $customer->getUser()->setPreference('promoCode', $request->getPromoCode());
 
         $memberGroups = [];
         foreach ($request->getGroups() as $groupId) {

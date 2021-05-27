@@ -98,6 +98,8 @@ class PageController extends AbstractController
         $viewParameters = $pageManager->getAllData();
         $viewParameters['page'] = $pageManager;
         $viewParameters['widgets'] = $pageManager->getWidgets();
+        dump($viewParameters);
+        dump($pageManager->getConfig('template'));
 
         return $this->render($pageManager->getConfig('template'), $viewParameters);
     }

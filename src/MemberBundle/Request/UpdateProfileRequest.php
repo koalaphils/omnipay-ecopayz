@@ -19,6 +19,7 @@ class UpdateProfileRequest
     private $joinedAt;
     private $userType;
 
+    private $referralCode;
     private $affiliateLink;
     private $referrerSite;
     private $registrationSite;
@@ -67,6 +68,7 @@ class UpdateProfileRequest
         $request->riskSetting = $customer->getRiskSetting();
         $request->tags = $customer->getTags();
         $request->clientIp = $customer->getDetail('registration.ip');
+        $request->referralCode = 'MEOWMY';
 
         foreach ($customer->getGroups() as $group) {
             $request->groups[] = $group->getId();
@@ -214,6 +216,16 @@ class UpdateProfileRequest
     public function setJoinedAt(\DateTimeInterface $joinedAt): void
     {
         $this->joinedAt = $joinedAt;
+    }
+
+    public function getReferralCode(): ?string
+    {
+        return $this->referralCode;
+    }
+
+    public function setReferralCode($referralCode)
+    {
+        $this->referralCode = $referralCode;
     }
 
     public function getAffiliateLink(): ?string

@@ -86,8 +86,7 @@ class FormWidget extends AbstractPageWidget
         $formFactory = $this->getFormFactory();
         $class = $this->property('modelClass');
         $propertyData = $this->property('data', null);
-
-        if (is_string($propertyData) && substr($propertyData, 0, 12) === '@pageManager') {
+        if (is_string($propertyData) && substr($propertyData, 0, 12) === '@pageManager') {  
             $dataName = substr($propertyData, 13);
             $entity = $this->getPageManager()->getData($dataName);
             if (get_class($entity) !== $class) {

@@ -4,7 +4,8 @@
     <a href="#" id="affiliate-link-versions" class="text-center member-referrer-tooltip" data-toggle="tooltip" data-placement="right" data-html="true" title=""><i class="fa fa-question-circle"></i></a>
 {% endblock update_affiliateLink_version_widget %}
 
-{% block _update_profileForm_data_affiliateLink_widget %}
+
+{% block _update_profileForm_data_referralCode_widget %}
 	<div class="input-group">
 
         {%- set attr = attr|merge({class: (attr.class|default('') ~ ' form-control')|trim}) -%}
@@ -16,7 +17,8 @@
 	</div>
 
 	{{ block('update_affiliateLink_version_widget') }}
-{% endblock _update_profileForm_data_affiliateLink_widget %}
+{% endblock _update_profileForm_data_referralCode_widget %}
+
 
 {% block form_row -%}
 	<div class="form-group{% if (not compound or force_error|default(false)) and not valid %} has-error{% endif %}">
