@@ -2,25 +2,15 @@
 
 namespace MemberBundle\Controller;
 
-use DbBundle\Entity\Product;
-use DbBundle\Repository\ProductRepository;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
-
-use DateTime;
 use AppBundle\Controller\PageController;
 use AppBundle\Manager\PageManager;
 use AppBundle\Widget\Page\ListWidget;
-use MemberBundle\Manager\MemberReferralNameManager;
-use MemberBundle\Manager\MemberCommissionManager;
-use MemberBundle\Manager\MemberRevenueShareManager;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerGroup;
 use DbBundle\Entity\MarketingTool;
 use DbBundle\Entity\RiskSetting;
+use DbBundle\Entity\Product;
+use DbBundle\Repository\ProductRepository;
 use DbBundle\Repository\CustomerGroupRepository;
 use DbBundle\Repository\CustomerRepository;
 use DbBundle\Repository\MarketingToolRepository;
@@ -30,7 +20,17 @@ use MediaBundle\Widget\Page\MediaLibraryWidget;
 use MemberBundle\Event\ReferralEvent;
 use MemberBundle\Events;
 use MemberBundle\Manager\MemberManager;
+use MemberBundle\Manager\MemberReferralNameManager;
+use MemberBundle\Manager\MemberCommissionManager;
+use MemberBundle\Manager\MemberRevenueShareManager;
 use MemberBundle\Manager\MemberWebsiteManager;
+use GuzzleHttp\Exception\GuzzleException;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use DateTime;
 
 class MemberController extends PageController
 {
@@ -170,10 +170,18 @@ class MemberController extends PageController
 
     public function updateOnLinkMember(PageManager $pageManager, array $data): JsonResponse
     {
-        $member = $pageManager->getData('customer');
-        $response = $this->getMemberManager()->linkMember($member, $member->getReferrerCode());
+        try {
+            $member = $pageManager->getData('customer');
+            $response = $this->getMemberManager()->linkMember($member);
+        } catch (GuzzleException $ex) {
+            $errorContents = json_decode($ex->getResponse()->getBody()->getContents(), true);
+           
+            return $this->json([
+                'message' => $errorContents['errors']['referral_code'][0]
+            ], $ex->getCode());
+        }
 
-        return new JsonResponse($response, $response['code']);
+        return $this->json([]);
     }
 
     public function updateOnUnlinkMember(PageManager $pageManager, array $data): JsonResponse

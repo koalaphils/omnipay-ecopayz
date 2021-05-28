@@ -219,64 +219,16 @@ class MemberManager extends AbstractManager
         return array_slice($returnedData, $startingPointOfArray, $numberOfItemsToDisplay);
     }
 
-    public function linkMember(Member $member, ?string $referrerCode): array
-    {
-        $code = Response::HTTP_UNPROCESSABLE_ENTITY;
-        $referrerDetails = ['id' => '', 'name' => '', 'username' => ''];
-        $notifications = [
-            [
-                'type' => 'error',
-                'title' => $this->getTranslator()->trans(
-                    'notification.linkMember.error.title',
-                    [],
-                    'MemberBundle'
-                ),
-                'message' => $this->getTranslator()->trans(
-                    'notification.linkMember.error.message',
-                    ['%code%' => $referrerCode],
-                    'MemberBundle'
-                ),
-            ],
-        ];
+    public function linkMember(Member $member)
+    {   
+        $affiliateService = $this->get('app.service.affiliate_service');
+        $response = $affiliateService->linkMemberViaReferralCode($member->getReferralCode(), $member->getUser()->getId());
+        $affiliateUserId = $response['affiliate_user_id'];
 
-        if ($referrerCode !== '' && !is_null($referrerCode)) {
-            $referrer = $this->getReferrerByReferrerCode($referrerCode);
+        $member->setAffiliate($affiliateUserId);
 
-            if (!is_null($referrer)) {
-                $this->getEventDispatcher()->dispatch(Events::EVENT_REFERRAL_LINKED, new ReferralEvent($referrer, $member));
-                $member->linkReferrer($referrer);
-                $this->getEntityManager()->persist($member);
-                $this->getEntityManager()->flush($member);
-
-                $code = Response::HTTP_OK;
-                $notifications = [
-                    [
-                        'type' => 'success',
-                        'title' => $this->getTranslator()->trans(
-                            'notification.linkMember.success.title',
-                            [],
-                            'MemberBundle'
-                        ),
-                        'message' => $this->getTranslator()->trans(
-                            'notification.linkMember.success.message',
-                            ['%name%' => $member->getFullName(), '%referrer%' => $referrer->getFullName()],
-                            'MemberBundle'
-                        ),
-                    ],
-                ];
-                $referrerDetails = [
-                    'id' => $referrer->getId(),
-                    'name' => $referrer->getFullName(),
-                    'username' => $referrer->getUsername(),
-                ];
-            }
-        }
-
-        return [
-            '__notifications' => $notifications,
-            'code' => $code,
-            'referrer' => $referrerDetails,
-        ];
+        $this->entityManager->persist($member);
+        $this->entityManager->flush();
     }
 
     public function getReferrerByReferrerCode(?string $referrerCode): ?Member

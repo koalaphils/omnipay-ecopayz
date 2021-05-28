@@ -977,70 +977,38 @@
         }
 
         {# {{ dump(customer.affiliate) }}We just #}
-        {# $('#autoLink').click(function(e) {
+       $('#autoLink').click(function(e) {
             var profileForm = $(this).closest('form');
             var referrerElement = $('#{{ widgets.profileForm.getFormView().referrer.vars.id }}');
-
             e.preventDefault();
 
-            confirm2(
-                'Are you sure you want to link <b>{{ customer.fullName }}</b> to <b>' + referrer.byCode.name + '</b>?',
-                'Link Member',
-                {
-                    'type': null,
-                    'confirmButtonClass': 'btn-warning btn-md',
-                    'confirmButtonText': 'Link',
-                    'cancelButtonClass': 'btn-inverse btn-md',
-                    'cancelButtonText': 'Cancel',
-                    'html': true,
-                    'showLoaderOnConfirm': true
+            $.ajax({
+                'globalAjaxComplete': false,
+                'globalAjaxError': false,
+                'headers': {
+                    'X-WIDGET-REQUEST': 'OnLinkMember'
                 },
-                function (isUnlink) {
-                    if (isUnlink) {
-                        $.ajax({
-                            'globalAjaxComplete': false,
-                            'globalAjaxError': false,
-                            'headers': {
-                                'X-WIDGET-REQUEST': 'OnLinkMember'
-                            },
-                            'type': 'POST',
-                        }).always(function (data) {
-                            if (typeof data.responseJSON !== 'undefined') {
-                                var notifications = data.responseJSON.__notifications[0];
-                                referrer.byCode = data.responseJSON.referrer;
-                                referrer.current = data.responseJSON.referrer;
-                            } else {
-                                var notifications = data.__notifications[0];
-                                referrer.byCode = data.referrer;
-                                referrer.current = data.referrer;
-                            }
+                'type': 'POST',
+            }).success(() => {
+                swal({
+                    'type': 'success',
+                    'title': 'Success Linking Member',
+                    'text': 'Member successfully linked to affiliate'
+                });
 
-                            swal({
-                                'type': notifications.type,
-                                'title': notifications.title,
-                                'text': notifications.message
-                            }, function() {
-                                referrerElement.select2('trigger', 'select', {
-                                    'data': { 'id': referrer.byCode.id, 'text' : referrer.byCode.name + ' (' + referrer.byCode.username + ')' }
-                                });
-
-                                profileForm.data('initialSate', profileForm.serialize());
-
-                                originalReferrer = referrerElement.val();
-                                toggleLinkReferrerButton();
-                            });
-                        });
-                    }
-                }
-            );
-        }); #}
+                location.reload();
+            }).error(function (data) {
+                let response = data.responseJSON;
+                swal({
+                    'type': 'error',
+                    'title': 'Error Linking Member',
+                    'text': response.message
+                });
+            });
+        });
 
         function toggleLinkReferrerButton() {
-            {# $('#autoLink').prop('disabled', true);
-
-            if (referrer.byCode.id != '' && (referrer.byCode.id != referrer.current.id)) {
-                $('#autoLink').prop('disabled', false);
-            } #}
+             $('#autoLink').prop('disabled', {{customer.isLinkedToAffiliate}});
         };
 
         // Send Activation Email

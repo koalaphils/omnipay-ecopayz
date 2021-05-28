@@ -69,7 +69,7 @@ class HttpService
             return $contents;
         }catch (GuzzleException $ex){
             $this->logger->info('HTTP SERVICE RESPONSE: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
-            return $contents;
+            throw $ex;
         }
     }
 

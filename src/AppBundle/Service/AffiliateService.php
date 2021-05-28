@@ -50,6 +50,17 @@ class AffiliateService
         ]);
     }
 
+    public function linkMemberViaReferralCode($referralCode, $memberUserId)
+    {
+        return $this->http->post("/api/v1/affiliate/link-member", [
+            'json' => [
+                'referral_code' => $referralCode,
+                'member_user_id' => $memberUserId
+            ],
+            'headers' => []
+        ]);
+    }
+
     public function createAffiliate(array $payload)
     {
         $this->http->post("/api/v1/affiliate", [

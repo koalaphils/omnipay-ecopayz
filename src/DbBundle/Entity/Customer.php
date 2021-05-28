@@ -1408,4 +1408,9 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     {
         return $this->getAffiliate() !== null;
     }
+
+    public function getReferralCode(): ?string
+    {
+        return $this->getDetail('referral_code', null);
+    }
 }
