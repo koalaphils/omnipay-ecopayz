@@ -25,7 +25,7 @@ class EwlIntegration implements ProductIntegrationInterface
         $response = $this->http->get($url, $token);
         $body = json_decode(((string) $response->getBody()));
 
-        return $body->availableToBet;
+        return $body->balance;
     }
 
     public function credit(string $token, array $params): string
