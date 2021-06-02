@@ -156,7 +156,7 @@ class CustomerProductRepository extends BaseRepository
     {
         $qb = $this
             ->createQueryBuilder('cp')
-            ->select('PARTIAL cp.{id, userName, balance, isActive, details}, PARTIAL p.{id, name, details, deletedAt}, c')
+            ->select('PARTIAL cp.{id, userName, balance, isActive, details}, PARTIAL p.{id, name, code, details, deletedAt}, c')
             ->leftJoin('cp.customer', 'c')
             ->leftJoin('cp.product', 'p')
             ->orderBy('cp.createdAt', 'DESC')
