@@ -195,7 +195,9 @@ class CreateMemberRequestHandler
                 'name' => $user->getCustomer()->getFullName()
             ]);
         } else {
-            $this->affiliateService->mapMemberToAffiliate($user->getId(), $member->getAffiliate()->getId());
+            if ($member->getAffiliate()) {
+                $this->affiliateService->addMember($user->getId(), $member->getAffiliate()->getId());
+            }
         }
         
         return $member;

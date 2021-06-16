@@ -107,7 +107,6 @@ class UpdateProfileRequestHandler
                 $customer->setAffiliate(null);
             }
 
-
             if ($originalAffiliate !== null) {
                 $this->affiliateService->removeMember(
                     $customer->getUser()->getId(),
