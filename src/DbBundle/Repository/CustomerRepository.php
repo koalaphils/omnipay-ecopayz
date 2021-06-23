@@ -99,6 +99,7 @@ class CustomerRepository extends BaseRepository
         if (array_has($filters, 'filter')) {
             $groupFilters = array_get($filters, 'filter');
         }
+
         $qb = $this->createFilterQueryBuilder($groupFilters);
 
         if (!empty(array_get($filters, 'excludeMemberId', ''))) {
@@ -130,39 +131,39 @@ class CustomerRepository extends BaseRepository
         if (isset($filters['search'])) {
             $exp = $qb->expr()->orX();
 
-            if (isset($filters['searchCategory']) && !empty($filters['searchCategory'])) {
+            if (isset($groupFilters['searchCategory']) && !empty($groupFilters['searchCategory'])) {
 
-            	if (in_array('fullname', $filters['searchCategory'])) {
-		            $exp->add('CONCAT(c.fName, " ", c.mName, " ", c.lName) LIKE :search');
+            	if (in_array('fullname', $groupFilters['searchCategory'])) {
+		            $exp->add("CONCAT(c.fName, ' ', c.mName, ' ', c.lName) LIKE :search");
 	            }
 
-	            if (in_array('email', $filters['searchCategory'])) {
+	            if (in_array('email', $groupFilters['searchCategory'])) {
 		            $exp->add('u.email LIKE :search');
 	            }
 
-	            if (in_array('productUsername', $filters['searchCategory'])) {
+	            if (in_array('productUsername', $groupFilters['searchCategory'])) {
 		            $exp->add('u.username LIKE :search');
 		            $exp->add('(SELECT COUNT(cps.id) FROM ' . CustomerProduct::class . ' AS cps WHERE cps.customer = c.id AND cps.userName LIKE  :search) > 0');
 	            }
 
-	            if (in_array('ipAddress', $filters['searchCategory'])) {
-		            $exp->add('JSON_EXTRACT(u.preferences, "$.ipAddress") LIKE :search');
+	            if (in_array('ipAddress', $groupFilters['searchCategory'])) {
+		            $exp->add("JSON_EXTRACT(u.preferences, '$.ipAddress') LIKE :search");
 	            }
 
-	            if (in_array('affiliateCode', $filters['searchCategory'])) {
-		            $exp->add('JSON_EXTRACT(u.preferences, "$.affiliateCode") LIKE :search');
+	            if (in_array('affiliateCode', $groupFilters['searchCategory'])) {
+		            $exp->add("JSON_EXTRACT(u.preferences, '$.affiliateCode') LIKE :search");
 	            }
 
-	            if (in_array('origUrl', $filters['searchCategory'])) {
-		            $exp->add('JSON_EXTRACT(u.preferences, "$.originUrl") LIKE :search');
+	            if (in_array('origUrl', $groupFilters['searchCategory'])) {
+		            $exp->add("JSON_EXTRACT(u.preferences, '$.originUrl') LIKE :search");
 	            }
 
-	            if (in_array('promoCode', $filters['searchCategory'])) {
-		            $exp->add('JSON_EXTRACT(u.preferences, "$.promoCode") LIKE :search');
+	            if (in_array('promoCode', $groupFilters['searchCategory'])) {
+		            $exp->add("JSON_EXTRACT(u.preferences, '$.promoCode') LIKE :search");
 	            }
 
-	            if (in_array('referrer', $filters['searchCategory'])) {
-		            $exp->add('JSON_EXTRACT(u.preferences, "$.referrer") LIKE :search');
+	            if (in_array('referrer', $groupFilters['searchCategory'])) {
+		            $exp->add("JSON_EXTRACT(u.preferences, '$.referrer') LIKE :search");
 	            }
             }
 
