@@ -129,21 +129,43 @@ class CustomerRepository extends BaseRepository
 
         if (isset($filters['search'])) {
             $exp = $qb->expr()->orX();
-            $exp->addMultiple([
-                "c.fName LIKE :search",
-                "c.mName LIKE :search",
-                "CONCAT(c.fName, ' ', c.lName) LIKE :search",
-                "c.lName LIKE :search",
-                "c.fullName LIKE :search",
-                "u.email LIKE :search",
-                "u.username LIKE :search",
-                "(SELECT COUNT(cps.id) FROM " . CustomerProduct::class . " AS cps WHERE cps.customer = c.id AND cps.userName LIKE  :search) > 0",
-                "JSON_EXTRACT(u.preferences, '$.ipAddress') LIKE :search",
-                "JSON_EXTRACT(u.preferences, '$.affiliateCode') LIKE :search",
-                "JSON_EXTRACT(u.preferences, '$.originUrl') LIKE :search",
-                "JSON_EXTRACT(u.preferences, '$.promoCode') LIKE :search",
-                "JSON_EXTRACT(u.preferences, '$.referrer') LIKE :search",
-            ]);
+
+            if (isset($filters['searchCategory']) && !empty($filters['searchCategory'])) {
+
+            	if (in_array('fullname', $filters['searchCategory'])) {
+		            $exp->add('CONCAT(c.fName, " ", c.mName, " ", c.lName) LIKE :search');
+	            }
+
+	            if (in_array('email', $filters['searchCategory'])) {
+		            $exp->add('u.email LIKE :search');
+	            }
+
+	            if (in_array('productUsername', $filters['searchCategory'])) {
+		            $exp->add('u.username LIKE :search');
+		            $exp->add('(SELECT COUNT(cps.id) FROM ' . CustomerProduct::class . ' AS cps WHERE cps.customer = c.id AND cps.userName LIKE  :search) > 0');
+	            }
+
+	            if (in_array('ipAddress', $filters['searchCategory'])) {
+		            $exp->add('JSON_EXTRACT(u.preferences, "$.ipAddress") LIKE :search');
+	            }
+
+	            if (in_array('affiliateCode', $filters['searchCategory'])) {
+		            $exp->add('JSON_EXTRACT(u.preferences, "$.affiliateCode") LIKE :search');
+	            }
+
+	            if (in_array('origUrl', $filters['searchCategory'])) {
+		            $exp->add('JSON_EXTRACT(u.preferences, "$.originUrl") LIKE :search');
+	            }
+
+	            if (in_array('promoCode', $filters['searchCategory'])) {
+		            $exp->add('JSON_EXTRACT(u.preferences, "$.promoCode") LIKE :search');
+	            }
+
+	            if (in_array('referrer', $filters['searchCategory'])) {
+		            $exp->add('JSON_EXTRACT(u.preferences, "$.referrer") LIKE :search');
+	            }
+            }
+
             if (isset($filters['searchCampaign']) && $filters['searchCampaign']) {
                 $exp->add('(SELECT COUNT(cbn.id) FROM ' . MemberBanner::class . ' AS cbn WHERE cbn.member = c.id AND cbn.campaignName LIKE :search) > 0');
             }

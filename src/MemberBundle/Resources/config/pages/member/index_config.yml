@@ -76,6 +76,16 @@ widgets:
                         data-priority: 2
             filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'ft>>csgkopyar<'form-group' <'m-t-10'>>>
             search: :search
+            searchCategory:
+                fullname: Full Name
+                email: Email Address
+                productUsername: Product Username
+                ipAddress: IP Address
+                affiliateCode: Affiliate Code
+                origUrl: Original URL
+                promoCode: Promo Code
+                referrer: Referrer
+            filterRoles: ROLE_USE_MEMBER_LIST_FILTERS
             filters:
                 from:
                     label: From
