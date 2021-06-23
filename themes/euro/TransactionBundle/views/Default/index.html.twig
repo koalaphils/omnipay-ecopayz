@@ -223,7 +223,36 @@
                             'placeholder': 'From'
                         },
                         'applyOnChanged': false,
-                        'value': '{{ app.request.get("from", '') }}'
+                        'value': '{{ app.request.get("from") | default(date('-7 days')) | date('m/d/Y') }}',
+                        'resetValue': function(feature){
+                            $(feature.input).datepicker('val', feature.feature.value);
+                        },
+                        'initialized': function(feature){
+                            $(feature.input).change(function () {
+                                var from = $('#' + feature.ztable.features.from.id);
+                                var to = $('#' + feature.ztable.features.to.id);
+                                feature.ztable.$element.find('.ztable_length_input').attr('disabled', true);
+                                feature.ztable.$element.find('.ztable_search_input').attr('disabled', true);
+                                feature.ztable.$element.find('.pagination').hide();
+
+                                if (from.val() !== "" && to.val() !== "") {
+                                    var dateFrom = new Date(from.val());
+                                    var dateTo = new Date(to.val());
+                                    var diff = (dateTo.getTime() - dateFrom.getTime()) / (1000 * 3600 * 24);
+
+                                    if(diff > 7){
+                                        feature.ztable.$element.find('.ztable_search_input').val('');
+                                        return sweetAlert('Transaction Search Error', 'Date From and Date To are required and must be at most 7 days apart.', 'error');
+                                    }
+                                }else{
+                                    feature.ztable.$element.find('.ztable_search_input').val('');
+                                    return sweetAlert('Transaction Search Error', 'Date From and Date To are required and must be at most 7 days apart.', 'error');
+                                }
+                                feature.ztable.$element.find('.ztable_length_input').attr('disabled', false);
+                                feature.ztable.$element.find('.ztable_search_input').attr('disabled', false);
+                                feature.ztable.$element.find('.pagination').show();
+                            });
+                        }
                     },
                     'to': {
                         'dom': "<'form-group form-group-sm m-r-10'<'input-group'i<^span 'input-group-addon bg-white text-inverse'<!'fa fa-calendar'!>>>>",
@@ -234,7 +263,36 @@
                             'placeholder': 'To'
                         },
                         'applyOnChanged': false,
-                        'value': '{{ app.request.get("to", '') }}'
+                        'value': '{{ app.request.get("to")|date('m/d/Y') }}',
+                        'resetValue': function(feature){
+                            $(feature.input).datepicker('val', feature.feature.value);
+                        },
+                        'initialized': function(feature){
+                            $(feature.input).change(function () {
+                                var from = $('#' + feature.ztable.features.from.id);
+                                var to = $('#' + feature.ztable.features.to.id);
+                                feature.ztable.$element.find('.ztable_length_input').attr('disabled', true);
+                                feature.ztable.$element.find('.ztable_search_input').attr('disabled', true);
+                                feature.ztable.$element.find('.pagination').hide();
+
+                                if (from.val() !== "" && to.val() !== "") {
+                                    var dateFrom = new Date(from.val());
+                                    var dateTo = new Date(to.val());
+                                    var diff = (dateTo.getTime() - dateFrom.getTime()) / (1000 * 3600 * 24);
+
+                                    if(diff > 7){
+                                        feature.ztable.$element.find('.ztable_search_input').val('');
+                                        return sweetAlert('Transaction Search Error', 'Date From and Date To are required and must be at most 7 days apart.', 'error');
+                                    }
+                                }else{
+                                    feature.ztable.$element.find('.ztable_search_input').val('');
+                                    return sweetAlert('Transaction Search Error', 'Date From and Date To are required and must be at most 7 days apart.', 'error');
+                                }
+                                feature.ztable.$element.find('.ztable_length_input').attr('disabled', false);
+                                feature.ztable.$element.find('.ztable_search_input').attr('disabled', false);
+                                feature.ztable.$element.find('.pagination').show();
+                            });
+                        }
                     },
                      'applyFilter': {
                         'type': 'button',
@@ -250,7 +308,16 @@
                                 var to = $('#' + feature.ztable.features.to.id);
 
                                 if (from.val() !== "" && to.val() !== "") {
+                                    var dateFrom = new Date(from.val());
+                                    var dateTo = new Date(to.val());
+                                    var diff = (dateTo.getTime() - dateFrom.getTime()) / (1000 * 3600 * 24);
+
+                                    if(diff > 7){
+                                        return sweetAlert('Transaction Search Error', 'Date From and Date To are required and must be at most 7 days apart.', 'error');
+                                    }
                                     $('#' + feature.ztable.features.btnExportCsv.id).removeClass('hidden');
+                                }else{
+                                    return sweetAlert('Transaction Search Error', 'Date From and Date To are required and must be at most 7 days apart.', 'error');
                                 }
 
                                 feature.ztable.forceReloadTable();
@@ -269,6 +336,8 @@
                             $(feature.input).click(function () {
                                 $('#' + feature.ztable.features.btnExportCsv.id).addClass('hidden');
                                 $("select.ztable_length_input").val('10').change();
+                                feature.ztable.$element.find('.ztable_search_input').val('');
+                                feature.ztable.$element.find('.ztable_search_input').attr('disabled', false);
                                 feature.ztable.reset();
                             });
                         }
