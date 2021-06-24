@@ -180,12 +180,18 @@
                     'dataFilter': function (str) {
                         var draw = this.draw;
                         var json = $.parseJSON( str );
-
+                        $('#datatable-responsive_info').hide();
+                        setTimeout(function() {
+                            var footerInfo = $('#datatable-responsive_info').html();
+                            var splitter = footerInfo.split('(');
+                            $('#datatable-responsive_info').html(splitter[0]);
+                            $('#datatable-responsive_info').fadeIn(300);
+                        }, 500);
+                        
                         return JSON.stringify({
                             'draw': draw,
                             'data': json.records,
-                            'recordsFiltered': json.recordsFiltered,
-                            'recordsTotal': json.recordsTotal
+                            'recordsFiltered': json.recordsFiltered
                         });
                     }
                 },
