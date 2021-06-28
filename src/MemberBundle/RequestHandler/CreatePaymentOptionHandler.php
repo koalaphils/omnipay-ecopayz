@@ -4,6 +4,8 @@ namespace MemberBundle\RequestHandler;
 
 use DbBundle\Entity\CustomerPaymentOption as MemberPaymentOption;
 use DbBundle\Entity\PaymentOption;
+use DbBundle\Entity\Transaction;
+use DbBundle\Repository\CustomerPaymentOptionRepository;
 use DbBundle\Repository\PaymentOptionRepository;
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\ORM\EntityManager;
@@ -33,12 +35,19 @@ class CreatePaymentOptionHandler
         $this->getEntityManager()->persist($memberPaymentOption);
         $this->getEntityManager()->flush($memberPaymentOption);
 
+        $this->getCustomerPaymentOptionRepository()->disableOldPaymentOption($memberPaymentOption->getId(), $request->getMember()->getId(), $request->getType(), Transaction::TRANSACTION_TYPE_DEPOSIT);
+
         return $memberPaymentOption;
     }
 
     private function getPaymentOptionRepository(): PaymentOptionRepository
     {
         return $this->doctrine->getRepository(PaymentOption::class);
+    }
+
+    private function getCustomerPaymentOptionRepository(): CustomerPaymentOptionRepository
+    {
+        return $this->doctrine->getRepository(MemberPaymentOption::class);
     }
 
     private function getEntityManager(): EntityManager

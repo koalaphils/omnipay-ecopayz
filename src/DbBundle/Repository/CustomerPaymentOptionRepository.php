@@ -125,11 +125,9 @@ class CustomerPaymentOptionRepository extends \Doctrine\ORM\EntityRepository
         $queryBuilder = $this->createQueryBuilder('cpo');
 
         $queryBuilder
-            ->where("JSON_CONTAINS(cpo.fields, JSON_OBJECT(:code, :value)) = 1")
+            ->where("JSON_CONTAINS(cpo.fields, JSON_OBJECT('". $code ."', '". $codeValue ."')) = 1")
             ->andWhere($queryBuilder->expr()->eq('cpo.paymentOption', ':paymentOptionCode'))
             ->setParameter('paymentOptionCode', $paymentOption)
-            ->setParameter('code', $code)
-            ->setParameter('value', $codeValue)
         ;
         
         if (!is_null($memberPaymentOptionId)) {

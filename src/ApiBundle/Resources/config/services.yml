@@ -49,6 +49,12 @@ services:
         factory: ['ApiBundle\Security\OAuthUserProvider', generate]
         arguments: [ '@doctrine' ]
 
+    api.oauth_token_manager:
+        class: ApiBundle\Security\OAuthTokenManager
+        arguments:
+            - '@doctrine.orm.default_entity_manager'
+            - 'DbBundle\Entity\OAuth2\AccessToken'
+
     fos_oauth_server.security.authentication.provider:
         class: ApiBundle\Security\OAuthProvider
         arguments: [ '@api.oauth_user_provider', '@fos_oauth_server.server', '@security.user_checker', '@request_stack' ]

@@ -20,7 +20,6 @@ DbBundle\Entity\Transaction:
             expose: true
         details:
             expose: true
-            groups: ['details']
         paymentOption:
             groups: ['Default']
         customer:

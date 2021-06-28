@@ -30,11 +30,13 @@ widgets:
                     title: Success
             fields:
                 useEmail:
-                    options:
-                        label: Use email as username
-                        required: false
-                    type: switch
-                    group: Left
+#                    options:
+#                        label: Use email as username
+#                        required: false
+#                    type: switch
+#                    group: Left
+                    type: hidden
+                    value: true
                 email:
                     options:
                         label: Email
@@ -109,7 +111,7 @@ widgets:
                     type: choices
                     options:
                         choices:
-                            Not set: 0 
+                            Not set: 0
                             Male: 1
                             Female: 2
                         label: Gender

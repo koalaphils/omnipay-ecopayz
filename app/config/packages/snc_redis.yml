@@ -3,8 +3,37 @@ snc_redis:
     default:
       type: predis
       alias: default
-      dsn: 'redis://%redis.host%:%redis.port%/%redis.database_id%'
+      options:
+        replication: true
+      dsn:
+        - 'redis://%redis.host%:%redis.port%/%redis.database_id%?alias=master'
+        - 'redis://%redis.replica.host%:%redis.replica.port%/%redis.database_id%'
+      logging: '%kernel.debug%' #https://labs.madisoft.it/scaling-symfony-sessions-with-redis/
+    orm:
+      type: predis
+      alias: orm
+      options:
+        replication: true
+      dsn:
+        - 'redis://%redis.host%:%redis.port%/%redis.database_id%?alias=master'
+        - 'redis://%redis.replica.host%:%redis.replica.port%/%redis.database_id%'
+      logging: '%kernel.debug%' #https://labs.madisoft.it/scaling-symfony-sessions-with-redis/
+
   session:
     client: default
     locking: false
     ttl: '%session.expiration_time%'
+
+  doctrine:
+    metadata_cache:
+      client: orm
+      entity_manager: default
+      document_manager: default
+    result_cache:
+      client: orm
+      entity_manager: default
+      document_manager: default
+    query_cache:
+      client: orm
+      entity_manager: default
+      document_manager: default

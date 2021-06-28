@@ -11,7 +11,6 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 
-
 class ProductIntegrationExtension extends Extension
 {
     public function load(array $configs, ContainerBuilder $container)
