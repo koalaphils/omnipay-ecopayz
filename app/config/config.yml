@@ -57,6 +57,9 @@ framework:
     http_method_override: true
     serializer: { enabled: true }
     trusted_proxies:  "%trusted_proxies%"
+    cache:
+        app: cache.adapter.apcu
+        system: cache.adapter.apcu
 
 swiftmailer:
     transport: "%mailer_transport%"
@@ -183,6 +186,9 @@ aws:
         
 product_integration:
     integrations:
+        piwix:
+            url: '%ewl_url%'
+            class: 'ProductIntegrationBundle\Integration\EwlIntegration'
         evolution:
             url: '%evolution_url%'
             class: 'ProductIntegrationBundle\Integration\EvolutionIntegration'

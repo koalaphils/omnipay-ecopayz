@@ -2,7 +2,8 @@
 
 namespace AppBundle\DoctrineExtension\DBAL;
 
-use Doctrine\DBAL\Connection as BaseConnection;
+use Doctrine\DBAL\Connections\MasterSlaveConnection as BaseConnection;
+use Doctrine\DBAL\Exception\ConnectionException;
 
 class Connection extends BaseConnection
 {
@@ -11,6 +12,18 @@ class Connection extends BaseConnection
         if (!$this->ping()) {
             $this->close();
             $this->connect();
+        }
+    }
+    public function connect($connectionName = null)
+    {
+        try{
+            return parent::connect($connectionName);
+        }catch (ConnectionException $connectionException){
+            if($connectionName !== 'master'){
+                return parent::connect('master');
+            }
+
+            throw $connectionException;
         }
     }
 }

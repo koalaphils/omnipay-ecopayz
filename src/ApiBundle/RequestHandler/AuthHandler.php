@@ -192,8 +192,9 @@ class AuthHandler
             'process_payments' => $this->getPaymentOptions($user->getCustomer()->getId()),
             'products' => $member->getProducts(),
             'jwt' => $jwt,
+            'accessToken' => $accessToken->getToken()
         ], $integrationResponses);
-
+        
         $this->deleteUserAccessToken($accessToken->getUser()->getId(), [], [$accessToken->getToken()]);
 
         if ($user->getCustomer()->getWebsocketChannel() === '') {
@@ -206,6 +207,7 @@ class AuthHandler
         $this->customerManager->handleAudit('login');
 
         $channel = $user->getCustomer()->getWebsocketDetails()['channel_id'];
+        $loginResponse['channelId'] = $channel;
         $this->publisher->publishUsingWamp('login.' . $channel, ['access_token' => $accessToken->getToken()]);
 
         return $loginResponse;
@@ -218,6 +220,7 @@ class AuthHandler
         $locale = !empty($memberLocale) ? $memberLocale : 'en';
 
         $this->createPiwiWalletIfNotExisting($user->getCustomer());
+        $this->createPiwixProductIfNotExisting($user->getCustomer());
 
         return [
             'pinnacle' => $this->loginToPinnacle($user->getCustomer()->getPinUserCode(), $locale),
@@ -234,6 +237,22 @@ class AuthHandler
             $product = $this->productRepository->getProductByCode(Product::MEMBER_WALLET_CODE);
             $customerProduct->setProduct($product);
             $customerProduct->setUsername(Product::MEMBER_WALLET_CODE . '_' . uniqid());
+            $customerProduct->setBalance('0.00');
+            $customerProduct->setIsActive(true);
+            $this->entityManager->persist($customerProduct);
+            $this->entityManager->flush();
+        }
+    }
+
+    private function createPiwixProductIfNotExisting(Customer $customer): void
+    {
+        $customerProduct = $this->customerProductRepository->findOneByCustomerAndProductCode($customer, Product::PIWIXCHANGE_CODE);
+
+        if ($customerProduct === null) {
+            $customerProduct = CustomerProduct::create($customer);
+            $product = $this->productRepository->getProductByCode(Product::PIWIXCHANGE_CODE);
+            $customerProduct->setProduct($product);
+            $customerProduct->setUsername('PIW_' . $customer->getId());
             $customerProduct->setBalance('0.00');
             $customerProduct->setIsActive(true);
             $this->entityManager->persist($customerProduct);
@@ -381,7 +400,8 @@ class AuthHandler
             'token' => $data,
             'pinnacle' => $pinLoginResponse->toArray(),
             'member' => $user->getCustomer(),
-            'jwt' => $this->generateJwtToken($user->getCustomer())
+            'jwt' => $this->generateJwtToken($user->getCustomer()),
+            'accessToken' => $accessToken->getToken()
         ];
     }
 

@@ -3,60 +3,36 @@ set -eux
 
 nc -z ${DATABASE_HOST} ${DATABASE_PORT}
 
+set +u
+if [ -z "${REDIS_REPLICA_HOST}" ]; then
+  export REDIS_REPLICA_HOST="${REDIS_HOST}"
+fi
+if [ -z "${REDIS_REPLICA_PORT}" ]; then
+  export REDIS_REPLICA_PORT="${REDIS_PORT}"
+fi
+
+if [ -z "${DATABASE_REPLICA_HOST}" ]; then
+  export DATABASE_REPLICA_HOST="${DATABASE_HOST}"
+fi
+
+if [ -z "${WS_INTERNAL_URL}" ]; then
+  export WS_INTERNAL_URL="${WS_URL}"
+fi
+
+export MAIL_ENCRYPTION="${MAIL_ENCRYPTION:-tls}"
+
 cd /var/www/html
-
-#set +u
-#if [ -z "${REDIS_REPLICA_HOST}" ]; then
-#  export REDIS_REPLICA_HOST="${REDIS_HOST}"
-#fi
-#if [ -z "${REDIS_REPLICA_PORT}" ]; then
-#  export REDIS_REPLICA_PORT="${REDIS_PORT}"
-#fi
-#set -u
-
 cp /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo "${TIMEZONE}" > /etc/timezone
-sed -i "s|;date.timezone\s*=.*|date.timezone = ${TIMEZONE}|g" /usr/local/etc/php/conf.d/php.ini
+sed -i "s|;date.timezone\s*=.*|date.timezone = ${TIMEZONE}|g" $PHP_INI_DIR/conf.d/timezone.ini
 mkdir -p ${UPLOAD_FOLDER}
 
 rm -f app/config/parameters.yml
 envsubst < app/config/parameters.yml.dist > app/config/parameters.yml
 
 if [ "$SYMFONY_ENV" = "dev" ]; then
-    docker-php-ext-enable xdebug
-    sed -i "s/apc.enabled\s*=\s*.*/apc.enabled = 0/g" /usr/local/etc/php/conf.d/apcu.ini
-    sed -i "s/\(xdebug\..*\)=\s*.*/\1=1/g" /usr/local/etc/php/conf.d/xdebug.ini
-    sed -i "s/apc.enable_cli\s*=\s*.*/apc.enable_cli = 0/g" /usr/local/etc/php/conf.d/apcu.ini
-    sed -i "s/opcache.validate_timestamps\s*=\s*.*/opcache.validate_timestamps = 1/g" /usr/local/etc/php/conf.d/opcache.ini
-    composer install --dev --apcu-autoloader -aq --ignore-platform-reqs --no-interaction --prefer-dist
-    composer dumpautoload -oa --apcu --no-interaction
-    php app/console theme:apply euro --remove
-    composer symfony-scripts --no-interaction
-else
-    composer symfony-scripts --no-dev --no-interaction
+  docker-php-ext-enable xdebug;
+  sed -i "s/opcache.revalidate_freq\s*=\s*.*/opcache.revalidate_freq = 0/g" $PHP_INI_DIR/conf.d/opcache.ini
 fi
-
-php app/console doctrine:migrations:migrate --no-interaction
-#clear caches stored in redis or remote cache provider
-php app/console doctrine:cache:clear-metadata --no-interaction
-php app/console doctrine:cache:clear-query --no-interaction
-php app/console doctrine:cache:clear-result --no-interaction
-
-php app/console theme:apply euro --no-interaction
-php app/console cache:clear --no-warmup --no-optional-warmers --no-interaction
-php app/console assets:install --symlink --relative
-php app/console assetic:dump --no-interaction
-
-mkdir -p var/logs
-mkdir -p var/logs/blockchain
-mkdir -p var/cache/${SYMFONY_ENV}/jms_serializer
-mkdir -p var/cache/${SYMFONY_ENV}/profiler
-mkdir -p var/cache/${SYMFONY_ENV}/jms_diextra/doctrine
-mkdir -p var/cache/${SYMFONY_ENV}/jms_diextra/metadata
-mkdir -p var/cache/${SYMFONY_ENV}/jms_aop
-mkdir -p var/cache/${SYMFONY_ENV}/twig
-touch var/logs/${SYMFONY_ENV}.log
-
-chown -Rf www-data var
 
 set +e
 id -u ${SSH_USER}

@@ -36,8 +36,6 @@ class AuthController extends AbstractController
      */
     public function checkIfAuthenticatedAction(Request $request, AuthHandler $handler): View
     {
-        ;
-
         return $this->view($handler->handleCheckSession($request));
     }
 

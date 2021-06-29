@@ -235,6 +235,13 @@
                     </div>
                 </div>
             </div>
+                <div class="tab-pane" id="ewl_account">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <iframe id="ewl-account"></iframe>
+                        </div>
+                    </div>
+                </div>
         </div>
     </div>
 {% endblock %}
@@ -255,6 +262,9 @@
 
 {% block javascripts %}
     <script type="text/javascript">
+        var memberId = window.location.pathname.split('/').splice(-2,1);
+        $('#ewl-account').attr('src', '/iframe/ewl/account/' + memberId);
+
         var transactionUrl = "{{ path('transaction.update_page', {"type":"__type__", "id":"__id__"}) }}";
         var locationHref = getLocation(window.location.href);
         var referrer = {

@@ -1350,3 +1350,8 @@ button[data-id=update_profileForm_data_userType] {
 #customer-container .form-control {
   height: auto !important;
 }
+iframe#ewl-account {
+    width: 100%;
+    height: 70vh;
+    border: none;
+}

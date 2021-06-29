@@ -4,38 +4,29 @@ namespace CustomerBundle\Manager;
 
 use DbBundle\Entity\CustomerProduct;
 use DbBundle\Repository\CustomerProductRepository;
-use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\Routing\RouterInterface;
-use PinnacleBundle\Component\Exceptions\PinnacleException;
 use AppBundle\Manager\AbstractManager;
+use ProductIntegrationBundle\ProductIntegrationFactory;
+use ApiBundle\Service\JWTGeneratorService;
+use ProductIntegrationBundle\Exception\IntegrationException;
+use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
+use ProductIntegrationBundle\Exception\NoSuchIntegrationException;
 
 class CustomerProductManager extends AbstractManager 
 {
-    /**
-     * @var PinnacleService
-     */
-    private $pinnacleService;
-
-    /**
-     * @var CustomerProductRepository
-     */
+    private $integrationFactory;
+    private $jwtService;
     private $memberProductRepository;
-
-    /**
-     * @var RouterInterface
-     */
     private $router;
 
-    public function __construct(PinnacleService $pinnacleService, CustomerProductRepository $memberProductRepository, RouterInterface $router)
+    public function __construct(ProductIntegrationFactory $integrationFactory, JWTGeneratorService $jwtService, CustomerProductRepository $memberProductRepository, RouterInterface $router)
     {
-        $this->pinnacleService = $pinnacleService;
+        $this->integrationFactory = $integrationFactory;
+        $this->jwtService = $jwtService;
         $this->memberProductRepository = $memberProductRepository;
         $this->router = $router;
     }
 
-    /**
-     * @return \DbBundle\Repository\CustomerProductRepository
-     */
     public function getRepository()
     {
         return $this->memberProductRepository;
@@ -44,7 +35,6 @@ class CustomerProductManager extends AbstractManager
     public function getCustomerProductList($filters = null, bool $isSelect = false)
     {
         $status = true;
-        $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
         $results = [];
 
         if (array_get($filters, 'datatable', 0)) {
@@ -74,24 +64,29 @@ class CustomerProductManager extends AbstractManager
             } else {
                 $results = $this->getRepository()->getCustomerProductList($filters);
             }
-            $results = array_map(function ($record) use($pinnacleProduct) {
-                if ($pinnacleProduct->getId() == $record['product']['id']) {
-                    try {
-                        $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->getPlayer($record['userName']);
-                        $record['balance'] = $pinnaclePlayer->availableBalance();
-                    } catch (PinnacleException $exception) {
-                        $record['balance'] = "Unable to fetch balance";
-                    } catch (PinnacleError $exception) {
-                        $record['balance'] = "Unable to fetch balance";
-                    }
-                }
+            
+            $jwt = $this->jwtService->generate([]);
 
+            $results = array_map(function ($record) use ($jwt) {
+                    try {
+                        $record['balance'] = $this->integrationFactory->getIntegration($record['product']['code'])
+                            ->getBalance($jwt, $record['userName']);
+                    } catch(NoSuchIntegrationException $ex) {
+                        $record['balance'] = $ex->getMessage();
+                    } 
+                    catch (IntegrationException $ex) {
+                        $record['balance']  = "Unable to fetch balance";
+                    } catch (IntegrationNotAvailableException $ex) {
+                        $record['balance']  = $ex->getMessage();
+                    }
+                  
                 return $record;
             }, $results);
         }
 
         return $results;
     }
+    
 
     public function canSyncToCustomerProduct(string $syncId, string $customerProductId): bool
     {

@@ -33,7 +33,7 @@ MemberBundle\Request\CreateMemberRequest:
             - AppBundle\Validator\Constraints\Unique:
                   entityClass: DbBundle\Entity\User
                   select: " e.email "
-                  expression: " e.email = :value0 AND e.type = 1"
+                  expression: " e.email = :value0"
                   # 1 in e.type = 1 is Member
                   requiredKey: [email]
                   groups: [withEmail]
