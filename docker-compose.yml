@@ -62,6 +62,7 @@ x-environment: &php-env
       - SESSION_EXPIRATION_TIME=3600
       - ACCESS_TOKEN_EXPIRES_IN=3600
       - API_GATEWAY_URL=http://api-gateway/api/v1
+      - API_GATEWAY_SERVICE=http://api-gateway
       - EWL_URL=http://api-gateway/api/v1/ewl
 services:
   database:

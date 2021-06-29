@@ -7,6 +7,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Exception\RequestException;
 use Monolog\Logger;
+use GuzzleHttp\Psr7;
 
 class HttpService
 {
@@ -30,10 +31,10 @@ class HttpService
     public function get(string $url, $options = [])
     {
         $contents = "";
-
         try{
             $this->logger->info('HTTP SERVICE REQUEST: ' . 'GET ' . $url);
             $response = $this->client->request('GET', $url, $options);
+            
             if($response->getStatusCode() >= 200 && $response->getStatusCode() < 300){
                 $contents = \GuzzleHttp\json_decode($response->getBody()->getContents(), true);
             }
@@ -41,8 +42,13 @@ class HttpService
             $this->logger->info('HTTP SERVICE RESPONSE: ' . $response->getStatusCode() . ' '. print_r($contents, true));
 
             return $contents;
-        } catch (GuzzleException $ex){
-            $this->logger->info('HTTP SERVICE RESPONSE: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
+        } catch (RequestException $ex){
+            if ($ex->hasResponse()) {
+                $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. Psr7\Message::toString($ex->getResponse()));
+            } else {
+                $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
+            }
+
             return $contents;
         }
     }
@@ -67,9 +73,14 @@ class HttpService
             $this->logger->info('HTTP SERVICE RESPONSE: ' . $response->getStatusCode() . ' '. print_r($contents, true));
 
             return $contents;
-        }catch (GuzzleException $ex){
-            $this->logger->info('HTTP SERVICE RESPONSE: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
-            throw $ex;
+        } catch (RequestException $ex){
+            if ($ex->hasResponse()) {
+                $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. Psr7\Message::toString($ex->getResponse()));
+            } else {
+                $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
+            }
+
+            return $contents;
         }
     }
 
@@ -92,8 +103,13 @@ class HttpService
             $this->logger->info('HTTP SERVICE RESPONSE: ' . $response->getStatusCode() . ' '. print_r($contents, true));
 
             return $contents;
-        }catch (GuzzleException $ex){
-            $this->logger->info('HTTP SERVICE RESPONSE: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
+        } catch (RequestException $ex){
+            if ($ex->hasResponse()) {
+                $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. Psr7\Message::toString($ex->getResponse()));
+            } else {
+                $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
+            }
+
             return $contents;
         }
     }
@@ -117,8 +133,13 @@ class HttpService
             $this->logger->info('HTTP SERVICE RESPONSE: ' . $response->getStatusCode() . ' '. print_r($contents, true));
 
             return $contents;
-        }catch (GuzzleException $ex){
-            $this->logger->info('HTTP SERVICE RESPONSE: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
+        } catch (RequestException $ex){
+            if ($ex->hasResponse()) {
+                $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. Psr7\Message::toString($ex->getResponse()));
+            } else {
+                $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
+            }
+
             return $contents;
         }
     }

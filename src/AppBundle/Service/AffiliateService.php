@@ -2,20 +2,35 @@
 
 namespace AppBundle\Service;
 
+use ApiBundle\Service\JWTGeneratorService;
+
 class AffiliateService
 {
     private $http;
+    private $jwtGenerator;
 
-    public function __construct(HttpService $http)
+    public function __construct(HttpService $http, JWTGeneratorService $jwtGenerator)
     {
         $this->http = $http;
+        $this->jwtGenerator = $jwtGenerator;
+    }
+
+    private function getBearer()
+    {
+        $jwt = $this->jwtGenerator->generate([]);
+
+        return 'Bearer ' . $jwt;
     }
 
     public function getAffiliate(int $affiliateUserId)
     {
         $url = sprintf('/api/v1/affiliate/%d', $affiliateUserId);
 
-        $response = $this->http->get($url, []);
+        $response = $this->http->get($url,[
+            'headers' => [
+                'Authorization' => $this->getBearer(),
+             ]
+        ]);
 
         return $response;
     }
@@ -28,7 +43,11 @@ class AffiliateService
             array_has($params, 'search') ? $params['search'] : ''
         );
 
-        $response = $this->http->get($url, []);
+        $response = $this->http->get($url, [
+            'headers' => [
+                'Authorization' => $this->getBearer(),
+             ]
+        ]);
 
         return $response;
     }
@@ -39,14 +58,18 @@ class AffiliateService
             'json' => [
                 'member_user_id' => $memberUserId
             ],
-            'headers' => []
+            'headers' => [
+                'Authorization' => $this->getBearer(),
+             ]
         ]);
     }
 
     public function removeMember($memberUserId, $affiliateUserId)
     {
         $this->http->delete("/api/v1/affiliate/" . $affiliateUserId . "/member/" . $memberUserId, [
-            'headers' => []
+            'headers' => [
+                'Authorization' => $this->getBearer(),
+            ]
         ]);
     }
 
@@ -57,7 +80,9 @@ class AffiliateService
                 'referral_code' => $referralCode,
                 'member_user_id' => $memberUserId
             ],
-            'headers' => []
+            'headers' =>  [
+                'Authorization' => $this->getBearer(),
+            ]
         ]);
     }
 
@@ -65,7 +90,9 @@ class AffiliateService
     {
         $this->http->post("/api/v1/affiliate", [
             'json' => $payload,
-            'headers' => []
+            'headers' => [
+               'Authorization' => $this->getBearer(),
+            ]
         ]);
     }
 }

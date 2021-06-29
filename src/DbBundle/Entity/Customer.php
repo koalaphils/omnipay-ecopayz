@@ -705,7 +705,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this->isCustomer;
     }
 
-    public function setAffiliate($affiliate)
+    public function setAffiliate(?int $affiliate)
     {
         $this->affiliate = $affiliate;
 

@@ -25,9 +25,14 @@ class ReferrerTransformer implements DataTransformerInterface
     public function transform($value)
     {
         if ($value) {
-            $affiliate = $this->affiliateService->getAffiliate($value)['data'];
+            $response = $this->affiliateService->getAffiliate($value);
+            if ($response) {
+                $affiliate = $this->affiliateService->getAffiliate($value)['data'];
             
-            return [$affiliate['name'] . '(' . $affiliate['username'] . ')' => $affiliate['user_id']];
+                return [$affiliate['name'] . '(' . $affiliate['username'] . ')' => $affiliate['user_id']];
+            }
+
+            return ['Unable to load data' => ''];
         }
 
         return $value;

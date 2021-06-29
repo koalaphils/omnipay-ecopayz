@@ -57,7 +57,7 @@ use \DateTime;
 class MemberManager extends AbstractManager
 {
     private $translator;
-    private $entityManager;
+    protected $entityManager;
     private $settingManager;
     private $eventDispatcher;
     private $transactionManager;

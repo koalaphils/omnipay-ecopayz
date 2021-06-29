@@ -103,8 +103,9 @@ class CreateMemberRequestHandler
 
         if ($request->getReferal() !== null) {
             $affiliate = $this->getUserRepository()->findOneById($request->getReferal())
-                ->getCustomer();
-            $member->setAffiliate($affiliate);
+                ->getCustomer()
+                ->getUser();
+            $member->setAffiliate($affiliate->getId());
         }
 
         $currency = $this->getCurrencyRepository()->findById($request->getCurrency());
@@ -196,7 +197,7 @@ class CreateMemberRequestHandler
             ]);
         } else {
             if ($member->getAffiliate()) {
-                $this->affiliateService->addMember($user->getId(), $member->getAffiliate()->getId());
+                $this->affiliateService->addMember($user->getId(), $member->getAffiliate());
             }
         }
         

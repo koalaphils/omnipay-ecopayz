@@ -274,4 +274,4 @@ services:
 
     app.service.affiliate_service:
         class: AppBundle\Service\AffiliateService
-        arguments: ["@app.service.http_service"]
+        arguments: ["@app.service.http_service", "@jwt_generator"]
