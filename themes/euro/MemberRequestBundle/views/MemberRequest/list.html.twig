@@ -265,11 +265,11 @@
                             }
                         },
                         {
-                            'name': 'mrs.date',
-                            'data': 'memberRequest.date',
+                            'name': 'mrs.createdAt',
+                            'data': 'memberRequest.createdAt',
                             'defaultContent': '',
-                            'render': function (date, type, full) {
-                                return moment(date).format('MMM D, YYYY h:mm A');
+                            'render': function (createdAt, type, full) {
+                                return moment(createdAt).format('MMM D, YYYY h:mm A');
                             }
                         },
                         {
