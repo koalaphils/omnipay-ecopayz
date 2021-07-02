@@ -75,7 +75,6 @@ class TransactionOldManager extends AbstractManager
             }
             $results['draw'] = $filters['draw'];
             $results['recordsFiltered'] = $this->getRepository()->getListFilterCount($filters);
-            $results['recordsTotal'] = $this->getRepository()->getListAllCount();
         } else {
             $results = $this->getRepository()->getList($filters);
         }
