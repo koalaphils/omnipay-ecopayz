@@ -1,0 +1,16 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block body -%}
+<!-- Begin page -->
+<div class="account-pages"></div>
+<div class="clearfix"></div>
+<div class="wrapper-page">
+    <div class="ex-page-content text-center">
+        <i class="ti-alert icn-error"></i>
+        <h2 class="text-white">Bad Request</h2><br>
+        <p class="text-muted">You don't have permission to access on this server.</p>
+        <br>
+        <a class="btn btn-inverse waves-effect waves-light m-b-10" href="{{ path("app.dashboard_page") }}"> {{ ""|trans({},"CustomerBundle") }}<span><i class="ti-arrow-left m-r-5 cls-icn-plus"></i></span>Back to page</a>
+    </div>
+</div>
+{%- endblock %}
