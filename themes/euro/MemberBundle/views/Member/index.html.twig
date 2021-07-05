@@ -88,12 +88,29 @@
             newData.data.filters = filters;
             newData.data.search = ztableData.data.filters.filter.search;
             newData.data.filters.search = ztableData.data.filters.filter.search;
-
             newData.data.orders = [
                 {'column': 'c.joinedAt', 'dir': 'desc'}
             ];
 
+            {% if is_granted('ROLE_VIEW_MEMBER_LIST') %}
+                newData = deleteEmptyProperties(newData, true);
+                newData.data.filters.viewAll = true;
+            {% endif %}
+
             return newData;
+        }
+
+        function deleteEmptyProperties(data, recurse)
+        {
+            for (var i in data) {
+                if (!data[i]) {
+                    delete data[i];
+                } else if (recurse && typeof data[i] === 'object') {
+                    deleteEmptyProperties(data[i], recurse);
+                }
+            }
+
+            return data;
         }
 
         function listAction(data, text, full)
@@ -129,9 +146,14 @@
 
                 obj['searchInput'] = '' +
                     '<div class="form-group form-group-sm m-r-10">' +
-                    '<select class="selectpicker" data-none-selected-text="Select Category" data-style="btn-white btn-sm" multiple="multiple" name="ztable_search_category">' + options + '</select>' +
+                        '<select class="selectpicker" data-none-selected-text="Select Category" data-style="btn-white btn-sm" multiple="multiple" name="ztable_search_category">' + options + '</select>' +
                     '</div>' +
                     '<input type="text" class="ztable_search_input" name="search"  /><i class="form-control-feedback l-h-30 fa fa-search"></i>';
+
+                $('#{{ page.getWidget('list').getFullId() }}_container').on('change', 'select[name=ztable_search_category]', function () {
+                    {{ page.getWidget('list').getFullId() }}Table.reloadTable();
+                });
+
             {% endif %}
 
             return obj;
