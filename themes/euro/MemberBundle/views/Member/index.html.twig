@@ -92,25 +92,37 @@
                 {'column': 'c.joinedAt', 'dir': 'desc'}
             ];
 
-            {% if is_granted('ROLE_VIEW_MEMBER_LIST') %}
-                newData = deleteEmptyProperties(newData, true);
+            {% if not is_granted('ROLE_VIEW_MEMBER_LIST') %}
+                newData.data.filters.length = 0;
+                newData.data.filters.limit = 0;
+
+                {% if is_granted('ROLE_USE_MEMBER_SEARCH') %}
+                    if (newData.data.filters.search == '') {
+                        delete newData.data.filters.search;
+                    } else {
+                        newData.data.filters.length = 10;
+                        newData.data.filters.limit = 10;
+                    }
+                {% endif %}
+
+                {% if is_granted('ROLE_USE_MEMBER_LIST_FILTERS') %}
+                    let fData = newData.data.filters.filter, hasFilterData = false;
+                    for (let i in fData) {
+                        if (!_.isEmpty(fData[i])) {
+                            hasFilterData = true; break;
+                        }
+                    }
+
+                    if (hasFilterData) {
+                        newData.data.filters.length = 10;
+                        newData.data.filters.limit = 10;
+                    }
+                {% endif %}
+            {% else %}
                 newData.data.filters.viewAll = true;
             {% endif %}
 
             return newData;
-        }
-
-        function deleteEmptyProperties(data, recurse)
-        {
-            for (var i in data) {
-                if (!data[i]) {
-                    delete data[i];
-                } else if (recurse && typeof data[i] === 'object') {
-                    deleteEmptyProperties(data[i], recurse);
-                }
-            }
-
-            return data;
         }
 
         function listAction(data, text, full)

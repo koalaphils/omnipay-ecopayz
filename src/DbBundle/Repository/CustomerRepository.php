@@ -148,7 +148,7 @@ class CustomerRepository extends BaseRepository
 		            "JSON_EXTRACT(u.preferences, '$.referrer') LIKE :search",
 	            ]);
             } else {
-	            if (isset($groupFilters['searchCategory']) && !empty($groupFilters['searchCategory'])) {
+	            if (isset($groupFilters['searchCategory']) && !empty($groupFilters['searchCategory']) && $filters['search'] != '') {
 
 		            if (in_array('fullname', $groupFilters['searchCategory'])) {
 			            $exp->add("CONCAT(c.fName, ' ', c.mName, ' ', c.lName) LIKE :search");
@@ -550,6 +550,7 @@ class CustomerRepository extends BaseRepository
         if (!empty(array_get($filters, 'country', []))) {
             $queryBuilder->andWhere('cco.id IN (:country)')->setParameter('country', $filters['country']);
         }
+
         if (!empty(array_get($filters, 'status', []))) {
             $exp = $queryBuilder->expr()->orX();
             foreach ($filters['status'] as $value) {
