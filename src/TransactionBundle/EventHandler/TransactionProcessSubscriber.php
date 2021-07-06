@@ -39,9 +39,10 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
     {
         $transaction = $event->getTransaction();
         $action = $event->getAction();
-        if ($transaction->isNew() && !$event->fromCustomer()) {
+
+        if (($transaction->isNew() && !$event->fromCustomer()) || ($transaction->isNew() && $event->fromCustomer() && $transaction->isTransfer())) {
             $transitionName = 'new';
-        } elseif ($transaction->isNew() && $event->fromCustomer()) {
+        } elseif ($transaction->isNew() && $event->fromCustomer() && !$transaction->isTransfer()) {
             $transitionName = 'customer-new';
         } else {
             $transitionName = $transaction->getStatus() . '_' . $action['status'];
@@ -70,7 +71,6 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
                 $this->getTransactionWorkflow()->apply($transaction, $transaction->getTypeText() . '-' . $transitionName);
             } elseif ($this->getTransactionWorkflow()->can($transaction, $transitionName)) {
                 $this->getTransactionWorkflow()->apply($transaction, $transitionName);
-
                 if ($transitionName === 'new') {
                     $this->getTransactionWorkflow()->apply($transaction, 'acknowledge');
                     $this->getTransactionWorkflow()->apply($transaction, 'process');

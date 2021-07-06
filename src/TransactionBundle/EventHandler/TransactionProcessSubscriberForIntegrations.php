@@ -110,10 +110,11 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                                 $this->debit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                             }
                             $newBalance = $this->credit($productCode, $transactionNumber, $currency, $customerProductUsername, $amount, $jwt);
+                        
                             $subTransaction->getCustomerProduct()->setBalance($newBalance);
                             $subTransaction->setHasBalanceAdjusted(true);
                         }
-                    } catch (IntegrationNotAvailableException $ex) {
+                    } catch (IntegrationNotAvailableException | NoSuchIntegrationException $ex) {
                         if(!$transaction->isTransferDestinationPiwiWalletProduct()){
                             $this->credit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         }
@@ -126,9 +127,9 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                         if (!$transaction->isTransfer()) {
                             $this->debit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         }
-                    } catch (IntegrationNotAvailableException $ex) {
+                    } catch (IntegrationNotAvailableException | NoSuchIntegrationException $ex) {
                         $subTransaction->setFailedProcessingWithIntegration(true);
-                    }
+                    } 
                 }
             }
             
@@ -202,8 +203,9 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
             'transactionNumber' => $transactionNumber,
             'currency' => $currency
         ]);
-        
+    
         return $newBalance;
+        
     }
 
     private function debit(string $productCode, $transactionNumber, $currency, $customerProductUsername, $amount, $jwt): string
