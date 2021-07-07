@@ -265,7 +265,6 @@ class MemberController extends PageController
         // }
 
         // $records = $this->getCustomerRepository()->getPossibleReferrers($memberId, $filters, $data['length'], $data['start']);
-        dump($affiliates);
         $records = array_map(function ($affiliate) {
             return [
                 'id' => $affiliate['user_id'],
