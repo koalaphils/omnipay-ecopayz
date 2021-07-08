@@ -49,6 +49,8 @@ class HttpService
                 $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
             }
 
+            throw $ex;
+
             return $contents;
         }
     }
@@ -80,6 +82,8 @@ class HttpService
                 $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
             }
 
+            throw $ex;
+
             return $contents;
         }
     }
@@ -110,6 +114,8 @@ class HttpService
                 $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
             }
 
+            throw $ex;
+
             return $contents;
         }
     }
@@ -139,6 +145,8 @@ class HttpService
             } else {
                 $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
             }
+
+            throw $ex;
 
             return $contents;
         }
