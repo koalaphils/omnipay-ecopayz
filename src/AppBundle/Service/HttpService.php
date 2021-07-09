@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\ClientException;
 use Monolog\Logger;
 use GuzzleHttp\Psr7;
 
@@ -42,6 +43,9 @@ class HttpService
             $this->logger->info('HTTP SERVICE RESPONSE: ' . $response->getStatusCode() . ' '. print_r($contents, true));
 
             return $contents;
+        } catch (ClientException $e) {
+            $this->logger->info('HTTP SERVICE CLIENT EXCEPTION: ', Psr7\Message::toString($e->getResponse()));
+            throw $ex;
         } catch (RequestException $ex){
             if ($ex->hasResponse()) {
                 $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. Psr7\Message::toString($ex->getResponse()));
@@ -49,8 +53,8 @@ class HttpService
                 $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
             }
 
-            return $contents;
-        }
+            throw $ex;
+        } 
     }
 
 
@@ -80,7 +84,7 @@ class HttpService
                 $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
             }
 
-            return $contents;
+            throw $ex;
         }
     }
 
@@ -110,7 +114,7 @@ class HttpService
                 $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
             }
 
-            return $contents;
+            throw $ex;
         }
     }
 
@@ -140,7 +144,7 @@ class HttpService
                 $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
             }
 
-            return $contents;
+            throw $ex;
         }
     }
 }
