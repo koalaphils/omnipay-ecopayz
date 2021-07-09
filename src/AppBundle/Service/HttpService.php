@@ -54,7 +54,10 @@ class HttpService
             }
 
             throw $ex;
-        } 
+        } catch (\Exception $ex) {
+            $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getMessage());
+            throw $ex;
+        }
     }
 
 
