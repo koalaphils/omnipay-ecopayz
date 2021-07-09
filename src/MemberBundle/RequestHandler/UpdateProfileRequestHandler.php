@@ -71,8 +71,7 @@ class UpdateProfileRequestHandler
         $customer->setTags($request->getTags());
         $customer->setLocale($request->getLocale());
         $customer->setDetail('referral_code', $request->getReferralCode());
-        dump($request);
-
+        
         foreach ($request->getGroups() as $groupId) {
             $group = $this->getCustomerGroupRepository()->findOneById($groupId);
             $customer->addGroup($group);
