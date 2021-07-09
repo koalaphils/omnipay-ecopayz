@@ -44,13 +44,13 @@ class HttpService
 
             return $contents;
         } catch (ClientException $e) {
-            $this->logger->info('HTTP SERVICE CLIENT EXCEPTION: ', Psr7\Message::toString($e->getResponse()));
+            $this->logger->info('HTTP SERVICE CLIENT EXCEPTION: ' . Psr7\Message::toString($e->getResponse()));
             throw $ex;
         } catch (RequestException $ex){
             if ($ex->hasResponse()) {
-                $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. Psr7\Message::toString($ex->getResponse()));
+                $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' ' . Psr7\Message::toString($ex->getResponse()));
             } else {
-                $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
+                $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '.  $ex->getTraceAsString());
             }
 
             throw $ex;
