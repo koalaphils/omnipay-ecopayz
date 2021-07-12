@@ -66,13 +66,17 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         $customerPiwiWalletProduct = $this->getCustomerPiwiWalletProduct($transaction->getCustomer());
         $customerWalletCode = $customerPiwiWalletProduct->getProduct()->getCode();
 
-
         // Acknowledged
         if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE) {
             foreach ($subTransactions as $subTransaction) {
                 $amount = $subTransaction->getAmount();
-                $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode());
                 $customerProductUsername = $subTransaction->getCustomerProduct()->getUsername();
+                $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode());
+
+                if ($productCode === '') {
+                    $productName = $subTransaction->getCustomerProduct()->getProduct()->getName();
+                    $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCodeByName($productName));
+                }
 
                 if ($subTransaction->isDeposit()) {
                     if ($transaction->isTransferDestinationPiwiWalletProduct()){
@@ -100,9 +104,14 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         if (($transaction->getStatus() === Transaction::TRANSACTION_STATUS_END) && ($event->getTransition()->getName() !== 'void')) {
             foreach ($subTransactions as $subTransaction) {
                 $amount = $subTransaction->getAmount();
-                $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode());
                 $customerProductUsername = $subTransaction->getCustomerProduct()->getUsername();
-
+                $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode());
+ 
+                if ($productCode === '') {
+                    $productName = $subTransaction->getCustomerProduct()->getProduct()->getName();
+                    $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCodeByName($productName));
+                }
+  
                 if ($subTransaction->isDeposit()) {
                     try {
                         if(!$transaction->isTransferDestinationPiwiWalletProduct()){
@@ -110,7 +119,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                                 $this->debit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                             }
                             $newBalance = $this->credit($productCode, $transactionNumber, $currency, $customerProductUsername, $amount, $jwt);
-                        
+                    
                             $subTransaction->getCustomerProduct()->setBalance($newBalance);
                             $subTransaction->setHasBalanceAdjusted(true);
                         }

@@ -16,6 +16,7 @@ class Product extends Entity implements ActionInterface, TimestampInterface, Aud
     public const EVOLUTION_PRODUCT_CODE = 'EVOLUTION';
     public const AFFILIATE_WALLET_CODE = 'PW';
     public const PIWIXCHANGE_CODE = 'PIWIX';
+    public const SPORTS_CODE = 'PINBET';
 
     /**
      * @var string
@@ -91,6 +92,24 @@ class Product extends Entity implements ActionInterface, TimestampInterface, Aud
     public function getCode()
     {
         return $this->code;
+    }
+
+    public function getCodeByName(string $name): string 
+    {
+        switch (strtolower($name)) {
+            case 'sports':
+                return self::SPORTS_CODE;
+            case 'casino': 
+                return self::EVOLUTION_PRODUCT_CODE;
+            case 'piwixchange':
+                return self::PIWIXCHANGE_CODE;
+            case 'member wallet':
+                return self::MEMBER_WALLET_CODE;
+            case 'affiliate profit':
+                return self::AFFILIATE_WALLET_CODE;
+            default:
+                return '';                    
+        }
     }
 
     /**
