@@ -233,6 +233,9 @@ roles:
         create: Create Customer
         convert_to_customer: Convert To Customer
         convert_to_affiliate: Convert To Affiliate
+        view_member_list: View Member List (All)
+        use_member_list_filters: Use Member List Filters
+        use_member_search: Use Member Search
 
     customerRiskSettting:
         view: View Risk Setting

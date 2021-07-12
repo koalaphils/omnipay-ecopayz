@@ -130,8 +130,8 @@
   Error Page
 ==================================================*/
 .ex-page-content h2 {
-  font-size: 61px;
-  color: #36404a;
+  font-size: 55px;
+  color: #ffffff;
   text-transform: uppercase;
   font-weight: bold;
   padding-top: 17px !important;
@@ -794,7 +794,7 @@ display: flex;
 @media only screen and (max-width: 430px) {
   .ex-page-content h2 {
       font-size: 44px;
-      color: #36404a;
+      color: #ffffff;
       text-transform: uppercase;
       font-weight: bold;
       padding-top: 17px !important;
