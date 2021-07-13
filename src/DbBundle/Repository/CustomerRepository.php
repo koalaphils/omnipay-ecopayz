@@ -131,7 +131,13 @@ class CustomerRepository extends BaseRepository
         if (isset($filters['search'])) {
             $exp = $qb->expr()->orX();
 
-            if (array_get($filters, 'viewAll', false) && !isset($groupFilters['searchCategory'])) {
+            if
+            (
+	            (array_get($filters, 'memberSearch', false) && array_get($filters, 'viewAll', false) && !isset($groupFilters['searchCategory']))
+	            ||
+	            (!array_get($filters, 'memberSearch', false) && $filters['search'] != '')
+            )
+            {
 	            $exp->addMultiple([
 		            "c.fName LIKE :search",
 		            "c.mName LIKE :search",
