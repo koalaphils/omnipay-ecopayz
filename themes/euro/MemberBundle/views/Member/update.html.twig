@@ -172,73 +172,73 @@
                     </div>
                 </div>
                 <div class="tab-pane" id="referral_tool">
-                    <iframe id="bannerSetting" src="/iframe/referral-tools/{{ customer.user.id }}" scrolling="no" style="width: 100%; height: 473px; border: none;"></iframe>
+                      <iframe id="bannerSetting" src="/iframe/referral-tools/{{ customer.user.id }}" scrolling="no" style="width: 100%; height: 473px; border: none;"></iframe>
                     {# <div class="row">
-                        <div class="col-sm-12">
-                            <div class="referral_tool">
-                             <div class="row">
-                                <ul class="nav nav-tabs navtab-bg nav-justified">
-                                    <li class="active">
-                                        <a href="#website" data-toggle="tab" aria-expanded="false">
-                                            <span class="visible-xs"><i class="fa fa-home"></i></span>
-                                            <span class="hidden-xs">Websites</span>
-                                        </a>
-                                    </li>
-                                    <li class="">
-                                        <a href="#referral_names" data-toggle="tab" aria-expanded="true">
-                                            <span class="visible-xs"><i class="fa fa-user"></i></span>
-                                            <span class="hidden-xs">Referral Codes</span>
-                                        </a>
-                                    </li>
-                                    <li class="">
-                                        <a href="#campaign_names" data-toggle="tab" aria-expanded="false">
-                                            <span class="visible-xs"><i class="fa fa-envelope-o"></i></span>
-                                            <span class="hidden-xs">Campaign Names</span>
-                                        </a>
-                                    </li>
-                                    <li class="">
-                                        <a href="#banners" data-toggle="tab" aria-expanded="false">
-                                            <span class="visible-xs"><i class="fa fa-cog"></i></span>
-                                            <span class="hidden-xs">Banners</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                                <div class="tab-content" style="display: block">
-                                    <div class="tab-pane active" id="website">
-                                        <button id="createWebsiteBtn" class="btn btn-primary waves-effect waves-light pull-right btn-prd"><span><i class="ti-plus"></i></span> Add Website</button>
-                                        <div class="clearfix"></div>
-                                        <div class="card-box table-responsive">
-                                            {{ widget_render(widgets.websites) }}
-                                        </div>
-                                    </div>
-                                    <div class="tab-pane" id="referral_names">
-                                        <button id="btnCreateReferralName" class="btn btn-primary waves-effect waves-light pull-right btn-prd"><span><i class="ti-plus"></i></span> Add Referral Code</button>
-                                        <div class="clearfix"></div>
-                                        <div class="card-box table-responsive">
-                                        {{ widget_render(widgets.memberReferralName) }}
-                                        </div>
-                                    </div>
-                                    <div class="tab-pane" id="campaign_names">
-                                        <div class="clearfix"></div>
-                                        <div class="card-box table-responsive">
-                                            {{ widget_render(widgets.memberCampaignName) }}
-                                        </div>
-                                    </div>
-                                    <div class="tab-pane" id="banners">
-                                        <div class="card-box table-responsive">
-                                            {{ widget_render(widgets.banners) }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div> #}
-                </div>
-            </div>
+                          <div class="col-sm-12">
+                              <div class="referral_tool">
+                                  <div class="row">
+                                      <ul class="nav nav-tabs navtab-bg nav-justified">
+                                          <li class="active">
+                                              <a href="#website" data-toggle="tab" aria-expanded="false">
+                                                  <span class="visible-xs"><i class="fa fa-home"></i></span>
+                                                  <span class="hidden-xs">Websites</span>
+                                              </a>
+                                          </li>
+                                          <li class="">
+                                              <a href="#referral_names" data-toggle="tab" aria-expanded="true">
+                                                  <span class="visible-xs"><i class="fa fa-user"></i></span>
+                                                  <span class="hidden-xs">Referral Codes</span>
+                                              </a>
+                                          </li>
+                                          <li class="">
+                                              <a href="#campaign_names" data-toggle="tab" aria-expanded="false">
+                                                  <span class="visible-xs"><i class="fa fa-envelope-o"></i></span>
+                                                  <span class="hidden-xs">Campaign Names</span>
+                                              </a>
+                                          </li>
+                                          <li class="">
+                                              <a href="#banners" data-toggle="tab" aria-expanded="false">
+                                                  <span class="visible-xs"><i class="fa fa-cog"></i></span>
+                                                  <span class="hidden-xs">Banners</span>
+                                              </a>
+                                          </li>
+                                      </ul>
+                                      <div class="tab-content" style="display: block">
+                                          <div class="tab-pane active" id="website">
+                                              <button id="createWebsiteBtn" class="btn btn-primary waves-effect waves-light pull-right btn-prd"><span><i class="ti-plus"></i></span> Add Website</button>
+                                              <div class="clearfix"></div>
+                                              <div class="card-box table-responsive">
+                                                  {{ widget_render(widgets.websites) }}
+                                              </div>
+                                          </div>
+                                          <div class="tab-pane" id="referral_names">
+                                              <button id="btnCreateReferralName" class="btn btn-primary waves-effect waves-light pull-right btn-prd"><span><i class="ti-plus"></i></span> Add Referral Code</button>
+                                              <div class="clearfix"></div>
+                                              <div class="card-box table-responsive">
+                                              {{ widget_render(widgets.memberReferralName) }}
+                                              </div>
+                                          </div>
+                                          <div class="tab-pane" id="campaign_names">
+                                              <div class="clearfix"></div>
+                                              <div class="card-box table-responsive">
+                                                  {{ widget_render(widgets.memberCampaignName) }}
+                                              </div>
+                                          </div>
+                                          <div class="tab-pane" id="banners">
+                                              <div class="card-box table-responsive">
+                                                  {{ widget_render(widgets.banners) }}
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                        </div> #}
+                  </div>
                 <div class="tab-pane" id="ewl_account">
                     <div class="row">
                         <div class="col-md-12">
-                            <iframe id="ewl-account"></iframe>
+                            <iframe id="ewl-account"></iframe> 
                         </div>
                     </div>
                 </div>
