@@ -21,6 +21,7 @@ use DbBundle\Entity\Product;
 use DbBundle\Entity\User;
 Use DbBundle\Repository\CustomerProductRepository;
 use GatewayTransactionBundle\Manager\GatewayMemberTransaction;
+use ProductIntegrationBundle\Exception\IntegrationException;
 use ProductIntegrationBundle\Exception\NoSuchIntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
 use ProductIntegrationBundle\ProductIntegrationFactory;
@@ -65,7 +66,6 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         $subTransactions = $transaction->getSubtransactions();
         $customerPiwiWalletProduct = $this->getCustomerPiwiWalletProduct($transaction->getCustomer());
         $customerWalletCode = $customerPiwiWalletProduct->getProduct()->getCode();
-
 
         // Acknowledged
         if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE) {
@@ -146,9 +146,16 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
 
                  // If the transition is from Acknowledged to Declined
                 if ($subTransaction->isWithdrawal() && $transitionName == Transaction::TRANSACTION_STATUS_ACKNOWLEDGE . '_' . Transaction::TRANSACTION_STATUS_DECLINE) {
-                    $newBalance = $this->credit($productCode, $transactionNumber, $currency, $customerProductUsername, $amount, $jwt);
-                    $subTransaction->getCustomerProduct()->setBalance($newBalance);
-                    $this->debit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                    try {
+                        $newBalance = $this->credit($productCode, $transactionNumber, $currency, $customerProductUsername, $amount, $jwt);
+                        $subTransaction->getCustomerProduct()->setBalance($newBalance);
+                        $this->debit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                    } catch (IntegrationException | IntegrationNotAvailableException $ex) {
+                        if(!$transaction->isTransferDestinationPiwiWalletProduct()){
+                            $this->credit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                        }
+                        $subTransaction->setFailedProcessingWithIntegration(true);
+                    }
                 }
             }
 
