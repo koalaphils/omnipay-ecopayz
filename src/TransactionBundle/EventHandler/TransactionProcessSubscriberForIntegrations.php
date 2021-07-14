@@ -147,9 +147,12 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                  // If the transition is from Acknowledged to Declined
                 if ($subTransaction->isWithdrawal() && $transitionName == Transaction::TRANSACTION_STATUS_ACKNOWLEDGE . '_' . Transaction::TRANSACTION_STATUS_DECLINE) {
                     try {
-                        $newBalance = $this->credit($productCode, $transactionNumber, $currency, $customerProductUsername, $amount, $jwt);
-                        $subTransaction->getCustomerProduct()->setBalance($newBalance);
+                        //Debit transferred funds from PIWI Wallet.
                         $this->debit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                        //Credit to Product Wallet to rollback funds.
+                        $newBalance = $this->credit($productCode, $transactionNumber, $currency, $customerProductUsername, $amount, $jwt);
+                        
+                        $subTransaction->getCustomerProduct()->setBalance($newBalance);
                     } catch (IntegrationException | IntegrationNotAvailableException $ex) {
                         if(!$transaction->isTransferDestinationPiwiWalletProduct()){
                             $this->credit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
