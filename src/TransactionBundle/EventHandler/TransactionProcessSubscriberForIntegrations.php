@@ -21,7 +21,6 @@ use DbBundle\Entity\Product;
 use DbBundle\Entity\User;
 Use DbBundle\Repository\CustomerProductRepository;
 use GatewayTransactionBundle\Manager\GatewayMemberTransaction;
-use ProductIntegrationBundle\Exception\IntegrationException;
 use ProductIntegrationBundle\Exception\NoSuchIntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
 use ProductIntegrationBundle\ProductIntegrationFactory;
@@ -149,11 +148,11 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                     try {
                         //Debit transferred funds from PIWI Wallet.
                         $this->debit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
-                        //Credit to Product Wallet to rollback funds.
+                        //Credit from Product Wallet to rollback funds.
                         $newBalance = $this->credit($productCode, $transactionNumber, $currency, $customerProductUsername, $amount, $jwt);
                         
                         $subTransaction->getCustomerProduct()->setBalance($newBalance);
-                    } catch (IntegrationException | IntegrationNotAvailableException $ex) {
+                    } catch (IntegrationNotAvailableException $ex) {
                         if(!$transaction->isTransferDestinationPiwiWalletProduct()){
                             $this->credit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         }
