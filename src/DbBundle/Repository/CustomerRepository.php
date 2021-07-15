@@ -128,10 +128,10 @@ class CustomerRepository extends BaseRepository
             $qb->setParameter('affiliate', $affiliate);
         }
 
-        if (isset($filters['search'])) {
+        if (!empty(trim(array_get($filters, 'search', '')))) {
             $exp = $qb->expr()->orX();
 
-            if (array_get($filters, 'viewAll', false) && !isset($groupFilters['searchCategory'])) {
+            if (empty(array_get($groupFilters, 'searchCategory', []))) {
 	            $exp->addMultiple([
 		            "c.fName LIKE :search",
 		            "c.mName LIKE :search",
@@ -148,41 +148,39 @@ class CustomerRepository extends BaseRepository
 		            "JSON_EXTRACT(u.preferences, '$.referrer') LIKE :search",
 	            ]);
             } else {
-	            if (isset($groupFilters['searchCategory']) && !empty($groupFilters['searchCategory']) && $filters['search'] != '') {
 
-		            if (in_array('fullname', $groupFilters['searchCategory'])) {
-			            $exp->add("CONCAT(c.fName, ' ', c.mName, ' ', c.lName) LIKE :search");
-			            $exp->add('c.fullName LIKE :search');
-		            }
+	            if (in_array('fullname', $groupFilters['searchCategory'])) {
+		            $exp->add("CONCAT(c.fName, ' ', c.mName, ' ', c.lName) LIKE :search");
+		            $exp->add('c.fullName LIKE :search');
+	            }
 
-		            if (in_array('email', $groupFilters['searchCategory'])) {
-			            $exp->add('u.email LIKE :search');
-		            }
+	            if (in_array('email', $groupFilters['searchCategory'])) {
+		            $exp->add('u.email LIKE :search');
+	            }
 
-		            if (in_array('productUsername', $groupFilters['searchCategory'])) {
-			            $exp->add('u.username LIKE :search');
-			            $exp->add('(SELECT COUNT(cps.id) FROM ' . CustomerProduct::class . ' AS cps WHERE cps.customer = c.id AND cps.userName LIKE  :search) > 0');
-		            }
+	            if (in_array('productUsername', $groupFilters['searchCategory'])) {
+		            $exp->add('u.username LIKE :search');
+		            $exp->add('(SELECT COUNT(cps.id) FROM ' . CustomerProduct::class . ' AS cps WHERE cps.customer = c.id AND cps.userName LIKE  :search) > 0');
+	            }
 
-		            if (in_array('ipAddress', $groupFilters['searchCategory'])) {
-			            $exp->add("JSON_EXTRACT(u.preferences, '$.ipAddress') LIKE :search");
-		            }
+	            if (in_array('ipAddress', $groupFilters['searchCategory'])) {
+		            $exp->add("JSON_EXTRACT(u.preferences, '$.ipAddress') LIKE :search");
+	            }
 
-		            if (in_array('affiliateCode', $groupFilters['searchCategory'])) {
-			            $exp->add("JSON_EXTRACT(u.preferences, '$.affiliateCode') LIKE :search");
-		            }
+	            if (in_array('affiliateCode', $groupFilters['searchCategory'])) {
+		            $exp->add("JSON_EXTRACT(u.preferences, '$.affiliateCode') LIKE :search");
+	            }
 
-		            if (in_array('origUrl', $groupFilters['searchCategory'])) {
-			            $exp->add("JSON_EXTRACT(u.preferences, '$.originUrl') LIKE :search");
-		            }
+	            if (in_array('origUrl', $groupFilters['searchCategory'])) {
+		            $exp->add("JSON_EXTRACT(u.preferences, '$.originUrl') LIKE :search");
+	            }
 
-		            if (in_array('promoCode', $groupFilters['searchCategory'])) {
-			            $exp->add("JSON_EXTRACT(u.preferences, '$.promoCode') LIKE :search");
-		            }
+	            if (in_array('promoCode', $groupFilters['searchCategory'])) {
+		            $exp->add("JSON_EXTRACT(u.preferences, '$.promoCode') LIKE :search");
+	            }
 
-		            if (in_array('referrer', $groupFilters['searchCategory'])) {
-			            $exp->add("JSON_EXTRACT(u.preferences, '$.referrer') LIKE :search");
-		            }
+	            if (in_array('referrer', $groupFilters['searchCategory'])) {
+		            $exp->add("JSON_EXTRACT(u.preferences, '$.referrer') LIKE :search");
 	            }
             }
 
