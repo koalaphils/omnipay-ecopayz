@@ -87,7 +87,6 @@
             filters.filter.searchCategory = $('#{{ page.getWidget('list').getFullId() }}_container').find('select[name=ztable_search_category]').val() || [];
             newData.data.filters = filters;
             newData.data.search = ztableData.data.filters.filter.search;
-            newData.data.filters.memberSearch = true;
             newData.data.filters.search = ztableData.data.filters.filter.search;
             newData.data.orders = [
                 {'column': 'c.joinedAt', 'dir': 'desc'}
