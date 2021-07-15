@@ -41,7 +41,7 @@ class EvolutionIntegration implements ProductIntegrationInterface
         $url = sprintf('/credit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $transactionId);
         $response = $this->http->get($url, $token);
         $object = json_decode(((string) $response->getBody()));
-        dump($object);
+
         return $object->transfer->balance;
     }
 
