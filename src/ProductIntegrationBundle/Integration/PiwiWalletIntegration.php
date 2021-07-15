@@ -5,13 +5,11 @@ namespace ProductIntegrationBundle\Integration;
 // TODO: We can move Integrations to other folder so as to make this
 // bundle reusable.
 
-use ProductIntegrationBundle\Exception\IntegrationException;
-use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
-Use DbBundle\Repository\CustomerProductRepository;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use AppBundle\ValueObject\Number;
-use CustomerBundle\Manager\CustomerProductManager;
+use DbBundle\Repository\CustomerProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
+use ProductIntegrationBundle\Exception\IntegrationException\CreditIntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationException\DebitIntegrationException;
 
 class PiwiWalletIntegration implements ProductIntegrationInterface
@@ -20,7 +18,7 @@ class PiwiWalletIntegration implements ProductIntegrationInterface
     private $manager;
 
     public function __construct(CustomerProductRepository $repository,
-        EntityManagerInterface $manager)
+                                EntityManagerInterface $manager)
     {
         $this->repository = $repository;
         $this->manager = $manager;
@@ -32,7 +30,7 @@ class PiwiWalletIntegration implements ProductIntegrationInterface
     }
 
     public function getBalance(string $token, string $id): string
-    {   
+    {
         // We will use $id as the Product's Username
         $product = $this->repository->findByUsername($id);
 
@@ -41,38 +39,42 @@ class PiwiWalletIntegration implements ProductIntegrationInterface
 
     public function credit(string $token, array $params): string
     {
-        $product = $this->repository->findByUsername($params[
-            'id'
-        ]);
+        try {
+            $product = $this->repository->findByUsername($params['id']);
 
-        $sum = Number::add($product->getBalance(), $params['amount']);
-        $product->setBalance($sum->toString());
-        $this->save($product);
+            $sum = Number::add($product->getBalance(), $params['amount']);
+            $product->setBalance($sum->toString());
+            $this->save($product);
 
-        return $product->getBalance();
+            return $product->getBalance();
+        } catch (Exception $exception) {
+            throw new CreditIntegrationException($exception->getMessage(), $exception->getCode(), $exception);
+        }
+    }
+
+    private function save($product): void
+    {
+        $this->manager->persist($product);
+        $this->manager->flush();
     }
 
     public function debit(string $token, array $params): string
     {
-        $product = $this->repository->findByUsername($params[
-            'id'
-        ]);
+        try {
+            $product = $this->repository->findByUsername($params['id']);
 
-        $diff = Number::sub($product->getBalance(), $params['amount']);
-        
-        if ($diff->lessThan(0)) {
-            throw new DebitIntegrationException('Insufficient balance', 422);    
+            $diff = Number::sub($product->getBalance(), $params['amount']);
+
+            if ($diff->lessThan(0)) {
+                throw new DebitIntegrationException('Insufficient balance', 422);
+            }
+
+            $product->setBalance($diff->toString());
+            $this->save($product);
+
+            return $product->getBalance();
+        } catch (Exception $exception) {
+            throw new DebitIntegrationException($exception->getMessage(), $exception->getCode(), $exception);
         }
-        
-        $product->setBalance($diff->toString());
-        $this->save($product);
-
-        return $product->getBalance();
-    }
-
-    private function save($product): void   
-    {   
-        $this->manager->persist($product);
-        $this->manager->flush();
     }
 }
