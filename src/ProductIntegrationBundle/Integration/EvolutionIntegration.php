@@ -2,6 +2,7 @@
 
 namespace ProductIntegrationBundle\Integration;
 
+use ProductIntegrationBundle\Exception\IntegrationException\DebitIntegrationException;
 use ProductIntegrationBundle\Persistence\HttpPersistence;
 use ProductIntegrationBundle\Exception\IntegrationException;
 
@@ -40,7 +41,7 @@ class EvolutionIntegration implements ProductIntegrationInterface
         $url = sprintf('/credit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $transactionId);
         $response = $this->http->get($url, $token);
         $object = json_decode(((string) $response->getBody()));
-
+        dump($object);
         return $object->transfer->balance;
     }
 
@@ -57,7 +58,7 @@ class EvolutionIntegration implements ProductIntegrationInterface
                 $message = 'Insufficient balance';
             }
             
-            throw new IntegrationException($message, 422);
+            throw new DebitIntegrationException($message, 422);
         }
 
         return $object->transfer->balance;

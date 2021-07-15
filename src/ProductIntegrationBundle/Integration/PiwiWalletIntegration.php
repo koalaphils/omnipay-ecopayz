@@ -12,6 +12,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use AppBundle\ValueObject\Number;
 use CustomerBundle\Manager\CustomerProductManager;
 use Doctrine\ORM\EntityManagerInterface;
+use ProductIntegrationBundle\Exception\IntegrationException\DebitIntegrationException;
 
 class PiwiWalletIntegration implements ProductIntegrationInterface
 {
@@ -60,7 +61,7 @@ class PiwiWalletIntegration implements ProductIntegrationInterface
         $diff = Number::sub($product->getBalance(), $params['amount']);
         
         if ($diff->lessThan(0)) {
-            throw new IntegrationException('Insufficient balance', 422);    
+            throw new DebitIntegrationException('Insufficient balance', 422);    
         }
         
         $product->setBalance($diff->toString());

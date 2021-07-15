@@ -9,6 +9,8 @@ use PinnacleBundle\Component\Exceptions\PinnacleException;
 use ProductIntegrationBundle\Exception\IntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
 use Http\Client\Exception\NetworkException;
+use ProductIntegrationBundle\Exception\IntegrationException\CreditIntegrationException;
+use ProductIntegrationBundle\Exception\IntegrationException\DebitIntegrationException;
 use ProductIntegrationBundle\Exception\NoPinnacleProductException;
 use ProductIntegrationBundle\Persistence\HttpPersistence;
 
@@ -59,7 +61,7 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
     
             return $response->availableBalance();          
         } catch (PinnacleException $exception) {
-            throw new IntegrationException($exception->getMessage(), 422);
+            throw new CreditIntegrationException($exception->getMessage(), 422);
         } catch (PinnacleError $exception) {
             throw new IntegrationNotAvailableException($exception->getMessage(), 422);
         } catch (NetworkException $exception) {
@@ -75,7 +77,7 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
     
             return $response->availableBalance();          
         } catch (PinnacleException $exception) {
-            throw new IntegrationException($exception->getMessage(), 422);
+            throw new DebitIntegrationException($exception->getMessage(), 422);
         } catch (PinnacleError $exception) {
             throw new IntegrationNotAvailableException($exception->getMessage(), 422);
         } catch (NetworkException $exception) {
