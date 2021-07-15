@@ -7,6 +7,7 @@
 namespace ProductIntegrationBundle\Exception;
 
 use Exception;
+use Throwable;
 
 class IntegrationException extends Exception
 {
