@@ -97,7 +97,6 @@
             {% if is_granted('ROLE_VIEW_MEMBER_LIST') %}
                 newData.data.filters.length = 10;
                 newData.data.filters.limit = 10;
-                newData.data.filters.viewAll = true;
             {% endif %}
 
             {% if is_granted('ROLE_USE_MEMBER_LIST_FILTERS') %}

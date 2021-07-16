@@ -34,6 +34,20 @@ class ListWidget extends AbstractPageWidget
     public function onGetList(array $data): array
     {
         $data['filters'] = array_merge($data['filters'] ?? [], $this->getAdditionalFilters());
+	    $controller = $this->getPageManager()->getController();
+	    $function = $this->property('processFilter', null);
+
+	    if($function) {
+		    list($class, $functionName) = explode('::', $function);
+		    if ($class === 'controller') {
+			    $data['filters'] = call_user_func([$controller, $functionName], $data['filters']);
+		    } elseif (substr($class, 0, 1) === '@') {
+			    $service = $this->container->get(substr($class, 1));
+			    $data['filters'] = call_user_func([$service, $functionName], $data['filters']);
+		    } else {
+			    $data['filters'] = call_user_func([$class, $functionName], $data['filters']);
+		    }
+	    }
         $data['limit'] = $data['limit'] ?? 20;
         $data['page'] = $data['page'] ?? 1;
         $data['offset'] = $data['offset'] ?? ($data['page'] - 1) * $data['limit'];

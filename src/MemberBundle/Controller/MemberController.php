@@ -2,8 +2,10 @@
 
 namespace MemberBundle\Controller;
 
+use CustomerBundle\Manager\CustomerPaymentOptionManager;
 use DbBundle\Entity\Product;
 use DbBundle\Repository\ProductRepository;
+use PaymentOptionBundle\Manager\PaymentOptionManager;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -54,6 +56,30 @@ class MemberController extends PageController
 
         return $processedResult;
     }
+
+	public function processPaymentOptionFilter($filters)
+	{
+		$paymentOptionsFilter = [];
+		$paymentOptionSearch = "";
+
+		//payment option filter
+		if (isset($filters['filter']['paymentOption']) && $filters['filter']['paymentOption']) {
+			$paymentOptionsFilter = $filters['filter']['paymentOption'];
+		}
+
+		//payment gateway search
+		if (isset($filters['filter']['searchCategory']) && !empty($filters['filter']['searchCategory']) &&
+			in_array('paymentGateway', $filters['filter']['searchCategory']) &&
+			$filters['filter']['search']
+		) {
+			$paymentOptionSearch =  $filters['filter']['search'];
+		}
+		if ($paymentOptionSearch || $paymentOptionsFilter) {
+			$filters['customer_payment_options'] = $this->getCustomerPaymentOptionManager()->searchCustomer($paymentOptionSearch, $paymentOptionsFilter);
+		}
+
+		return $filters;
+	}
 
     public function processCommissionResult(array $result, ListWidget $widget): array
     {
@@ -482,6 +508,11 @@ class MemberController extends PageController
     private function getMemberWebsiteManager(): MemberWebsiteManager
     {
         return $this->get('member.website_manager');
+    }
+
+    private function getCustomerPaymentOptionManager(): CustomerPaymentOptionManager
+    {
+	    return $this->get('customer.payment_option_manager');
     }
 
     private function getMemberBannerRepository(): \DbBundle\Repository\MemberBannerRepository
