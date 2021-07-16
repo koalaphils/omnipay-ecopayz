@@ -3,13 +3,15 @@
 namespace ProductIntegrationBundle\Integration;
 
 use AppBundle\ValueObject\Number;
-use PinnacleBundle\Service\PinnacleService;
+use Exception;
+use Http\Client\Exception\NetworkException;
 use PinnacleBundle\Component\Exceptions\PinnacleError;
 use PinnacleBundle\Component\Exceptions\PinnacleException;
+use PinnacleBundle\Service\PinnacleService;
 use ProductIntegrationBundle\Exception\IntegrationException;
+use ProductIntegrationBundle\Exception\IntegrationException\CreditIntegrationException;
+use ProductIntegrationBundle\Exception\IntegrationException\DebitIntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
-use Http\Client\Exception\NetworkException;
-use ProductIntegrationBundle\Exception\NoPinnacleProductException;
 use ProductIntegrationBundle\Persistence\HttpPersistence;
 
 class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayerInterface
@@ -30,7 +32,7 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
 
             // Body supposedly contains jsonBody for form requests.
             // But this is an adapter class so we need to adapt.
-            return $authComponent->login($token, $body['locale'])->toArray();         
+            return $authComponent->login($token, $body['locale'])->toArray();
         } catch (PinnacleException $exception) {
             throw new IntegrationNotAvailableException($exception->getMessage(), 422);
         } catch (PinnacleError $exception) {
@@ -42,8 +44,8 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
     {
         try {
             $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->getPlayer($id);
-       
-            return $pinnaclePlayer->availableBalance();            
+
+            return $pinnaclePlayer->availableBalance();
         } catch (PinnacleException $exception) {
             throw new IntegrationNotAvailableException($exception->getMessage(), 422);
         } catch (PinnacleError $exception) {
@@ -56,14 +58,10 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
         try {
             $transactionComponent = $this->pinnacleService->getTransactionComponent();
             $response = $transactionComponent->deposit($params['id'], Number::format($params['amount'], ['precision' => 2]));
-    
-            return $response->availableBalance();          
-        } catch (PinnacleException $exception) {
-            throw new IntegrationException($exception->getMessage(), 422);
-        } catch (PinnacleError $exception) {
-            throw new IntegrationNotAvailableException($exception->getMessage(), 422);
-        } catch (NetworkException $exception) {
-            throw new IntegrationNotAvailableException($exception->getMessage(), 422);
+
+            return $response->availableBalance();
+        } catch (Exception $exception) {
+            throw new CreditIntegrationException($exception->getMessage(), $exception->getCode(), $exception);
         }
     }
 
@@ -72,21 +70,17 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
         try {
             $transactionComponent = $this->pinnacleService->getTransactionComponent();
             $response = $transactionComponent->withdraw($params['id'], Number::format($params['amount'], ['precision' => 2]));
-    
-            return $response->availableBalance();          
-        } catch (PinnacleException $exception) {
-            throw new IntegrationException($exception->getMessage(), 422);
-        } catch (PinnacleError $exception) {
-            throw new IntegrationNotAvailableException($exception->getMessage(), 422);
-        } catch (NetworkException $exception) {
-            throw new IntegrationNotAvailableException($exception->getMessage(), 422);
+
+            return $response->availableBalance();
+        } catch (Exception $exception) {
+            throw new DebitIntegrationException($exception->getMessage(), 422, $exception);
         }
     }
 
     public function create(): array
     {
         try {
-            return $this->pinnacleService->getPlayerComponent()->createPlayer()->toArray();     
+            return $this->pinnacleService->getPlayerComponent()->createPlayer()->toArray();
         } catch (PinnacleException $exception) {
             throw new IntegrationException($exception->getMessage(), 422);
         } catch (PinnacleError $exception) {
