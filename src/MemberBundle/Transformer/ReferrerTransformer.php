@@ -27,7 +27,7 @@ class ReferrerTransformer implements DataTransformerInterface
         if ($value) {
             $response = $this->affiliateService->getAffiliate($value);
             if ($response) {
-                $affiliate = $this->affiliateService->getAffiliate($value)['data'];
+                $affiliate = $this->affiliateService->getAffiliate($value);
             
                 return [$affiliate['name'] . '(' . $affiliate['username'] . ')' => $affiliate['user_id']];
             }
