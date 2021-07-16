@@ -2,9 +2,11 @@
 
 namespace ProductIntegrationBundle\Integration;
 
+use Exception;
 use ProductIntegrationBundle\Exception\IntegrationException\DebitIntegrationException;
 use ProductIntegrationBundle\Persistence\HttpPersistence;
 use ProductIntegrationBundle\Exception\IntegrationException;
+use ProductIntegrationBundle\Exception\IntegrationException\CreditIntegrationException;
 
 class EvolutionIntegration implements ProductIntegrationInterface
 {
@@ -37,30 +39,37 @@ class EvolutionIntegration implements ProductIntegrationInterface
 
     public function credit(string $token, array $params): string
     {
-        $transactionId = 'Credit_' . uniqid();
-        $url = sprintf('/credit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $transactionId);
-        $response = $this->http->get($url, $token);
-        $object = json_decode(((string) $response->getBody()));
+        try {
+            $transactionId = 'Credit_' . uniqid();
+            $url = sprintf('/credit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $transactionId);
+            $response = $this->http->get($url, $token);
+            $object = json_decode(((string) $response->getBody()));
 
-        return $object->transfer->balance;
+            return $object->transfer->balance;
+        } catch (Exception $exception) {
+            throw new CreditIntegrationException($exception->getMessage(), $exception->getCode(), $exception);
+        }
     }
 
     public function debit(string $token, array $params): string
     {  
-        $transactionId = 'Debit_' . uniqid();
-        $url = sprintf('/debit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $transactionId);
-        $response = $this->http->get($url, $token);
-        $object = json_decode(((string) $response->getBody()));
+        try {
+            $transactionId = 'Debit_' . uniqid();
+            $url = sprintf('/debit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $transactionId);
+            $response = $this->http->get($url, $token);
+            $object = json_decode(((string) $response->getBody()));
 
-        if (property_exists($object->transfer, 'errormsg')) {
-            $message = $object->transfer->errormsg;
-            if (strrpos($object->transfer->errormsg, 'Insufficient') !== false) {
-                $message = 'Insufficient balance';
+            if (property_exists($object->transfer, 'errormsg')) {
+                $message = $object->transfer->errormsg;
+                if (strrpos($object->transfer->errormsg, 'Insufficient') !== false) {
+                    $message = 'Insufficient balance';
+                }
+                
+                throw new DebitIntegrationException($message, 422);
             }
-            
-            throw new DebitIntegrationException($message, 422);
+            return $object->transfer->balance;
+        } catch (Exception $exception) {
+            throw new DebitIntegrationException($exception->getMessage(), $exception->getCode(), $exception);
         }
-
-        return $object->transfer->balance;
     }
 }
