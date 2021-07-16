@@ -207,9 +207,9 @@ class CustomerPaymentOption extends Entity implements ActionInterface, Timestamp
         return $this;
     }
 
-    public function setForDeposit(): self
+    public function setForDeposit($value = 1): self
     {
-        $this->setField('is_deposit', 1);
+        $this->setField('is_deposit', $value);
 
         return $this;
     }
