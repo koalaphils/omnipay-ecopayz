@@ -103,10 +103,6 @@ class HttpService
             ]);
 
             $response = $this->client->request("DELETE", $url, $options);
-            if($response->getStatusCode() >= 200 && $response->getStatusCode() < 300){
-                $contents = \GuzzleHttp\json_decode($response->getBody()->getContents(), true);
-            }
-
             $this->logger->info('HTTP SERVICE RESPONSE: ' . $response->getStatusCode() . ' '. print_r($contents, true));
 
             return $contents;
