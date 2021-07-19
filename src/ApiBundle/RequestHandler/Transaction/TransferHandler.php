@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace ApiBundle\RequestHandler\Transaction;
 
 use ApiBundle\Event\TransactionCreatedEvent;
+use ApiBundle\Exceptions\FailedTransferException;
 use ApiBundle\Request\Transaction\TransferRequest;
 use ApiBundle\Request\Transaction\TransactionItemRequest;
 use AppBundle\ValueObject\Number;
@@ -14,6 +15,10 @@ use DbBundle\Repository\CustomerProductRepository;
 use DbBundle\Repository\CustomerPaymentOptionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManager;
+use ProductIntegrationBundle\Exception\IntegrationException;
+use ProductIntegrationBundle\Exception\IntegrationException\CreditIntegrationException;
+use ProductIntegrationBundle\Exception\IntegrationException\DebitIntegrationException;
+use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use TransactionBundle\Manager\TransactionManager;
 
@@ -45,6 +50,7 @@ class TransferHandler
             $this->em->beginTransaction();
             $member = $request->getMember();
             $sourceCustomerProduct = $this->customerProductRepository->findById($request->getFrom());
+            $response = ['error' => false, 'status' => 200, 'message' => ''];
     
             // Form array of SubTransactions consisting of destination CustomerProducts
             $toSubtransactions =  array_map(function(TransactionItemRequest $item) {
@@ -89,17 +95,32 @@ class TransferHandler
             // $transaction->autoSetPaymentOptionType();
             // $transaction->setPaymentOptionOnTransaction($memberPaymentOption);
             $transaction->retainImmutableData();
-
             $action = ['label' => 'Save', 'status' => Transaction::TRANSACTION_STATUS_START];
+
             $this->transactionManager->processTransaction($transaction, $action, true);
-        
+
+            if ($transaction->getDetail('transfer')) {
+                $transferDetails = explode('_', $transaction->getDetail('transfer'));
+                if ($transferDetails[0] === Transaction::DETAIL_TRANSFER_FAILED_TO) {
+                    $response['message'] = 'An error occurred while transferring funds to ' . $transferDetails[1] . '.  Your funds were transferred to PIWI Wallet instead.';
+                    $response['error'] = true;
+                    $response['status'] = 422;
+                } 
+            }
+
             $this->em->commit();
 
             $event = new TransactionCreatedEvent($transaction);
             $this->eventDispatcher->dispatch('transaction.created', $event);
+  
+            return $response;
 
-            return ['error' => false, 'status' => 200];
-
+        } catch(IntegrationNotAvailableException $exception) {
+            return ['message' => $exception->getMessage(), 'error' => true, 'status' => $exception->getCode()];
+        } catch(CreditIntegrationException $exception) {
+            return ['message' => $exception->getMessage(), 'error' => true, 'status' => $exception->getCode()];
+        } catch(DebitIntegrationException $exception) {
+            return ['message' => $exception->getMessage(), 'error' => true, 'status' => $exception->getCode()];
         } catch (\Exception $exception) {
             $this->em->rollback();
             throw $exception;

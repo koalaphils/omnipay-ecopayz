@@ -2,6 +2,7 @@
 
 namespace TransactionBundle\EventHandler;
 
+use ApiBundle\Exceptions\FailedTransferException;
 use DbBundle\Entity\Transaction;
 use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -40,6 +41,7 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
         $transaction = $event->getTransaction();
         $action = $event->getAction();
 
+        //If a transaction was created from BO or a transfer transaction request was created from MWA
         if (($transaction->isNew() && !$event->fromCustomer()) || ($transaction->isNew() && $event->fromCustomer() && $transaction->isTransfer())) {
             $transitionName = 'new';
         } elseif ($transaction->isNew() && $event->fromCustomer() && !$transaction->isTransfer()) {
@@ -73,8 +75,12 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
                 $this->getTransactionWorkflow()->apply($transaction, $transitionName);
                 if ($transitionName === 'new') {
                     $this->getTransactionWorkflow()->apply($transaction, 'acknowledge');
-                    $this->getTransactionWorkflow()->apply($transaction, 'process');
-
+                    try {
+                        $this->getTransactionWorkflow()->apply($transaction, 'process');
+                    } catch (FailedTransferException $exception) {
+                        $transaction->setDetail('transfer', $exception->getMessage());
+                        return;
+                    }
                 }
             } else {
                 throw new TransitionGuardException('Unable to transition the transaction');
