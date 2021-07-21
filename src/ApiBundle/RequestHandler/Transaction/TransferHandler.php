@@ -103,6 +103,7 @@ class TransferHandler
                 $transferDetails = explode('_', $transaction->getDetail('transfer'));
                 if ($transferDetails[0] === Transaction::DETAIL_TRANSFER_FAILED_TO) {
                     $response['message'] = 'An error occurred while transferring funds to ' . $transferDetails[1] . '.  Your funds were transferred to PIWI Wallet instead.';
+                    $response['hasCallback'] = true;
                     $response['error'] = true;
                     $response['status'] = 422;
                 } 

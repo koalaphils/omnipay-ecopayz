@@ -35,7 +35,7 @@ class EwlIntegration implements ProductIntegrationInterface
     {
         try {
             $url = sprintf('/wallet/transfer');
-            $params['accountId'] = $params['ids'];
+            $params['accountId'] = $params['id'];
             unset($params['id']);
 
             $response = $this->http->post($url, $token, $params);
@@ -51,7 +51,7 @@ class EwlIntegration implements ProductIntegrationInterface
     {
         try {
             $url = sprintf('/wallet/transfer');
-            $params['accountId'] = $params['ids'];
+            $params['accountId'] = $params['id'];
 
             if ($params['amount'] instanceof Number) {
                 $params['amount'] = $params['amount']->toFloat();
