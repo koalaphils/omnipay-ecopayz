@@ -4,6 +4,7 @@ namespace TransactionBundle\EventHandler;
 
 use ApiBundle\Exceptions\FailedTransferException;
 use DbBundle\Entity\Transaction;
+use Exception;
 use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use TransactionBundle\Event\TransactionProcessEvent;
@@ -80,6 +81,8 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
                     } catch (FailedTransferException $exception) {
                         $transaction->setDetail('transfer', $exception->getMessage());
                         return;
+                    } catch (Exception $exception) {
+                        throw $exception;
                     }
                 }
             } else {

@@ -116,10 +116,13 @@ class TransferHandler
             return $response;
 
         } catch(IntegrationNotAvailableException $exception) {
+            $this->em->rollback();
             return ['message' => $exception->getMessage(), 'error' => true, 'status' => $exception->getCode()];
         } catch(CreditIntegrationException $exception) {
+            $this->em->rollback();
             return ['message' => $exception->getMessage(), 'error' => true, 'status' => $exception->getCode()];
         } catch(DebitIntegrationException $exception) {
+            $this->em->rollback();
             return ['message' => $exception->getMessage(), 'error' => true, 'status' => $exception->getCode()];
         } catch (\Exception $exception) {
             $this->em->rollback();
