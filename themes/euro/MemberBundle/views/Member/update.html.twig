@@ -986,35 +986,48 @@
             });
         }
 
-        {# {{ dump(customer.affiliate) }}We just #}
        $('#autoLink').click(function(e) {
             var profileForm = $(this).closest('form');
             var referrerElement = $('#{{ widgets.profileForm.getFormView().referrer.vars.id }}');
             e.preventDefault();
 
-            $.ajax({
-                'globalAjaxComplete': false,
-                'globalAjaxError': false,
-                'headers': {
-                    'X-WIDGET-REQUEST': 'OnLinkMember'
-                },
-                'type': 'POST',
-            }).success(() => {
-                swal({
-                    'type': 'success',
-                    'title': 'Success Linking Member',
-                    'text': 'Member successfully linked to affiliate'
-                });
+            confirm2('Link Member <b>{{ customer.fName }} {{ customer.lName }} ({{ customer.user.username }}) to an affiliate?</b>', 'Link Member', {
+                    'type': null,
+                    'confirmButtonClass': 'btn-success btn-md',
+                    'confirmButtonText': 'Send',
+                    'cancelButtonClass': 'btn-inverse btn-md',
+                    'cancelButtonText': 'Cancel',
+                    'html': true,
+                    'showLoaderOnConfirm': true
+                }, 
+                function(val) {
+                    if (val) {
+                        $.ajax({
+                            'globalAjaxComplete': false,
+                            'globalAjaxError': false,
+                            'headers': {
+                                'X-WIDGET-REQUEST': 'OnLinkMember'
+                            },
+                            'type': 'POST',
+                        }).success(() => {
+                            swal({
+                                'type': 'success',
+                                'title': 'Success Linking Member',
+                                'text': 'Member successfully linked to affiliate'
+                            });
 
-                location.reload();
-            }).error(function (data) {
-                let response = data.responseJSON;
-                swal({
-                    'type': 'error',
-                    'title': 'Error Linking Member',
-                    'text': response.message
-                });
-            });
+                            location.reload();
+                        }).error(function (data) {
+                            let response = data.responseJSON;
+                            swal({
+                                'type': 'error',
+                                'title': 'Error Linking Member',
+                                'text': response.message
+                            });
+                        });
+                    }
+                }
+            );
         });
 
         function toggleLinkReferrerButton() {
