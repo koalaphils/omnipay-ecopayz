@@ -210,6 +210,11 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
 
         //void
         if ($event->getTransition()->getName() === 'void') {
+            
+            if ($transaction->isTransfer() && count($subTransactions) === 2) {
+                list($subTransactions[0], $subTransactions[1]) = [$subTransactions[1], $subTransactions[0]];
+            }
+
             foreach ($subTransactions as $subTransaction) {
                 $amount = $subTransaction->getAmount();
                 $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode());
