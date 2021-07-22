@@ -2,6 +2,7 @@
 
 namespace AppBundle\Service;
 
+use AppBundle\Exceptions\HTTP\UnprocessableEntityException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Request;
@@ -44,8 +45,8 @@ class HttpService
 
             return $contents;
         } catch (ClientException $e) {
-            $this->logger->info('HTTP SERVICE CLIENT EXCEPTION: ' . Psr7\Message::toString($e->getResponse()));
-            throw $ex;
+            $this->logger->info('HTTP SERVICE CLIENT EXCEPTION: ' . Psr7\Message::toString($ex->getResponse()));
+            $this->handleClientException($ex);
         } catch (RequestException $ex){
             if ($ex->hasResponse()) {
                 $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' ' . Psr7\Message::toString($ex->getResponse()));
@@ -80,12 +81,19 @@ class HttpService
             $this->logger->info('HTTP SERVICE RESPONSE: ' . $response->getStatusCode() . ' '. print_r($contents, true));
 
             return $contents;
+        }  catch (ClientException $ex) {
+            $this->logger->info('HTTP SERVICE CLIENT EXCEPTION: ' . Psr7\Message::toString($ex->getResponse()));
+            $this->handleClientException($ex);
         } catch (RequestException $ex){
             if ($ex->hasResponse()) {
-                $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. Psr7\Message::toString($ex->getResponse()));
+                $this->logger->info('HTTP SERVICE REQUEST EXCEPTION: ' . $ex->getCode() . ' ' . Psr7\Message::toString($ex->getResponse()));
             } else {
-                $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getCode() . ' '. $ex->getTraceAsString());
+                $this->logger->info('HTTP SERVICE REQUEST EXCEPTION: ' . $ex->getCode() . ' '.  $ex->getTraceAsString());
             }
+
+            throw $ex;
+        } catch (\Exception $ex) {
+            $this->logger->info('HTTP SERVICE ERROR: ' . $ex->getMessage());
 
             throw $ex;
         }
@@ -145,5 +153,16 @@ class HttpService
 
             throw $ex;
         }
+    }
+
+    private function handleClientException(ClientException $ex)
+    {
+        $response = $ex->getResponse();
+        if ($response->getStatusCode() === 422) {
+            $body = json_decode((string) $response->getBody());
+            throw new UnprocessableEntityException((array) $body->errors);
+        }
+
+        throw $ex;
     }
 }

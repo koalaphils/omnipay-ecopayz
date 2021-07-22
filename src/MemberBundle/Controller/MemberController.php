@@ -4,6 +4,7 @@ namespace MemberBundle\Controller;
 
 use AppBundle\Controller\PageController;
 use AppBundle\Manager\PageManager;
+use AppBundle\Exceptions\HTTP\UnprocessableEntityException;
 use AppBundle\Widget\Page\ListWidget;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerGroup;
@@ -173,11 +174,14 @@ class MemberController extends PageController
         try {
             $member = $pageManager->getData('customer');
             $response = $this->getMemberManager()->linkMember($member);
-        } catch (GuzzleException $ex) {
-            $errorContents = json_decode($ex->getResponse()->getBody()->getContents(), true);
-           
+        } catch (UnprocessableEntityException $ex) {
+            $message = '';
+
+            if ($ex->member_user_id) $message = $ex->member_user_id[0];
+            if ($ex->referral_code) $message = $ex->referral_code[0];
+            
             return $this->json([
-                'message' => $errorContents['errors']['referral_code'][0]
+                'message' => $message
             ], $ex->getCode());
         }
 
@@ -257,14 +261,6 @@ class MemberController extends PageController
         $affiliates = $this->get('app.service.affiliate_service')
             ->getAffiliates($data);
 
-        // $memberId = !empty($pageManager->getCurrentRequest()->get('_route_params')['id']) ? $pageManager->getCurrentRequest()->get('_route_params')['id'] : null;
-
-        // $filters = [];
-        // if (array_has($data, 'search')) {
-        //     $filters['search'] = $data['search'];
-        // }
-
-        // $records = $this->getCustomerRepository()->getPossibleReferrers($memberId, $filters, $data['length'], $data['start']);
         $records = array_map(function ($affiliate) {
             return [
                 'id' => $affiliate['user_id'],
@@ -275,7 +271,6 @@ class MemberController extends PageController
 
         return [
             'items' => $records,
-            // 'total' => $this->getCustomerRepository()->getCustomerListAllCount(),
         ];
     }
 
