@@ -79,6 +79,9 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
                     try {
                         $this->getTransactionWorkflow()->apply($transaction, 'process');
                     } catch (FailedTransferException $exception) {
+                        $transactionDate = new \DateTime('now');
+                        $transactionDate->setTimezone(new \DateTimeZone('UTC'));
+                        $transaction->setDetail('transaction_dates.' . $transaction->getStatus(), $transactionDate->format('c'));
                         $transaction->setDetail('transfer', $exception->getMessage());
                         return;
                     } catch (Exception $exception) {
