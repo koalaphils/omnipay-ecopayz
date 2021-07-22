@@ -97,14 +97,15 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                         }
                     } catch (DebitIntegrationException $ex) {
                         if ($transaction->isTransfer()) {
-                            //If From Product Wallet failed
                             throw new DebitIntegrationException('An error occurred while getting funds from ' . $productName, 422);
                         }
                         throw $ex->getPrevious() ?? $ex;
                     } catch (CreditIntegrationException $ex) {
-                        if (!($transaction->isTransferSourcePiwiWalletProduct() || $subTransaction->isPiwiWalletMemberProduct())) {
-                            $revertProductBalance = $this->credit($productCode, $transactionNumber, $currency, $customerProductUsername, $amount, $jwt);
-                            $subTransaction->getCustomerProduct()->setBalance($revertProductBalance);
+                        if (!$transaction->isTransferSourcePiwiWalletProduct()) {
+                            $newBalance = $this->credit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
+                            $customerPiwiWalletProduct->setBalance($newBalance);
+
+                            throw new CreditIntegrationException($ex->getMessage(), $ex->getCode());
                         }
                         throw $ex->getPrevious() ?? $ex;
                     } catch (Exception $ex) {
@@ -141,7 +142,6 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                         throw  $ex->getPrevious() ?? $ex;
                     } catch (CreditIntegrationException $ex) {
                         if (!$transaction->isTransferDestinationPiwiWalletProduct()) {
-                            //If To Product Wallet failed, funds will be added to PIWI Wallet
                             $newBalance = $this->credit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                             $customerPiwiWalletProduct->setBalance($newBalance);
                             $subTransaction->setFailedProcessingWithIntegration(false); 
