@@ -70,7 +70,7 @@ class ListWidget extends AbstractPageWidget
 
         $results =  [
             'records' => $records,
-            'recordsFiltered' => $totalFiltered,
+            'recordsFiltered' => !empty($records) ? $totalFiltered : 0,
             'recordsTotal' => $total,
         ];
 
