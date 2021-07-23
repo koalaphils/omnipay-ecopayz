@@ -105,7 +105,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                             $newBalance = $this->credit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                             $customerPiwiWalletProduct->setBalance($newBalance);
 
-                            throw new CreditIntegrationException($ex->getMessage(), $ex->getCode());
+                            throw $ex;
                         }
                         throw $ex->getPrevious() ?? $ex;
                     } catch (Exception $ex) {
