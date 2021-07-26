@@ -2,6 +2,7 @@
 
 namespace ProductIntegrationBundle\Integration;
 
+use AppBundle\ValueObject\Number;
 use Exception;
 use ProductIntegrationBundle\Exception\IntegrationException\CreditIntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationException\DebitIntegrationException;
@@ -51,9 +52,13 @@ class EwlIntegration implements ProductIntegrationInterface
         try {
             $url = sprintf('/wallet/transfer');
             $params['accountId'] = $params['id'];
+
+            if ($params['amount'] instanceof Number) {
+                $params['amount'] = $params['amount']->toFloat();
+            }
+            
             $params['amount'] = -1 * abs($params['amount']);
             unset($params['id']);
-
             $response = $this->http->post($url, $token, $params);
             $body = json_decode(((string)$response->getBody()));
 

@@ -58,6 +58,9 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     private const DETAIL_FILE_FOLDER = 'file.folder';
     private const FILE_DAY_LIMIT = 10;
 
+    public const DETAIL_TRANSFER_FAILED_FROM = 'transfer.failed.from';
+    public const DETAIL_TRANSFER_FAILED_TO = 'transfer.failed.to';
+
     const TRANSACTION_TYPE_DEPOSIT = 1;
     const TRANSACTION_TYPE_WITHDRAW = 2;
     const TRANSACTION_TYPE_TRANSFER = 3;
