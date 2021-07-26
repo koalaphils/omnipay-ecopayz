@@ -29,7 +29,7 @@
             <h4 class="header-title m-b-30 m-t-0">
                 From Products
                 {%- if form.vars.addSubtransaction -%}
-                &nbsp;&nbsp;|<button type="button" class="btn btn-success btn-xs m-l-10 btn-add-from-product"><i class="fa fa-plus" title="Add Product"></i></button>
+                {# &nbsp;&nbsp;|<button type="button" class="btn btn-success btn-xs m-l-10 btn-add-from-product"><i class="fa fa-plus" title="Add Product"></i></button> #}
                 {%- endif %}
             </h4>
             <div class="from-product-list">
@@ -39,7 +39,7 @@
             <h4 class="header-title m-b-30 m-t-0">
                 To Products
                 {%- if form.vars.addSubtransaction -%}
-                &nbsp;&nbsp;|<button type="button" class="btn btn-success btn-xs m-l-10 btn-add-to-product"><i class="fa fa-plus" title="Add Product"></i></button>
+                {# &nbsp;&nbsp;|<button type="button" class="btn btn-success btn-xs m-l-10 btn-add-to-product"><i class="fa fa-plus" title="Add Product"></i></button> #}
                 {%- endif %}
             </h4>
             <div class="to-product-list">
@@ -105,6 +105,8 @@
                 'renderTo': '.to-product-list'
             });
             {%- endfor %}
+
+            $('.remove-product-button').hide();
         }
 
         $(function() {
