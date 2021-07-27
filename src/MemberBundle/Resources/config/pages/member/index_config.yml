@@ -6,6 +6,7 @@ widgets:
         type: \AppBundle\Widget\Page\ListWidget
         properties:
             class: \DbBundle\Entity\Customer
+            processFilter: 'controller::processPaymentOptionFilter'
             processResult: 'controller::processListResult'
             methods:
                 records:
@@ -77,14 +78,15 @@ widgets:
             filtersDom: <'form-inline'<'form-group m-r-10 ft-date'<'m-t-0 xs-date 'ft>>csgkopyar<'form-group' <'m-t-10'>>>
             search: :search
             searchCategory:
-                fullname: Full Name
                 email: Email Address
+                contacts: Contacts
+                fullname: Full Name
+                paymentGateway: Payment Option
                 productUsername: Product Username
-                ipAddress: IP Address
-                affiliateCode: Affiliate Code
-                origUrl: Original URL
-                promoCode: Promo Code
-                referrer: Referrer
+                referralDetails: Referral Details
+                trackingCode: Tracking Code
+                username: Username
+                userPreferences: Marketing Info
             filterRoles: ROLE_USE_MEMBER_LIST_FILTERS
             filters:
                 from:
