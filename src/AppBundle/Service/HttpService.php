@@ -44,7 +44,7 @@ class HttpService
             $this->logger->info('HTTP SERVICE RESPONSE: ' . $response->getStatusCode() . ' '. print_r($contents, true));
 
             return $contents;
-        } catch (ClientException $e) {
+        } catch (ClientException $ex) {
             $this->logger->info('HTTP SERVICE CLIENT EXCEPTION: ' . Psr7\Message::toString($ex->getResponse()));
             $this->handleClientException($ex);
         } catch (RequestException $ex){

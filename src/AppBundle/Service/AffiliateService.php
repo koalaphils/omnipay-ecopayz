@@ -37,7 +37,7 @@ class AffiliateService
 
     public function getAffiliateByReferralCode(string $referralCode)
     {
-        $url = sprintf('/api/v1/affiliate?referral_code=%s', $referralCode);
+        $url = sprintf('/api/v1/affiliate/by-referral-code/%s', $referralCode);
 
         $response = $this->http->get($url,[
             'headers' => [
