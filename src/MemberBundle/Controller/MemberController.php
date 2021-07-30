@@ -243,6 +243,30 @@ class MemberController extends PageController
         return ['success' => true];
     }
 
+    public function processPaymentOptionFilter($filters)
+	{
+		$paymentOptionsFilter = [];
+		$paymentOptionSearch = "";
+
+		//payment option filter
+		if (isset($filters['filter']['paymentOption']) && $filters['filter']['paymentOption']) {
+			$paymentOptionsFilter = $filters['filter']['paymentOption'];
+		}
+
+		//payment gateway search
+		if (isset($filters['filter']['searchCategory']) && !empty($filters['filter']['searchCategory']) &&
+			in_array('paymentGateway', $filters['filter']['searchCategory']) &&
+			$filters['filter']['search']
+		) {
+			$paymentOptionSearch =  $filters['filter']['search'];
+		}
+		if ($paymentOptionSearch || $paymentOptionsFilter) {
+			$filters['customer_payment_options'] = $this->getCustomerPaymentOptionManager()->searchCustomer($paymentOptionSearch, $paymentOptionsFilter);
+		}
+
+		return $filters;
+	}
+
     public function updateOnActivateReferralName(PageManager $pageManager, array $data): JsonResponse
     {
         $member = $pageManager->getData('customer');

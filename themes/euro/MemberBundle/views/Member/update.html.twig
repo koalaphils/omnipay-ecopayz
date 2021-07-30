@@ -965,9 +965,10 @@
                                         'type': 'success',
                                         'title': 'Success Linking Member',
                                         'text': 'Member successfully linked to affiliate'
+                                    }, function () {
+                                        location.reload();
                                     });
 
-                                    location.reload();
                                 }).error(function (data) {
                                     let response = data.responseJSON;
                                     swal({
