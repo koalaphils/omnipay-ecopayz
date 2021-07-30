@@ -2,7 +2,9 @@
 
 namespace TransactionBundle\EventHandler;
 
+use ApiBundle\Exceptions\FailedTransferException;
 use DbBundle\Entity\Transaction;
+use Exception;
 use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use TransactionBundle\Event\TransactionProcessEvent;
@@ -39,9 +41,11 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
     {
         $transaction = $event->getTransaction();
         $action = $event->getAction();
-        if ($transaction->isNew() && !$event->fromCustomer()) {
+
+        //If a transaction was created from BO or a transfer transaction request was created from MWA
+        if (($transaction->isNew() && !$event->fromCustomer()) || ($transaction->isNew() && $event->fromCustomer() && $transaction->isTransfer())) {
             $transitionName = 'new';
-        } elseif ($transaction->isNew() && $event->fromCustomer()) {
+        } elseif ($transaction->isNew() && $event->fromCustomer() && !$transaction->isTransfer()) {
             $transitionName = 'customer-new';
         } else {
             $transitionName = $transaction->getStatus() . '_' . $action['status'];
@@ -70,11 +74,15 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
                 $this->getTransactionWorkflow()->apply($transaction, $transaction->getTypeText() . '-' . $transitionName);
             } elseif ($this->getTransactionWorkflow()->can($transaction, $transitionName)) {
                 $this->getTransactionWorkflow()->apply($transaction, $transitionName);
-
                 if ($transitionName === 'new') {
                     $this->getTransactionWorkflow()->apply($transaction, 'acknowledge');
-                    $this->getTransactionWorkflow()->apply($transaction, 'process');
-
+                    try {
+                        $this->getTransactionWorkflow()->apply($transaction, 'process');
+                    } catch (FailedTransferException $exception) {
+                        $transaction->setDetail('transfer', $exception->getMessage());
+                    } catch (Exception $exception) {
+                        throw $exception;
+                    }
                 }
             } else {
                 throw new TransitionGuardException('Unable to transition the transaction');

@@ -2,8 +2,11 @@
 
 namespace ProductIntegrationBundle\Integration;
 
+use AppBundle\ValueObject\Number;
+use Exception;
+use ProductIntegrationBundle\Exception\IntegrationException\CreditIntegrationException;
+use ProductIntegrationBundle\Exception\IntegrationException\DebitIntegrationException;
 use ProductIntegrationBundle\Persistence\HttpPersistence;
-use ProductIntegrationBundle\Exception\IntegrationException;
 
 class EwlIntegration implements ProductIntegrationInterface
 {
@@ -23,33 +26,45 @@ class EwlIntegration implements ProductIntegrationInterface
     {
         $url = sprintf('/wallet/balance/%s', $id);
         $response = $this->http->get($url, $token);
-        $body = json_decode(((string) $response->getBody()));
+        $body = json_decode(((string)$response->getBody()));
 
         return $body->availableToBet;
     }
 
     public function credit(string $token, array $params): string
     {
-        $url = sprintf('/wallet/transfer');
-        $params['accountId'] = $params['id'];
-        unset($params['id']);
+        try {
+            $url = sprintf('/wallet/transfer');
+            $params['accountId'] = $params['id'];
+            unset($params['id']);
 
-        $response = $this->http->post($url, $token, $params);
-        $body = json_decode(((string) $response->getBody()));
-      
-        return $body->availableToBet;
+            $response = $this->http->post($url, $token, $params);
+            $body = json_decode(((string)$response->getBody()));
+
+            return $body->availableToBet;
+        } catch (Exception $exception) {
+            throw new CreditIntegrationException($exception->getMessage(), $exception->getCode(), $exception);
+        }
     }
 
     public function debit(string $token, array $params): string
-    {  
-        $url = sprintf('/wallet/transfer');
-        $params['accountId'] = $params['id'];
-        $params['amount'] = -1 * abs($params['amount']);
-        unset($params['id']);
+    {
+        try {
+            $url = sprintf('/wallet/transfer');
+            $params['accountId'] = $params['id'];
 
-        $response = $this->http->post($url, $token, $params);
-        $body = json_decode(((string) $response->getBody()));
-        
-        return $body->availableToBet;
+            if ($params['amount'] instanceof Number) {
+                $params['amount'] = $params['amount']->toFloat();
+            }
+            
+            $params['amount'] = -1 * abs($params['amount']);
+            unset($params['id']);
+            $response = $this->http->post($url, $token, $params);
+            $body = json_decode(((string)$response->getBody()));
+
+            return $body->availableToBet;
+        } catch (Exception $exception) {
+            throw new DebitIntegrationException($exception->getMessage(), $exception->getCode(), $exception);
+        }
     }
 }

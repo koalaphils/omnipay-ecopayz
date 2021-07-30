@@ -83,7 +83,9 @@
         {
             var filters = {};
             var newData = ztableData;
+
             filters.filter = ztableData.data.filters;
+            filters.filter.searchCategory = $('#{{ page.getWidget('list').getFullId() }}_container').find('select[name=ztable_search_category]').val() || [];
             newData.data.filters = filters;
             newData.data.search = ztableData.data.filters.filter.search;
             newData.data.filters.search = ztableData.data.filters.filter.search;
@@ -91,6 +93,33 @@
                 {'column': 'c.joinedAt', 'dir': 'desc'}
             ];
 
+            {% if not is_granted('ROLE_VIEW_MEMBER_LIST') %}
+                if (_.isEmpty(newData.data.search)) {
+                    newData.data.filters.length = 0;
+                    newData.data.filters.limit = 0;
+                }
+            {% endif %}
+
+            {% if is_granted('ROLE_USE_MEMBER_LIST_FILTERS') %}
+                let fData = newData.data.filters.filter, hasFilterData = false;
+                for (let i in fData) {
+                    if (!_.isEmpty(fData[i])) {
+                        hasFilterData = true; break;
+                    }
+                }
+
+                if (hasFilterData) {
+                    newData.data.filters.length = newData.data.length;
+                    newData.data.filters.limit = newData.data.limit;
+                }
+            {% endif %}
+
+            {% if is_granted('ROLE_USE_MEMBER_SEARCH') %}
+                if ((!_.isEmpty(newData.data.filters.filter.searchCategory) && !newData.data.filters.filter.search) || (_.isEmpty(newData.data.filters.filter.searchCategory) && newData.data.filters.filter.search)) {
+                    newData.data.filters.length = 0;
+                    newData.data.filters.limit = 0;
+                }
+            {% endif %}
             return newData;
         }
 
@@ -115,6 +144,31 @@
 
             return '';
         }
+
+        function {{ page.getWidget('list').getFullId() }}_generateSearchInput()
+        {
+            var obj = {'searchInput': ''};
+            {% if is_granted('ROLE_USE_MEMBER_SEARCH') %}
+                var options = '';
+                {% for key,val in page.getWidget('list').property('searchCategory') %}
+                    options += '<option value="{{ key }}">{{ val }}</option>';
+                {% endfor %}
+
+                obj['searchInput'] = '' +
+                    '<div class="form-group form-group-sm m-r-10">' +
+                        '<select class="selectpicker" data-size="5" data-none-selected-text="Select Category" data-style="btn-white btn-sm" multiple="multiple" name="ztable_search_category">' + options + '</select>' +
+                    '</div>' +
+                    '<input type="text" class="ztable_search_input" name="search"  /><i class="form-control-feedback l-h-30 fa fa-search"></i>';
+
+                $('#{{ page.getWidget('list').getFullId() }}_container').on('change', 'select[name=ztable_search_category]', function () {
+                    {{ page.getWidget('list').getFullId() }}Table.reloadTable();
+                });
+
+            {% endif %}
+
+            return obj;
+        }
+
     </script>
     {{ widget_render_block(page.getWidget('list'), 'javascript') }}
 {% endblock %}

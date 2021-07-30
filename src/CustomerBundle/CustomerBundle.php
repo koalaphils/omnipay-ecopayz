@@ -113,7 +113,25 @@ class CustomerBundle extends Bundle
                 'label' => 'roles.customer.convert_to_affiliate',
                 'translation_domain' => 'CustomerBundle',
                 'requirements' => ['ROLE_CUSTOMER_VIEW'],
-            ]
+            ],
+	        'ROLE_VIEW_MEMBER_LIST' => [
+                'group' => 'roles.groups.customer',
+                'label' => 'roles.customer.view_member_list',
+                'translation_domain' => 'CustomerBundle',
+                'requirements' => ['ROLE_CUSTOMER_VIEW'],
+            ],
+            'ROLE_USE_MEMBER_LIST_FILTERS' => [
+                'group' => 'roles.groups.customer',
+                'label' => 'roles.customer.use_member_list_filters',
+                'translation_domain' => 'CustomerBundle',
+                'requirements' => ['ROLE_CUSTOMER_VIEW'],
+            ],
+            'ROLE_USE_MEMBER_SEARCH' => [
+                'group' => 'roles.groups.customer',
+                'label' => 'roles.customer.use_member_search',
+                'translation_domain' => 'CustomerBundle',
+                'requirements' => ['ROLE_CUSTOMER_VIEW'],
+            ],
         ];
     }
 

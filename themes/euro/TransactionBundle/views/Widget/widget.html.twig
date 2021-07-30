@@ -50,7 +50,7 @@
                         <div class="form-group form-group-sm m-r-10">
                             <div class="m-t-5">
                                  <div class="input-group">
-                                    <input class="form-control cls-date" name="from" placeholder="From" type="input" id="">
+                                    <input class="form-control cls-date" name="from" placeholder="From" type="input" id="" value="{{ date('now')|date_modify("-7 days")|date('m/d/Y') }}">
                                     <span class="input-group-addon bg-white text-default"><i class="fa fa-calendar"></i></span>
                                 </div>
                             </div>
@@ -58,7 +58,7 @@
                         <div class="form-group form-group-sm m-r-10">
                             <div class="m-t-5">
                                 <div class="input-group">
-                                    <input class="form-control cls-date" name="to" placeholder="To" type="input" id="">
+                                    <input class="form-control cls-date" name="to" placeholder="To" type="input" id="" value="{{ date('now')|date('m/d/Y') }}">
                                     <span class="input-group-addon bg-white text-default"><i class="fa fa-calendar"></i></span>
                                 </div>
                             </div>
@@ -99,7 +99,7 @@
                             </div>
                         </div>
                         <div class="widget-filter-btn">
-                            <input type="submit" value="Search" class="btn btn-sm btn-success m-t-5">
+                            <input type="submit" value="Search" class="btn btn-sm btn-success m-t-5 submitBtn2">
                             <button type="reset" value="Reset" class="btn btn-sm btn-warning resetBtn2 m-t-5">Reset Filters</button>
                         </div>
                     </div>
@@ -119,6 +119,25 @@ $(function () {
     $( ".resetBtn2" ).click(function() {
         $(".transaction select").val('default');
         $(".transaction select").selectpicker("refresh");
+    });
+
+    $('.submitBtn2').click(function(e) {
+        var from = $(this).parents('form').find('input[name=from]').first();
+        var to = $(this).parents('form').find('input[name=to]').first();
+
+        if (from.val() !== "" && to.val() !== "") {
+            var dateFrom = new Date(from.val());
+            var dateTo = new Date(to.val());
+            var diff = (dateTo.getTime() - dateFrom.getTime()) / (1000 * 3600 * 24);
+
+            if(diff > 7){
+                e.preventDefault();
+                return sweetAlert('Transaction Search Error', 'Date From and Date To are required and must be at most 7 days apart.', 'error');
+            }
+        }else{
+            e.preventDefault();
+            return sweetAlert('Transaction Search Error', 'Date From and Date To are required and must be at most 7 days apart.', 'error');
+        }
     });
 });
 </script>

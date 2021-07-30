@@ -121,6 +121,7 @@
                             'X-WIDGET-ID': '{{ id }}'
                         },
                         'data': function (ztableData, dataTable) {
+
                             var data = {
                                 'data': ztableData
                             };
@@ -148,7 +149,8 @@
                     'features': {{ id }}_generateFeatures(),
                     'initialized': function (ztable) {
                         $('#{{ id }}_container').trigger('ztable.initialized');
-                    }
+                    },
+                    'template': typeof {{ id }}_generateSearchInput == 'function' ? {{ id }}_generateSearchInput() : {},
                 });
             });
         }
@@ -170,34 +172,37 @@
 
         function {{ id }}_generateFeatures()
         {
-            var features = {{ widget.property('filters')|json_encode()|raw('js') }};
-            {% for filterName,filterDetail in widget.property('filters') -%}
-                {% if filterDetail.type == 'select' %}
-                    features.{{ filterName }}.resetValue = function (feature) {
-                        $(feature.input).selectpicker('val', feature.feature.value);
-                    };
-                    features.{{ filterName }}.rendered = function (feature) {
-                        $(feature.input).val(feature.feature.value.split(','));
-                    };
-                {% endif %}
+            {% if widget.property('filterRoles') is defined and widget.property('filterRoles') is not empty and not is_granted(widget.property('filterRoles')) %}
+                return {};
+            {% else %}
+                var features = {{ widget.property('filters')|json_encode()|raw('js') }};
+                {% for filterName,filterDetail in widget.property('filters') -%}
+                    {% if filterDetail.type == 'select' %}
+                        features.{{ filterName }}.resetValue = function (feature) {
+                            $(feature.input).selectpicker('val', feature.feature.value);
+                        };
+                        features.{{ filterName }}.rendered = function (feature) {
+                            $(feature.input).val(feature.feature.value.split(','));
+                        };
+                    {% endif %}
 
-                {% if filterDetail.value is defined and filterDetail.value[:1] == ':' and filterDetail.type == 'select' %}
-                    features.{{ filterName }}.value = '{{ app.request.get(filterDetail.value[1:], [])|join(',') }}';
-                {% elseif filterDetail.value is defined and filterDetail.value[:1] == ':' %}
-                    features.{{ filterName }}.value = '{{ app.request.get(filterDetail.value[1:], '') }}';
-                {% endif %}
+                    {% if filterDetail.value is defined and filterDetail.value[:1] == ':' and filterDetail.type == 'select' %}
+                        features.{{ filterName }}.value = '{{ app.request.get(filterDetail.value[1:], [])|join(',') }}';
+                    {% elseif filterDetail.value is defined and filterDetail.value[:1] == ':' %}
+                        features.{{ filterName }}.value = '{{ app.request.get(filterDetail.value[1:], '') }}';
+                    {% endif %}
 
-                {% if filterDetail.type == 'select' and filterDetail.choicesFrom is defined %}
-                    delete features.{{ filterName }}.choicesFrom;
-                    features.{{ filterName }}.choices = {{ widget.getFilterChoices(filterName)|json_encode()|raw('js') }};
-                {% endif %}
+                    {% if filterDetail.type == 'select' and filterDetail.choicesFrom is defined %}
+                        delete features.{{ filterName }}.choicesFrom;
+                        features.{{ filterName }}.choices = {{ widget.getFilterChoices(filterName)|json_encode()|raw('js') }};
+                    {% endif %}
 
-                {% if filterDetail.initialized is defined %}
-                    features.{{ filterName }}.initialized = {{ filterDetail.initialized }};
-                {% endif %}
-            {%- endfor %}
-
-            return features;
+                    {% if filterDetail.initialized is defined %}
+                        features.{{ filterName }}.initialized = {{ filterDetail.initialized }};
+                    {% endif %}
+                {%- endfor %}
+                return features;
+            {% endif %}
         }
 
         function {{ id }}_generateColumns()
@@ -227,6 +232,7 @@
 
             return columns;
         }
+
         page.addLoader({{ id }}ExecPage, [
             '{{ absolute_url(asset('assets/plugins/bootstrap-select/js/bootstrap-select.min.js')) }}',
             '{{ absolute_url(asset("assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.min.js")) }}',
