@@ -35,6 +35,20 @@ class AffiliateService
         return $response;
     }
 
+    public function getAffiliateByReferralCode(string $referralCode)
+    {
+        $url = sprintf('/api/v1/affiliate?referral_code=%s', $referralCode);
+
+        $response = $this->http->get($url,[
+            'headers' => [
+                'Authorization' => $this->getBearer(),
+             ]
+        ]);
+
+        return $response;
+    }
+
+
     public function getAffiliates(array $params)
     {
         $url = '/api/v1/affiliate?name=%s';

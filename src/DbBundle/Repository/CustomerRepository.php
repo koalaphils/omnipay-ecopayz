@@ -710,4 +710,13 @@ class CustomerRepository extends BaseRepository
 
         return $queryBuilder;
     }
+
+    public function getByUserId($userId)
+    {
+        $qb = $this->createQueryBuilder('c');
+        $qb->andWhere('c.user = :user');
+        $qb->setParameter('user', $userId);
+
+        return $qb->getQuery()->getSingleResult();
+    }
 }

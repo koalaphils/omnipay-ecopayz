@@ -429,6 +429,15 @@ class MemberController extends PageController
         return $this->response($request, ['isPaymentOptionBitcoin' => $isPaymentOptionBitcoin], ['groups' => ['Default']]);
     }
 
+    public function getReferrerDetailsAction(Request $request, string $referralCode)
+    {
+        $affiliate = $this->get('app.service.affiliate_service')
+            ->getAffiliateByReferralCode($referralCode);
+        $details = $this->getCustomerRepository()->getByUserId($affiliate['user_id']);
+     
+        return new JsonResponse(['name' => $details->getFName()], JsonResponse::HTTP_OK);
+    }   
+
     private function getCustomerRepository(): CustomerRepository
     {
         return $this->getRepository(Customer::class);
