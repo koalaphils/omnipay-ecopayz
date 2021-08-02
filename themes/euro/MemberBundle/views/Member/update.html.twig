@@ -924,7 +924,7 @@
             });
         }
 
-        {% if customer.details.referral_code is defined and customer.details.referral_code == '' and customer.isLinkedToAffiliate() %} 
+        {% if customer.details.referral_code is not defined or customer.details.referral_code == '' or customer.isLinkedToAffiliate() %} 
             $('#autoLink').prop('disabled', true);
         {% endif %}
 
@@ -939,9 +939,8 @@
             fetch(url)
                 .then(response => response.json())
                 .then(details => {
-                    console.log(details);
-                    let message = 'Link Member <b>{{ customer.fName }} {{ customer.lName }} ({{ customer.user.username }}) to an affiliate?</b>';
-                    message = message.replace('affiliate', details.name);
+                    let message = 'Link Member <b>{{ customer.fName }} {{ customer.lName }} ({{ customer.user.username }}) to affiliate?</b>';
+                    message = message.replace('affiliate', details.name !== '' ? details.name : details.email);
                     confirm2(message,  'Link Member', {
                             'type': null,
                             'confirmButtonClass': 'btn-success btn-md',

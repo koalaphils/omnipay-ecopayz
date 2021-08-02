@@ -457,9 +457,9 @@ class MemberController extends PageController
     {
         $affiliate = $this->get('app.service.affiliate_service')
             ->getAffiliateByReferralCode($referralCode);
-        $details = $this->getCustomerRepository()->getByUserId($affiliate['user_id']);
+        $customer = $this->getCustomerRepository()->getByUserId($affiliate['user_id']);
      
-        return new JsonResponse(['name' => $details->getFName()], JsonResponse::HTTP_OK);
+        return new JsonResponse(['name' => $customer->getFName(), 'email' => $customer->getUser()->getEmail()], JsonResponse::HTTP_OK);
     }   
 
     private function getCustomerRepository(): CustomerRepository
