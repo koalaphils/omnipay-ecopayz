@@ -467,10 +467,9 @@
                         referrer.byCode.username = data.referrer_by_code.username;
                     }
 
-                    toggleLinkReferrerButton();
-
                     swal.close();
                     originalReferrer = $('#{{ form.referrer.vars.id }}').val();
+                    toggleLinkReferrerButton();
                 });
 
                 $('#{{ form.vars.id }}').submit(function (e) {
