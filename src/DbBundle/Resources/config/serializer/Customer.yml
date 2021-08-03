@@ -106,7 +106,6 @@ DbBundle\Entity\Customer:
         preferences:
             exp: object.getPreferences()
             type: array
-            groups: [preferences]
             serialized_name: preferences
         allowRevenueShare:
             exp: object.isRevenueShareEnabled()

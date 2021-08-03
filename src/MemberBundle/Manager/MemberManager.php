@@ -334,7 +334,7 @@ class MemberManager extends AbstractManager
             $membersAndProducts = $memberRepository->getAllReferralProductListByReferrer(
                     $filters, $orders, $referrerId, $filters['offset'], $filters['limit']
                 );
-            
+
             $products = [];
             $allProducts = array_column($membersAndProducts, 'productId');
 
@@ -429,8 +429,8 @@ class MemberManager extends AbstractManager
                     }
                 }
             }
-            $result['recordsFiltered'] = $memberRepository->getReferralProductListFilterCountByReferrer($filters, $referrerId);
-            $result['recordsTotal'] = $memberRepository->getReferralProductListTotalCountByReferrer($filters, $referrerId);
+            $result['recordsFiltered'] = $memberRepository->getReferralProductListFilterCountByReferrer($filters);
+            $result['recordsTotal'] = $memberRepository->getReferralProductListTotalCountByReferrer($filters, $filters['affiliateUserId']);
         }
 
         $currencyPerRecord = array_column($result['allRecords'], 'currencyCode');

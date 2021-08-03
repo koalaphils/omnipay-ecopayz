@@ -56,6 +56,7 @@ class MemberController extends AbstractController
         $filters['orderBy'] = $request->get('orderBy');
         $filters['precision'] = $request->get('precision');
         $filters['sort'] = $request->get('sort', 'asc');
+        $filters['affiliateUserId'] = $request->get('affiliate_user_id');
 
         if ($request->query->has('dwlDateFrom')) {
             $filters['dwlDateFrom'] = $request->query->get('dwlDateFrom');

@@ -134,6 +134,14 @@ class CreateMemberRequestHandler
             $memberProduct->setUserName($this->generateUsername($username));
             $member->addProduct($memberProduct);
         } else {
+            $walletProduct = $this->getProductRepository()->getProductByCode(Product::MEMBER_WALLET_CODE);
+            $memberWalletProduct = new CustomerProduct();
+            $memberWalletProduct->setProduct($walletProduct);
+            $memberWalletProduct->setUsername(Product::MEMBER_WALLET_CODE . '_' . uniqid());
+            $memberWalletProduct->setBalance('0.00');
+            $memberWalletProduct->setIsActive(true);
+            $member->addProduct($memberWalletProduct);
+            
             // $walletProduct = $this->getProductRepository()->getProductByCode(Product::MEMBER_WALLET_CODE);
             // $memberWalletProduct = new CustomerProduct();
             // $memberWalletProduct->setProduct($walletProduct);

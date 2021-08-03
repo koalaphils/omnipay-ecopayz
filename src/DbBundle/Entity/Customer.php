@@ -902,7 +902,9 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     public function getPreferences()
     {
         $preferences = $this->getUser()->getPreferences();
-        $preferences += $this->extraPreferences;
+        if ($this->extraPreferences) {
+            $preferences += $this->extraPreferences;
+        }
 
         $preferences['paymentOptionTypes'] = [];
 
