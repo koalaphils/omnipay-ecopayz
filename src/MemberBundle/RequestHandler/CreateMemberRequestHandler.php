@@ -141,51 +141,51 @@ class CreateMemberRequestHandler
             $memberWalletProduct->setBalance('0.00');
             $memberWalletProduct->setIsActive(true);
             $member->addProduct($memberWalletProduct);
-            
-            // $walletProduct = $this->getProductRepository()->getProductByCode(Product::MEMBER_WALLET_CODE);
-            // $memberWalletProduct = new CustomerProduct();
-            // $memberWalletProduct->setProduct($walletProduct);
-            // $memberWalletProduct->setUsername(Product::MEMBER_WALLET_CODE . '_' . uniqid());
-            // $memberWalletProduct->setBalance('0.00');
-            // $memberWalletProduct->setIsActive(true);
-            // $member->addProduct($memberWalletProduct);
 
-            // $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
-            // $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->createPlayer();
-            // $memberPinProduct = new CustomerProduct();
-            // $memberPinProduct->setBalance('0.00');
-            // $memberPinProduct->setIsActive(true);
-            // $memberPinProduct->setProduct($pinnacleProduct);
-            // $memberPinProduct->setUserName($pinnaclePlayer->userCode());
-            // $member->setPinLoginId($pinnaclePlayer->loginId());
-            // $member->setPinUserCode($pinnaclePlayer->userCode());
-            // $member->addProduct($memberPinProduct);
+            $walletProduct = $this->getProductRepository()->getProductByCode(Product::MEMBER_WALLET_CODE);
+            $memberWalletProduct = new CustomerProduct();
+            $memberWalletProduct->setProduct($walletProduct);
+            $memberWalletProduct->setUsername(Product::MEMBER_WALLET_CODE . '_' . uniqid());
+            $memberWalletProduct->setBalance('0.00');
+            $memberWalletProduct->setIsActive(true);
+            $member->addProduct($memberWalletProduct);
 
-            // $integration = $this->productIntegrationFactory->getIntegration(Product::EVOLUTION_PRODUCT_CODE);
-            // $evolutionProduct = $this->getProductRepository()->getProductByCode(Product::EVOLUTION_PRODUCT_CODE);
-            // $memberEvoProduct = new CustomerProduct();
-            // $memberEvoProduct->setProduct($evolutionProduct);
-            // $memberEvoProduct->setUsername('Evolution_' . uniqid());
-            // $memberEvoProduct->setBalance('0.00');
-            // $memberEvoProduct->setIsActive(true);
-            // $member->addProduct($memberEvoProduct);
+            $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
+            $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->createPlayer();
+            $memberPinProduct = new CustomerProduct();
+            $memberPinProduct->setBalance('0.00');
+            $memberPinProduct->setIsActive(true);
+            $memberPinProduct->setProduct($pinnacleProduct);
+            $memberPinProduct->setUserName($pinnaclePlayer->userCode());
+            $member->setPinLoginId($pinnaclePlayer->loginId());
+            $member->setPinUserCode($pinnaclePlayer->userCode());
+            $member->addProduct($memberPinProduct);
 
-            // try {
-            //     $jwt = $this->jwtGeneratorService->generate([]);
-            //     $integration->auth($jwt, [
-            //         'id' => $memberEvoProduct->getUsername(),
-            //         'lastName' => $request->getFullName() ? $request->getFullName() : $username,
-            //         'firstName' => $request->getFullName() ? $request->getFullName() : $username,
-            //         'nickname' => str_replace("Evolution_","", $memberEvoProduct->getUsername()),
-            //         'country' => $country ? $country->getCode() : 'UK',
-            //         'language' => 'en',
-            //         'currency' => $currency->getCode(),
-            //         'ip' => $this->getClientIp(),
-            //         'sessionId' => $this->getSessionId(),
-            //     ]);
-            // } catch (\Exception $ex) {
-            //     throw new \Exception('Failed to create EVO Account.', Response::HTTP_UNPROCESSABLE_ENTITY);
-            // }
+            $integration = $this->productIntegrationFactory->getIntegration(Product::EVOLUTION_PRODUCT_CODE);
+            $evolutionProduct = $this->getProductRepository()->getProductByCode(Product::EVOLUTION_PRODUCT_CODE);
+            $memberEvoProduct = new CustomerProduct();
+            $memberEvoProduct->setProduct($evolutionProduct);
+            $memberEvoProduct->setUsername('Evolution_' . uniqid());
+            $memberEvoProduct->setBalance('0.00');
+            $memberEvoProduct->setIsActive(true);
+            $member->addProduct($memberEvoProduct);
+
+            try {
+                $jwt = $this->jwtGeneratorService->generate([]);
+                $integration->auth($jwt, [
+                    'id' => $memberEvoProduct->getUsername(),
+                    'lastName' => $request->getFullName() ? $request->getFullName() : $username,
+                    'firstName' => $request->getFullName() ? $request->getFullName() : $username,
+                    'nickname' => str_replace("Evolution_","", $memberEvoProduct->getUsername()),
+                    'country' => $country ? $country->getCode() : 'UK',
+                    'language' => 'en',
+                    'currency' => $currency->getCode(),
+                    'ip' => $this->getClientIp(),
+                    'sessionId' => $this->getSessionId(),
+                ]);
+            } catch (\Exception $ex) {
+                throw new \Exception('Failed to create EVO Account.', Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
         }
 
         $member->setTags([]);

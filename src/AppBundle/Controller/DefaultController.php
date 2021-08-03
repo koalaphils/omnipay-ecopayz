@@ -17,6 +17,7 @@ class DefaultController extends AbstractController
 
     public function indexAction(Request $request)
     {
+        dump('HERE');
         $this->denyAccessUnlessGranted(['ROLE_ADMIN']);
 
         return $this->render(

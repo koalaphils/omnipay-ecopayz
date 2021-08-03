@@ -76,6 +76,8 @@ class CustomerCountWidget extends AbstractWidget
             'offset' => $offset,
         ]);
 
+        dump($customer);
+
         if ($this->container->has('jms_serializer')) {
             $context = new \JMS\Serializer\SerializationContext();
             $context->setSerializeNull(true);
