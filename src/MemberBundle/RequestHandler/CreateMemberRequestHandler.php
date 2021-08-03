@@ -116,7 +116,7 @@ class CreateMemberRequestHandler
         $member->setGender($request->getGender());
         $member->setJoinedAt($request->getJoinedAt());
         $member->setTransactionPassword($this->encodePassword($user, ''));
-        $member->setIsAffiliate(true);
+        $member->setIsAffiliate($request->getUserType() === Customer::USER_TYPE_AFFILIATE);
         $member->setIsCustomer(true);
         $member->setDetails([
             'websocket' => [
