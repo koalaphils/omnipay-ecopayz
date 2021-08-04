@@ -28,7 +28,6 @@ use DbBundle\Repository\UserRepository;
 use DbBundle\Repository\CustomerProductRepository;
 use DbBundle\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Firebase\JWT\JWT;
 use FOS\OAuthServerBundle\Security\Authentication\Token\OAuthToken;
 use OAuth2\OAuth2;
@@ -299,11 +298,9 @@ class AuthHandler
             
             return $evolutionResponse;
         } catch (IntegrationNotAvailableException $ex) {
-            throw $ex;
+            return null;
         } catch (IntegrationException $ex) {
-            throw $ex;
-        } catch (Exception $ex) {
-            throw $ex;
+            return null;
         }
     }
 
