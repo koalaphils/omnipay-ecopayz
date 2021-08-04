@@ -307,7 +307,7 @@ class MemberManager extends AbstractManager
      
                 $this->save($member);
             } catch(\Exception $ex) {
-                return null;
+                throw $ex;
             } 
         }
 
@@ -325,7 +325,7 @@ class MemberManager extends AbstractManager
                 'sessionId' => $sessionId
             ]);
         } catch (\Exception $ex) {
-            return null;
+            throw $ex;
         }
     }
 
