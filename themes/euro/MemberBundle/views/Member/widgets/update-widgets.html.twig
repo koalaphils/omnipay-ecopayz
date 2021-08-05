@@ -444,12 +444,33 @@
     <script type="text/javascript">
         var submitProfile = true;
         var originalReferrer = {{ form.vars.data.referrer is null ? 'null' : form.vars.data.referrer }};
+        var originalReferrerDisplayName = '';
+        if (originalReferrer) {
+            let url = "{{ path('member.get_referrer_details')|escape('js') }}" + `?user_id=${originalReferrer}`;
+            fetch(url)
+                .then(response => response.json())
+                .then(details => {
+                    originalReferrerDisplayName = details.name ? details.name : details.email
+                });
+        }
+
 
         function {{ id }}ExtraExecPage()
         {
             $(function () {
                 $('#{{ form.vars.id }}').on('form.success', function (form, response) {
                     var data = response.data;
+                    if (data.details.referral_code) {
+                        if (data.details.referral_code !== '' && !data.is_linked_to_affiliate) {
+                            $('#autoLink').prop('disabled', false);
+                        } else {
+                            $('#autoLink').prop('disabled', true);
+                        }
+
+                    } else {
+                        $('#autoLink').prop('disabled', true);
+                    }
+
                     referrer = {
                         'current': { 'id': '', 'name': '', 'username': '' },
                         'byCode': { 'id': '', 'name': '', 'username': '' }
@@ -469,15 +490,15 @@
 
                     swal.close();
                     originalReferrer = $('#{{ form.referrer.vars.id }}').val();
-                    toggleLinkReferrerButton();
+                    
                 });
 
                 $('#{{ form.vars.id }}').submit(function (e) {
                     var currentReferrer = $('#{{ form.referrer.vars.id }}').val();
-                    {# if (currentReferrer != originalReferrer && originalReferrer !== null) {
+                    if (currentReferrer != originalReferrer && originalReferrer !== null) {
                         submitProfile = false;
                         confirm2(
-                            'We just found that you have removed the referrer, removing it will unlink the member to <b>' + referrer.current.name + '</b>?',
+                            'We just found that you have removed the referrer, removing it will unlink the member to <b>' + originalReferrerDisplayName + '</b>?',
                             'Save and Unlink Member',
                             {
                                 'type': null,
@@ -496,7 +517,7 @@
                                 }
                             }
                         );
-                    } #}
+                    }
 
                     if (!submitProfile) {
                         e.preventDefault(e);

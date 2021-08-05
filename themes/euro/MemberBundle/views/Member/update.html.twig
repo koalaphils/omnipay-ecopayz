@@ -923,7 +923,7 @@
                 }
             });
         }
-
+    
         {% if customer.details.referral_code is not defined or customer.details.referral_code == '' or customer.isLinkedToAffiliate() %} 
             $('#autoLink').prop('disabled', true);
         {% endif %}
@@ -933,9 +933,8 @@
             var referrerElement = $('#{{ widgets.profileForm.getFormView().referrer.vars.id }}');
             e.preventDefault();
             let referralCode = document.getElementById('update_profileForm_data_referralCode').value;
-
-            let url = "{{ path('member.get_referrer_details', {'referralCode': 'referral_code'})|escape('js') }}";
-            url = url.replace('referral_code', referralCode);
+            let url = "{{ path('member.get_referrer_details')|escape('js') }}" + `?referral_code=${referralCode}`;
+            
             fetch(url)
                 .then(response => response.json())
                 .then(details => {
@@ -944,7 +943,7 @@
                     confirm2(message,  'Link Member', {
                             'type': null,
                             'confirmButtonClass': 'btn-success btn-md',
-                            'confirmButtonText': 'Send',
+                            'confirmButtonText': 'Link',
                             'cancelButtonClass': 'btn-inverse btn-md',
                             'cancelButtonText': 'Cancel',
                             'html': true,

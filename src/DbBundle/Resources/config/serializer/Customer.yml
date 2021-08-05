@@ -28,7 +28,7 @@ DbBundle\Entity\Customer:
         socials:
             groups: ['socials']
         details:
-            groups: ['details']
+            expose: true
         files:
             groups: ['files']
         contacts:
@@ -51,6 +51,9 @@ DbBundle\Entity\Customer:
         tags:
             expose: true
     virtual_properties:
+        isLinkedToAffiliate:
+            type: boolean
+            expose: true
         getLocale:
             type: string
             expose: true

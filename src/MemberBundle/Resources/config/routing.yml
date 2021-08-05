@@ -51,7 +51,7 @@ member.is_paymentOption_bitcoin:
         _controller: MemberBundle:Member:checkMemberPaymentOptionIfBitcoin
 
 member.get_referrer_details:
-    path: /referrer/{referralCode}
+    path: /referrer
     defaults: 
         _controller: MemberBundle:Member:getReferrerDetails
 
