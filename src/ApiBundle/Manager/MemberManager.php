@@ -30,6 +30,7 @@ use ApiBundle\Event\TransactionCreatedEvent;
 use DbBundle\Entity\Transaction;
 use ProductIntegrationBundle\ProductIntegrationFactory;
 use ApiBundle\Service\JWTGeneratorService;
+use Symfony\Component\HttpFoundation\Request;
 
 class MemberManager extends AbstractManager
 {
@@ -286,14 +287,18 @@ class MemberManager extends AbstractManager
         }
     }
 
-    public function loginToEvolution(Member $member, $request): ?array
+    public function loginToEvolution(Member $member, Request $request): ?array
     {
-        $ip = $request->get('ip');
+        $ip = $request->getClientIp();
         $sessionId = $request->get('sessionId');
         $member = $this->getRepository()->getById($member->getId());
         $evolutionProduct = $this->getProductRepository()->getProductByCode(Product::EVOLUTION_PRODUCT_CODE);
         $memberProduct = $this->getMemberProductRepository()->findOneByCustomerAndProductCode($member, Product::EVOLUTION_PRODUCT_CODE);  
         $integration = $this->getProductIntegrationFactory()->getIntegration(Product::EVOLUTION_PRODUCT_CODE);
+
+        $memberLocale = $member->getLocale();
+        $memberLocale = strtolower(str_replace('_', '-', $memberLocale));
+        $locale = !empty($memberLocale) ? $memberLocale : 'en';
 
         if ($memberProduct == null) {
             try {
@@ -307,7 +312,7 @@ class MemberManager extends AbstractManager
      
                 $this->save($member);
             } catch(\Exception $ex) {
-                return null;
+                throw $ex;
             } 
         }
 
@@ -319,13 +324,13 @@ class MemberManager extends AbstractManager
                 'firstName' => $member->getFName() ? $member->getFName() : $member->getUsername(),
                 'nickname' => str_replace("Evolution_","", $memberProduct->getUsername()),
                 'country' => $member->getCountry() ? $member->getCountry()->getCode() : 'UK',
-                'language' => $member->getLocale() ?? 'en',
+                'language' => $locale ?? 'en',
                 'currency' => $member->getCurrency()->getCode(),
                 'ip' => $ip,
                 'sessionId' => $sessionId
             ]);
         } catch (\Exception $ex) {
-            return null;
+            throw $ex;
         }
     }
 
