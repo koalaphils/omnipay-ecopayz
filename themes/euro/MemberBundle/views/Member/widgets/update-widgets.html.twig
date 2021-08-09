@@ -316,8 +316,6 @@
                 $('#{{ id }}_container').on('hide.bs.modal', function (e) {
                     $('#{{ form.vars.id }}')[0].reset();
                     $("[for=update_updateProductForm_data_balance]").text('* Balance');
-                    clearBrokerage();
-                    showBrokerage();
                 });
 
                 $('#{{ form.btnCancel.vars.id }}').click(function (e) {
@@ -341,27 +339,12 @@
             $('#{{ form.balance.vars.id }}').val(data.balance);
             $('#{{ form.product.vars.id }}').selectpicker('val', data.product.id);
             $('#{{ form.customerProduct.vars.id }}').val(data.id);
-
-            var syncable = isSyncable(data);
-            var skype = isSkype();
             var memberProductDetails = JSON.parse(data.details);
             attachListeners();
         }
 
         function attachListeners() {
             // Product Field Listener
-            $("#{{ form.product.vars.id }}").on('change', function (e) {
-                if (isSkype()) {
-                    if (hasSynced()) {
-                        showBrokerage();
-                    }
-                    disableBalance();
-                } else {
-                    hideBrokerage();
-                    enableBalance();
-                    clearBrokerage();
-                }
-            });
         }
 
         function enableBalance() {
