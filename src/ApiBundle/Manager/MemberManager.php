@@ -336,7 +336,7 @@ class MemberManager extends AbstractManager
 
     protected function getJWTGeneratorService(): JWTGeneratorService
     {
-        return $this->get(JWTGeneratorService::class);
+        return $this->get('jwt_generator');
     }
 
     protected function getRepository(): MemberRepository
