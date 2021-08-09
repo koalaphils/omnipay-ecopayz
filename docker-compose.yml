@@ -66,7 +66,7 @@ x-environment: &php-env
       - EWL_URL=http://api-gateway/api/v1/ewl
 services:
   database:
-    image: mysql:8.0.15
+    image: mysql/mysql-server:8.0
     command: --default-authentication-plugin=mysql_native_password
     volumes:
       - database:/var/lib/mysql
@@ -83,7 +83,7 @@ services:
       - piwinet
 
   mailhog:
-    image: mailhog/mailhog
+    image: koalaphils/mailhog
     command:
       - "-smtp-bind-addr"
       - "0.0.0.0:25"
@@ -136,6 +136,7 @@ services:
       - database
       - mailhog
       - adminer
+      - piwibo-php
     networks:
       - piwinet
 
@@ -155,6 +156,7 @@ services:
       - database
       - mailhog
       - adminer
+      - piwibo-php
     networks:
       - piwinet
 
@@ -174,6 +176,7 @@ services:
       - database
       - mailhog
       - adminer
+      - piwibo-php
     networks:
       - piwinet
 
