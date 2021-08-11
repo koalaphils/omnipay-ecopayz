@@ -276,8 +276,14 @@ class MemberManager extends AbstractManager
         return $this->settingManager->getSetting('origin.origins') ?? [];
     }
 
-    public function getCurrentPeriodReferralTurnoversAndCommissions(int $referrerId, DateTimeInterface $currentDate, array $filters): array
+    public function getCurrentPeriodReferralTurnoversAndCommissions($customer, DateTimeInterface $currentDate, array $filters): array
     {
+        $referrerId = $customer->getUser()->getId();
+        $affiliateService = $this->get('app.service.affiliate_service');
+        $affiliateDetails = $affiliateService->getAffiliate($referrerId);
+        $filters['affiliateUserId'] = $referrerId;
+
+
         if (empty($filters['dwlDateFrom'] ?? null) || empty($filters['dwlDateTo'] ?? null)) {
             /* Removed temporarily [PIW-330]
             $currentPeriod = $this->getCommissionManager()->getCommissionPeriodForDate($currentDate);
@@ -310,7 +316,7 @@ class MemberManager extends AbstractManager
     public function getTurnoversAndCommissionsByMember(int $referrerId, array $filters): array
     {
         $memberRepository = $this->getRepository();
-        $referrerDetails = $memberRepository->findById($referrerId);
+        $referrerDetails = $memberRepository->getByUserId($referrerId);
         $filters['hideZeroTurnover'] = array_get($filters, 'hideZeroTurnover', false);
         $filters['startDate'] = $this->getSettingManager()->getSetting('commission.startDate');
 

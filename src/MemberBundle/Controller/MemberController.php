@@ -426,7 +426,7 @@ class MemberController extends PageController
 
         $currentPeriodReferralTurnoversAndCommissions = $this->getMemberManager()
             ->getCurrentPeriodReferralTurnoversAndCommissions(
-                $id, new DateTime('now'), $filters
+                $customer, new DateTime('now'), $filters
             );
 
         return $this->jsonResponse($currentPeriodReferralTurnoversAndCommissions, Response::HTTP_OK);
