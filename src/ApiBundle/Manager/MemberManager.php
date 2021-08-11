@@ -54,7 +54,7 @@ class MemberManager extends AbstractManager
     public function getCurrentPeriodReferralTurnoversAndCommissions(array $filters): array
     {
         return $this->getMemberBundleManager()->getCurrentPeriodReferralTurnoversAndCommissions(
-            $this->getUser()->getMemberId(), new DateTime('now'), $filters
+            $this->getUser()->getCustomer(), new DateTime('now'), $filters
         );
     }
 
