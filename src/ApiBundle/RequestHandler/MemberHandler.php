@@ -103,8 +103,8 @@ class MemberHandler
                 $productBalance[$productCode] = $this->productFactory->getIntegration(strtolower($productCode))->getBalance($token, $productUsername);
                 $availableBalance = $availableBalance->plus($productBalance[$productCode]);
             } catch (Exception $exception) {
-                $productBalance[$productCode] = 'Unable to fetch balance.';
-                $availableBalance = 'Available balance is outdated.';
+                $productBalance[$productCode] = '';
+                $availableBalance = '';
             }
         }
 
