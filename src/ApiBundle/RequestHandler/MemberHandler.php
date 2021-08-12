@@ -104,7 +104,6 @@ class MemberHandler
                 $availableBalance = $availableBalance->plus($productBalance[$productCode]);
             } catch (Exception $exception) {
                 $productBalance[$productCode] = '';
-                $availableBalance = '';
             }
         }
 
