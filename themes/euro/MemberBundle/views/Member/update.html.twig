@@ -758,9 +758,11 @@
 
         function totalAffiliateBonus(totals) {
             var value = '';
-            $.each(totals, function(key, total) {
-                value += total.currencyCode + ' ' + total.totalAffiliateBonus.rounded + "<br/>";
-            });
+            if (totals) {
+                $.each(totals, function(key, total) {
+                    value += total.currencyCode + ' ' + total.totalAffiliateBonus.rounded + "<br/>";
+                });
+            }
 
             return value;
         }
