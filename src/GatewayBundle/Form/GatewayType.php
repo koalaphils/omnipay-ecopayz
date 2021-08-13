@@ -2,6 +2,10 @@
 
 namespace GatewayBundle\Form;
 
+use AppBundle\Form\Type as CType;
+use AppBundle\Manager\SettingManager;
+use AppBundle\Service\PaymentOptionService;
+use DbBundle\Entity\Gateway;
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\CallbackTransformer;
@@ -10,9 +14,6 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Translation\TranslatorInterface;
 use Symfony\Bundle\FrameworkBundle\Routing\Router;
-use AppBundle\Form\Type as CType;
-use AppBundle\Manager\SettingManager;
-use DbBundle\Entity\Gateway;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 class GatewayType extends AbstractType
@@ -22,19 +23,22 @@ class GatewayType extends AbstractType
     private $translator;
     private $router;
     private $authorizationChecker;
+    private $poService;
 
     public function __construct(
         Registry $doctrine,
         SettingManager $settingManager,
         Router $router,
         TranslatorInterface $translator,
-        AuthorizationCheckerInterface $authorizationChecker
+        AuthorizationCheckerInterface $authorizationChecker,
+	    PaymentOptionService $poService
     ) {
         $this->doctrine = $doctrine;
         $this->settingManager = $settingManager;
         $this->router = $router;
         $this->translator = $translator;
         $this->authorizationChecker = $authorizationChecker;
+        $this->poService = $poService;
     }
 
     /**
@@ -90,8 +94,8 @@ class GatewayType extends AbstractType
                 'label' => 'form.save',
                 'translation_domain' => 'AppBundle',
             ]);
+
         $builder->get('details')
-            ->add('config', Type\FormType::class)
             ->add('methods', Type\CollectionType::class, [
                 'entry_type' => MethodSettingType::class,
                 'allow_add' => true,
@@ -99,6 +103,12 @@ class GatewayType extends AbstractType
                 'prototype' => true,
             ])
         ;
+
+        if (PaymentOptionService::ECOPAYZ === $options['payment_option']) {
+            $builder->get('details')->add('config', EcopayzConfigType::class);
+        } else {
+            $builder->get('details')->add('config', Type\FormType::class);
+        }
 
         $builder->get('currency')->addViewTransformer(new CallbackTransformer(
             function ($currency) {
@@ -154,6 +164,7 @@ class GatewayType extends AbstractType
             'csrf_field_name' => '_token',
             'csrf_token_id' => 'gateway',
             'validation_groups' => 'default',
+            'payment_option' => ''
         ]);
     }
 
@@ -175,15 +186,11 @@ class GatewayType extends AbstractType
 
     protected function getPaymentOptionTypes()
     {
-        $paymentOptions = [
-            '' => '',
-        ];
+	    return array_reduce($this->poService->getAllPaymentOptions()['data'], function ($acc, $po) {
+		    $acc[$po['name']] = $po['code'];
 
-        foreach ($this->getPaymentOptionRepository()->filter() as $paymentOption) {
-            $paymentOptions[$paymentOption->getName()] = $paymentOption->getCode();
-        }
-
-        return $paymentOptions;
+		    return $acc;
+	    }, []);
     }
 
     protected function getPaymentOptionRepository(): \DbBundle\Repository\PaymentOptionRepository

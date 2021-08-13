@@ -126,6 +126,7 @@
         var userPreferences = {{ app.user.getPreference('ui.transaction.list.column.visibility')|json_encode()|raw }};
         var filter = {{ filter|json_encode()|raw }};
         var nonPendingStatuses = {{ nonPendingStatuses|json_encode()|raw }};
+        var paymentOptions = {{ paymentOptions.data|json_encode()|raw }};
         var statusChoices = {};
         var report = {
             'exportUrl': '{{ path('transaction.download') }}',
@@ -367,23 +368,15 @@
                         'resetValue': function (feature) {
                             $(feature.input).selectpicker('val', feature.feature.value);
                         },
-                        'initialized': function (feature) {
-                            $.ajax({
-                                'url': '{{ path('paymentoption.search') }}',
-                                'success': function (data) {
-                                    var options = {};
-                                    for (var i in data.data) {
-                                        var option = $("<option value='" + data.data[i].code + "'>" + data.data[i].name + "</option>");
-                                        if (feature.feature.value.indexOf(data.data[i].code + "") !== -1) {
-                                            option.attr('selected', 'selected');
-                                        }
-                                        $(feature.input).append(option);
-                                    }
-                                    $(feature.input).selectpicker('refresh');
-                                    feature.setToDone();
-                                    feature.ztable.reloadTable();
+                        'rendered': function (feature) {
+                            var options = {};
+                            for (var i in paymentOptions) {
+                                var option = $("<option value='" + paymentOptions[i].code + "'>" + paymentOptions[i].name + "</option>");
+                                if (feature.feature.value.indexOf(paymentOptions[i].code + "") !== -1) {
+                                    option.attr('selected', 'selected');
                                 }
-                            });
+                                $(feature.input).append(option);
+                            }
                         },
                         'value': {{ app.request.get("paymentOption", [])|json_encode|raw }},
                     },

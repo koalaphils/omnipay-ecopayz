@@ -2,6 +2,7 @@
 
 namespace ApiBundle\Controller;
 
+use AppBundle\Service\PaymentOptionService;
 use DbBundle\Entity\Transaction;
 use DbBundle\Repository\PaymentOptionRepository;
 use FOS\RestBundle\View\View;
@@ -108,7 +109,44 @@ class PaymentOptionController extends AbstractController
 
         return $this->view($processPaymentOptionTypes);
     }
-    
+
+	public function checkAvailablePaymentOptionsForWithdrawalAction(Request $request)
+	{
+		/** @var PaymentOptionService $paymentOptionService */
+		$paymentOptionService = $this->get('app.service.payment_option_service');
+		$paymentOptions =  $paymentOptionService->getAllPaymentOptions()['data'];
+
+		$poCodes = array_map(function($po) {
+			return $po['code'];
+		}, $paymentOptions);
+
+
+		// COUNT RESULTS
+		$results = $this->getTransactionRepository()
+			->getTotalProcessedDepositTransactionsForEachPaymentOption(
+				$this->getUser()->getCustomer()->getId()
+			);
+
+		$availability = array_map(function($code) use ($results) {
+			$countResult = array_values(array_filter($results, function($result) use ($code) {
+				return $result['paymentOptionType'] == $code;
+			}));
+
+			if (count($countResult) < 1) {
+				return [$code => false];
+			}
+
+			return $countResult[0]['count'] > 0 ? [ $code => true ] : [ $code => false ];
+		}, $poCodes);
+
+		return new JsonResponse($availability);
+	}
+
+	protected function getTransactionRepository(): \DbBundle\Repository\TransactionRepository
+	{
+		return $this->getRepository(\DbBundle\Entity\Transaction::class);
+	}
+
     protected function getPaymentOptionRepository(): \DbBundle\Repository\PaymentOptionRepository
     {
         return $this->getRepository(\DbBundle\Entity\PaymentOption::class);

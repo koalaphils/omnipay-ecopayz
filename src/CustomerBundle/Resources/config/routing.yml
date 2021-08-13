@@ -88,7 +88,7 @@ customer.social_save:
 
 customer.payment_option_list:
     path:       /{id}/paymentoption
-    defaults:   { _controller: CustomerBundle:CustomerPaymentOption:listByCustomer }
+    defaults:   { _controller: CustomerBundle:Customer:listPaymentOptionByCustomer }
 
 customer.payment_option_save:
     path:       /{id}/paymentoption/{paymentOptionId}/save

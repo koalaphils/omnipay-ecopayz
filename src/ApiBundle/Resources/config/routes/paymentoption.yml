@@ -3,3 +3,9 @@ api_paymentoptions.get_cached_bitcoin_adjustment:
     defaults:
         _controller: ApiBundle:PaymentOption:getCachedBitcoinAdjustment
     methods: [GET]
+
+api_paymentoptions.available_payment_options_for_withdrawal:
+    path: paymentoptions/available-payment-options-for-withdrawal
+    defaults:
+        _controller: ApiBundle:PaymentOption:checkAvailablePaymentOptionsForWithdrawal
+    methods: [ GET ]

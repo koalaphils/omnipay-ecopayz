@@ -179,8 +179,8 @@ class CustomerRepository extends BaseRepository
 	        }
 
 	        //payment option filter/search
-	        if(array_has($filters, 'customer_payment_options')) {
-		        $customerIds = array_get($filters, 'customer_payment_options', []);
+	        if(array_has($filters, 'customer_payment_options.customer')) {
+		        $customerIds = array_get($filters, 'customer_payment_options.customer', []);
 		        if(!empty(array_get($filters, 'filter.paymentOption', []))){
 			        $qb->andWhere('c.id IN (:ids)');
 			        $qb->setParameter('ids', $customerIds);

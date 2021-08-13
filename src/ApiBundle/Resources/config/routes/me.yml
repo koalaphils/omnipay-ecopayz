@@ -34,6 +34,12 @@ api_me_transactions:
     _controller: ApiBundle:TransactionOld:customerTransactions
   methods: [GET]
 
+api_customers.me_transaction_total_current_month:
+  path: me/transactions/total/current-month
+  defaults:
+    _controller: ApiBundle:Transaction:totalTransactionForCurrentMonth
+  methods: [GET]
+
 api_me_deposit:
   path: me/transactions/deposit
   defaults:

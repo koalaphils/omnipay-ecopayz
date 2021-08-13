@@ -144,9 +144,9 @@ widgets:
                         data-size: 5
                     value: :paymentOption
                     choicesFrom:
-                        function: '@paymentoption.manager::filter'
-                        label: result.getName()
-                        value: result.getCode()
+                        function: '@app.service.payment_option_service::getAllPaymentOptions'
+                        label: result['name']
+                        value: result['code']
                         from: data
                 currencies:
                     dom: <'form-group form-group-sm m-r-10 xs-filter'i>

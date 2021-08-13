@@ -20,7 +20,7 @@ class GatewayRepository extends BaseRepository
     {
         $qb = $this->createQueryBuilder('g');
         $qb->leftJoin('g.currency', 'c');
-        $qb->select('PARTIAL g.{id, name, paymentOption, isActive, balance}, PARTIAL c.{id, code, name, rate}');
+        $qb->select('g, PARTIAL c.{id, code, name, rate}');
         $qb->where('g.id = :id')->setParameter('id', $id);
 
         return $qb->getQuery()->getSingleResult($hydrationMode);
@@ -48,7 +48,6 @@ class GatewayRepository extends BaseRepository
     {
         $qb = $this->createQueryBuilder('g');
         $qb->leftJoin('g.currency', 'c');
-        $qb->leftJoin('g.paymentOptionEntity', 'p');
 
         if (isset($filters['search'])) {
             $qb->andWhere($qb->expr()->orX()->addMultiple([
@@ -74,10 +73,6 @@ class GatewayRepository extends BaseRepository
 
         if (array_has($filters, 'currencyCode') && !empty($filters['currencyCode'])) {
             $qb->andWhere('c.code = :currencyCode')->setParameter('currencyCode', $filters['currencyCode']);
-        }
-
-        if (array_has($filters, 'paymentOption') && !empty($filters['paymentOption'])) {
-            $qb->andWhere('p.code = :paymentOption')->setParameter('paymentOption', $filters['paymentOption']);
         }
         
         $groupFilters = [];
@@ -120,7 +115,7 @@ class GatewayRepository extends BaseRepository
     public function getGatewayList($filters = null, $orders = [], $hydrationMode = \Doctrine\ORM\Query::HYDRATE_ARRAY)
     {
         $qb = $this->getGatewayListQb($filters);
-        $qb->select('PARTIAL g.{id, name, paymentOption, isActive, balance, details, levels}, PARTIAL c.{id, code, name, rate}, p');
+        $qb->select('PARTIAL g.{id, name, paymentOption, isActive, balance, details, levels}, PARTIAL c.{id, code, name, rate}');
 
         if (empty($orders)) {
             $orders = [

@@ -7,15 +7,12 @@
             {{ form_row(form.balance) }}
             {{ form_row(form.paymentOption) }}
             {% if is_granted('ROLE_GATEWAY_CHANGE_STATUS') %}
-            {{ form_row(form.isActive) }}
+                {{ form_row(form.isActive) }}
             {% endif %}
             </div>
         </div>
         <div class="card-box{{ is_granted('ROLE_CONFIGURE_GATEWAY') ? ' ' : ' hidden' }}">
-            <div class="">{{ form_widget(form.details.config) }}</div>
-            {% for mode, paymentForm in paymentForms %}
-                {{ form_widget(paymentForm, {"attr": {"class": "row payment-mode", "data-mode": mode}}) }}
-            {% endfor %}
+            <div class="row">{{ form_widget(form.details.config) }}</div>
         </div>
     </div>
     <div class="col-md-4">

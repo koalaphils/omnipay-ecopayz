@@ -3,6 +3,7 @@
 namespace GatewayTransactionBundle\Controller;
 
 use AppBundle\Controller\AbstractController;
+use AppBundle\Service\PaymentOptionService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use AppBundle\Exceptions\FormValidationException;
@@ -14,7 +15,11 @@ class DefaultController extends AbstractController
     {
         $this->denyAccessUnlessGranted(['ROLE_GATEWAY_TRANSACTION_VIEW']);
 
-        return $this->render('GatewayTransactionBundle:Default:index.html.twig');
+	    $paymentOptions = $this->getPaymentOptionService()->getAllPaymentOptions();
+
+        return $this->render('GatewayTransactionBundle:Default:index.html.twig', [
+            'paymentOptions' => $paymentOptions,
+        ]);
     }
 
     public function searchAction(Request $request)
@@ -93,4 +98,9 @@ class DefaultController extends AbstractController
     {
         return $this->getContainer()->get('gateway_transaction.manager');
     }
+
+	private function getPaymentOptionService(): PaymentOptionService
+	{
+		return $this->get('app.service.payment_option_service');
+	}
 }

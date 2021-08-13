@@ -1,6 +1,7 @@
 {% block _Transaction_paymentOption_javascript %}
     {{ form_javascript(form) }}
     <script type='text/javascript' id="paymentOption_js">
+        var cpoDetails = [];
         (function ($) {
             var pluginName = "paymentOption";
 
@@ -15,7 +16,7 @@
             PaymentOptions.prototype = {
                 'setCustomerId': function (customerId) {
                     if (customerId === null) {
-                        this.clear();``
+                        this.clear();
 
                         return;
                     }

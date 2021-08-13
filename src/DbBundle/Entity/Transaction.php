@@ -568,7 +568,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         return $this;
     }
 
-    public function getPaymentOption(): ?CustomerPaymentOption
+    public function getPaymentOption()
     {
         return $this->paymentOption;
     }
@@ -581,30 +581,10 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         return $this;
     }
 
-    public function getPaymentOptionOnTransaction(): ?CustomerPaymentOption
-    {
-        return $this->paymentOptionOnTransaction;
-    }
-
-
-    public function setPaymentOptionOnTransaction($paymentOptionOnTransaction)
-    {
-        $this->paymentOptionOnTransaction = $paymentOptionOnTransaction;
-
-        return $this;
-    }
-
-    // save data that should not be changed even if the records at the related tables change
-    // this is a poor attempt to have historical data while auditlog is still not in place
     public function retainImmutableData()
     {
         if (!$this->isClosedForFurtherProcessing()) {
             $this->copyImmutableCustomerProductData();
-            $this->setImmutableCustomerReferrer();
-            if ($this->isWithdrawal() || $this->isDeposit() || $this->isTransfer()) {
-                $this->setImmutablePaymentOptionData();
-                $this->setImmutablePaymentOptionOnTransactionData();
-            }
         }
     }
 
@@ -747,10 +727,8 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         return $this;
     }
 
-    public function getPaymentOptionType(): ?PaymentOption
+    public function getPaymentOptionType(): ?string
     {
-        $this->autoSetPaymentOptionType();
-
         return $this->paymentOptionType;
     }
 

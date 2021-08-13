@@ -2,10 +2,8 @@
 
 namespace MemberBundle\Controller;
 
-use CustomerBundle\Manager\CustomerPaymentOptionManager;
 use DbBundle\Entity\Product;
 use DbBundle\Repository\ProductRepository;
-use PaymentOptionBundle\Manager\PaymentOptionManager;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,8 +27,6 @@ use DbBundle\Repository\MarketingToolRepository;
 use DbBundle\Repository\RiskSettingRepository;
 use MediaBundle\Manager\MediaManager;
 use MediaBundle\Widget\Page\MediaLibraryWidget;
-use MemberBundle\Event\ReferralEvent;
-use MemberBundle\Events;
 use MemberBundle\Manager\MemberManager;
 use MemberBundle\Manager\MemberWebsiteManager;
 
@@ -75,7 +71,7 @@ class MemberController extends PageController
 			$paymentOptionSearch =  $filters['filter']['search'];
 		}
 		if ($paymentOptionSearch || $paymentOptionsFilter) {
-			$filters['customer_payment_options'] = $this->getCustomerPaymentOptionManager()->searchCustomer($paymentOptionSearch, $paymentOptionsFilter);
+			$filters['customer_payment_options'] = $this->get('app.service.customer_payment_option_service')->search($paymentOptionSearch, $paymentOptionsFilter);
 		}
 
 		return $filters;
@@ -508,11 +504,6 @@ class MemberController extends PageController
     private function getMemberWebsiteManager(): MemberWebsiteManager
     {
         return $this->get('member.website_manager');
-    }
-
-    private function getCustomerPaymentOptionManager(): CustomerPaymentOptionManager
-    {
-	    return $this->get('customer.payment_option_manager');
     }
 
     private function getMemberBannerRepository(): \DbBundle\Repository\MemberBannerRepository

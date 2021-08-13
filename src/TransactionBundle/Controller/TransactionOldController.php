@@ -205,16 +205,18 @@ class TransactionOldController extends AbstractController
 
     public function getGatewayByTransactionAction(Request $request, $type)
     {
+	    $transactionType = $this->getManager()->getType($type);
         if ($request->get('tid') !== '') {
-            $transaction = $this->getRepository('DbBundle:Transaction')->findByIdAndType($request->get('tid'), $this->getManager()->getType($type));
+            $transaction = $this->getRepository('DbBundle:Transaction')->findByIdAndType($request->get('tid'), $transactionType);
         } else {
             $transaction = new Transaction();
-            $transaction->setType($this->getManager()->getType($type));
+            $transaction->setType($transactionType);
         }
 
         $form = $this->getManager()->createForm($transaction, true, ['validation_groups' => ['noValidate']]);
         $form->handleRequest($request);
 
+        $transaction->setPaymentOptionType($transaction->getPaymentOption());
         $gateways = $this->getManager()->getGatewaysByTransaction($transaction);
 
         return $this->response($request, $gateways, ['groups' => ['Default', 'details', 'balance', 'currency']]);
