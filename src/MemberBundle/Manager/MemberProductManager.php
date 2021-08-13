@@ -7,6 +7,7 @@ namespace MemberBundle\Manager;
 use ApiBundle\Service\JWTGeneratorService;
 use AppBundle\ValueObject\Number;
 use AppBundle\Widget\Page\ListWidget;
+use Exception;
 use ProductIntegrationBundle\ProductIntegrationFactory;
 use ProductIntegrationBundle\Exception\IntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
@@ -61,6 +62,8 @@ class MemberProductManager
             $balance = "Unable to fetch balance";
         } catch (IntegrationNotAvailableException $ex) {
             $balance = $ex->getMessage();
+        } catch (Exception $ex) {
+            $balance = "Unable to fetch balance";
         }
 
         if (Number::isNumber($balance)) {
