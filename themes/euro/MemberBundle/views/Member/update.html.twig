@@ -74,74 +74,76 @@
                 <div class="tab-pane" id="product">
                     {{ widget_render(page.getWidget('productList')) }}
                 </div>
-                <div class="tab-pane" id="commissions">
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="commissions">
-                                 <div class="row">
-                                    <ul class="nav nav-tabs navtab-bg nav-justified">
-                                        <li class="active">
-                                            <a href="#running-commission" data-toggle="tab" aria-expanded="false">
-                                                <span>Earnings by Period</span>
-                                            </a>
-                                        </li>
-                                        <li class="">
-                                            <a href="#commission-setting" data-toggle="tab" aria-expanded="true">
-                                                <span>Affiliate Scheme</span>
-                                            </a>
-                                        </li>
-                                        <li class="">
-                                            <a href="#turnover-commission-product" data-toggle="tab" aria-expanded="false">
-                                                <span>Earnings by Product</span>
-                                            </a>
-                                        </li>
-                                        <li class="">
-                                            <a href="#turnover-commission-member" data-toggle="tab" aria-expanded="false">
-                                                <span>Earnings by Member</span>
-                                            </a>
-                                        </li>
-                                    </ul>
+                {% if customer.isAffiliate %}
+                    <div class="tab-pane" id="commissions">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="commissions">
+                                    <div class="row">
+                                        <ul class="nav nav-tabs navtab-bg nav-justified">
+                                            <li class="active">
+                                                <a href="#running-commission" data-toggle="tab" aria-expanded="false">
+                                                    <span>Earnings by Period</span>
+                                                </a>
+                                            </li>
+                                            <li class="">
+                                                <a href="#commission-setting" data-toggle="tab" aria-expanded="true">
+                                                    <span>Affiliate Scheme</span>
+                                                </a>
+                                            </li>
+                                            <li class="">
+                                                <a href="#turnover-commission-product" data-toggle="tab" aria-expanded="false">
+                                                    <span>Earnings by Product</span>
+                                                </a>
+                                            </li>
+                                            <li class="">
+                                                <a href="#turnover-commission-member" data-toggle="tab" aria-expanded="false">
+                                                    <span>Earnings by Member</span>
+                                                </a>
+                                            </li>
+                                        </ul>
 
-                                    <div class="tab-content" style="display: block">
-                                        <div class="tab-pane active" id="running-commission">
-                                            <div class="card-box table-responsive">
-                                                {{ widget_render(page.getWidget('runningCommissionListRevenueShare')) }}
+                                        <div class="tab-content" style="display: block">
+                                            <div class="tab-pane active" id="running-commission">
+                                                <div class="card-box table-responsive">
+                                                    {{ widget_render(page.getWidget('runningCommissionListRevenueShare')) }}
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="tab-pane" id="commission-setting">
-                                            <div class="card-box table-responsive">
-                                                <h4 class="font-bold">Revenue Share</h4>
-                                                <!-- Toggle Revenue Share -->
-                                                <label>Enable Revenue Share</label>
-                                                <label class="ui-switch">
-                                                    <input id="enableRevenueShare" type="checkbox" {{ customer.isRevenueShareEnabled() ? "checked='checked'" : "" }} />
-                                                    <span class="ui-slider round"></span>
-                                                </label>
+                                            <div class="tab-pane" id="commission-setting">
+                                                <div class="card-box table-responsive">
+                                                    <h4 class="font-bold">Revenue Share</h4>
+                                                    <!-- Toggle Revenue Share -->
+                                                    <label>Enable Revenue Share</label>
+                                                    <label class="ui-switch">
+                                                        <input id="enableRevenueShare" type="checkbox" {{ customer.isRevenueShareEnabled() ? "checked='checked'" : "" }} />
+                                                        <span class="ui-slider round"></span>
+                                                    </label>
 
-                                                <!-- Edit Revenue Share Modal -->
-                                                {{ widget_render(page.getWidget('revenueShareForm')) }}
-                                                
-                                                <!-- Revenue Share Table -->
-                                                {{ widget_render(page.getWidget('revenueShare')) }}
+                                                    <!-- Edit Revenue Share Modal -->
+                                                    {{ widget_render(page.getWidget('revenueShareForm')) }}
+                                                    
+                                                    <!-- Revenue Share Table -->
+                                                    {{ widget_render(page.getWidget('revenueShare')) }}
+                                                </div>
+                                            </div>
+                                            <div class="tab-pane" id="turnover-commission-product">
+                                                <div class="card-box table-responsive">
+                                                    {{ widget_render(page.getWidget('affiliateEarningsByProduct')) }}
+                                                </div>
+                                            </div>
+                                            <div class="tab-pane" id="turnover-commission-member">
+                                                <div class="card-box table-responsive">
+                                                    {{ widget_render(page.getWidget('affiliateEarningsByMember')) }}
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="tab-pane" id="turnover-commission-product">
-                                            <div class="card-box table-responsive">
-                                                {{ widget_render(page.getWidget('affiliateEarningsByProduct')) }}
-                                            </div>
-                                        </div>
-                                        <div class="tab-pane" id="turnover-commission-member">
-                                            <div class="card-box table-responsive">
-                                                {{ widget_render(page.getWidget('affiliateEarningsByMember')) }}
-                                            </div>
-                                        </div>
+
                                     </div>
-
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                {% endif %}                
                 <div class="tab-pane" id="transactions">
                     {{ widget_render(page.getWidget('transactionList')) }}
                 </div>
