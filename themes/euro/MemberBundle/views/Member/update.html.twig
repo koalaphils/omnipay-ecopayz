@@ -670,10 +670,12 @@
                 var response = JSON.parse(xhr.responseText);
                 var period = response.period;
 
-                turnoverCommissionReport.filters[response.filters.orderBy] = response.filters;
+                if (response.period) {
+                    turnoverCommissionReport.filters[response.filters.orderBy] = response.filters;
 
-                table.find('input[name=dwlDateFrom]').val(moment(period.dwlDateFrom).format('L'));
-                table.find('input[name=dwlDateTo]').val(moment(period.dwlDateTo).format('L'));
+                    table.find('input[name=dwlDateFrom]').val(moment(period.dwlDateFrom).format('L'));
+                    table.find('input[name=dwlDateTo]').val(moment(period.dwlDateTo).format('L'));
+                }
             }
         }); 
 
