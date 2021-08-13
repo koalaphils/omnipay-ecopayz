@@ -403,33 +403,36 @@ class MemberController extends PageController
         $filters = $data['filters'];
 
         $customer = $this->getCustomerRepository()->find($id);
-        $filters['revenueShare'] = $customer->isRevenueShareEnabled();
-        $filters['sort'] = array_get($data, 'sort', 'asc');
-        $filters['limit'] = array_get($data, 'limit', 10);
-        $filters['page'] = (int) array_get($data, 'page', 1);
-        $filters['offset'] = ($filters['page'] - 1) * $filters['limit'];
-        $filters['orderBy'] = $orderBy;
-        $filters['precision'] = $request->get('precision');
-
-        if((array_get($filters, 'dwlDateFrom') == "Invalid date") || (array_get($filters, 'dwlDateTo') == "Invalid date")){
-            $filters['dwlDateFrom'] = "";
-            $filters['dwlDateTo'] = "";
+        if ($customer->getIsAffiliate()) {
+            $filters['revenueShare'] = $customer->isRevenueShareEnabled();
+            $filters['sort'] = array_get($data, 'sort', 'asc');
+            $filters['limit'] = array_get($data, 'limit', 10);
+            $filters['page'] = (int) array_get($data, 'page', 1);
+            $filters['offset'] = ($filters['page'] - 1) * $filters['limit'];
+            $filters['orderBy'] = $orderBy;
+            $filters['precision'] = $request->get('precision');
+    
+            if((array_get($filters, 'dwlDateFrom') == "Invalid date") || (array_get($filters, 'dwlDateTo') == "Invalid date")){
+                $filters['dwlDateFrom'] = "";
+                $filters['dwlDateTo'] = "";
+            }
+    
+            if (array_get($filters, 'dwlDateFrom')) {
+                array_set($filters, 'dwlDateFrom', date('Y-m-d', strtotime($filters['dwlDateFrom'])));
+            }
+    
+            if (array_get($filters, 'dwlDateTo')) {
+                array_set($filters, 'dwlDateTo', date('Y-m-d', strtotime($filters['dwlDateTo'])));
+            }
+    
+            $currentPeriodReferralTurnoversAndCommissions = $this->getMemberManager()
+                ->getCurrentPeriodReferralTurnoversAndCommissions(
+                    $customer, new DateTime('now'), $filters
+                );
+    
+            return $this->jsonResponse($currentPeriodReferralTurnoversAndCommissions, Response::HTTP_OK);
         }
-
-        if (array_get($filters, 'dwlDateFrom')) {
-            array_set($filters, 'dwlDateFrom', date('Y-m-d', strtotime($filters['dwlDateFrom'])));
-        }
-
-        if (array_get($filters, 'dwlDateTo')) {
-            array_set($filters, 'dwlDateTo', date('Y-m-d', strtotime($filters['dwlDateTo'])));
-        }
-
-        $currentPeriodReferralTurnoversAndCommissions = $this->getMemberManager()
-            ->getCurrentPeriodReferralTurnoversAndCommissions(
-                $customer, new DateTime('now'), $filters
-            );
-
-        return $this->jsonResponse($currentPeriodReferralTurnoversAndCommissions, Response::HTTP_OK);
+        return $this->jsonResponse([], Response::HTTP_OK);
     }
 
     public function downloadTurnoverCommissionReportAction(Request $request, int $id, string $orderBy): StreamedResponse

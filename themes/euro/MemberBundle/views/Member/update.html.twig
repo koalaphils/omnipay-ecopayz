@@ -724,17 +724,22 @@
         }
 
         function commissionPeriod(period) {
-            return 'Date Covered: ' +
-            moment(period.dwlDateFrom).format('MMM D, YYYY') + ' - ' +
-            moment(period.dwlDateTo).format('MMM D, YYYY');
+            if (period) {
+                return 'Date Covered: ' +
+                moment(period.dwlDateFrom).format('MMM D, YYYY') + ' - ' +
+                moment(period.dwlDateTo).format('MMM D, YYYY');
+            }
+            return '';
         }
 
         function totalAffiliateTurnover(totals) {
             var value = '';
 
-            $.each(totals, function(key, total) {
-                value += total.currencyCode + ' ' + total.totalTurnover.rounded + "<br/>";
-            });
+            if (totals) {
+                $.each(totals, function(key, total) {
+                    value += total.currencyCode + ' ' + total.totalTurnover.rounded + "<br/>";
+                });
+            }
 
             return value;
         }
