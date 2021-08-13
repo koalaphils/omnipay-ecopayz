@@ -768,14 +768,17 @@
         }
 
         function totalAffiliateRevenueShare(totals) {
-            var memberCurrencyCode = '{{ customer.currencyCode }}';
-            var member = totals.find(obj => obj.currencyCode === memberCurrencyCode);
-
-            try {
-                return memberCurrencyCode + ' ' + member.totalAffiliateRevenueShare.rounded + "<br/>";
-            } catch (err) {
-                return '';
+            if (totals) {
+                var memberCurrencyCode = '{{ customer.currencyCode }}';
+                var member = totals.find(obj => obj.currencyCode === memberCurrencyCode);
+                try {
+                    return memberCurrencyCode + ' ' + member.totalAffiliateRevenueShare.rounded + "<br/>";
+                } catch (err) {
+                    return '';
+                }
             }
+
+            return '';
         }
 
         function revenueShareForPeriod(revenueShare) {
