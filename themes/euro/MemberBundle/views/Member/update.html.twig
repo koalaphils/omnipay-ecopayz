@@ -747,9 +747,11 @@
         function totalAffiliateWinLoss(totals) {
             var value = '';
 
-            $.each(totals, function(key, total) {
-                value += total.currencyCode + ' ' + total.totalWinLoss.rounded + "<br/>";
-            });
+            if (totals) {
+                $.each(totals, function(key, total) {
+                    value += total.currencyCode + ' ' + total.totalWinLoss.rounded + "<br/>";
+                });
+            }
 
             return value;
         }
