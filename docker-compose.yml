@@ -37,8 +37,8 @@ x-environment: &php-env
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_DATABASE=0
-      - REDIS_REPLICA_HOST=
-      - REDIS_REPLICA_PORT=
+      - REDIS_REPLICA_HOST=redis
+      - REDIS_REPLICA_PORT=6379
       - ECOPAYZ_TEST_MODE=true
       - BC_KEY=2db87356-bfbb-412d-8403-39b669cd9a9d
       - BC_WALLET_URL=http://wallet:3000
