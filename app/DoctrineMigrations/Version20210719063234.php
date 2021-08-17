@@ -14,9 +14,13 @@ final class Version20210719063234 extends AbstractMigration
     {
 	    $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
 
-	    /*
 	    // Transaction
 	    $this->addSql('UPDATE transaction set transaction_other_details = JSON_SET(transaction_other_details, \'$.paymentOptionOnTransaction.code\', COALESCE(transaction_payment_option_type, (transaction_other_details->>\'$.paymentOption.code\'), (SELECT customer_payment_option_type from customer_payment_option where customer_payment_option_id = transaction_payment_option_on_transaction_id), (select customer_payment_option_type from customer_payment_option where customer_payment_option_id = transaction_payment_option_id)))');
+	    $this->addSql('ALTER TABLE transaction DROP FOREIGN KEY FK_723705D1294149FB, DROP COLUMN transaction_payment_option_type');
+	    $this->addSql('ALTER TABLE transaction ADD transaction_payment_option_type VARCHAR(255) GENERATED ALWAYS AS (transaction_other_details->>"$.paymentOptionOnTransaction.code") NULL');
+	    $this->addSql('CREATE INDEX `transaction_payment_option_type_idx` ON `transaction`(`transaction_payment_option_type`)');
+
+	    /*
 	    $this->addSql('ALTER TABLE transaction DROP CONSTRAINT FK_723705D1294149FB, DROP COLUMN transaction_payment_option_type');
 	    $this->addSql('ALTER TABLE transaction ADD transaction_payment_option_type VARCHAR(255) GENERATED ALWAYS AS (transaction_other_details->>"$.paymentOptionOnTransaction.code") NULL');
 	    $this->addSql('CREATE INDEX `transaction_payment_option_type_idx` ON `transaction`(`transaction_payment_option_type`)');

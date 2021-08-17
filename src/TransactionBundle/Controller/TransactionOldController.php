@@ -3,6 +3,9 @@
 namespace TransactionBundle\Controller;
 
 use AppBundle\Controller\AbstractController;
+use AppBundle\Exceptions\CustomerPaymentOptionServiceException;
+use AppBundle\Service\PaymentOptionService;
+use AppBundle\Service\CustomerPaymentOptionService;
 use DbBundle\Entity\SubTransaction;
 use DbBundle\Entity\Transaction;
 use Doctrine\ORM\PersistentCollection;
@@ -112,6 +115,7 @@ class TransactionOldController extends AbstractController
             'pinnacleTransacted' => false,
             'transactionDates' => [],
             'pinnacleTransactionDates' => [],
+	        'totalTransactionForCurrentMonth' => 0
         ]);
     }
 
@@ -193,12 +197,35 @@ class TransactionOldController extends AbstractController
 
     public function saveAction(Request $request, $type, $id = 'new')
     {
-        if ($id === 'new') {
-            $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_CREATE']);
-            return $this->createAction($request, $type);
-        }
+	    try {
+		    if ($id === 'new') {
+			    $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_CREATE']);
+			    return $this->createAction($request, $type);
+		    }
 
-        $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_UPDATE']);
+		    $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_UPDATE']);
+
+		    return $this->updateAction($request, $type, $id);
+	    } catch (CustomerPaymentOptionServiceException $ex) {
+		    $notifications = [
+			    'type' => 'error',
+			    'title' => 'Processing Error',
+			    'message' => $ex->getMessage(),
+		    ];
+
+		    if ($request->isXmlHttpRequest()) {
+			    return new JsonResponse(['__notifications' => [$notifications]], Response::HTTP_INTERNAL_SERVER_ERROR);
+		    }
+	    } catch (\Exception $e) {
+		    $notifications = [
+			    'type' => 'error',
+			    'title' => 'Processing Error',
+			    'message' => $e->getMessage(),
+		    ];
+		    if ($request->isXmlHttpRequest()) {
+			    return new JsonResponse(['__notifications' => [$notifications]], Response::HTTP_RESET_CONTENT);
+		    }
+	    }
 
         return $this->updateAction($request, $type, $id);
     }
@@ -340,7 +367,7 @@ class TransactionOldController extends AbstractController
             }
 
             if (array_has($transactionRequest, 'paymentOption')) {
-                $isPaymentOptionIdBitcoin = $this->getMemberManager()->isPaymentOptionIdBitcoin($transactionRequest['paymentOption']);
+	            $isPaymentOptionIdBitcoin = false;
             }
 
             if ($transaction->isNew() && $transaction->isDeposit() && $isPaymentOptionIdBitcoin) {
@@ -368,8 +395,7 @@ class TransactionOldController extends AbstractController
             } catch (\ProductIntegrationBundle\Exception\IntegrationException  $e) {
                 $response['success'] = false;
                 $response['errorMessage'] = $e->getMessage();
-            }    
-            
+            }
 
         } catch (PessimisticLockException $e) {
             $this->getManager()->rollBack();

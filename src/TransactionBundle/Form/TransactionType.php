@@ -9,7 +9,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type;
 use AppBundle\Form\Type as CType;
 use Symfony\Component\Form\CallbackTransformer;
-use DbBundle\Entity\Transaction;
 use DbBundle\Entity\Currency;
 use Symfony\Bundle\FrameworkBundle\Routing\Router;
 use JMS\Serializer\SerializerInterface;
@@ -20,12 +19,8 @@ use MemberBundle\Manager\MemberManager;
 use Symfony\Component\Validator\Constraints\Valid;
 use Doctrine\DBAL\LockMode;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use AppBundle\Service\CustomerPaymentOptionService;
 
-/**
- * Description of TransactionType.
- *
- * @author Cydrick Nonog <cydrick.nonog@zmtsys.com>
- */
 class TransactionType extends AbstractType
 {
     private $doctrine;
@@ -33,14 +28,16 @@ class TransactionType extends AbstractType
     private $settingManager;
     private $jmsSerializer;
     private $memberManager;
+    private $cpoService;
 
-    public function __construct(Registry $doctrine, Router $router, SettingManager $settingManager, SerializerInterface $jmsSerializer, MemberManager $memberManager)
+    public function __construct(Registry $doctrine, Router $router, SettingManager $settingManager, SerializerInterface $jmsSerializer, MemberManager $memberManager, CustomerPaymentOptionService $cpoService)
     {
         $this->doctrine = $doctrine;
         $this->router = $router;
         $this->settingManager = $settingManager;
         $this->jmsSerializer = $jmsSerializer;
         $this->memberManager = $memberManager;
+        $this->cpoService = $cpoService;
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options)
@@ -270,103 +267,36 @@ class TransactionType extends AbstractType
             ));
         }
 
-        $this->showImmutablePaymentOptionData($builder, $options);
 
-        $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) {
-            $form = $event->getForm();
+        // $this->showImmutablePaymentOptionData($builder, $options);
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
             $transaction = $event->getData();
-
-            if ($form->getData()->getId() !== null) {
-                $customer = $form->getData()->getCustomer()->getId();
-            } else {
-                $customer = array_get($transaction, 'customer', null);
-
-            }
-
-            if ($form->has('immutablePaymentOptionOnTransactionData')) {
-                $form->remove('immutablePaymentOptionOnTransactionData');
-            }
-
-            if ($customer === null) {
-                $form->add('paymentOption', Type\ChoiceType::class, []);
-            } else {
-                $customer = $this->getCustomerRepository()->find($customer);
-                $options = [];
-                $this->doctrine->getManager()->initializeObject($customer->getPaymentOptions());
-                foreach ($customer->getPaymentOptions() as $option) {
-                    $options[] = $option;
-                }
-                $form->add('paymentOption', Type\ChoiceType::class, [
-                    'choices' => $options,
-                    'choice_label' => function ($value, $key) {
-                        if ($value !== null) {
-                            return $value->getType();
-                        }
-
-                        return '';
-                    },
-                    'choice_value' => function ($value) {
-                        if ($value !== null) {
-                            return $value->getId();
-                        }
-
-                        return '';
-                    },
-                    'mapped' => $form->getData()->getId() === null ? true : false,
-                ]);
-            }
-        });
-    }
-
-    private function showImmutablePaymentOptionData($builder, $options)
-    {
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use ($options) {
-            $transaction = $event->getData();
-            $customer = $transaction->getCustomer();
             $form = $event->getForm();
 
-            if (!$transaction->isNew()) {
-                if ($transaction->getPaymentOptionOnTransaction()) {
-                    $form->add('immutablePaymentOptionOnTransactionData', Type\TextType::class);
-                }
-            }
-
-            if ($transaction->isClosedForFurtherProcessing() && !$transaction->isNew()) {
-                if (array_get($options,'isForVoidingOrDecline')) {
-                    $form->add('immutablePaymentOptionData', Type\TextType::class, [
-                        'mapped' => false,
+            if ($transaction->shouldIncludePaymentOption()) {
+                // If the Transaction is new, then paymentOption field should be empty choice field (options will be populated via JS).
+                // Else, prefill the paymentOption field with values from the paymentOptionOnTransaction
+                if (!$transaction->hasBeenPersisted()) {
+                    $form->add('paymentOption', Type\ChoiceType::class, []);
+                } else {
+                    $form->add('paymentOption', Type\ChoiceType::class, [
+                        'choices' => [
+                            $transaction->getCustomerPaymentOptionDisplayField() => $transaction->getPaymentOptionType()
+                        ],
+                        'data' => $transaction->getPaymentOptionType()
                     ]);
-                } elseif (!$transaction->isCommission() && $options['isRevenueShare'] === false && !$transaction->hasAdjustment()) {
-                    $form->add('immutablePaymentOptionData', Type\TextType::class);
                 }
-            } elseif ($customer === null) {
-                $form->add('paymentOption', Type\ChoiceType::class, []);
-            } else {
-                $options = [];
-                $this->doctrine->getManager()->initializeObject($customer->getPaymentOptions());
-                foreach ($customer->getPaymentOptions() as $option) {
-                    $options[] = $option;
-                }
-                $form->add('paymentOption', Type\ChoiceType::class, [
-                    'choices' => $options,
-                    'choice_label' => function ($value, $key) {
-                        if ($value !== null) {
-                            return $value->getType();
-                        }
-
-                        return '';
-                    },
-                    'choice_value' => function ($value) {
-                        if ($value !== null) {
-                            return $value->getId();
-                        }
-
-                        return '';
-                    },
-                ]);
             }
 
         });
+
+	    $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) {
+		    $form = $event->getForm();
+		    $transaction = $event->getData();
+		    $form->add('paymentOption', Type\TextType::class, [
+			    'data' => isset($transaction['paymentOption']) ? $transaction['paymentOption'] : ''
+		    ]);
+	    });
     }
 
     /**

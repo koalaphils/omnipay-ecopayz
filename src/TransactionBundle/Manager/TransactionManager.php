@@ -346,12 +346,21 @@ class TransactionManager extends TransactionOldManager
     public function handleFormTransaction(Form $form, Request $request)
     {
         $form->handleRequest($request);
+
         if ($form->isSubmitted() && $form->isValid()) {
             $transaction = $form->getData();
-            $transaction->retainImmutableData();
-            $transaction->autoSetPaymentOptionType();
-            $btn = $form->getClickedButton();
+            $transaction->setPaymentOptionType($transaction->getPaymentOption());
+            $transaction->setPaymentOption(null);
 
+            if ($transaction->getType() === Transaction::TRANSACTION_TYPE_DEPOSIT || $transaction->getType() === Transaction::TRANSACTION_TYPE_WITHDRAW) {
+                $cpoDetails = $this->getCustomerPaymentOptionDetails($transaction);
+                $transaction->setPaymentOptionDetails($cpoDetails['onTransaction']);
+                $transaction->setPaymentOptionOnRecord($cpoDetails['onRecord']);
+            }
+
+            $transaction->retainImmutableData();
+
+            $btn = $form->getClickedButton();
             $action = array_get($btn->getConfig()->getOption('attr', []), 'value', 'process');
 
             if ($request->request->has('toCustomer')) {
@@ -359,13 +368,34 @@ class TransactionManager extends TransactionOldManager
             }
 
             $this->processTransaction($transaction, $action);
-          
 
             return $transaction;
         }
 
         throw new FormValidationException($form);
     }
+
+	/**
+	 * @param Transaction $transaction
+	 * @return array
+	 */
+	public function getCustomerPaymentOptionDetails($transaction): array
+	{
+		$customerId = $transaction->getCustomer()->getId();
+		$paymentOptionCode = $transaction->getPaymentOptionType();
+		$options = [];
+
+		$fieldValues = $transaction->getPaymentOptionOnTransaction() ?? $transaction->getPaymentOptionOnRecord() ?? [];
+		if ($transaction->isPaymentBitcoin()) {
+			$options = ['replace' => true];
+			$fieldValues['account_id'] = $transaction->getBitcoinAddress();
+		}
+
+		$cpoDetails = $this->getCustomerPaymentOptionService()
+			->getCustomerPaymentOptionDetails($customerId, $paymentOptionCode, $transaction->getType(), $fieldValues, $options);
+
+		return $cpoDetails;
+	}
 
     public function insertTransactionLog($transaction, $old_status, $created_by){
         $log = new TransactionLog();
@@ -943,4 +973,9 @@ class TransactionManager extends TransactionOldManager
 
         return $date->format('Ymd-His-') . generate_code(6, false, 'd') . '-' . $this->getType($type) . $suffix;
     }
+
+	private function getCustomerPaymentOptionService()
+	{
+		return $this->getContainer()->get('app.service.customer_payment_option_service');
+	}
 }

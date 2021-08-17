@@ -21,43 +21,74 @@
                         return;
                     }
                     this.clear();
-                    var url = this.settings.url.replace('__customer_id__', customerId);
                     this.$el.selectpicker('val', '');
-                    $.ajax({
-                        'url': url,
-                        'dataType': 'json',
-                        'context': this,
-                        'success': function (data) {
-                            var transactionPaymentOption = {{ form.parent.vars.data.getPaymentOption()|serialize('json')|raw }};
-                            if (transactionPaymentOption !== null) {
-                                transactionPaymentOption.email = transactionPaymentOption.fields.email;
-                                this.ids.push(transactionPaymentOption.id);
-                                this.add(transactionPaymentOption);
-                            }
-                            {% if form.vars.data is not null %}
-                                {% if form.vars.data.fields.account_id is defined %}
-                                    this.add({'is_active': true, "id": {{ form.vars.data.id }}, "type": "{{ form.vars.data.paymentOption.code }}", "email": "{{ form.vars.data.fields.email  }}", "account_id": "{{ form.vars.data.fields.account_id  }}"});
-                                {% else %}
-                                    this.add({'is_active': true, "id": {{ form.vars.data.id }}, "type": "{{ form.vars.data.paymentOption.code }}", "email": "{{ form.vars.data.fields.email  }}"});
-                                {% endif %}
-                            {% endif %}
-                            for (var i in data) {
-                                if (this.ids.indexOf(data[i].id) === -1) {
-                                    this.ids.push(data[i].id);
-                                    this.add(data[i]);
+                    let transactionType = '{{ form.parent.vars.value.type }}';
+                    var url = this.settings.url.replace('__customer_id__', customerId);
+                    url += `?type=${transactionType}`
+                    var transaction = {{ form.parent.vars.data|serialize('json', serialization_context().setSerializeNull(true).setGroups(['Default', 'details', 'customer']))|raw }};
+                    var paymentOptionOnTransaction = transaction?.details?.paymentOptionOnTransaction;
+                    if (transactionType == Global.transaction.type.deposit || transactionType ==  Global.transaction.type.withdraw) {
+                        $.ajax({
+                            'url': url,
+                            'dataType': 'json',
+                            'context': this,
+                            'success': function (data) {
+                                this.$el.append('<option value="">Nothing Selected</option>');
+                                var hasMatch = false;
+                                for (const property in data) {
+                                    let displayField = "";
+                                    cpoDetails[property] = [];
+
+                                    if (property === 'SKRILL' || property === 'NETELLER') {
+                                        if (paymentOptionOnTransaction && paymentOptionOnTransaction.code === property) {
+                                            hasMatch = true;
+                                            displayField = paymentOptionOnTransaction['email'];
+                                        } else {
+                                            displayField = data[property].email;
+                                        }
+
+                                        if (transactionType == Global.transaction.type.deposit) {
+                                            cpoDetails[property]['senderAddress'] = hasMatch ? paymentOptionOnTransaction['email'] : data[property].email;
+                                        }
+                                    }
+
+                                    if (property === 'ECOPAYZ' || property === 'USDT' || property === 'BITCOIN' || property === 'PAYEER') {
+                                        if (paymentOptionOnTransaction && paymentOptionOnTransaction.code === property) {
+                                            hasMatch = true;
+                                            displayField = paymentOptionOnTransaction['account_id'];
+                                        } else {
+                                            displayField = data[property].account_id;
+                                        }
+
+                                        if (property == 'USDT' && transactionType == Global.transaction.type.deposit) {
+                                            cpoDetails[property]['senderAddress'] = hasMatch ? paymentOptionOnTransaction['sender_address'] : data[property].sender_address;
+                                        }
+
+                                        cpoDetails[property]['receiverAddress'] = displayField;
+                                    }
+
+                                    let optionElement = '<option value="' + property + '"> ' + property + ' (' +  displayField + ') </option>';
+                                    this.$el.append(optionElement);
                                 }
+
+                                if(!hasMatch && typeof paymentOptionOnTransaction != 'undefined'){
+                                    let poOnTransaction = '<option value="' + paymentOptionOnTransaction.code + '"> ' + paymentOptionOnTransaction.code + ' (' +  ( paymentOptionOnTransaction?.account_id ?? paymentOptionOnTransaction?.accountId ?? paymentOptionOnTransaction?.email ) + ') </option>';
+                                    this.$el.append(poOnTransaction);
+                                }
+                                this.$el.selectpicker('val', '{{ form.vars.value }}');
+                                this.$el.selectpicker('refresh');
+                                this.$el.trigger('change');
                             }
-                            this.$el.selectpicker('refresh');
-                            this.$el.selectpicker('val', '{{ form.vars.value }}');
-                        }
-                    });
+                        });
+                    }
                 },
                 'add': function (data) {
-                    var ecopayzName = "{{constant('DbBundle\\Entity\\PaymentOption::PAYMENT_MODE_ECOPAYZ')}}";
-                    var bitcoinName = "{{constant('DbBundle\\Entity\\PaymentOption::PAYMENT_MODE_BITCOIN')}}";
+                    var ecopayzName = "{{ constant('AppBundle\\Service\\PaymentOptionService::ECOPAYZ') }}";
+                    var bitcoinName = "{{ constant('AppBundle\\Service\\PaymentOptionService::BITCOIN') }}";
+                    var usdtName = "{{ constant('AppBundle\\Service\\PaymentOptionService::USDT') }}";
                     var fieldSelected = data.email;
 
-                    if (data.type === ecopayzName.toUpperCase() || data.type === bitcoinName.toUpperCase( )) {
+                    if (data.type === ecopayzName || data.type === usdtName || data.type === bitcoinName) {
                         var accountId = (typeof data.account_id !== "undefined") ? data.account_id : data.fields.account_id;
                         fieldSelected = accountId;
                     }
@@ -115,25 +146,20 @@
                 'type': 'GET',
                 'dataType': 'json'
             });
-            
+
+            // Listen when PaymentOption Select Picker Changed
             $('#{{ form.vars.id }}').on('change', function() {
-                var memberPaymentOptionId = this.value;
-                if (typeof memberPaymentOptionId !== 'undefined' || memberPaymentOptionId !== null) {
-                    var memberPaymentOptionText = $(this).find("option:selected").text();
-                    var regExp = /\(([^)]+)\)/;
-                    var matches = regExp.exec(memberPaymentOptionText);
-                    var url = '{{ path('member.is_paymentOption_bitcoin', {"id": '__memberPaymentOptionId__'}) }}'.replace(/__memberPaymentOptionId__/g, memberPaymentOptionId);
-                    $.ajax({
-                        'url': url,
-                        'success': function (data) {
-                            if (data.isPaymentOptionBitcoin) {
-                                window.loadBitcoinFields((matches === null ? '' :matches[1]));
-                            } else {
-                                window.unloadBitcoinFields();
-                            }
-                        }
-                    });
-                } 
+                var matches = $(this).find("option:selected").text().match(/\(([^)]+)\)/);
+                if (matches && matches.length > 0) {
+                    var paymentOption = this.value;
+                    var transactionType = '{{ form.parent.vars.value.type }}';
+
+                    if (paymentOption === 'BITCOIN' || paymentOption === 'USDT' || ((paymentOption === 'NETELLER' || paymentOption === 'SKRILL') && transactionType == Global.transaction.type.deposit)) {
+                        window.loadBitcoinFields((matches === null ? '' :matches[1]));
+                    } else {
+                        window.unloadBitcoinFields();
+                    }
+                }
             });
         });
     </script>

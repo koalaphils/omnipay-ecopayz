@@ -277,38 +277,34 @@
     </div>
 {% endblock customer %}
 
-{% block paymentOption %}
-    {% if transaction.isDeposit() or transaction.isWithdrawal() %}
+{% block paymentOptionOnTransaction %}
+    {% if transaction.shouldIncludePaymentOption() %}
     <div class="card-box" id='payment-option-container'>
-    {%  else %}
-    <div class="card-box hidden" id='payment-option-container'>
-    {%  endif %}
-        {% set label = form.immutablePaymentOptionOnTransactionData is defined ? "Payment Option on Record" : "Payment Option" %}
-        <h4 class="m-t-0 m-b-30 header-title">{{ label|trans({}, 'TransactionBundle') }}</h4>
+        <h4 class="m-t-0 m-b-30 header-title">{{ "Payment Option on Transaction"|trans({}, 'TransactionBundle') }}</h4>
         <div class="form-group">
             <div class="row">
-                <div class="col-md-12">
-                    {% if form.paymentOption is defined and transaction.isClosedForFurtherProcessing == false %}
-                        {{ form_widget(form.paymentOption, {'attr': {'disabled': 'disabled'}}) }}
-                        {{ form_errors(form.paymentOption) }}
-                    {% endif %}
-                    {% if form.immutablePaymentOptionData is defined and transaction.isClosedForFurtherProcessing == true %}
-                        {{ form_widget(form.immutablePaymentOptionData, {'attr': {'disabled': 'disabled'}}) }}
-                    {% endif %}
+                <div class="col">
+                     {{ form_widget(form.paymentOption) }}
+                     {{ form_errors(form.paymentOption) }}
                 </div>
             </div>
         </div>
     </div>
-{% endblock paymentOption %}
+    {% endif %}
+{% endblock paymentOptionOnTransaction %}
 
-{% block paymentOptionOnTransaction %}
-    {% if form.immutablePaymentOptionOnTransactionData is defined %}
+{% block paymentOption %}
+    {% if transaction.shouldIncludePaymentOption() %}
         <div class="card-box" id='payment-option-on-transaction-container'>
-            <h4 class="m-t-0 m-b-30 header-title">{{ "Payment Option on Transaction"|trans({}, 'TransactionBundle') }}</h4>
+            <h4 class="m-t-0 m-b-30 header-title">{{ "Payment Option on Record"|trans({}, 'TransactionBundle') }}</h4>
             <div class="form-group">
                 <div class="row">
-                    <div class="col-md-12">
-                        {{ form_widget(form.immutablePaymentOptionOnTransactionData, {'attr': {'disabled': 'disabled'}}) }}
+                    <div class="col">
+                        <select class="form-control" disabled>
+                            {% if transaction.hasTransactionPaymentOptionOnRecord() %}
+                                <option>{{ transaction.getCustomerPaymentOptionOnRecordDisplay() }}</option>
+                            {% endif %}
+                        </select>
                     </div>
                 </div>
             </div>

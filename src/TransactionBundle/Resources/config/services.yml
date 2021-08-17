@@ -32,7 +32,7 @@ services:
 
     transaction.form_type.transaction:
         class: TransactionBundle\Form\TransactionType
-        arguments: [ "@doctrine", "@router", "@app.setting_manager", "@jms_serializer", "@member.manager" ]
+        arguments: [ "@doctrine", "@router", "@app.setting_manager", "@jms_serializer", "@member.manager", "@app.service.customer_payment_option_service"]
         tags:
             - { name: form.type }
 
