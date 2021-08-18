@@ -107,9 +107,10 @@ services:
       target: prod
     image: php-container
     volumes:
-      - .:/var/www/html:cached
-      - bo_cache:/var/www/html/var/cache
-      - uploads:/uploads:cached
+      - .:/var/www/html
+      # - .:/var/www/html:cached
+      # - bo_cache:/var/www/html/var/cache
+      # - uploads:/uploads:cached
     depends_on:
       - database
       - mailhog

@@ -25,6 +25,7 @@ use ProductIntegrationBundle\Exception\IntegrationException\CreditIntegrationExc
 use ProductIntegrationBundle\Exception\IntegrationException\DebitIntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
 use ProductIntegrationBundle\ProductIntegrationFactory;
+use TransactionBundle\Exceptions\NoPiwiWalletProductException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Workflow\Event\Event as WorkflowEvent;
 
@@ -67,6 +68,9 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         $currency = $transaction->getCurrency()->getCode();
         $subTransactions = $transaction->getSubtransactions();
         $customerPiwiWalletProduct = $this->getCustomerPiwiWalletProduct($transaction->getCustomer());
+        if ($customerPiwiWalletProduct === null) {
+            throw new NoPiwiWalletException($transaction->getCustomer());
+        }
         $customerWalletCode = $customerPiwiWalletProduct->getProduct()->getCode() ?? $customerPiwiWalletProduct->getProduct()->getCodeByName($customerPiwiWalletProduct->getProduct()->getName());
 
         // Acknowledged
@@ -253,7 +257,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         }
     }
 
-    private function getCustomerPiwiWalletProduct(Member $member): CustomerProduct
+    private function getCustomerPiwiWalletProduct(Member $member): ?CustomerProduct
     {
         $wallet = Product::MEMBER_WALLET_CODE;
         if ($member->getUser()->getType() == User::USER_TYPE_AFFILIATE) {

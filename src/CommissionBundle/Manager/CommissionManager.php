@@ -113,7 +113,6 @@ class CommissionManager
         if (!$period instanceof CommissionPeriod) {
             return false;
         }
-
         try {
 
             if ($action == 'pay'){
@@ -145,6 +144,7 @@ class CommissionManager
 
             return true;
         } catch (\Exception $e) {
+            dump($e);
             return false;
         }
     }
