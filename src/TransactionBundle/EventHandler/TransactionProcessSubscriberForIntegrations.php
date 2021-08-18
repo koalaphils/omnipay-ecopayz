@@ -69,7 +69,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         $subTransactions = $transaction->getSubtransactions();
         $customerPiwiWalletProduct = $this->getCustomerPiwiWalletProduct($transaction->getCustomer());
         if ($customerPiwiWalletProduct === null) {
-            throw new NoPiwiWalletException($transaction->getCustomer());
+            throw new NoPiwiWalletProductException($transaction->getCustomer());
         }
         $customerWalletCode = $customerPiwiWalletProduct->getProduct()->getCode() ?? $customerPiwiWalletProduct->getProduct()->getCodeByName($customerPiwiWalletProduct->getProduct()->getName());
 
