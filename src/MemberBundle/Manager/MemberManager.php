@@ -153,6 +153,7 @@ class MemberManager extends AbstractManager
                 ['commissionIds' => $commissionScheduleIds, 'memberId' => $memberId],
                 count($commissionScheduleIds)
             );
+            
 
         $runningRevenueSharesIdKeyed = [];
         foreach ($runningRevenueShares as $runningRevenueShare) {
@@ -341,15 +342,16 @@ class MemberManager extends AbstractManager
                     $filters, $orders, $referrerId, $filters['offset'], $filters['limit']
                 );
 
+
             $products = [];
             $allProducts = array_column($membersAndProducts, 'productId');
-
             foreach ($allProducts as $product) {
                 $products[$product]['id'] = $product;
-                $products[$product]['schemas'] = $this->getMemberRevenueShareRepository()->findSchemeByRange($referrerId, $product, $filters);
+                $products[$product]['schemas'] = $this->getMemberRevenueShareRepository()->findSchemeByRange($referrerDetails->getId(), $product, $filters);
                 $products[$product]['lastKey'] = count($products[$product]['schemas']) - 1;
             }
 
+            
             $subTransactionRepository = $this->getSubTransactionRepository();
             $offset = $filters['offset'];
             $displayCount = 0;
