@@ -181,6 +181,13 @@ DbBundle\Entity\Transaction:
             column: transaction_customer_id
             options:
                 unsigned: true
+        paymentOptionType:
+            type: string
+            nullable: true
+            options:
+                generate: transaction_other_details->"$.paymentOptionOnTransaction.code"
+                readOnly: true
+            column: transaction_payment_option_type
     manyToOne:
         customer:
             targetEntity: DbBundle\Entity\Customer
@@ -210,11 +217,6 @@ DbBundle\Entity\Transaction:
                 nullable: true
                 name: transaction_payment_option_on_transaction_id
                 referencedColumnName: customer_payment_option_id
-        paymentOptionType:
-            targetEntity: DbBundle\Entity\PaymentOption
-            joinColumn:
-                name: transaction_payment_option_type
-                referencedColumnName: payment_option_code
         # creator attribute was created as a workaround
         # until all entity's createdBy is converted to a proper entityAssociation
         creator:

@@ -172,6 +172,7 @@
                     + "<'form-group form-group-sm m-r-10' c>>",
                 'ajax': {
                     'url': '{{ path("transaction.list_search") }}',
+                    'type': 'GET',
                     'data': function (data, dataTable) {
                         data.isDataTableTransaction = true;
                         report.filters = window.lodash.merge(data.filters, filter.filters);
@@ -364,7 +365,6 @@
                             'data-width': 'auto',
                             'data-size': 5
                         },
-                        'waitByTable': true,
                         'resetValue': function (feature) {
                             $(feature.input).selectpicker('val', feature.feature.value);
                         },
@@ -533,12 +533,17 @@
                         'data': 'immutable_payment_option_data',
                         'defaultContent': '',
                         'name': 'payment_option',
-                        'render': function (immutable_payment_option_data) {
-                            if (immutable_payment_option_data == null) {
-                                return '';
+                        'render': function (immutable_payment_option_data, type, full) {
+                            let paymentOptionLabel = '';
+                            let paymentOptionCode = full.payment_option ?? full.details?.paymentOptionOnTransaction?.code ?? full.details?.paymentOption?.code;
+                            let paymentOption = full.details?.paymentOptionOnTransaction ?? full.details?.paymentOption;
+                            if (paymentOptionCode === 'BITCOIN' || paymentOptionCode === 'ECOPAYZ' || paymentOptionCode === 'USDT' || paymentOptionCode === 'PAYEER') {
+                                paymentOptionLabel = paymentOptionCode + ' (' + ( paymentOption?.account_id ?? paymentOption?.accountId ?? 'N/A' ) + ')';
+                            } else {
+                                paymentOptionLabel = paymentOptionCode + ' (' + ( paymentOption?.email ?? 'N/A' ) + ')';
                             }
 
-                            return immutable_payment_option_data.ellipsis(30);
+                            return paymentOptionLabel;
                         }
                     },
                     { 'data': 'currency.code', 'defaultContent': '' },

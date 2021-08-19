@@ -25,9 +25,6 @@ DbBundle\Entity\Transaction:
         gateway:
             - NotBlank:
                 groups: ['withGateway']
-        paymentOption:
-            - NotBlank:
-                groups: ['withPaymentOption']
         fees:
             - Collection:
                 allowExtraFields: true

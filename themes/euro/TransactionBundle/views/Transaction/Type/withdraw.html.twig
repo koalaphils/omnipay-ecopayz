@@ -163,16 +163,6 @@
             });
 
             $('#{{ form.customer.vars.id }}').trigger('select2:select');
-
-            $('body').on('click', '.subtransaction-has-fee', function () {
-                var group = $(this).data('group');
-                var clickedRadio = this;
-                $('[data-group="' + group + '"]').each(function () {
-                    if (this != clickedRadio) {
-                        this.checked = false;
-                    }
-                });
-            });
         });
 
     </script>
