@@ -92,8 +92,8 @@ class MemberHandler
 
         $productBalance = [];
         $availableBalance = new Number(0);
-        $pinAvailableBalance = 0;
-        $pinOutstandingBalance = 0;
+        $pinAvailableBalance = new Number(0);
+        $pinOutstandingBalance = new Number(0);
 
         try {
             $player = $this->pinnacleService->getPlayerComponent()->getPlayer($userCode);
