@@ -88,11 +88,21 @@ class MemberHandler
     public function handleGetBalance(Customer $member): array
     {
         $userCode = $member->getPinUserCode();
-        $player = $this->pinnacleService->getPlayerComponent()->getPlayer($userCode);
         $customerProducts = $member->getActiveProducts();
 
         $productBalance = [];
         $availableBalance = new Number(0);
+        $pinAvailableBalance = 0;
+        $pinOutstandingBalance = 0;
+
+        try {
+            $player = $this->pinnacleService->getPlayerComponent()->getPlayer($userCode);
+            $pinAvailableBalance = $player->availableBalance();
+            $pinOutstandingBalance = $player->outstanding();
+        } catch (Exception $ex) {
+            $pinAvailableBalance = '';
+            $pinOutstandingBalance = '';
+        }
 
         foreach ($customerProducts as $customerProduct) {
             $productCode = $customerProduct->getProduct()->getCode();
@@ -110,9 +120,9 @@ class MemberHandler
         return [
             'balance' => $member->getBalance(),
             'available_balance' => $availableBalance,
-            'pinnacle_balance' => $player->availableBalance(),
+            'pinnacle_balance' => $pinAvailableBalance,
             'product_balance' => $productBalance,
-            'outstanding' => $player->outstanding()
+            'outstanding' => $pinOutstandingBalance
         ];
     }
 
