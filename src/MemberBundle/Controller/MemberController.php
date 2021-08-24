@@ -289,7 +289,6 @@ class MemberController extends PageController
             return [
                 'id' => $affiliate['user_id'],
                 'text' => $affiliate['name'],
-                // 'refferer' => $record['affiliate']['id'],
             ];
         }, $affiliates['data']);
 
