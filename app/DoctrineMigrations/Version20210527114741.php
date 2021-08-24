@@ -11,7 +11,7 @@ final class Version20210527114741 extends AbstractMigration
 {
     public function up(Schema $schema) : void
     {
-        $this->addSql('ALTER TABLE customer DROP FOREIGN KEY FK_81398E0991CA0783');
+        // $this->addSql('ALTER TABLE customer DROP FOREIGN KEY FK_81398E0991CA0783');
         $this->addSql('ALTER TABLE customer RENAME COLUMN customer_affiliate_id TO old_customer_affiliate_id');
         $this->addSql('ALTER TABLE customer ADD customer_affiliate_id BIGINT');
 
