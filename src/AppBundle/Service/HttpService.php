@@ -10,6 +10,7 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ClientException;
 use Monolog\Logger;
 use GuzzleHttp\Psr7;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class HttpService
 {
@@ -161,6 +162,10 @@ class HttpService
         if ($response->getStatusCode() === 422) {
             $body = json_decode((string) $response->getBody());
             throw new UnprocessableEntityException((array) $body->errors);
+        }
+
+        if ($response->getStatusCode() === 404) {
+            throw new NotFoundHttpException($response->getBody());
         }
 
         throw $ex;

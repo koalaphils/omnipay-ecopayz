@@ -176,7 +176,6 @@ class MemberController extends PageController
             $response = $this->getMemberManager()->linkMember($member);
         } catch (UnprocessableEntityException $ex) {
             $message = '';
-
             if ($ex->member_user_id) $message = $ex->member_user_id[0];
             if ($ex->referral_code) $message = $ex->referral_code[0];
             
@@ -468,7 +467,7 @@ class MemberController extends PageController
             $affiliate = $this->get('app.service.affiliate_service')
                 ->getAffiliate($userId);
         }
-    
+
         $customer = $this->getCustomerRepository()->getByUserId($affiliate['user_id']);
 
         return new JsonResponse(['name' => $customer->getFName(), 'email' => $customer->getUser()->getEmail()], JsonResponse::HTTP_OK);

@@ -431,9 +431,11 @@
         if (originalReferrer) {
             let url = "{{ path('member.get_referrer_details')|escape('js') }}" + `?user_id=${originalReferrer}`;
             fetch(url)
-                .then(response => response.json())
-                .then(details => {
-                    originalReferrerDisplayName = details.name ? details.name : details.email
+                .then(() => {
+                    if (response.ok) {
+                        let details = response.json();
+                        originalReferrerDisplayName = details.name ? details.name : details.email;
+                    }
                 });
         }
 
