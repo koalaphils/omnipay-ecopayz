@@ -573,7 +573,7 @@ class MemberManager extends AbstractManager
 
         $filters['limit'] = $this->getRepository()->getReferralProductListTotalCountByReferrer($filters, $referrerId);
         $filters['offset'] = 0;
-        $result = $this->getTurnoversAndCommissionsByMember($referrerId, $filters);
+        $result = $this->getTurnoversAndCommissionsByMember($member->getUser()->getId(), $filters);
 
         $dateFrom = new DateTimeImmutable($result['period']['dwlDateFrom']);
         $result['period']['dwlDateFrom'] = $dateFrom->format('Y-m-d');
