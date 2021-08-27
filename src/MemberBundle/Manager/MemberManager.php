@@ -339,9 +339,8 @@ class MemberManager extends AbstractManager
         if (!(empty($filters['dwlDateFrom'] ?? null) || empty($filters['dwlDateTo'] ?? null))) {
             $this->precision = isset($filters['precision']) ? $filters['precision'] : 2;
             $membersAndProducts = $memberRepository->getAllReferralProductListByReferrer(
-                    $filters, $orders, $referrerId, $filters['offset'], $filters['limit']
-                );
-
+                $filters, $orders, $referrerId, $filters['offset'], $filters['limit']
+            );
 
             $products = [];
             $allProducts = array_column($membersAndProducts, 'productId');

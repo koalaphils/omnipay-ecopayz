@@ -699,8 +699,7 @@ class CustomerRepository extends BaseRepository
         $queryBuilder = $this->createQueryBuilder('m');
         $queryBuilder
             ->join('m.currency', 'c')
-            ->where('m.affiliate = :affiliateUserId')
-            ->setParameter('affiliateUserId', $filters['affiliateUserId']);
+            ->where('m.affiliate = ' . $filters['affiliateUserId']);
 
         if (array_has($filters, 'orderBy')) {
             if (array_get($filters, 'orderBy') == 'productName') {
@@ -735,6 +734,7 @@ class CustomerRepository extends BaseRepository
                 ->setParameter('memberProductIds', array_get($filters, 'memberProductIds'));
         }
 
+        
         return $queryBuilder;
     }
 
