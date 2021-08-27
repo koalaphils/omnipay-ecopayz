@@ -961,48 +961,49 @@
                     }
 
                     if (response.ok) {
-                        let details = response.json();
-                        let message = 'Link Member <b>{{ customer.fName }} {{ customer.lName }} ({{ customer.user.username }}) to affiliate?</b>';
-                        message = message.replace('affiliate', details.name !== '' ? details.name : details.email);
-                        confirm2(message,  'Link Member', {
-                                'type': null,
-                                'confirmButtonClass': 'btn-success btn-md',
-                                'confirmButtonText': 'Link',
-                                'cancelButtonClass': 'btn-inverse btn-md',
-                                'cancelButtonText': 'Cancel',
-                                'html': true,
-                                'showLoaderOnConfirm': true
-                            }, 
-                            function(val) {
-                                if (val) {
-                                    $.ajax({
-                                        'globalAjaxComplete': false,
-                                        'globalAjaxError': false,
-                                        'headers': {
-                                            'X-WIDGET-REQUEST': 'OnLinkMember'
-                                        },
-                                        'type': 'POST',
-                                    }).success(() => {
-                                        swal({
-                                            'type': 'success',
-                                            'title': 'Success Linking Member',
-                                            'text': 'Member successfully linked to affiliate'
-                                        }, function () {
-                                            location.reload();
-                                        });
-
-                                    }).error(function (data) {
-                                        let response = data.responseJSON;
-                                        swal({
-                                            'type': 'error',
-                                            'title': 'Error Linking Member',
-                                            'text': response.message
-                                        });
-                                    });
-                                }
-                            }
-                        );
+                        return response.json();
                     }
+                }).then((details) => {
+                    let message = 'Link Member <b>{{ customer.fName }} {{ customer.lName }} ({{ customer.user.username }}) to affiliate?</b>';
+                    message = message.replace('affiliate', details.name !== '' ? details.name : details.email);
+                    confirm2(message,  'Link Member', {
+                            'type': null,
+                            'confirmButtonClass': 'btn-success btn-md',
+                            'confirmButtonText': 'Link',
+                            'cancelButtonClass': 'btn-inverse btn-md',
+                            'cancelButtonText': 'Cancel',
+                            'html': true,
+                            'showLoaderOnConfirm': true
+                        }, 
+                        function(val) {
+                            if (val) {
+                                $.ajax({
+                                    'globalAjaxComplete': false,
+                                    'globalAjaxError': false,
+                                    'headers': {
+                                        'X-WIDGET-REQUEST': 'OnLinkMember'
+                                    },
+                                    'type': 'POST',
+                                }).success(() => {
+                                    swal({
+                                        'type': 'success',
+                                        'title': 'Success Linking Member',
+                                        'text': 'Member successfully linked to affiliate'
+                                    }, function () {
+                                        location.reload();
+                                    });
+
+                                }).error(function (data) {
+                                    let response = data.responseJSON;
+                                    swal({
+                                        'type': 'error',
+                                        'title': 'Error Linking Member',
+                                        'text': response.message
+                                    });
+                                });
+                            }
+                        }
+                    );
                 })
             ;   
         });
