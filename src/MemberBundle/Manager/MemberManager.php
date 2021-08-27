@@ -279,10 +279,10 @@ class MemberManager extends AbstractManager
 
     public function getCurrentPeriodReferralTurnoversAndCommissions($customer, DateTimeInterface $currentDate, array $filters): array
     {
-        $referrerId = $customer->getUser()->getId();
+        $affiliateUserId = $customer->getUser()->getId();
         $affiliateService = $this->get('app.service.affiliate_service');
-        $affiliateDetails = $affiliateService->getAffiliate($referrerId);
-        $filters['affiliateUserId'] = $referrerId;
+        $affiliateDetails = $affiliateService->getAffiliate($affiliateUserId);
+        $filters['affiliateUserId'] = $affiliateUserId;
 
 
         if (empty($filters['dwlDateFrom'] ?? null) || empty($filters['dwlDateTo'] ?? null)) {
@@ -296,7 +296,7 @@ class MemberManager extends AbstractManager
 
         $piwiWallet = $this->getProductRepository()->getPiwiWalletProduct();
         $filters['piwiWalletProductId'] = $piwiWallet->getId();
-        $turnoversWinLossCommissions = $this->getTurnoversAndCommissionsByMember($referrerId, $filters);
+        $turnoversWinLossCommissions = $this->getTurnoversAndCommissionsByMember($affiliateUserId, $filters);
 
         return $turnoversWinLossCommissions;
     }
@@ -314,10 +314,11 @@ class MemberManager extends AbstractManager
         }   
     }
 
-    public function getTurnoversAndCommissionsByMember(int $referrerId, array $filters): array
+    public function getTurnoversAndCommissionsByMember(int $affiliateUserId, array $filters): array
     {
         $memberRepository = $this->getRepository();
-        $referrerDetails = $memberRepository->getByUserId($referrerId);
+        // Customer Entity
+        $referrerDetails = $memberRepository->getByUserId($affiliateUserId);
         $filters['hideZeroTurnover'] = array_get($filters, 'hideZeroTurnover', false);
         $filters['startDate'] = $this->getSettingManager()->getSetting('commission.startDate');
 
@@ -339,7 +340,7 @@ class MemberManager extends AbstractManager
         if (!(empty($filters['dwlDateFrom'] ?? null) || empty($filters['dwlDateTo'] ?? null))) {
             $this->precision = isset($filters['precision']) ? $filters['precision'] : 2;
             $membersAndProducts = $memberRepository->getAllReferralProductListByReferrer(
-                $filters, $orders, $referrerId, $filters['offset'], $filters['limit']
+                $filters, $orders, $affiliateUserId, $filters['offset'], $filters['limit']
             );
 
             $products = [];
@@ -349,7 +350,6 @@ class MemberManager extends AbstractManager
                 $products[$product]['schemas'] = $this->getMemberRevenueShareRepository()->findSchemeByRange($referrerDetails->getId(), $product, $filters);
                 $products[$product]['lastKey'] = count($products[$product]['schemas']) - 1;
             }
-
             
             $subTransactionRepository = $this->getSubTransactionRepository();
             $offset = $filters['offset'];
@@ -448,7 +448,6 @@ class MemberManager extends AbstractManager
             'dwlDateFrom' => $filters['dwlDateFrom'],
             'dwlDateTo' => $filters['dwlDateTo'],
         ];
-
         return $result;
     }
 
