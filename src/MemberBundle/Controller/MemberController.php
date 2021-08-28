@@ -6,6 +6,7 @@ use AppBundle\Controller\PageController;
 use AppBundle\Manager\PageManager;
 use AppBundle\Exceptions\HTTP\UnprocessableEntityException;
 use AppBundle\Widget\Page\ListWidget;
+use CustomerBundle\Manager\CustomerPaymentOptionManager;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerGroup;
 use DbBundle\Entity\MarketingTool;
@@ -551,5 +552,10 @@ class MemberController extends PageController
     private function getUpdateRevenueShareRequestHandler(): \MemberBundle\RequestHandler\UpdateRevenueShareRequestHandler
     {
         return $this->container->get('member.handler.update_revenue_share');
+    }
+
+    private function getCustomerPaymentOptionManager(): CustomerPaymentOptionManager
+    {
+	    return $this->get('customer.payment_option_manager');
     }
 }
