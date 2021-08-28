@@ -350,7 +350,7 @@ class MemberManager extends AbstractManager
                 $products[$product]['schemas'] = $this->getMemberRevenueShareRepository()->findSchemeByRange($referrerDetails->getId(), $product, $filters);
                 $products[$product]['lastKey'] = count($products[$product]['schemas']) - 1;
             }
-            
+
             $subTransactionRepository = $this->getSubTransactionRepository();
             $offset = $filters['offset'];
             $displayCount = 0;
@@ -566,10 +566,11 @@ class MemberManager extends AbstractManager
     {
         $separator = ',';
         $member = $this->getRepository()->find($referrerId);
+        $affiliateUserId = $member->getUser()->getId();
         $memberCurrencyCode = $member->getCurrencyCode();
         $allowRevenueShare = $member->isRevenueShareEnabled();
 
-        $filters['limit'] = $this->getRepository()->getReferralProductListTotalCountByReferrer($filters, $referrerId);
+        $filters['limit'] = $this->getRepository()->getReferralProductListTotalCountByReferrer($filters, $affiliateUserId);
         $filters['offset'] = 0;
         $result = $this->getTurnoversAndCommissionsByMember($member->getUser()->getId(), $filters);
 
