@@ -723,10 +723,10 @@ class CustomerRepository extends BaseRepository
             $queryBuilder->where(
                 $queryBuilder->expr()->orX(
                     $queryBuilder->expr()->like('p.name', ':productSearch'),
-                    $queryBuilder->expr()->like('m.id', ':productSearch')
+                    // $queryBuilder->expr()->like('m.id', ':productSearch')
                 )
             )
-            ->setParameter('productSearch', '%' . array_get($filters, 'search') . '%');
+            ->setParameter('productSearch', array_get($filters, 'search'));
         }
 
         if (array_has($filters, 'memberProductIds') && array_get($filters, 'memberProductIds')) {
