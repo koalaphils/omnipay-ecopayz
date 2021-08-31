@@ -342,7 +342,6 @@ class MemberManager extends AbstractManager
             $membersAndProducts = $memberRepository->getAllReferralProductListByReferrer(
                 $filters, $orders, $affiliateUserId, $filters['offset'], $filters['limit']
             );
-
             $products = [];
             $allProducts = array_column($membersAndProducts, 'productId');
             foreach ($allProducts as $product) {

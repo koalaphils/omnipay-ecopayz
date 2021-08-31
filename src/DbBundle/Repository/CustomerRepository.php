@@ -697,10 +697,11 @@ class CustomerRepository extends BaseRepository
     private function getReferralProductListByReferrerQb(array $filters, array $orders): QueryBuilder
     {
         $queryBuilder = $this->createQueryBuilder('m');
+
         $queryBuilder
-            ->join('m.currency', 'c')
+            ->join('m.currency', 'c')      
             ->where('m.affiliate = :affiliateUserId')
-            ->setParameter('affiliateUserId', $filters['affiliateUserId'])
+            ->setParameters(['affiliateUserId' => $filters['affiliateUserId']])      
         ;
 
         if (array_has($filters, 'orderBy')) {
@@ -722,7 +723,7 @@ class CustomerRepository extends BaseRepository
         }
 
         if (array_has($filters, 'search') && array_get($filters, 'search')) {
-            $queryBuilder->where(
+            $queryBuilder->andWhere(
                 $queryBuilder->expr()->orX(
                     $queryBuilder->expr()->like('p.name', ':productSearch'),
                     $queryBuilder->expr()->like('m.id', ':productSearch')
