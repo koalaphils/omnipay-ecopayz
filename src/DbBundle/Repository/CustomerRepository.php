@@ -723,7 +723,7 @@ class CustomerRepository extends BaseRepository
             $queryBuilder->where(
                 $queryBuilder->expr()->orX(
                     $queryBuilder->expr()->like('p.name', ':search'),
-                    $queryBuilder->expr()->like('m.id', ':search')
+                    // $queryBuilder->expr()->like('m.id', ':search')
                 )
             )
             ->setParameter('search', '%' . array_get($filters, 'search') . '%');
