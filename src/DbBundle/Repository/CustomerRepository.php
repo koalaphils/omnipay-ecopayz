@@ -720,13 +720,13 @@ class CustomerRepository extends BaseRepository
         }
 
         if (array_has($filters, 'search') && array_get($filters, 'search')) {
-            $queryBuilder->where(
-                $queryBuilder->expr()->orX(
-                    $queryBuilder->expr()->like('p.name', ':search'),
-                    // $queryBuilder->expr()->like('m.id', ':search')
-                )
-            )
-            ->setParameter('search', '%' . array_get($filters, 'search') . '%');
+            // $queryBuilder->where(
+            //     $queryBuilder->expr()->orX(
+            //         $queryBuilder->expr()->like('p.name', ':search'),
+            //         $queryBuilder->expr()->like('m.id', ':search')
+            //     )
+            // )
+            // ->setParameter('search', '%' . array_get($filters, 'search') . '%');
         }
 
         if (array_has($filters, 'memberProductIds') && array_get($filters, 'memberProductIds')) {

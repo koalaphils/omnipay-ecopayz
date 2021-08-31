@@ -280,8 +280,8 @@ class MemberManager extends AbstractManager
     public function getCurrentPeriodReferralTurnoversAndCommissions($customer, DateTimeInterface $currentDate, array $filters): array
     {
         $affiliateUserId = $customer->getUser()->getId();
-        $affiliateService = $this->get('app.service.affiliate_service');
-        $affiliateDetails = $affiliateService->getAffiliate($affiliateUserId);
+        // $affiliateService = $this->get('app.service.affiliate_service');
+        // $affiliateDetails = $affiliateService->getAffiliate($affiliateUserId);
         $filters['affiliateUserId'] = $affiliateUserId;
 
 
