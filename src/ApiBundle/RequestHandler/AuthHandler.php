@@ -33,6 +33,8 @@ use FOS\OAuthServerBundle\Security\Authentication\Token\OAuthToken;
 use OAuth2\OAuth2;
 use OAuth2\OAuth2AuthenticateException;
 use OAuth2\OAuth2ServerException;
+use PinnacleBundle\Component\Exceptions\PinnacleError;
+use PinnacleBundle\Component\Exceptions\PinnacleException;
 use PinnacleBundle\Service\PinnacleService;
 use React\Http\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -412,9 +414,13 @@ class AuthHandler
             $token = $this->oauthService->verifyAccessToken($tokenString);
 
             if ($token->getUser()->getCustomer()->getPinUserCode()) {
-                $this->pinnacleService->getAuthComponent()->logout($token->getUser()->getCustomer()->getPinUserCode());
-            }   
-           
+                try {
+                    $this->pinnacleService->getAuthComponent()->logout($token->getUser()->getCustomer()->getPinUserCode());
+                } catch (PinnacleError | PinnacleException $exception) {
+                    // Ignoring exception and continue execute user logout.
+                }
+            } 
+
             $this->deleteUserAccessToken(null, [$tokenString]);
             $this->loginUser($token->getUser());
             $this->customerManager->handleAudit('logout');
