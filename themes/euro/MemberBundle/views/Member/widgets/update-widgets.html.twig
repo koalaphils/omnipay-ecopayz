@@ -316,8 +316,6 @@
                 $('#{{ id }}_container').on('hide.bs.modal', function (e) {
                     $('#{{ form.vars.id }}')[0].reset();
                     $("[for=update_updateProductForm_data_balance]").text('* Balance');
-                    clearBrokerage();
-                    showBrokerage();
                 });
 
                 $('#{{ form.btnCancel.vars.id }}').click(function (e) {
@@ -341,27 +339,12 @@
             $('#{{ form.balance.vars.id }}').val(data.balance);
             $('#{{ form.product.vars.id }}').selectpicker('val', data.product.id);
             $('#{{ form.customerProduct.vars.id }}').val(data.id);
-
-            var syncable = isSyncable(data);
-            var skype = isSkype();
             var memberProductDetails = JSON.parse(data.details);
             attachListeners();
         }
 
         function attachListeners() {
             // Product Field Listener
-            $("#{{ form.product.vars.id }}").on('change', function (e) {
-                if (isSkype()) {
-                    if (hasSynced()) {
-                        showBrokerage();
-                    }
-                    disableBalance();
-                } else {
-                    hideBrokerage();
-                    enableBalance();
-                    clearBrokerage();
-                }
-            });
         }
 
         function enableBalance() {
@@ -444,12 +427,38 @@
     <script type="text/javascript">
         var submitProfile = true;
         var originalReferrer = {{ form.vars.data.referrer is null ? 'null' : form.vars.data.referrer }};
+        var originalReferrerDisplayName = '';
+        if (originalReferrer) {
+            let url = "{{ path('member.get_referrer_details')|escape('js') }}" + `?user_id=${originalReferrer}`;
+            fetch(url)
+                .then((response) => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                })
+                .then((details) => {
+                    originalReferrerDisplayName = details.name ? details.name : details.email;
+                })
+            ;
+        }
+
 
         function {{ id }}ExtraExecPage()
         {
             $(function () {
                 $('#{{ form.vars.id }}').on('form.success', function (form, response) {
                     var data = response.data;
+                    if (data.details.referral_code) {
+                        if (data.details.referral_code !== '' && !data.is_linked_to_affiliate) {
+                            $('#autoLink').prop('disabled', false);
+                        } else {
+                            $('#autoLink').prop('disabled', true);
+                        }
+
+                    } else {
+                        $('#autoLink').prop('disabled', true);
+                    }
+
                     referrer = {
                         'current': { 'id': '', 'name': '', 'username': '' },
                         'byCode': { 'id': '', 'name': '', 'username': '' }
@@ -467,10 +476,9 @@
                         referrer.byCode.username = data.referrer_by_code.username;
                     }
 
-                    toggleLinkReferrerButton();
-
                     swal.close();
                     originalReferrer = $('#{{ form.referrer.vars.id }}').val();
+                    
                 });
 
                 $('#{{ form.vars.id }}').submit(function (e) {
@@ -478,7 +486,7 @@
                     if (currentReferrer != originalReferrer && originalReferrer !== null) {
                         submitProfile = false;
                         confirm2(
-                            'We just found that you have removed the referrer, removing it will unlink the member to <b>' + referrer.current.name + '</b>?',
+                            'We just found that you have removed the referrer, removing it will unlink the member to <b>' + originalReferrerDisplayName + '</b>?',
                             'Save and Unlink Member',
                             {
                                 'type': null,

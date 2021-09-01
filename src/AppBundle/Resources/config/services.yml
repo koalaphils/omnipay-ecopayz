@@ -267,3 +267,11 @@ services:
             $timezone: '%timezone%'
         tags:
             - { name: kernel.event_subscriber }
+
+    app.service.http_service:
+        class: AppBundle\Service\HttpService
+        arguments: ["%api_gateway_service%", "@logger"]
+
+    app.service.affiliate_service:
+        class: AppBundle\Service\AffiliateService
+        arguments: ["@app.service.http_service", "@jwt_generator"]

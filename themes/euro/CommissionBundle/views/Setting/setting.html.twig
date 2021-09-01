@@ -3,7 +3,7 @@
 {% widget_template widgets.setting 'CommissionBundle:Setting:setting-form.html.twig' %}
 {% form_theme widgets.setting.getFormView() 'CommissionBundle:Setting:setting-form.html.twig' %}
 
-{% block title %}{{ "page.title.create"|trans({},"CommissionBundle") }}{% endblock %}
+{% block title %} Revenue Share Setting {% endblock %}
 
 {% block stylesheet_plugins %}
     {% for widget in widgets %}
@@ -153,7 +153,7 @@
         }
 
         function getRevenueShareStatus(data, type, row) {
-            var revShareStatus = '';console.log(row.commissionPeriod.revenue_share_status);
+            var revShareStatus = '';
             switch (row.commissionPeriod.revenue_share_status) {
                 case Global.commmission.status.notYetDwl:
                     revShareStatus = '{{ "status.revenueShare.notYetComputed"|trans({}, "CommissionBundle") }}';

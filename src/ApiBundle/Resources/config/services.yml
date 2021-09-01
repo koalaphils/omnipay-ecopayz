@@ -197,6 +197,7 @@ services:
         tags:
             - { name: validator.constraint_validator }
 
-    ApiBundle\Service\JWTGeneratorService:
+    jwt_generator:
+        class: ApiBundle\Service\JWTGeneratorService
         arguments:
             $jwtKey: "%jwt_key%"
