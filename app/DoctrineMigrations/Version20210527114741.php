@@ -50,5 +50,8 @@ final class Version20210527114741 extends AbstractMigration
         $this->addSql('ALTER TABLE customer DROP customer_affiliate_id BIGINIT');
         $this->addSql('ALTER TABLE customer RENAME COLUMN old_customer_affiliate_id TO customer_affiliate_id');
         $this->addSql('ALTER TABLE customer ADD CONSTRAINT FK_81398E0991CA0783 FOREIGN KEY (customer_affiliate_id) REFERENCES customer (customer_id)'); 
+    
+        $this->addSql('DELETE FROM affiliate_member_mappings');
+        $this->addSql('DELETE FROM affiliates');
     }
 }
