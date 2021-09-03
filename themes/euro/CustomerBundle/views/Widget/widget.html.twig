@@ -154,10 +154,10 @@ $(function () {
             },
             'columns': [
                 {
-                    'data': '0.full_name',
+                    'data': 'full_name',
                     'render': function (data, type, full) {
                         if (data === '') {
-                            return full[0].user.username;
+                            return full.user.username;
                         }
 
                         return data;
@@ -184,11 +184,11 @@ $(function () {
                     'responsivePriority': 1,
                     'render': function (data, type, full) {
                         var status = 'Registered';
-                        if (!full[0].details.enabled && full[0].is_activated) {
+                        if (!full.details.enabled && full.is_activated) {
                             status = 'Registered';
                         } else if (!full[0].is_activated) {
                             status = 'Suspended';
-                        } else if (full[0].details.enabled && full[0].is_activated) {
+                        } else if (full.details.enabled && full.is_activated) {
                             status = 'Enabled';
                         }
 
@@ -199,8 +199,7 @@ $(function () {
                     'data': 'id',
                     'responsivePriority': 1,
                     'render': function (data, type, full) {
-                        return "<a href='" + full["0"]["@link"] +  "' target='_blank' class = 'btn btn-sm btn-primary waves-effect waves-light'>View</a>"
-                        ;
+                        return "<a href='" + full["@link"] +  "' target='_blank' class = 'btn btn-sm btn-primary waves-effect waves-light'>View</a>";
                     }
                 }
             ],

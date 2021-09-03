@@ -2,7 +2,6 @@ var ZTables = {};
 
 var ZTableGlobals = {};
 var ZTableInputs = {};
-
 class ZTable
 {
     constructor(element, options)

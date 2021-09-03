@@ -50,6 +50,11 @@ member.is_paymentOption_bitcoin:
     defaults: 
         _controller: MemberBundle:Member:checkMemberPaymentOptionIfBitcoin
 
+member.get_referrer_details:
+    path: /referrer
+    defaults: 
+        _controller: MemberBundle:Member:getReferrerDetails
+
 referral.setting:
     path: /referral-setting
     defaults:

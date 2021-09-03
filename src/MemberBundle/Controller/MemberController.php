@@ -2,27 +2,17 @@
 
 namespace MemberBundle\Controller;
 
-use CustomerBundle\Manager\CustomerPaymentOptionManager;
-use DbBundle\Entity\Product;
-use DbBundle\Repository\ProductRepository;
-use PaymentOptionBundle\Manager\PaymentOptionManager;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
-
-use DateTime;
 use AppBundle\Controller\PageController;
 use AppBundle\Manager\PageManager;
+use AppBundle\Exceptions\HTTP\UnprocessableEntityException;
 use AppBundle\Widget\Page\ListWidget;
-use MemberBundle\Manager\MemberReferralNameManager;
-use MemberBundle\Manager\MemberCommissionManager;
-use MemberBundle\Manager\MemberRevenueShareManager;
+use CustomerBundle\Manager\CustomerPaymentOptionManager;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerGroup;
 use DbBundle\Entity\MarketingTool;
 use DbBundle\Entity\RiskSetting;
+use DbBundle\Entity\Product;
+use DbBundle\Repository\ProductRepository;
 use DbBundle\Repository\CustomerGroupRepository;
 use DbBundle\Repository\CustomerRepository;
 use DbBundle\Repository\MarketingToolRepository;
@@ -32,7 +22,17 @@ use MediaBundle\Widget\Page\MediaLibraryWidget;
 use MemberBundle\Event\ReferralEvent;
 use MemberBundle\Events;
 use MemberBundle\Manager\MemberManager;
+use MemberBundle\Manager\MemberReferralNameManager;
+use MemberBundle\Manager\MemberCommissionManager;
+use MemberBundle\Manager\MemberRevenueShareManager;
 use MemberBundle\Manager\MemberWebsiteManager;
+use GuzzleHttp\Exception\GuzzleException;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use DateTime;
 
 class MemberController extends PageController
 {
@@ -56,30 +56,6 @@ class MemberController extends PageController
 
         return $processedResult;
     }
-
-	public function processPaymentOptionFilter($filters)
-	{
-		$paymentOptionsFilter = [];
-		$paymentOptionSearch = "";
-
-		//payment option filter
-		if (isset($filters['filter']['paymentOption']) && $filters['filter']['paymentOption']) {
-			$paymentOptionsFilter = $filters['filter']['paymentOption'];
-		}
-
-		//payment gateway search
-		if (isset($filters['filter']['searchCategory']) && !empty($filters['filter']['searchCategory']) &&
-			in_array('paymentGateway', $filters['filter']['searchCategory']) &&
-			$filters['filter']['search']
-		) {
-			$paymentOptionSearch =  $filters['filter']['search'];
-		}
-		if ($paymentOptionSearch || $paymentOptionsFilter) {
-			$filters['customer_payment_options'] = $this->getCustomerPaymentOptionManager()->searchCustomer($paymentOptionSearch, $paymentOptionsFilter);
-		}
-
-		return $filters;
-	}
 
     public function processCommissionResult(array $result, ListWidget $widget): array
     {
@@ -196,10 +172,20 @@ class MemberController extends PageController
 
     public function updateOnLinkMember(PageManager $pageManager, array $data): JsonResponse
     {
-        $member = $pageManager->getData('customer');
-        $response = $this->getMemberManager()->linkMember($member, $member->getReferrerCode());
+        try {
+            $member = $pageManager->getData('customer');
+            $response = $this->getMemberManager()->linkMember($member);
+        } catch (UnprocessableEntityException $ex) {
+            $message = '';
+            if ($ex->member_user_id) $message = $ex->member_user_id[0];
+            if ($ex->referral_code) $message = $ex->referral_code[0];
+            
+            return $this->json([
+                'message' => $message
+            ], $ex->getCode());
+        }
 
-        return new JsonResponse($response, $response['code']);
+        return $this->json([]);
     }
 
     public function updateOnUnlinkMember(PageManager $pageManager, array $data): JsonResponse
@@ -257,6 +243,30 @@ class MemberController extends PageController
         return ['success' => true];
     }
 
+    public function processPaymentOptionFilter($filters)
+	{
+		$paymentOptionsFilter = [];
+		$paymentOptionSearch = "";
+
+		//payment option filter
+		if (isset($filters['filter']['paymentOption']) && $filters['filter']['paymentOption']) {
+			$paymentOptionsFilter = $filters['filter']['paymentOption'];
+		}
+
+		//payment gateway search
+		if (isset($filters['filter']['searchCategory']) && !empty($filters['filter']['searchCategory']) &&
+			in_array('paymentGateway', $filters['filter']['searchCategory']) &&
+			$filters['filter']['search']
+		) {
+			$paymentOptionSearch =  $filters['filter']['search'];
+		}
+		if ($paymentOptionSearch || $paymentOptionsFilter) {
+			$filters['customer_payment_options'] = $this->getCustomerPaymentOptionManager()->searchCustomer($paymentOptionSearch, $paymentOptionsFilter);
+		}
+
+		return $filters;
+	}
+
     public function updateOnActivateReferralName(PageManager $pageManager, array $data): JsonResponse
     {
         $member = $pageManager->getData('customer');
@@ -272,26 +282,18 @@ class MemberController extends PageController
 
     public function onFindMembers(PageManager $pageManager, array $data): array
     {
-        $memberId = !empty($pageManager->getCurrentRequest()->get('_route_params')['id']) ? $pageManager->getCurrentRequest()->get('_route_params')['id'] : null;
+        $affiliates = $this->get('app.service.affiliate_service')
+            ->getAffiliates($data);
 
-        $filters = [];
-        if (array_has($data, 'search')) {
-            $filters['search'] = $data['search'];
-        }
-
-        $records = $this->getCustomerRepository()->getPossibleReferrers($memberId, $filters, $data['length'], $data['start']);
-
-        $records = array_map(function ($record) {
+        $records = array_map(function ($affiliate) {
             return [
-                'id' => $record['id'],
-                'text' => $record['fullName'] . ' (' . $record['user']['username'] . ')',
-                'refferer' => $record['affiliate']['id'],
+                'id' => $affiliate['user_id'],
+                'text' => $affiliate['name'],
             ];
-        }, $records);
+        }, $affiliates['data']);
 
         return [
             'items' => $records,
-            'total' => $this->getCustomerRepository()->getCustomerListAllCount(),
         ];
     }
 
@@ -400,33 +402,36 @@ class MemberController extends PageController
         $filters = $data['filters'];
 
         $customer = $this->getCustomerRepository()->find($id);
-        $filters['revenueShare'] = $customer->isRevenueShareEnabled();
-        $filters['sort'] = array_get($data, 'sort', 'asc');
-        $filters['limit'] = array_get($data, 'limit', 10);
-        $filters['page'] = (int) array_get($data, 'page', 1);
-        $filters['offset'] = ($filters['page'] - 1) * $filters['limit'];
-        $filters['orderBy'] = $orderBy;
-        $filters['precision'] = $request->get('precision');
-
-        if((array_get($filters, 'dwlDateFrom') == "Invalid date") || (array_get($filters, 'dwlDateTo') == "Invalid date")){
-            $filters['dwlDateFrom'] = "";
-            $filters['dwlDateTo'] = "";
+        if ($customer->getIsAffiliate()) {
+            $filters['revenueShare'] = $customer->isRevenueShareEnabled();
+            $filters['sort'] = array_get($data, 'sort', 'asc');
+            $filters['limit'] = array_get($data, 'limit', 10);
+            $filters['page'] = (int) array_get($data, 'page', 1);
+            $filters['offset'] = ($filters['page'] - 1) * $filters['limit'];
+            $filters['orderBy'] = $orderBy;
+            $filters['precision'] = $request->get('precision');
+    
+            if((array_get($filters, 'dwlDateFrom') == "Invalid date") || (array_get($filters, 'dwlDateTo') == "Invalid date")){
+                $filters['dwlDateFrom'] = "";
+                $filters['dwlDateTo'] = "";
+            }
+    
+            if (array_get($filters, 'dwlDateFrom')) {
+                array_set($filters, 'dwlDateFrom', date('Y-m-d', strtotime($filters['dwlDateFrom'])));
+            }
+    
+            if (array_get($filters, 'dwlDateTo')) {
+                array_set($filters, 'dwlDateTo', date('Y-m-d', strtotime($filters['dwlDateTo'])));
+            }
+    
+            $currentPeriodReferralTurnoversAndCommissions = $this->getMemberManager()
+                ->getCurrentPeriodReferralTurnoversAndCommissions(
+                    $customer, new DateTime('now'), $filters
+                );
+    
+            return $this->jsonResponse($currentPeriodReferralTurnoversAndCommissions, Response::HTTP_OK);
         }
-
-        if (array_get($filters, 'dwlDateFrom')) {
-            array_set($filters, 'dwlDateFrom', date('Y-m-d', strtotime($filters['dwlDateFrom'])));
-        }
-
-        if (array_get($filters, 'dwlDateTo')) {
-            array_set($filters, 'dwlDateTo', date('Y-m-d', strtotime($filters['dwlDateTo'])));
-        }
-
-        $currentPeriodReferralTurnoversAndCommissions = $this->getMemberManager()
-            ->getCurrentPeriodReferralTurnoversAndCommissions(
-                $id, new DateTime('now'), $filters
-            );
-
-        return $this->jsonResponse($currentPeriodReferralTurnoversAndCommissions, Response::HTTP_OK);
+        return $this->jsonResponse([], Response::HTTP_OK);
     }
 
     public function downloadTurnoverCommissionReportAction(Request $request, int $id, string $orderBy): StreamedResponse
@@ -449,6 +454,25 @@ class MemberController extends PageController
 
         return $this->response($request, ['isPaymentOptionBitcoin' => $isPaymentOptionBitcoin], ['groups' => ['Default']]);
     }
+
+    public function getReferrerDetailsAction(Request $request)
+    {
+        $referralCode = $request->query->get('referral_code');
+        $userId = $request->query->get('user_id');
+        $affiliate = [];
+
+        if ($referralCode) {
+            $affiliate = $this->get('app.service.affiliate_service')
+                ->getAffiliateByReferralCode($referralCode);
+        } else if ($userId) {
+            $affiliate = $this->get('app.service.affiliate_service')
+                ->getAffiliate($userId);
+        }
+
+        $customer = $this->getCustomerRepository()->getByUserId($affiliate['user_id']);
+
+        return new JsonResponse(['name' => $customer->getFName(), 'email' => $customer->getUser()->getEmail()], JsonResponse::HTTP_OK);
+    }   
 
     private function getCustomerRepository(): CustomerRepository
     {
@@ -510,11 +534,6 @@ class MemberController extends PageController
         return $this->get('member.website_manager');
     }
 
-    private function getCustomerPaymentOptionManager(): CustomerPaymentOptionManager
-    {
-	    return $this->get('customer.payment_option_manager');
-    }
-
     private function getMemberBannerRepository(): \DbBundle\Repository\MemberBannerRepository
     {
         return $this->getRepository(\DbBundle\Entity\MemberBanner::class);
@@ -533,5 +552,10 @@ class MemberController extends PageController
     private function getUpdateRevenueShareRequestHandler(): \MemberBundle\RequestHandler\UpdateRevenueShareRequestHandler
     {
         return $this->container->get('member.handler.update_revenue_share');
+    }
+
+    private function getCustomerPaymentOptionManager(): CustomerPaymentOptionManager
+    {
+	    return $this->get('customer.payment_option_manager');
     }
 }

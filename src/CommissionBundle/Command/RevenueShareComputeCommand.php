@@ -54,6 +54,7 @@ class RevenueShareComputeCommand extends AbstractCommand
         $type = $recompute ? self::OPTION_RECOMPUTE : self::OPTION_COMPUTE;
 
         $response = $this->loginApiGateway();
+        $output->write($response);
         if ($response) {
             $token = $this->getToken($response);
             if ($token) {

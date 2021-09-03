@@ -164,9 +164,16 @@ widgets:
                     size: 12
                     group: marketLeft
                     readonly: true
-                affiliateLink:
+                # affiliateLink:
+                #     options:
+                #         label: Referral Code
+                #         required: false
+                #     type: text
+                #     size: 12
+                #     group: marketLeft
+                referralCode:
                     options:
-                        label: Referrer Code
+                        label: Referral Code
                         required: false
                     type: text
                     size: 12

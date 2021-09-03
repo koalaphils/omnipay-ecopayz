@@ -130,6 +130,9 @@ DbBundle\Entity\Customer:
             column: customer_allow_revenue_share
             options:
                 default: false
+        affiliate:
+            type: integer
+            column: customer_affiliate_id
     manyToOne:
         currency:
             targetEntity: DbBundle\Entity\Currency
@@ -145,11 +148,11 @@ DbBundle\Entity\Customer:
                 name: customer_country_id
                 referencedColumnName: country_id
         
-        affiliate:
-            targetEntity: DbBundle\Entity\Customer
-            joinColumn:
-                name: customer_affiliate_id
-                referencedColumnName: customer_id
+        # affiliate:
+        #     targetEntity: DbBundle\Entity\Customer
+        #     joinColumn:
+        #         name: customer_affiliate_id
+        #         referencedColumnName: customer_id
     oneToOne:
         user:
             targetEntity: DbBundle\Entity\User

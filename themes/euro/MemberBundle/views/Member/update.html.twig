@@ -74,74 +74,76 @@
                 <div class="tab-pane" id="product">
                     {{ widget_render(page.getWidget('productList')) }}
                 </div>
-                <div class="tab-pane" id="commissions">
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="commissions">
-                                 <div class="row">
-                                    <ul class="nav nav-tabs navtab-bg nav-justified">
-                                        <li class="active">
-                                            <a href="#running-commission" data-toggle="tab" aria-expanded="false">
-                                                <span>Earnings by Period</span>
-                                            </a>
-                                        </li>
-                                        <li class="">
-                                            <a href="#commission-setting" data-toggle="tab" aria-expanded="true">
-                                                <span>Affiliate Scheme</span>
-                                            </a>
-                                        </li>
-                                        <li class="">
-                                            <a href="#turnover-commission-product" data-toggle="tab" aria-expanded="false">
-                                                <span>Earnings by Product</span>
-                                            </a>
-                                        </li>
-                                        <li class="">
-                                            <a href="#turnover-commission-member" data-toggle="tab" aria-expanded="false">
-                                                <span>Earnings by Member</span>
-                                            </a>
-                                        </li>
-                                    </ul>
+                {% if customer.isAffiliate %}
+                    <div class="tab-pane" id="commissions">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="commissions">
+                                    <div class="row">
+                                        <ul class="nav nav-tabs navtab-bg nav-justified">
+                                            <li class="active">
+                                                <a href="#running-commission" data-toggle="tab" aria-expanded="false">
+                                                    <span>Earnings by Period</span>
+                                                </a>
+                                            </li>
+                                            <li class="">
+                                                <a href="#commission-setting" data-toggle="tab" aria-expanded="true">
+                                                    <span>Affiliate Scheme</span>
+                                                </a>
+                                            </li>
+                                            <li class="">
+                                                <a href="#turnover-commission-product" data-toggle="tab" aria-expanded="false">
+                                                    <span>Earnings by Product</span>
+                                                </a>
+                                            </li>
+                                            <li class="">
+                                                <a href="#turnover-commission-member" data-toggle="tab" aria-expanded="false">
+                                                    <span>Earnings by Member</span>
+                                                </a>
+                                            </li>
+                                        </ul>
 
-                                    <div class="tab-content" style="display: block">
-                                        <div class="tab-pane active" id="running-commission">
-                                            <div class="card-box table-responsive">
-                                                {{ widget_render(page.getWidget('runningCommissionListRevenueShare')) }}
+                                        <div class="tab-content" style="display: block">
+                                            <div class="tab-pane active" id="running-commission">
+                                                <div class="card-box table-responsive">
+                                                    {{ widget_render(page.getWidget('runningCommissionListRevenueShare')) }}
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="tab-pane" id="commission-setting">
-                                            <div class="card-box table-responsive">
-                                                <h4 class="font-bold">Revenue Share</h4>
-                                                <!-- Toggle Revenue Share -->
-                                                <label>Enable Revenue Share</label>
-                                                <label class="ui-switch">
-                                                    <input id="enableRevenueShare" type="checkbox" {{ customer.isRevenueShareEnabled() ? "checked='checked'" : "" }} />
-                                                    <span class="ui-slider round"></span>
-                                                </label>
+                                            <div class="tab-pane" id="commission-setting">
+                                                <div class="card-box table-responsive">
+                                                    <h4 class="font-bold">Revenue Share</h4>
+                                                    <!-- Toggle Revenue Share -->
+                                                    <label>Enable Revenue Share</label>
+                                                    <label class="ui-switch">
+                                                        <input id="enableRevenueShare" type="checkbox" {{ customer.isRevenueShareEnabled() ? "checked='checked'" : "" }} />
+                                                        <span class="ui-slider round"></span>
+                                                    </label>
 
-                                                <!-- Edit Revenue Share Modal -->
-                                                {{ widget_render(page.getWidget('revenueShareForm')) }}
-                                                
-                                                <!-- Revenue Share Table -->
-                                                {{ widget_render(page.getWidget('revenueShare')) }}
+                                                    <!-- Edit Revenue Share Modal -->
+                                                    {{ widget_render(page.getWidget('revenueShareForm')) }}
+                                                    
+                                                    <!-- Revenue Share Table -->
+                                                    {{ widget_render(page.getWidget('revenueShare')) }}
+                                                </div>
+                                            </div>
+                                            <div class="tab-pane" id="turnover-commission-product">
+                                                <div class="card-box table-responsive">
+                                                    {{ widget_render(page.getWidget('affiliateEarningsByProduct')) }}
+                                                </div>
+                                            </div>
+                                            <div class="tab-pane" id="turnover-commission-member">
+                                                <div class="card-box table-responsive">
+                                                    {{ widget_render(page.getWidget('affiliateEarningsByMember')) }}
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="tab-pane" id="turnover-commission-product">
-                                            <div class="card-box table-responsive">
-                                                {{ widget_render(page.getWidget('affiliateEarningsByProduct')) }}
-                                            </div>
-                                        </div>
-                                        <div class="tab-pane" id="turnover-commission-member">
-                                            <div class="card-box table-responsive">
-                                                {{ widget_render(page.getWidget('affiliateEarningsByMember')) }}
-                                            </div>
-                                        </div>
+
                                     </div>
-
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                {% endif %}                
                 <div class="tab-pane" id="transactions">
                     {{ widget_render(page.getWidget('transactionList')) }}
                 </div>
@@ -171,73 +173,12 @@
                     </div>
                 </div>
                 <div class="tab-pane" id="referral_tool">
-                    <!-- ================= STATIC UI ================== -->
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="referral_tool">
-                             <div class="row">
-                                <ul class="nav nav-tabs navtab-bg nav-justified">
-                                    <li class="active">
-                                        <a href="#website" data-toggle="tab" aria-expanded="false">
-                                            <span class="visible-xs"><i class="fa fa-home"></i></span>
-                                            <span class="hidden-xs">Websites</span>
-                                        </a>
-                                    </li>
-                                    <li class="">
-                                        <a href="#referral_names" data-toggle="tab" aria-expanded="true">
-                                            <span class="visible-xs"><i class="fa fa-user"></i></span>
-                                            <span class="hidden-xs">Referral Codes</span>
-                                        </a>
-                                    </li>
-                                    <li class="">
-                                        <a href="#campaign_names" data-toggle="tab" aria-expanded="false">
-                                            <span class="visible-xs"><i class="fa fa-envelope-o"></i></span>
-                                            <span class="hidden-xs">Campaign Names</span>
-                                        </a>
-                                    </li>
-                                    <li class="">
-                                        <a href="#banners" data-toggle="tab" aria-expanded="false">
-                                            <span class="visible-xs"><i class="fa fa-cog"></i></span>
-                                            <span class="hidden-xs">Banners</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                                <div class="tab-content" style="display: block">
-                                    <div class="tab-pane active" id="website">
-                                        <button id="createWebsiteBtn" class="btn btn-primary waves-effect waves-light pull-right btn-prd"><span><i class="ti-plus"></i></span> Add Website</button>
-                                        <div class="clearfix"></div>
-                                        <div class="card-box table-responsive">
-                                            {{ widget_render(widgets.websites) }}
-                                        </div>
-                                    </div>
-                                    <div class="tab-pane" id="referral_names">
-                                        <button id="btnCreateReferralName" class="btn btn-primary waves-effect waves-light pull-right btn-prd"><span><i class="ti-plus"></i></span> Add Referral Code</button>
-                                        <div class="clearfix"></div>
-                                        <div class="card-box table-responsive">
-                                        {{ widget_render(widgets.memberReferralName) }}
-                                        </div>
-                                    </div>
-                                    <div class="tab-pane" id="campaign_names">
-                                        <div class="clearfix"></div>
-                                        <div class="card-box table-responsive">
-                                            {{ widget_render(widgets.memberCampaignName) }}
-                                        </div>
-                                    </div>
-                                    <div class="tab-pane" id="banners">
-                                        <div class="card-box table-responsive">
-                                            {{ widget_render(widgets.banners) }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <iframe src="/iframe/referral-tools/{{ customer.user.id }}" style="width: 100%; height: 90vh; border: none;"></iframe>
                 </div>
-            </div>
                 <div class="tab-pane" id="ewl_account">
                     <div class="row">
                         <div class="col-md-12">
-                            <iframe id="ewl-account"></iframe>
+                            <iframe id="ewl-account"></iframe> 
                         </div>
                     </div>
                 </div>
@@ -541,11 +482,11 @@
         }
 
         $(function () {
-            $('#{{ widgets.referrals.getFullId() }}_container').on('click', '.btn-unlink', function () {
+            {# $('#{{ widgets.referrals.getFullId() }}_container').on('click', '.btn-unlink', function () {
                 var currentRow = $(this).closest('tr');
                 var data = {{ widgets.referrals.getFullId() }}Table.dataTable.api().row(currentRow).data();
                 unlinkCustomer(data);
-            });
+            }); #}
         });
 
         $(function () {
@@ -731,10 +672,12 @@
                 var response = JSON.parse(xhr.responseText);
                 var period = response.period;
 
-                turnoverCommissionReport.filters[response.filters.orderBy] = response.filters;
+                if (response.period) {
+                    turnoverCommissionReport.filters[response.filters.orderBy] = response.filters;
 
-                table.find('input[name=dwlDateFrom]').val(moment(period.dwlDateFrom).format('L'));
-                table.find('input[name=dwlDateTo]').val(moment(period.dwlDateTo).format('L'));
+                    table.find('input[name=dwlDateFrom]').val(moment(period.dwlDateFrom).format('L'));
+                    table.find('input[name=dwlDateTo]').val(moment(period.dwlDateTo).format('L'));
+                }
             }
         }); 
 
@@ -785,17 +728,22 @@
         }
 
         function commissionPeriod(period) {
-            return 'Date Covered: ' +
-            moment(period.dwlDateFrom).format('MMM D, YYYY') + ' - ' +
-            moment(period.dwlDateTo).format('MMM D, YYYY');
+            if (period) {
+                return 'Date Covered: ' +
+                moment(period.dwlDateFrom).format('MMM D, YYYY') + ' - ' +
+                moment(period.dwlDateTo).format('MMM D, YYYY');
+            }
+            return '';
         }
 
         function totalAffiliateTurnover(totals) {
             var value = '';
 
-            $.each(totals, function(key, total) {
-                value += total.currencyCode + ' ' + total.totalTurnover.rounded + "<br/>";
-            });
+            if (totals) {
+                $.each(totals, function(key, total) {
+                    value += total.currencyCode + ' ' + total.totalTurnover.rounded + "<br/>";
+                });
+            }
 
             return value;
         }
@@ -803,31 +751,38 @@
         function totalAffiliateWinLoss(totals) {
             var value = '';
 
-            $.each(totals, function(key, total) {
-                value += total.currencyCode + ' ' + total.totalWinLoss.rounded + "<br/>";
-            });
+            if (totals) {
+                $.each(totals, function(key, total) {
+                    value += total.currencyCode + ' ' + total.totalWinLoss.rounded + "<br/>";
+                });
+            }
 
             return value;
         }
 
         function totalAffiliateBonus(totals) {
             var value = '';
-            $.each(totals, function(key, total) {
-                value += total.currencyCode + ' ' + total.totalAffiliateBonus.rounded + "<br/>";
-            });
+            if (totals) {
+                $.each(totals, function(key, total) {
+                    value += total.currencyCode + ' ' + total.totalAffiliateBonus.rounded + "<br/>";
+                });
+            }
 
             return value;
         }
 
         function totalAffiliateRevenueShare(totals) {
-            var memberCurrencyCode = '{{ customer.currencyCode }}';
-            var member = totals.find(obj => obj.currencyCode === memberCurrencyCode);
-
-            try {
-                return memberCurrencyCode + ' ' + member.totalAffiliateRevenueShare.rounded + "<br/>";
-            } catch (err) {
-                return '';
+            if (totals) {
+                var memberCurrencyCode = '{{ customer.currencyCode }}';
+                var member = totals.find(obj => obj.currencyCode === memberCurrencyCode);
+                try {
+                    return memberCurrencyCode + ' ' + member.totalAffiliateRevenueShare.rounded + "<br/>";
+                } catch (err) {
+                    return '';
+                }
             }
+
+            return '';
         }
 
         function revenueShareForPeriod(revenueShare) {
@@ -984,70 +939,83 @@
                 }
             });
         }
+    
+        {% if customer.details.referral_code is not defined or customer.details.referral_code == '' or customer.isLinkedToAffiliate() %} 
+            $('#autoLink').prop('disabled', true);
+        {% endif %}
 
-        $('#autoLink').click(function(e) {
+       $('#autoLink').click(function(e) {
             var profileForm = $(this).closest('form');
             var referrerElement = $('#{{ widgets.profileForm.getFormView().referrer.vars.id }}');
-
             e.preventDefault();
-
-            confirm2(
-                'Are you sure you want to link <b>{{ customer.fullName }}</b> to <b>' + referrer.byCode.name + '</b>?',
-                'Link Member',
-                {
-                    'type': null,
-                    'confirmButtonClass': 'btn-warning btn-md',
-                    'confirmButtonText': 'Link',
-                    'cancelButtonClass': 'btn-inverse btn-md',
-                    'cancelButtonText': 'Cancel',
-                    'html': true,
-                    'showLoaderOnConfirm': true
-                },
-                function (isUnlink) {
-                    if (isUnlink) {
-                        $.ajax({
-                            'globalAjaxComplete': false,
-                            'globalAjaxError': false,
-                            'headers': {
-                                'X-WIDGET-REQUEST': 'OnLinkMember'
-                            },
-                            'type': 'POST',
-                        }).always(function (data) {
-                            if (typeof data.responseJSON !== 'undefined') {
-                                var notifications = data.responseJSON.__notifications[0];
-                                referrer.byCode = data.responseJSON.referrer;
-                                referrer.current = data.responseJSON.referrer;
-                            } else {
-                                var notifications = data.__notifications[0];
-                                referrer.byCode = data.referrer;
-                                referrer.current = data.referrer;
-                            }
-
-                            swal({
-                                'type': notifications.type,
-                                'title': notifications.title,
-                                'text': notifications.message
-                            }, function() {
-                                referrerElement.select2('trigger', 'select', {
-                                    'data': { 'id': referrer.byCode.id, 'text' : referrer.byCode.name + ' (' + referrer.byCode.username + ')' }
-                                });
-
-                                profileForm.data('initialSate', profileForm.serialize());
-
-                                originalReferrer = referrerElement.val();
-                                toggleLinkReferrerButton();
-                            });
+            let referralCode = document.getElementById('update_profileForm_data_referralCode').value;
+            let url = "{{ path('member.get_referrer_details')|escape('js') }}" + `?referral_code=${referralCode}`;
+            fetch(url)
+                .then((response) => {
+                    if (response.status === 404) {
+                        swal({
+                            'type': 'error',
+                            'title': 'Not found!',
+                            'text': 'Referral code is invalid or is not existing'
                         });
                     }
-                }
-            );
+
+                    if (response.ok) {
+                        return response.json();
+                    }
+                }).then((details) => {
+                    let message = 'Link Member <b>{{ customer.fName }} {{ customer.lName }} ({{ customer.user.username }}) to affiliate?</b>';
+                    message = message.replace('affiliate', details.name !== '' ? details.name : details.email);
+                    confirm2(message,  'Link Member', {
+                            'type': null,
+                            'confirmButtonClass': 'btn-success btn-md',
+                            'confirmButtonText': 'Link',
+                            'cancelButtonClass': 'btn-inverse btn-md',
+                            'cancelButtonText': 'Cancel',
+                            'html': true,
+                            'showLoaderOnConfirm': true
+                        }, 
+                        function(val) {
+                            if (val) {
+                                $.ajax({
+                                    'globalAjaxComplete': false,
+                                    'globalAjaxError': false,
+                                    'headers': {
+                                        'X-WIDGET-REQUEST': 'OnLinkMember'
+                                    },
+                                    'type': 'POST',
+                                }).success(() => {
+                                    swal({
+                                        'type': 'success',
+                                        'title': 'Success Linking Member',
+                                        'text': 'Member successfully linked to affiliate'
+                                    }, function () {
+                                        location.reload();
+                                    });
+
+                                }).error(function (data) {
+                                    let response = data.responseJSON;
+                                    swal({
+                                        'type': 'error',
+                                        'title': 'Error Linking Member',
+                                        'text': response.message
+                                    });
+                                });
+                            }
+                        }
+                    );
+                })
+            ;   
         });
 
         function toggleLinkReferrerButton() {
-            $('#autoLink').prop('disabled', true);
+            let isLinked = '{{ customer.isLinkedToAffiliate() }}';
+            let referralCode = document.getElementById('update_profileForm_data_referralCode').value;
 
-            if (referrer.byCode.id != '' && (referrer.byCode.id != referrer.current.id)) {
-                $('#autoLink').prop('disabled', false);
+            if (referralCode !== '' && !isLinked) {
+                $('#autoLink').prop('disabled', null);
+            } else {
+                 $('#autoLink').prop('disabled', null);
             }
         };
 

@@ -186,6 +186,7 @@ class RegisterHandler
                 'site' => $registerRequest->getRegistrationSite(),
             ]
         ]);
+        $member->setDetail('referral_code', $registerRequest->getReferralCode());
         $member->setLocale($registerRequest->getLocale());
 
         /*if ($registerRequest->getReferrerUrl() !== '') {

@@ -690,7 +690,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
 
     public function getIsAffiliate()
     {
-        return $this->isAffiliate;
+        return $this->getUser()->isAffiliate();
     }
 
     public function setIsCustomer($isCustomer)
@@ -705,7 +705,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this->isCustomer;
     }
 
-    public function setAffiliate($affiliate)
+    public function setAffiliate(?int $affiliate)
     {
         $this->affiliate = $affiliate;
 
@@ -902,7 +902,9 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     public function getPreferences()
     {
         $preferences = $this->getUser()->getPreferences();
-        $preferences += $this->extraPreferences;
+        if ($this->extraPreferences) {
+            $preferences += $this->extraPreferences;
+        }
 
         $preferences['paymentOptionTypes'] = [];
 
@@ -1071,12 +1073,12 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this->getAffiliate() instanceof Customer;
     }
 
-    public function getReferral(): ?Customer
+    public function getReferral()
     {
         return $this->getAffiliate();
     }
 
-    public function setReferrer(Customer $customer): void
+    public function setReferrer($customer): void
     {
         $this->setAffiliate($customer);
     }
@@ -1086,7 +1088,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this->getAffiliate() instanceof Customer;
     }
 
-    public function getReferrer(): ?Customer
+    public function getReferrer()
     {
         return $this->getAffiliate();
     }
@@ -1285,14 +1287,6 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         $referrer = $this->getAffiliate();
         $referrerDetails = [];
 
-        if (!is_null($referrer)) {
-            $referrerDetails = [
-                'id' => $referrer->getId(),
-                'fullName' => $referrer->getFullName(),
-                'username' => $referrer->getUsername(),
-            ];
-        }
-
         return $referrerDetails;
     }
 
@@ -1410,5 +1404,15 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     public function isRevenueShareEnabled(): bool
     {
         return $this->allowRevenueShare;
+    }
+    
+    public function isLinkedToAffiliate(): bool
+    {
+        return $this->getAffiliate() !== null;
+    }
+
+    public function getReferralCode(): ?string
+    {
+        return $this->getDetail('referral_code', null);
     }
 }
