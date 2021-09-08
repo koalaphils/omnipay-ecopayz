@@ -412,22 +412,18 @@ class AuthHandler
         $tokenString = $request->get('token');
         try {
             $token = $this->oauthService->verifyAccessToken($tokenString);
-
             if ($token->getUser()->getCustomer()->getPinUserCode()) {
-                try {
-                    $this->pinnacleService->getAuthComponent()->logout($token->getUser()->getCustomer()->getPinUserCode());
-                } catch (PinnacleError | PinnacleException $exception) {
-                    // Ignoring exception and continue execute user logout.
-                }
+                $this->pinnacleService->getAuthComponent()->logout($token->getUser()->getCustomer()->getPinUserCode());
             } 
-
-            $this->deleteUserAccessToken(null, [$tokenString]);
-            $this->loginUser($token->getUser());
-            $this->customerManager->handleAudit('logout');
         } catch (OAuth2AuthenticateException $exception) {
             if ($exception->getDescription() === 'The access token provided has expired.') {
                 $this->deleteUserAccessToken(null, [$tokenString]);
             }
+        } catch (PinnacleError | PinnacleException $exception) {    
+        } finally {
+            $this->deleteUserAccessToken(null, [$tokenString]);
+            $this->loginUser($token->getUser());
+            $this->customerManager->handleAudit('logout');
         }
     }
 
