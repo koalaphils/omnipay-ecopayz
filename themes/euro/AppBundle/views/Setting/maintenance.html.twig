@@ -19,14 +19,70 @@
 
 {% block page %}
     <div class="col-sm-12">
-        <div class="card-box">
-            {{ form_start(form) }}
-            {{ form_widget(form) }}
-            {{ form_end(form) }}
+        <ul class="nav nav-tabs">
+            <li class="li-tab active">
+                <a href="#integration" data-toggle="tab">
+                    <span class="hidden-xs">Integration Maintenance</span>
+                </a>
+            </li>
+            <li class="li-tab">
+                <a href="#system" data-toggle="tab">
+                    <span class="hidden-xs">System Maintenance</span>
+                </a>
+            </li>
+        </ul>
+        <div class="tab-content bg-muted">
+            <div class="tab-pane active" id="integration">
+                <div class="card-box">
+                    <h4><b>Integration Maintenance</b></h4>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="list-group m-b-0">
+                                <a href="#" class="list-group-item"> 
+                                    <div class="row">
+                                        <label class="col-sm-3 control-label">PIWIXchange</label>
+                                        <div class="col-sm-6">
+                                            <input id="piwixchange" class="switch" type="checkbox" data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
+                                        </div>
+                                    </div>
+                                </a> 
+                                <a href="#" class="list-group-item"> 
+                                    <div class="row">
+                                        <label class="col-sm-3 control-label">Sports</label>
+                                        <div class="col-sm-6">
+                                            <input id="sports" class="switch" type="checkbox" data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
+                                        </div>
+                                    </div>
+                                </a> 
+                                <a href="#" class="list-group-item">
+                                    <div class="row">
+                                        <label class="col-sm-3 control-label">Casino</label>
+                                        <div class="col-sm-6">
+                                            <input id="casino" class="switch" type="checkbox" data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
+                                        </div>
+                                    </div>
+                                </a> 
+                            </div>
+                        </div>
+                        <div class="col-sm-6"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane" id="system">
+                <div class="card-box">
+                    <h4><b>System Maintenance</b></h4>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}
 
 {% block javascripts %}
-    {{ form_javascript(form) }}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#integration').on('click', 'input.switch', function() {
+            var currentState = $(this).val();
+        });
+    });
+</script>
 {% endblock %}
