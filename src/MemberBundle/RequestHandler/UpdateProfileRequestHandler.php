@@ -93,6 +93,13 @@ class UpdateProfileRequestHandler
         $newAffiliate = $request->getReferrer();
         // Do remapping if there is a change in affiliate
         if (+$originalAffiliate !== $newAffiliate) {
+            if ($originalAffiliate !== null) {
+                $this->affiliateService->removeMember(
+                    $customer->getUser()->getId(),
+                    $originalAffiliate
+                );
+            }
+            
             if ($newAffiliate !== null) {
                 $this->affiliateService->addMember(
                     $customer->getUser()->getId(),
@@ -104,13 +111,6 @@ class UpdateProfileRequestHandler
 
             if ($request->getReferrer() === null) {
                 $customer->setAffiliate(null);
-            }
-
-            if ($originalAffiliate !== null) {
-                $this->affiliateService->removeMember(
-                    $customer->getUser()->getId(),
-                    $originalAffiliate
-                );
             }
         }
     }
