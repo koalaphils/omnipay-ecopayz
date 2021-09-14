@@ -9,7 +9,6 @@ class CustomerPaymentOptions
 	const LOG_OPERATION_CREATE = 1;
 	const LOG_OPERATION_UPDATE = 2;
 	const PAYMENT_OPTION_BTC = 'BITCOIN';
-	const PAYMENT_OPTION_USDT = 'USDT';
 	private $payload;
 	private $logs = []; // Keeps track of changes
 	private $determinantsFields = ['email', 'account_id'];
@@ -126,7 +125,7 @@ class CustomerPaymentOptions
 		}
 
 		$newCpoFields['active'] = false;
-		if ($code == self::PAYMENT_OPTION_BTC || $code == self::PAYMENT_OPTION_USDT) {
+		if ($code == self::PAYMENT_OPTION_BTC) {
 			$newCpoFields['active'] = true;
 		}
 

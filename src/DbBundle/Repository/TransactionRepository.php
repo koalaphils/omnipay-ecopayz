@@ -743,4 +743,25 @@ class TransactionRepository extends BaseRepository
 
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }
+
+	public function getTotalProcessedDepositTransactionsForEachPaymentOption($customerId)
+	{
+		$queryBuilder = $this->createQueryBuilder('transaction');
+
+		return $queryBuilder
+			->select('COUNT(transaction) as count', 'transaction.paymentOptionType')
+			->where($queryBuilder->expr()->andX()->addMultiple([
+				'transaction.customer = :customer',
+				'transaction.type = :type',
+				'transaction.status = :status',
+			]))
+			->groupBy('transaction.paymentOptionType')
+			->setParameters([
+				'customer' => $customerId,
+				'type' => Transaction::TRANSACTION_TYPE_DEPOSIT,
+				'status' => Transaction::TRANSACTION_STATUS_END
+			])
+			->getQuery()
+			->getResult();
+	}
 }
