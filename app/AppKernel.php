@@ -38,7 +38,6 @@ class AppKernel extends Kernel
             new NoticeBundle\NoticeBundle(),
             // new ZendeskBundle\ZendeskBundle(),
             new TicketBundle\TicketBundle(),
-            new PaymentOptionBundle\PaymentOptionBundle(),
             new TransactionBundle\TransactionBundle(),
             new BonusBundle\BonusBundle(),
             new MediaBundle\MediaBundle(),

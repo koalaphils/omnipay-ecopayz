@@ -1,0 +1,44 @@
+server {
+  listen 80 reuseport;
+  root /var/www/html/web;
+  index app.php;
+  access_log off;
+  log_not_found off;
+
+  set $proxy_https '';
+  if ($http_cloudfront_forwarded_proto = 'https') {
+    set $proxy_https 'on';
+  }
+
+  if ($http_x_forwarded_proto = 'https') {
+    set $proxy_https 'on';
+  }
+
+  if ($scheme = 'https') {
+    set $proxy_https 'on';
+  }
+
+  set $real_host ${SITE};
+
+  if ($host ~* "\.") {
+      set $real_host $host;
+  }
+
+  set $upstream_endpoint ${FPM_SERVER};
+
+  location /iframe/ {
+    proxy_cache off;
+    expires max;
+    add_header Pragma public;
+    add_header Cache-Control "no-cache, public, must-revalidate, proxy-revalidate";
+
+    include conf.d/payment-options.conf.location;
+    include conf.d/reports.conf.location;
+    include conf.d/risk-setting.conf.location;
+    include conf.d/correct-score.conf.location;
+
+    return 404;
+  }
+
+  include conf.d/backoffice.conf.location;
+}
