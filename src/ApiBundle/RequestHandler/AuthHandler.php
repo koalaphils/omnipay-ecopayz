@@ -340,6 +340,9 @@ class AuthHandler
                 'from' => 'member_site',
             ]),
             'exp' => time() + $this->sessionExpiration,
+	        'roles' => [
+				'ROLE_AUTHENTICATED'
+	        ]
         ];
 
         return JWT::encode($token, $this->jwtKey);

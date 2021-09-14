@@ -99,6 +99,11 @@ DbBundle\Entity\Customer:
             expose: true
             type: boolean
             serialized_name: is_enabled
+        isAffiliate:
+            exp: object.getIsAffiliate()
+            expose: true
+            type: boolean
+            serialized_name: is_affiliate
         availableBalance:
             exp: object.getAvailableBalance()
             expose: true
