@@ -601,11 +601,11 @@ widgets:
                         data-width: auto
                         data-size: 5
                     value: :paymentOption
-                    choicesFrom:
-                        function: '@paymentoption.manager::filter'
-                        label: result.getName()
-                        value: result.getCode()
-                        from: data
+                    # choicesFrom:
+                    #     function: '@paymentoption.manager::filter'
+                    #     label: result.getName()
+                    #     value: result.getCode()
+                    #     from: data
                 types:
                     dom: <'form-group form-group-sm m-r-10 xs-filter'i>
                     label: Type
