@@ -424,8 +424,8 @@ class AuthHandler
             $this->deleteUserAccessToken(null, [$tokenString]);
             if ($token !== null) {
                 $this->loginUser($token->getUser());
+                $this->customerManager->handleAudit('logout');
             }
-            $this->customerManager->handleAudit('logout');
         }
     }
 
