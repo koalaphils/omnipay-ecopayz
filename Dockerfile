@@ -85,14 +85,21 @@ ENV TIMEZONE=Etc/GMT+4 \
     ACCESS_TOKEN_EXPIRES_IN=
 
 WORKDIR /var/www/html
-COPY opt/docker/php/*.ini $PHP_INI_DIR/conf.d/
-COPY opt/docker/php/www.conf $PHP_INI_DIR/../php-fpm.d/
+COPY opt/php/*.ini $PHP_INI_DIR/conf.d/
+COPY opt/php/www.conf $PHP_INI_DIR/../php-fpm.d/
 
-COPY /opt/docker/php/cronjobs /etc/cron.d/crontab
+COPY /opt/php/cronjobs /etc/cron.d/crontab
 RUN chmod 0644 /etc/cron.d/crontab \
  ; touch /var/log/cron.log \
  ; /usr/bin/crontab /etc/cron.d/crontab \
  ;
+
+COPY opt/nginx /nginx
+COPY --from=nginx /docker-entrypoint.d/* /nginx/docker-entrypoint.d/
+RUN chmod a+x /nginx/docker-entrypoint.d/*
+VOLUME /nginx/conf
+VOLUME /nginx/template
+VOLUME /nginx/docker-entrypoint.d
 
 COPY . /var/www/html
 RUN mkdir -p /var/log/php7 && chmod -Rf 777 /var/log/php7 \
@@ -103,8 +110,8 @@ RUN composer config --global use-github-api false \
   ;
 VOLUME /var/www/html/vendor
 
-COPY /opt/docker/php/entrypoint.sh /entrypoint.sh
-COPY /opt/docker/php/entrypoint.sh /entrypoint-nomigrate.sh
+COPY /opt/php/entrypoint.sh /entrypoint.sh
+COPY /opt/php/entrypoint.sh /entrypoint-nomigrate.sh
 RUN sed -i "s|exec \"\$@\"||g" /entrypoint.sh \
   ; sed -i "s|exec \"\$@\"||g" /entrypoint-nomigrate.sh \
   ; echo "composer run post-install-cmd;\ncomposer run db-migrate;\nchmod ugo+w -R var\nexec \"\$@\";" >> /entrypoint.sh \
@@ -125,16 +132,8 @@ RUN apt-get update -y \
     rsync \
     sshpass \
     tzdata
-COPY ./opt/docker/nginx/site.conf /etc/nginx/conf.d/default.tmp
-COPY ./opt/docker/nginx/gzip.conf /etc/nginx/conf.d/gzip.conf
-COPY ./opt/docker/nginx/open_file_cache.conf /etc/nginx/conf.d/open_file_cache.conf
-COPY ./opt/docker/nginx/proxy_headers.conf /etc/nginx/conf.d/proxy_headers.conf
-COPY ./opt/docker/nginx/nginx.conf /etc/nginx/nginx.conf
-
+COPY --from=prod /nginx/conf /etc/nginx/conf.d
+COPY --from=prod /nginx/template /etc/nginx/templates
+COPY --from=prod /nginx/docker-entrypoint.d /docker-entrypoint.d
 RUN mkdir -p /var/www/html && chmod 777 /var/www/html
 COPY --from=prod /var/www/html /var/www/html
-COPY /opt/docker/nginx/entrypoint* /
-#COPY /opt/docker/nginx/cronjobs /
-RUN chmod +x /entrypoint*
-ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
-CMD /bin/sh -c "exec nginx -g 'daemon off;'"

@@ -69,7 +69,7 @@
                     </div>
                 </div>
                 <div class="tab-pane" id="payments">
-                    {{ widget_render(page.getWidget('paymentOptions')) }}
+                    <iframe></iframe>
                 </div>
                 <div class="tab-pane" id="product">
                     {{ widget_render(page.getWidget('productList')) }}
@@ -120,7 +120,7 @@
 
                                                 <!-- Edit Revenue Share Modal -->
                                                 {{ widget_render(page.getWidget('revenueShareForm')) }}
-                                                
+
                                                 <!-- Revenue Share Table -->
                                                 {{ widget_render(page.getWidget('revenueShare')) }}
                                             </div>
@@ -262,6 +262,7 @@
 {% block javascripts %}
     <script type="text/javascript">
         var memberId = window.location.pathname.split('/').splice(-2,1);
+        $('#payments iframe').attr('src', '/iframe/payment-options/customer-payment-option/' + memberId);
         $('#ewl-account').attr('src', '/iframe/ewl/account/' + memberId);
 
         var transactionUrl = "{{ path('transaction.update_page', {"type":"__type__", "id":"__id__"}) }}";
@@ -669,7 +670,7 @@
                 });
             });
         });
-        
+
         //Revenue Share
         $(function () {
             $('#enableRevenueShare').on('change', function () {
@@ -723,7 +724,7 @@
                 {{ widgets.revenueShare.getFullId() }}Table.reloadTable();
             });
         });
-        
+
         $('#{{ widgets.affiliateEarningsByProduct.getFullId() }}_container, #{{ widgets.affiliateEarningsByMember.getFullId() }}_container')
         .on('xhr.dt', function (e, settings, json, xhr) {
             if (typeof xhr.responseText !== 'undefined') {
@@ -736,7 +737,7 @@
                 table.find('input[name=dwlDateFrom]').val(moment(period.dwlDateFrom).format('L'));
                 table.find('input[name=dwlDateTo]').val(moment(period.dwlDateTo).format('L'));
             }
-        }); 
+        });
 
         $('#{{ widgets.affiliateEarningsByProduct.getFullId() }}_container').on('click', 'button[name=btnExportCsv]', function () {
             exportAffiliateReportToCsv('productName');

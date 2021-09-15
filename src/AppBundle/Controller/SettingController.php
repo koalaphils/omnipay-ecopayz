@@ -48,37 +48,7 @@ class SettingController extends AbstractController
     {
         $this->denyAccessUnlessGranted(['ROLE_VIEW_PAYMENTOPTIONS']);
 
-        $paymentOptions = [];
-        $paymentOptions['paymentOptions'] = $this->getManager()->getSetting('paymentOptions');
-        $form = $this->createForm(PaymentOptionsType::class, $paymentOptions);
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $data = $form->getData();
-
-            $_paymentOptions = [];
-            foreach ($data['paymentOptions'] as $option) {
-                $_fields = [];
-                foreach ($option['fields'] as $key => $field) {
-                    $_fields[$field['code']] = $field;
-                }
-                $option['fields'] = $_fields;
-                $_paymentOptions[$option['code']] = $option;
-            }
-
-            $this->getManager()->saveSetting('paymentOptions', $_paymentOptions);
-
-            $this->getSession()->getFlashBag()->add(
-                'notifications',
-                [
-                    'title' => $this->getTranslator()->trans('notification.paymentoption.title', [], 'AppBundle'),
-                    'message' => $this->getTranslator()->trans('notification.paymentoption.message', [], 'AppBundle'),
-                ]
-            );
-
-            return $this->redirectToRoute('app.setting.paymentoptions_page');
-        }
-
-        return $this->render('AppBundle:Setting:paymentOption.html.twig', ['form' => $form->createView()]);
+        return $this->render('AppBundle:Setting:paymentOption.html.twig');
     }
 
     public function settingAction(Request $request)
@@ -101,7 +71,7 @@ class SettingController extends AbstractController
         if (!empty($scheduler[Setting::SCHEDULER_TASK])) {
             $validationGroups = ['default', 'customer'];
             $tasks = $this->getManager()->getItemConfig($scheduler, Setting::SCHEDULER_TASK);
-            
+
             $formAutoDecline = $this->createForm(SchedulerType::class, $tasks[Setting::TASK_AUTODECLINE], [
                 'validation_groups' => $validationGroups,
             ]);

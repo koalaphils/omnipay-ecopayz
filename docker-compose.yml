@@ -87,7 +87,7 @@ services:
       - "0.0.0.0:25"
     user: root
     ports:
-      - 8025:8025 
+      - 8025:8025
     networks:
       - piwinet
 
@@ -116,32 +116,55 @@ services:
     networks:
       - piwinet
 
-  piwibo-wsclient:
-    <<: *php-env
-    image: php-container
-    restart: unless-stopped
-    command:
-      - php
-      - app/console
-      - websocket:client
-      - ws://websocket:9090/ws
-      - realm
-      - system
+  piwibo-web:
+    build:
+      context: .
+      target: webservice
+    ports:
+      - 81:80
     volumes:
       - .:/var/www/html
-      - ws_cache:/var/www/html/var/cache
+    environment:
+      - WITH_PAYMENT_OPTIONS=true
+      - ENVIRONMENT=dev
+      - FPM_SERVER=piwibo-php:9000
+      - TIMEZONE=Etc/GMT+4
+      - SITE=localhost:81
+      - FORCEHTTPS=off
     depends_on:
-      - database
-      - mailhog
-      - adminer
       - piwibo-php
+    restart: always
     networks:
       - piwinet
+
+#  piwibo-wsclient:
+#    <<: *php-env
+#    image: php-container
+#    restart: unless-stopped
+#    entrypoint: /entrypoint-nomigrate.sh
+#    command:
+#      - php
+#      - app/console
+#      - websocket:start
+#      - ws://websocket:9090/ws
+#      - realm
+#      - system
+#    volumes:
+#      - .:/var/www/html
+#      - ws_cache:/var/www/html/var/cache
+#    depends_on:
+#      - database
+#      - mailhog
+#      - adminer
+#      - piwibo-php
+#    networks:
+#      - piwinet
 
   piwibo-scheduler:
     <<: *php-env
     image: php-container
     restart: unless-stopped
+    entrypoint: /entrypoint-nomigrate.sh
     command:
       - php
       - app/console
@@ -162,6 +185,7 @@ services:
     <<: *php-env
     image: php-container
     restart: unless-stopped
+    entrypoint: /entrypoint-nomigrate.sh
     command:
       - php
       - app/console
@@ -178,25 +202,6 @@ services:
     networks:
       - piwinet
 
-  piwibo-web:
-    build:
-      context: .
-      target: webservice
-    ports:
-      - 81:80
-    volumes:
-      - .:/var/www/html
-    environment:
-      - ENVIRONMENT=dev
-      - PHPHOST=piwibo-php
-      - PHPPORT=9000
-      - TIMEZONE=Etc/GMT+4
-      - APPHOST=http://localhost
-    depends_on:
-      - piwibo-php
-    restart: always
-    networks:
-      - piwinet
 
 #  websocket:
 #    build:

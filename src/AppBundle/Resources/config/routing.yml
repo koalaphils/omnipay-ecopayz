@@ -83,3 +83,7 @@ app.notification.save_last_read:
     path: /notification/save/last-read
     defaults:
         _controller: AppBundle:Default:saveNotificationLastRead
+
+app.payment_option.search:
+    path: /paymentoptions/search
+    defaults:   { _controller: AppBundle:PaymentOption:search }

@@ -18,6 +18,7 @@ use MemberBundle\Manager\MemberManager;
 use MemberBundle\Request\CreateMemberRequest;
 use PinnacleBundle\Service\PinnacleService;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoder;
 use UserBundle\Manager\UserManager;
 use ApiBundle\Service\JWTGeneratorService;
@@ -174,7 +175,7 @@ class CreateMemberRequestHandler
         $member->setUser($user);
         $user->setCustomer($member);
         $member->setTags([Customer::ACRONYM_MEMBER]);
-        
+
         $this->entityManager->persist($member);
         $this->entityManager->flush($member);
 
