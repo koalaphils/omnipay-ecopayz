@@ -181,7 +181,7 @@
                         <li><a href="{{ path("currency.setting.currency_page") }}">Currency</a></li>
                         {% endif %}
                         {% if is_granted('ROLE_PAYMENTOPTION_VIEW') %}
-                        <li><a href="{{ path("paymentoption.list_page") }}">Payment Options</a></li>
+                            <li><a href="{{ path("app.setting.paymentoptions_page") }}">Payment Options</a></li>
                         <li><a href="{{ path('payment.bitcoin.setting_page') }}">Bitcoin Setting</a></li>
                         {% endif %}
                         {% if is_granted('ROLE_TRANSACTION_SETTING_PROCESS') %}

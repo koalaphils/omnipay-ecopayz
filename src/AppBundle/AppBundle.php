@@ -69,6 +69,24 @@ class AppBundle extends Bundle
                 'label' => 'roles.bitcoinSetting',
                 'translation_domain' => 'AppBundle',
             ],
+            'ROLE_PAYMENTOPTION_VIEW' => [
+                'group' => 'roles.groups.paymentOption',
+                'label' => 'roles.paymentoption.view',
+                'translation_domain' => 'AppBundle',
+                'requirements' => ['ROLE_UPDATE_SETTINGS'],
+            ],
+            'ROLE_PAYMENTOPTION_CREATE' => [
+                'group' => 'roles.groups.paymentOption',
+                'label' => 'roles.paymentoption.create',
+                'translation_domain' => 'AppBundle',
+                'requirements' => ['ROLE_PAYMENTOPTION_VIEW'],
+            ],
+            'ROLE_PAYMENTOPTION_UPDATE' => [
+                'group' => 'roles.groups.paymentOption',
+                'label' => 'roles.paymentoption.update',
+                'translation_domain' => 'AppBundle',
+                'requirements' => ['ROLE_PAYMENTOPTION_VIEW'],
+            ],
         ];
     }
 

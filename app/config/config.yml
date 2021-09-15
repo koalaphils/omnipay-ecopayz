@@ -19,7 +19,6 @@ imports:
     - { resource: "@SessionBundle/Resources/config/services.yml" }
     - { resource: "@ThemeBundle/Resources/config/services.yml" }
     - { resource: "@ApiBundle/Resources/config/services.yml" }
-    - { resource: "@PaymentOptionBundle/Resources/config/services.yml" }
     - { resource: "@GatewayTransactionBundle/Resources/config/services.yml" }
     - { resource: "@AuditBundle/Resources/config/services.yml" }
     - { resource: "@ReportBundle/Resources/config/services.yml" }
@@ -182,8 +181,8 @@ aws:
         secret: '%aws_sdk.secret%' # this will be escaped as '@not-a-real-secret'
     S3:
         version: '%aws_s3.version%'
-        region: '%aws_s3.region%'   
-        
+        region: '%aws_s3.region%'
+
 product_integration:
     integrations:
         piwix:
