@@ -4,8 +4,11 @@ declare(strict_types = 1);
 
 namespace ApiBundle\RequestHandler\Transaction;
 
+use ApiBundle\Request\Transaction\DepositRequest;
 use ApiBundle\Request\Transaction\WithdrawRequest;
 use AppBundle\Manager\SettingManager;
+use AppBundle\Service\CustomerPaymentOptionService;
+use AppBundle\Service\PaymentOptionService;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerPaymentOption;
 use DbBundle\Entity\PaymentOption;
@@ -67,6 +70,7 @@ class WithdrawHandler
         CustomerPaymentOptionRepository $memberPaymentOptionRepository,
         PaymentOptionRepository $paymentOptionRepository,
         CustomerProductRepository $customerProductRepository,
+        CustomerPaymentOptionService $customerPaymentOptionService,
         EntityManager $entityManager,
         EventDispatcherInterface $eventDispatcher,
         SettingManager $settingManager
@@ -76,6 +80,7 @@ class WithdrawHandler
         $this->paymentOptionRepository = $paymentOptionRepository;
         $this->transactionManager = $transactionManager;
         $this->customerProductRepository = $customerProductRepository;
+	    $this->customerPaymentOptionService = $customerPaymentOptionService;
         $this->entityManager = $entityManager;
         $this->eventDispatcher = $eventDispatcher;
         $this->settingManager = $settingManager;
@@ -85,26 +90,31 @@ class WithdrawHandler
     {
         try {
             $this->entityManager->beginTransaction();
+
             $member = $this->getCurrentMember();
-            $memberPaymentOption = $this->getMemberPaymentOption($member, $withdrawRequest);
-            $email = $withdrawRequest->getMeta()->getFields()->getEmail();
 
-            $transaction = new Transaction();
-            $transaction->setCustomer($member);
-            $transaction->setPaymentOption($memberPaymentOption);
-            $transaction->setType(Transaction::TRANSACTION_TYPE_WITHDRAW);
-            $transaction->setNumber($this->transactionManager->generateTransactionNumber('withdraw'));
-            $transaction->setDate(new \DateTime());
-            $transaction->setFee('customer_fee', 0);
-            $transaction->setFee('company_fee', 0);
-            $transaction->setDetail('email', $email);
-            foreach ($withdrawRequest->getMeta()->getPaymentDetailsAsArray() as $key => $value) {
-                $transaction->setDetail($key, $value);
-            }
+	        $transaction = new Transaction();
+	        $transaction->setType(Transaction::TRANSACTION_TYPE_WITHDRAW);
+	        $transaction->setNumber($this->transactionManager->generateTransactionNumber('withdraw'));
+	        $transaction->setCustomer($member);
+	        $transaction->setDate(new \DateTime());
+	        $transaction->setFee('customer_fee', 0);
+	        $transaction->setFee('company_fee', 0);
 
-            if ($withdrawRequest->getPaymentOptionType() === $this->settingManager->getSetting('bitcoin.setting.paymentOption')) {
-                $transaction->setBitcoinAddress($withdrawRequest->getMeta()->getFields()->getAccountId());
-            }
+	        $paymentOptionCode = $withdrawRequest->getPaymentOptionType();
+	        $transaction->setPaymentOptionType($paymentOptionCode);
+	        $cpoDetails = $this->getCustomerPaymentOptionDetails($withdrawRequest, Transaction::TRANSACTION_TYPE_WITHDRAW);
+	        $transaction->setPaymentOptionDetails($cpoDetails['onTransaction']);
+	        $transaction->setPaymentOptionOnRecord($cpoDetails['onRecord']);
+
+	        if ($withdrawRequest->getPaymentOptionType() === PaymentOptionService::BITCOIN) {
+		        $transaction->setBitcoinAddress($withdrawRequest->getMeta()->getFields()->getAccountId());
+	        }
+
+	        // SET PAYMENT OPTION DETAILS
+	        foreach ($withdrawRequest->getMeta()->getPaymentDetailsAsArray() as $key => $value) {
+		        $transaction->setDetail($key, $value);
+	        }
 
             foreach ($withdrawRequest->getProducts() as $productInfo) {
                 $memberProduct = $this->customerProductRepository->findByUsernameProductCodeAndCurrencyCode(
@@ -122,7 +132,6 @@ class WithdrawHandler
 
                 $transaction->addSubTransaction($subTransaction);
             }
-            $transaction->setPaymentOptionOnTransaction($memberPaymentOption);
             $transaction->retainImmutableData();
 
             $action = ['label' => 'Save', 'status' => Transaction::TRANSACTION_STATUS_START];
@@ -171,4 +180,32 @@ class WithdrawHandler
     {
         return $this->tokenStorage->getToken()->getUser()->getCustomer();
     }
+
+	/**
+	 * @param $transactionModel
+	 * @param $transactionType
+	 * @return array
+	 * @throws \AppBundle\Exceptions\CustomerPaymentOptionServiceException
+	 */
+	private function getCustomerPaymentOptionDetails(WithdrawRequest $transactionModel, $transactionType)
+	{
+		$paymentOptionCode = $transactionModel->getPaymentOptionType();
+		$customerId = $transactionModel->getMemberId();
+		$fieldValues = [];
+		$options = [];
+
+		if (in_array($paymentOptionCode, [PaymentOptionService::SKRILL, PaymentOptionService::NETELLER])) {
+			$fieldValues['email'] = $transactionModel->getMeta()->getFields()->getEmail();
+		}
+
+		if (in_array($paymentOptionCode, [PaymentOptionService::BITCOIN])) {
+			$fieldValues['account_id'] = $transactionModel->getAccountId();
+		}
+
+		if ($paymentOptionCode === PaymentOptionService::BITCOIN && $transactionType == Transaction::TRANSACTION_TYPE_WITHDRAW) {
+			$options['replace'] = true;
+		}
+
+		return $this->customerPaymentOptionService->getCustomerPaymentOptionDetails($customerId, $paymentOptionCode, $transactionType, $fieldValues, $options);
+	}
 }

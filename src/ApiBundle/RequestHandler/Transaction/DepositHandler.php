@@ -172,9 +172,9 @@ class DepositHandler
 			$fieldValues['email'] = $transactionModel->getMeta()->getFields()->getEmail();
 		}
 
-//		if (in_array($paymentOptionCode, [PaymentOptionService::BITCOIN])) {
-//			$fieldValues['account_id'] = $transactionModel->getAccountId();
-//		}
+		if (in_array($paymentOptionCode, [PaymentOptionService::BITCOIN])) {
+			$fieldValues['account_id'] = $transactionModel->getAccountId();
+		}
 
 		if ($paymentOptionCode === PaymentOptionService::BITCOIN && $transactionType == Transaction::TRANSACTION_TYPE_WITHDRAW) {
 			$options['replace'] = true;
