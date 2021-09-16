@@ -32,13 +32,28 @@ class CountryManager extends AbstractManager
         return $countries;
     }
 
+    public function getCountryByCallingCode(string $callingCode)
+    {
+        $countries = $this->getCountries();
+        
+        $filteredCountries = array_filter($countries, function ($data) use ($callingCode) {
+            return in_array($callingCode, $data['callingCodes']);
+        });
+
+        if (count($filteredCountries) < 1) {
+            return 'Unknown';
+        }
+
+        return reset($filteredCountries)['code'];
+    }
+
     public function getCountries()
     {
         $cacheKey = base64_encode(__METHOD__);
         $cache = new RedisCache($this->get('snc_redis.default'));
-        if($cache->has($cacheKey) && $item = $cache->get($cacheKey))
+        if($cache->has($cacheKey) && $item = $cache->get($cacheKey)) 
             return $item;
-
+        
         $client = new Client([
             'timeout' => 60,
             'headers' => ['Accept-Encoding' => 'gzip, deflate'],
@@ -47,11 +62,15 @@ class CountryManager extends AbstractManager
         $response = $client->get('https://restcountries.eu/rest/v2/all');
 
         $data = json_decode($response->getBody(), true);
-        $countries = array_column($data, 'name','alpha2Code');
+        $countries =  array_reduce($data, function ($carry, $datum) {
+            $carry[$datum['alpha2Code']] = [
+                'code' => $datum['alpha2Code'],
+                'name' => $datum['name'],
+                'callingCodes' => $datum['callingCodes']
+            ];
 
-        array_walk($countries, function(&$item, $key){
-            $item = ['name' => $item, 'code' => $key];
-        });
+            return $carry;
+        }, []);
 
         if($response->getStatusCode() == 200){
             $cache->set($cacheKey, $countries, \DateInterval::createFromDateString('30 days')->s);

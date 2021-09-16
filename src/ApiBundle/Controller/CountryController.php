@@ -54,17 +54,6 @@ class CountryController extends AbstractController
         }
 
         $filters['withphonecode'] = $request->get('withphonecode', 0);
-        
-        $countries = $this->getCountryRepository()->getCountryList($filters, \Doctrine\ORM\Query::HYDRATE_OBJECT);
-        $total = $this->getCountryRepository()->getCountryListAllCount();
-        $totalFiltered = $this->getCountryRepository()->getCountryListFilterCount($filters);
-
-        if ($filters['limit'] === 'all') {
-            $collection = new Collection($countries, $total, $totalFiltered, count($countries), $request->get('page', 1));
-        } else {
-            $collection = new Collection($countries, $total, $totalFiltered, $filters['limit'], $request->get('page', 1));
-        }
-
         $countries = $this->get('country.manager')->getCountries();
 
         return new JsonResponse(['items' => array_values($countries)]);
