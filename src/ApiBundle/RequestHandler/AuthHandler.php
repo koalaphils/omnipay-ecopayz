@@ -421,10 +421,11 @@ class AuthHandler
             }
         } catch (PinnacleError | PinnacleException $exception) {    
         } finally {
+            $this->deleteUserAccessToken(null, [$tokenString]);
             if ($token !== null) {
+                $this->loginUser($token->getUser());
                 $this->customerManager->handleAudit('logout');
             }
-            $this->deleteUserAccessToken(null, [$tokenString]);
         }
     }
 
