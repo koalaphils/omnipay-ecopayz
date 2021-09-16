@@ -171,6 +171,7 @@ widgets:
                     type: select
                     symbol: y
                     class: selectpicker
+                    required: false
                     applyOnChanged: false
                     attrs:
                         data-style: btn-white btn-sm
@@ -183,6 +184,7 @@ widgets:
                         function: '@country.manager::getCountryList'
                         label: result['name'] ~ ' (' ~ result['code'] ~ ')'
                         value: result['code']
+                        preselect: true
                 KYC:
                     dom: <'form-group form-group-sm m-r-10 xs-filter'i>
                     label: KYC

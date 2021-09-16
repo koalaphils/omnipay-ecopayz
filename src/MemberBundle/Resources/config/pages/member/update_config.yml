@@ -98,13 +98,13 @@ widgets:
                     options:
                         label: Country
                         required: false
-                    type: dropdown
+                    type: choices
+                    group: Left
                     size: 12
-                    group: Right
                     choicesFrom:
                         function: '@country.manager::getCountryList'
                         label: result['name'] ~ ' (' ~ result['code'] ~ ')'
-                        value: result['id']
+                        value: result['code']
                 currency:
                     options:
                         label: Currency

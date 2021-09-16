@@ -33,11 +33,10 @@ class CustomerRepository extends BaseRepository
         $qb = $this->createQueryBuilder('c');
         $qb->join('c.user', 'u');
         $qb->join('c.currency', 'ccu');
-        $qb->leftJoin('c.country', 'cco');
         $qb->select(
             'c'
             . ', PARTIAL u.{username, id, email, isActive, activationCode, activationSentTimestamp, activationTimestamp, preferences, password, resetPasswordCode, resetPasswordSentTimestamp, type, phoneNumber}'
-            . ', PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}'
+            . ', PARTIAL ccu.{id, name, code, rate}'
         );
         $qb->where('c.id = :id')->setParameter('id', $id);
 
@@ -534,7 +533,22 @@ class CustomerRepository extends BaseRepository
         }
 
         if (!empty(array_get($filters, 'country', []))) {
-            $queryBuilder->andWhere('c.country IN (:country)')->setParameter('country', $filters['country']);
+            dump($filters);
+            $expression = $queryBuilder->expr()->orX(
+                $queryBuilder->expr()->in('c.country', $filters['country'])
+            );
+
+            $hasUnknown = count(array_filter($filters['country'], function($country) {
+                if ($country === "") {
+                    return true;
+                }
+            })) > 0;
+
+            if ($hasUnknown) {
+                $expression->add('c.country IS NULL');
+            }
+
+            $queryBuilder->andWhere($expression);
         }
 
         if (!empty(array_get($filters, 'status', []))) {
