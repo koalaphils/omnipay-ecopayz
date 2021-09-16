@@ -18,8 +18,15 @@ DbBundle\Entity\Customer:
             groups: ['Default', 'currency']
             type: DbBundle\Entity\Currency
         country:
-            groups: ['Default', 'country']
-            type: DbBundle\Entity\Country
+            groups: ['Default']
+            exp: object.getCountry()
+            serialized_name: country
+            type: string
+        countryName:
+            exp: object.getCountryName()
+            expose: true
+            type: string
+            groups: ['Default']
         user:
             groups: ['Default', 'user', 'credentials']
         balance:
@@ -78,11 +85,6 @@ DbBundle\Entity\Customer:
             exp: object.getCurrency().getCode()
             groups: ['transaction_exp']
             serialized_name: currency
-            type: string
-        country_code:
-            exp: 'object.getCountry() == null ? "" : object.getCountry().getCode()'
-            groups: ['transaction_exp']
-            serialized_name: country
             type: string
         activatedAt:
             exp: object.getUser().getActivationTimestamp()

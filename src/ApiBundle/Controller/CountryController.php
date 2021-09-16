@@ -3,6 +3,7 @@
 namespace ApiBundle\Controller;
 
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use DbBundle\Collection\Collection;
 
@@ -64,10 +65,9 @@ class CountryController extends AbstractController
             $collection = new Collection($countries, $total, $totalFiltered, $filters['limit'], $request->get('page', 1));
         }
 
-        $view = $this->view($collection);
-        $view->getContext()->setGroups(['Default', 'API', 'items' => ['Default', 'API']]);
+        $countries = $this->get('country.manager')->getCountries();
 
-        return $view;
+        return new JsonResponse(['items' => array_values($countries)]);
     }
     
     /**
@@ -87,7 +87,7 @@ class CountryController extends AbstractController
      */
     public function countryAction(string $code)
     {
-        $country = $this->getCountryRepository()->findOneBy(['code' => $code]);
+        $country = $this->get('country.manager')->getCountries()[$code];
         
         if ($country === null) {
             throw $this->createNotFoundException('Country not found');

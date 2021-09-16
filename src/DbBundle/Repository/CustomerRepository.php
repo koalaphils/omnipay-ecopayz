@@ -241,9 +241,9 @@ class CustomerRepository extends BaseRepository
         $qb = $this->getCustomerListQb($filters);
         $qb
             ->select(
-                "PARTIAL c.{id, fName, mName, lName, fullName, country, currency, balance, socials, level, isAffiliate, isCustomer, details, verifiedAt, joinedAt, tags, pinUserCode}, "
+                "PARTIAL c.{id, fName, mName, country, lName, fullName, currency, balance, socials, level, isAffiliate, isCustomer, details, verifiedAt, joinedAt, tags, pinUserCode}, "
                 . "PARTIAL u.{username, id, email, preferences, createdAt, isActive, activationTimestamp, creator}, "
-                . "PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}, "
+                . "PARTIAL ccu.{id, name, code, rate}, "
                 . "PARTIAL a.{id},"
                 . "PARTIAL cr.{id, username}"
             )
@@ -496,7 +496,7 @@ class CustomerRepository extends BaseRepository
             "PARTIAL c.{id, fName, mName, lName, fullName, country, currency, balance, socials, level, isAffiliate, isCustomer, details, verifiedAt, joinedAt, tags, pinUserCode}, "
             . "PARTIAL u.{username, id, email, preferences, createdAt, isActive,
                 activationTimestamp, creator}, "
-            . "PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}, "
+            . "PARTIAL ccu.{id, name, code, rate},"
             . "PARTIAL a.{id},"
             . "PARTIAL cr.{id, username},"
             . "(SELECT COUNT(ref.id) FROM " . \DbBundle\Entity\Customer::class . " ref WHERE ref.affiliate = c.id) referralCount"
@@ -517,7 +517,6 @@ class CustomerRepository extends BaseRepository
         $queryBuilder = $this->createQueryBuilder('c');
         $queryBuilder->join('c.user', 'u')
             ->leftjoin('c.currency', 'ccu')
-            ->leftjoin('c.country', 'cco')
             ->leftjoin('u.creator', 'cr')
         ;
 
@@ -534,9 +533,9 @@ class CustomerRepository extends BaseRepository
             $queryBuilder->andWhere('ccu.id IN (:currencies)')->setParameter('currencies', $filters['currencies']);
         }
 
-        if (!empty(array_get($filters, 'country', []))) {
-            $queryBuilder->andWhere('cco.id IN (:country)')->setParameter('country', $filters['country']);
-        }
+        // if (!empty(array_get($filters, 'country', []))) {
+        //     $queryBuilder->andWhere('cco.id IN (:country)')->setParameter('country', $filters['country']);
+        // }
 
         if (!empty(array_get($filters, 'status', []))) {
             $exp = $queryBuilder->expr()->orX();

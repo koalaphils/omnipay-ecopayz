@@ -40,7 +40,19 @@ class MemberController extends PageController
     public function processListResult(array $result, ListWidget $widget): array
     {
         $processedResult = $result;
+        $countries = $this->get('country.manager')->getCountries();
         foreach ($processedResult['records'] as &$record) {
+            $countryName = "Country Code Not Valid {$record[0]['country']}";
+            if ($record[0]['country'] === null) {
+                $countryName = 'Unknown';
+            }
+
+            if (isset($countries[$record[0]['country']]['name'])) {
+                $countryName = $countries[$record[0]['country']]['name'];
+            }
+
+            $record[0]['countryName'] = $countryName;
+
             $record = [
                 'customer' => $record[0],
                 'referralCount' => $record['referralCount'],
