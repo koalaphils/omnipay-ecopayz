@@ -182,7 +182,11 @@
                             $(feature.input).selectpicker('val', feature.feature.value);
                         };
                         features.{{ filterName }}.rendered = function (feature) {
-                            $(feature.input).val(feature.feature.value.split(','));
+                            if (feature.feature.value !== '') {
+                                $(feature.input).val(feature.feature.value.split(','));
+                            } else {
+                                $(feature.input).val([]);
+                            }
                         };
                     {% endif %}
 

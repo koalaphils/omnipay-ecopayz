@@ -42,9 +42,8 @@ widgets:
                     from: customer.pinUserCode
                 country:
                     label: Country
-                    type: function
-                    function: getCountryName
-                    from: 'customer.country'
+                    type: text
+                    from: 'customer.countryName'
                 # currency:
                 #     label: Currency
                 #     type: text
@@ -172,6 +171,7 @@ widgets:
                     type: select
                     symbol: y
                     class: selectpicker
+                    required: false
                     applyOnChanged: false
                     attrs:
                         data-style: btn-white btn-sm
@@ -183,7 +183,8 @@ widgets:
                     choicesFrom:
                         function: '@country.manager::getCountryList'
                         label: result['name'] ~ ' (' ~ result['code'] ~ ')'
-                        value: result['id']
+                        value: result['code']
+                        preselect: true
                 KYC:
                     dom: <'form-group form-group-sm m-r-10 xs-filter'i>
                     label: KYC

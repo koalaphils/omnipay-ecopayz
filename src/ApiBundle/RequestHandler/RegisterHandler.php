@@ -8,6 +8,7 @@ use ApiBundle\Request\RegisterRequest;
 use AppBundle\Helper\Publisher;
 use AppBundle\Manager\MailerManager;
 use AppBundle\Manager\SettingManager;
+use CountryBundle\Manager\CountryManager;
 use DbBundle\Entity\Customer as Member;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerProduct as MemberProduct;
@@ -33,6 +34,7 @@ class RegisterHandler
     private $userManager;
     private $currencyRepository;
     private $countryRepository;
+    private $countryManager;
     private $productRepository;
     private $settingManager;
     private $entityManager;
@@ -49,6 +51,7 @@ class RegisterHandler
         UserManager $userManager,
         CurrencyRepository $currencyRepository,
         CountryRepository $countryRepository,
+        CountryManager $countryManager,
         ProductRepository $productRepository,
         CustomerGroupRepository $memberGroupRepository,
         SettingManager $settingManager,
@@ -67,6 +70,7 @@ class RegisterHandler
         $this->productRepository = $productRepository;
         $this->settingManager = $settingManager;
         $this->entityManager = $entityManager;
+        $this->countryManager = $countryManager;
         $this->codeStorage = $codeStorage;
         $this->twoFactorCodeRepository = $twoFactorCodeRepository;
         $this->publisher = $publisher;
@@ -196,7 +200,7 @@ class RegisterHandler
         }*/
 
         if ($registerRequest->getCountryPhoneCode() !== '') {
-            $country = $this->countryRepository->findByPhoneCode($registerRequest->getCountryPhoneCode());
+            $country = $this->countryManager->getCountryByCallingCode($registerRequest->getCountryPhoneCode());
             $member->setCountry($country);
         }
 

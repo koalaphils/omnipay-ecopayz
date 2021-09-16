@@ -459,7 +459,18 @@ class FormWidget extends AbstractPageWidget
         if ($info['isAjax'] ?? false) {
             $options['choice_loader'] = new \AppBundle\Component\DynamicChoiceLoader();
         } else {
-            $options['choices'] = $choices;
+            if ($name === 'country') {
+                $options['choices'] = array_filter($choices, function($choice) {
+                    return $choice !== null;
+                });
+
+                $options['empty_data'] = null;
+                $options['required'] = false;
+                $options['placeholder'] = 'Unknown';
+
+            } else {
+                $options['choices'] = $choices;
+            }
         }
 
         $field = $this->getFormFactory()->createNamedBuilder($name, ChoiceType::class, null, $options);

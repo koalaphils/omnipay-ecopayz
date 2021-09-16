@@ -166,6 +166,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     private $allowRevenueShare;
 
     private $memberRequests;
+    private $countryName;
 
     /**
      * @var string
@@ -754,6 +755,19 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
 
         return $this;
     }
+
+    public function setCountryName(string $countryName): self
+    {
+        $this->countryName = $countryName;
+
+        return $this;
+    }
+
+    public function getCountryName(): string
+    {
+        return $this->countryName ?? '';
+    }
+
 
     /**
      * Get country.
@@ -1387,7 +1401,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
                 return '';
             }
 
-            return $this->getCountry()->getLocale();
+            return '';
         }
 
         return $this->locale;

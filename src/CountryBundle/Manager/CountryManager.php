@@ -3,9 +3,12 @@
 namespace CountryBundle\Manager;
 
 use AppBundle\Manager\AbstractManager;
+use GuzzleHttp\Client;
+use Symfony\Component\Cache\Simple\RedisCache;
 use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\Request;
 use AppBundle\Exceptions\FormValidationException;
+use Symfony\Component\Validator\Constraints\DateTime;
 
 class CountryManager extends AbstractManager
 {
@@ -24,53 +27,76 @@ class CountryManager extends AbstractManager
     
     public function getCountryList($filters = null)
     {
-        $results = [];
-
-        if (array_get($filters, 'datatable', 0)) {
-            if (false !== array_get($filters, 'search.value', false)) {
-                $filters['search'] = $filters['search']['value'];
-            }
-
-            $results['data'] = $this->getRepository()->getCountryList($filters);
-
-            if (array_get($filters, 'route', 0)) {
-                $results['data'] = array_map(function ($data) {
-                    $data['country'] = $data;
-                    $data['routes'] = [
-                        'update' => $this->getRouter()->generate('country.update_page', ['id' => $data['country']['id']]),
-                        'view' => $this->getRouter()->generate('country.view_page', ['id' => $data['country']['id']]),
-                        'save' => $this->getRouter()->generate('country.save', ['id' => $data['country']['id']]),
-                    ];
-
-                    return $data;
-                }, $results['data']);
-            }
-
-            $results['draw'] = $filters['draw'];
-            $results['recordsFiltered'] = $this->getRepository()->getCountryListFilterCount($filters);
-            $results['recordsTotal'] = $this->getRepository()->getCountryListAllCount();
-
-        } elseif (array_get($filters, 'select2', 0)) {
-            $results['items'] = array_map(function ($group) use ($filters) {
-                return [
-                    'id' => $group[array_get($filters, 'idColumn', 'id')],
-                    'text' => $group['name'],
-                ];
-            }, $this->getRepository()->getCountryList($filters));
-
-            $results['recordsFiltered'] = $this->getRepository()->getCountryListFilterCount($filters);
-        } else {
-            $results = $this->getRepository()->getCountryList($filters);
-        }
-
-        return $results;
+        $countries = $this->getCountries();
+        $countries['Unknown'] = ['code' => null, 'name' => 'Unknown'];
+        return $countries;
     }
 
-    /**
-     * Get country repository.
-     *
-     * @return \DbBundle\Repository\CountryRepository
-     */
+    public function getCountryByCallingCode(string $callingCode)
+    {
+        $countries = $this->getCountries();
+        
+        $filteredCountries = array_filter($countries, function ($data) use ($callingCode) {
+            return in_array($callingCode, $data['callingCodes']);
+        });
+
+        if (count($filteredCountries) < 1) {
+            return 'Unknown';
+        }
+
+        return reset($filteredCountries)['code'];
+    }
+
+    public function getCountries()
+    {
+        $cacheKey = base64_encode(__METHOD__);
+        $cache = new RedisCache($this->get('snc_redis.default'));
+        if($cache->has($cacheKey) && $item = $cache->get($cacheKey)) 
+            return $item;
+        
+        $client = new Client([
+            'timeout' => 60,
+            'headers' => ['Accept-Encoding' => 'gzip, deflate'],
+            'verify' => false
+        ]);
+        $response = $client->get('https://restcountries.eu/rest/v2/all');
+
+        $data = json_decode($response->getBody(), true);
+        $countries =  array_reduce($data, function ($carry, $datum) {
+            $carry[$datum['alpha2Code']] = [
+                'code' => $datum['alpha2Code'],
+                'name' => $datum['name'],
+                'callingCodes' => $datum['callingCodes']
+            ];
+
+            return $carry;
+        }, []);
+
+        if($response->getStatusCode() == 200){
+            $cache->set($cacheKey, $countries, \DateInterval::createFromDateString('30 days')->s);
+        }
+
+        return $countries;
+    }
+
+    public function getCountriesNameCodeKeyPair()
+    {
+        $countries = $this->getCountries();
+        array_walk($countries, function(&$item, $key){
+           $item = $item['name'];
+        });
+
+        return array_flip($countries);
+    }
+
+    public function getCountryByCode(?string $code): string
+    {
+        if ($code === null) return 'Unknown';
+        
+        $countries = $this->getCountries();
+        return $countries[$code]['name'];
+    }
+    
     protected function getRepository()
     {
         return $this->getDoctrine()->getRepository('DbBundle:Country');

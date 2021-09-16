@@ -130,6 +130,10 @@ DbBundle\Entity\Customer:
             column: customer_allow_revenue_share
             options:
                 default: false
+        country:
+            type: string
+            column: customer_country_code
+            nullable: true
     manyToOne:
         currency:
             targetEntity: DbBundle\Entity\Currency
@@ -137,14 +141,6 @@ DbBundle\Entity\Customer:
                 nullable: true
                 name: customer_currency_id
                 referencedColumnName: currency_id
-        country:
-            targetEntity: DbBundle\Entity\Country
-            nullable: true
-            joinColumn:
-                nullable: true
-                name: customer_country_id
-                referencedColumnName: country_id
-        
         affiliate:
             targetEntity: DbBundle\Entity\Customer
             joinColumn:
