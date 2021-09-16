@@ -533,9 +533,9 @@ class CustomerRepository extends BaseRepository
             $queryBuilder->andWhere('ccu.id IN (:currencies)')->setParameter('currencies', $filters['currencies']);
         }
 
-        // if (!empty(array_get($filters, 'country', []))) {
-        //     $queryBuilder->andWhere('cco.id IN (:country)')->setParameter('country', $filters['country']);
-        // }
+        if (!empty(array_get($filters, 'country', []))) {
+            $queryBuilder->andWhere('c.country IN (:country)')->setParameter('country', $filters['country']);
+        }
 
         if (!empty(array_get($filters, 'status', []))) {
             $exp = $queryBuilder->expr()->orX();
