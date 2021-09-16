@@ -325,7 +325,6 @@ class CustomerRepository extends BaseRepository
         $qb = $this->createQueryBuilder('c');
         $qb->join('c.user', 'u');
         $qb->join('c.currency', 'ccu');
-        $qb->leftJoin('c.country', 'cco');
         $qb->leftjoin('c.groups', 'ccg');
 
         if (array_has($filters, 'isAffiliate')) {
@@ -366,7 +365,7 @@ class CustomerRepository extends BaseRepository
     {
         $aliases = $this->getAliases();
         $qb = $this->getListQb($filters);
-        $qb->select('c, u, ccu, cco, ccg');
+        $qb->select('c, u, ccu, ccg');
 
         if (isset($filters['length'])) {
             $qb->setMaxResults($filters['length']);
@@ -377,7 +376,6 @@ class CustomerRepository extends BaseRepository
         $query = $qb->getQuery();
         $query->setFetchMode(\DbBundle\Entity\User::class, 'user', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER);
         $query->setFetchMode(\DbBundle\Entity\Currency::class, 'currency', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER);
-        $query->setFetchMode(\DbBundle\Entity\Country::class, 'country', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER);
 
         return $qb->getQuery()->getResult($hydrationMode);
     }
