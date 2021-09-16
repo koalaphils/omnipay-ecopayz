@@ -533,7 +533,6 @@ class CustomerRepository extends BaseRepository
         }
 
         if (!empty(array_get($filters, 'country', []))) {
-            dump($filters);
             $expression = $queryBuilder->expr()->orX(
                 $queryBuilder->expr()->in('c.country', $filters['country'])
             );
