@@ -480,12 +480,16 @@
 
         function getTransactionPaymentOptions(data, type, full)
         {
-            var paymentOption = data;
-            if (data.trim() == '()') {
-                paymentOption = '';
+            var paymentOptionLabel = full.payment_option;
+            if (full.payment_option === 'SKRILL' || full.payment_option === 'NETELLER') {
+                paymentOptionLabel = full.payment_option + ' (' + full.details.paymentOptionOnTransaction.email + ')';
             }
 
-            return paymentOption.ellipsis(30);
+            if (full.payment_option === 'BITCOIN') {
+                paymentOptionLabel = full.payment_option + ' (' + full.details.paymentOptionOnTransaction.account_id + ')';
+            }
+
+            return paymentOptionLabel;
         }
 
         function listFullname(data, type, full)

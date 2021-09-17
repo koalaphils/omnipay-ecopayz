@@ -588,9 +588,8 @@ class TransactionRepository extends BaseRepository
         }
 
         if (array_has($filters, 'customerId')) {
-            $this->queryBuilderJoin($queryBuilder, 'transaction.customer', 'customer');
             $queryBuilder
-                ->andWhere('customer.id = :customerId OR transaction.toCustomer = :customerId')
+                ->andWhere('transaction.customer = :customerId OR transaction.toCustomer = :customerId')
                 ->setParameter('customerId', $filters['customerId'])
             ;
         }
