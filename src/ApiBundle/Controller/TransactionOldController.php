@@ -43,7 +43,8 @@ class TransactionOldController extends AbstractController
 
     private function filterTrans($transactions){
         $trans = [];
-        foreach($transactions as $t){
+		/** @var Transaction $t */
+	    foreach($transactions as $t){
             $tran = [];
             $tran['id'] = $t->getId();
             $tran['number'] = $t->getNumber();
@@ -51,7 +52,7 @@ class TransactionOldController extends AbstractController
             $tran['status'] = $t->getStatusText();
 
             if ($t->getPaymentOptionType() !== null) {
-                $tran['paymentOptionType'] = $t->getPaymentOptionType()->getCode();
+                $tran['paymentOptionType'] = $t->getPaymentOptionType();
             } else {
                 $tran['paymentOptionType'] = '';
             }

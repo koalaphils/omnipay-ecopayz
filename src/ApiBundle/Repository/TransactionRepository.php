@@ -134,13 +134,8 @@ class TransactionRepository
         }
         
         if (array_has($filters, 'paymentOption')) {
-            $qb->join('t.paymentOption', 'po');
-            $exp = $qb->expr()->orX();
-            $exp
-                ->add('t.paymentOptionType IN (:paymentOption)')
-                ->add('po.paymentOption IN (:paymentOption)')
-            ;
-            $qb->andWhere($exp)->setParameter('paymentOption', $filters['paymentOption']);
+	        $qb->andWhere('t.paymentOptionType = :paymentOption');
+	        $qb->setParameter('paymentOption', $filters['paymentOption']);
         }
 
         if (array_has($filters, 'customerProduct')) {
