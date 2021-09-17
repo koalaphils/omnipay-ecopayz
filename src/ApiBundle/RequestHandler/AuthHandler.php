@@ -286,7 +286,7 @@ class AuthHandler
                 'lastName' => $customer->getLName() ? $customer->getLname() : $customer->getUsername(),
                 'firstName' => $customer->getFName() ? $customer->getFName() : $customer->getUsername(),
                 'nickname' => str_replace("Evolution_","", $evolutionProduct->getUsername()),
-                'country' => $customer->getCountry() ? $customer->getCountry()->getCode() : 'UK',
+                'country' => $customer->getCountry() ? $customer->getCountry(): 'UK',
                 'language' => $locale ?? 'en',
                 'currency' => $customer->getCurrency()->getCode(),
                 'ip' => $request->getClientIp(),
