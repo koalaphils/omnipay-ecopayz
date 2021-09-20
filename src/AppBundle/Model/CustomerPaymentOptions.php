@@ -9,6 +9,7 @@ class CustomerPaymentOptions
 	const LOG_OPERATION_CREATE = 1;
 	const LOG_OPERATION_UPDATE = 2;
 	const PAYMENT_OPTION_BTC = 'BITCOIN';
+	const DEFAULT_FIELD_ACTIVE_STATUS = true;
 	private $payload;
 	private $logs = []; // Keeps track of changes
 	private $determinantsFields = ['email', 'account_id'];
@@ -30,10 +31,11 @@ class CustomerPaymentOptions
 
 	// Get all active set of fields for a particular PO.
 	// If particular set of fields are not existing, create one instead.
-	public function getActiveFieldsForPaymentOptionOrCreateWhenNone(array $paymentOption,
-	                                                                string $transactionType,
-	                                                                array $values = [],
-	                                                                array $options = [])
+	public function getActiveFieldsForPaymentOptionOrCreateWhenNone(
+		array $paymentOption,
+		string $transactionType,
+		array $values = [],
+		array $options = [])
 	{
 		$paymentOptionCode = $paymentOption['code'];
 		$fieldSettings = $paymentOption['settings']['fields'];
@@ -124,7 +126,7 @@ class CustomerPaymentOptions
 			$newCpoFields[$fieldsSetting['code']] = '';
 		}
 
-		$newCpoFields['active'] = false;
+		$newCpoFields['active'] = self::DEFAULT_FIELD_ACTIVE_STATUS;
 		if ($code == self::PAYMENT_OPTION_BTC) {
 			$newCpoFields['active'] = true;
 		}
