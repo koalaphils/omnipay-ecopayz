@@ -83,6 +83,7 @@ class TransactionController extends AbstractController
      *     },
      *     parameters={
      *         {"name"="payment_option", "dataType"="string", "required"=false},
+     *         {"name"="customerFee", "dataType"="string", "required"=false},
      *         {"name"="meta[field][email]", "dataType"="string", "required"=false},
      *         {"name"="meta[field][account_id]", "dataType"="string", "required"=false},
      *         {"name"="meta[payment_details][bitcoin][rate_detail][range_start]", "dataType"="string", "required"=false},

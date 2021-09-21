@@ -102,8 +102,9 @@ class DepositHandler
             $transaction->setCustomer($member);
 	        $transaction->setNumber($this->transactionManager->generateTransactionNumber('deposit'));
 	        $transaction->setDate(new \DateTime());
-	        $transaction->setFee('customer_fee', 0);
-	        $transaction->setFee('company_fee', 0);
+	        $transaction->setFee('customer_fee', $depositRequest->getCustomerFee());
+	        $transaction->setFee('company_fee', $depositRequest->getCompanyFee());
+            $transaction->setFee('misc_fee', 0);
 
 			$paymentOptionCode = $depositRequest->getPaymentOptionType();
 			$transaction->setPaymentOptionType($paymentOptionCode);
