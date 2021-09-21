@@ -13,6 +13,7 @@ namespace TransactionBundle\EventHandler;
 use ApiBundle\Exceptions\FailedTransferException;
 use ApiBundle\Model\Transfer;
 use ApiBundle\Service\JWTGeneratorService;
+use AppBundle\Service\CustomerPaymentOptionService;
 use DbBundle\Entity\Customer as Member;
 use DbBundle\Entity\CustomerProduct;
 use DbBundle\Entity\Product;
@@ -35,17 +36,20 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
     private $pinnacleService;
     private $gatewayMemberTransaction;
     private $customerProductRepository;
+    private $cpoService;
 
     public function __construct(
         ProductIntegrationFactory $factory,
         JWTGeneratorService $jwtGenerator,
         GatewayMemberTransaction $gatewayMemberTransaction,
-        CustomerProductRepository $customerProductRepository)
+        CustomerProductRepository $customerProductRepository,
+        CustomerPaymentOptionService $cpoService)
     {
         $this->factory = $factory;
         $this->jwtGenerator = $jwtGenerator;
         $this->gatewayMemberTransaction = $gatewayMemberTransaction;
         $this->customerProductRepository = $customerProductRepository;
+        $this->cpoService = $cpoService;
     }
 
     public static function getSubscribedEvents()
@@ -171,6 +175,11 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
 
             if ($transaction->isDeposit() || $transaction->isBonus() || $transaction->isWithdrawal()) {
                 $this->gatewayMemberTransaction->processMemberTransaction($transaction);
+            }
+
+            
+            if ($transaction->isDeposit() || $transaction->isWithdrawal()) {
+                $this->cpoService->update($transaction->getCustomer()->getId(), ['paymentOption' => $transaction->getPaymentOptionOnTransaction()]);
             }
         }
 

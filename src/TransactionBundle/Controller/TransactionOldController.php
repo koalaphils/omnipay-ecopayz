@@ -430,7 +430,6 @@ class TransactionOldController extends AbstractController
     private function updateAction(Request $request, $type, $id)
     {
         $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_UPDATE']);
-
         try {
             $this->getManager()->beginTransaction();
             /* @var $transaction Transaction */
