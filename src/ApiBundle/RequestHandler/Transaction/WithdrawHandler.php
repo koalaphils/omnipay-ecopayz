@@ -98,8 +98,9 @@ class WithdrawHandler
 	        $transaction->setNumber($this->transactionManager->generateTransactionNumber('withdraw'));
 	        $transaction->setCustomer($member);
 	        $transaction->setDate(new \DateTime());
-	        $transaction->setFee('customer_fee', 0);
-	        $transaction->setFee('company_fee', 0);
+	        $transaction->setFee('customer_fee', $withdrawRequest->getCustomerFee());
+	        $transaction->setFee('company_fee', $withdrawRequest->getCompanyFee());
+            $transaction->setFee('misc_fee', 0);
 
 	        $paymentOptionCode = $withdrawRequest->getPaymentOptionType();
 	        $transaction->setPaymentOptionType($paymentOptionCode);
