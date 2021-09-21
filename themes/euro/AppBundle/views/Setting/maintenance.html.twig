@@ -42,15 +42,15 @@
                                     <div class="row">
                                         <label class="col-sm-3 control-label">Member Site</label>
                                         <div class="col-sm-6">
-                                            <input attr-key="app_memberSite" class="switch" type="checkbox" data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
+                                            <input name="app" attr-key="memberSite" class="switch" type="checkbox" data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
                                         </div>
                                     </div>
                                 </a> 
                                 <a href="#" class="list-group-item"> 
                                     <div class="row">
-                                        <label class="col-sm-3 control-label">Affiliate</label>
+                                        <label class="col-sm-3 control-label">Affiliate Site</label>
                                         <div class="col-sm-6">
-                                            <input attr-key="app_affiliate" class="switch" type="checkbox" data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
+                                            <input name="app" attr-key="affiliateSite" class="switch" type="checkbox" data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
                                         </div>
                                     </div>
                                 </a> 
@@ -70,7 +70,7 @@
                                     <div class="row">
                                         <label class="col-sm-3 control-label">PIWIXchange</label>
                                         <div class="col-sm-6">
-                                            <input attr-key="integration_piwixchange" class="switch" type="checkbox" data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
+                                            <input name="integration" attr-key="piwixchange" class="switch" type="checkbox" data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
                                         </div>
                                     </div>
                                 </a> 
@@ -78,7 +78,7 @@
                                     <div class="row">
                                         <label class="col-sm-3 control-label">Sports</label>
                                         <div class="col-sm-6">
-                                            <input attr-key="integration_sports" class="switch" type="checkbox" data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
+                                            <input name="integration" attr-key="sports" class="switch" type="checkbox" data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
                                         </div>
                                     </div>
                                 </a> 
@@ -86,7 +86,7 @@
                                     <div class="row">
                                         <label class="col-sm-3 control-label">Casino</label>
                                         <div class="col-sm-6">
-                                            <input attr-key="integration_casino" class="switch" type="checkbox" data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
+                                            <input name="integration" attr-key="casino" class="switch" type="checkbox" data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
                                         </div>
                                     </div>
                                 </a> 
@@ -104,14 +104,36 @@
 <script type="text/javascript">
     $(document).ready(function() {
         $('.switch').on('change', function() {
-             var currentState = this.checked ? this.value : '';
-             var activeMaintenance = $(this).attr('attr-key');
             
-             console.log(currentState);
-             console.log(activeMaintenance);
+            var integration = [];
+            var app = [];
 
-             //Ajax call to enable maintenance mode and publish websocket event to specific product or application
-        });
+            $('input[name="integration"]').each(function() {
+                var currentStatus = this.checked ? true : false;
+                var activeMaintenance = $(this).attr('attr-key');
+                integration.push({activeMaintenance: currentStatus});
+            });
+
+            $('input[name="app"]').each(function() {
+                var currentStatus = this.checked ? true : false;
+                var activeMaintenance = $(this).attr('attr-key');
+                integration.push({activeMaintenance: currentStatus});
+            });
+
+            console.log(integration);
+            console.log(app);
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ path('app.setting.maintenance_save') }}",
+                data: {'type': activeMaintenance[0],  'value': {'integration': integration, 'app': app}},
+                dataType: 'json',
+            }).then(function (response) {
+                console.log(response);
+            }).fail( function( jqXHR, textStatus, errorThrown ) {
+                console.log(errorThrown);
+            });
+        }); 
     });
 </script>
 {% endblock %}

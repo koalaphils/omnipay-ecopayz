@@ -2,9 +2,11 @@
 
 namespace AppBundle\Controller;
 
+use Symfony\Component\HttpFoundation\Response;
 use AppBundle\Form\MaintenanceType;
 use AppBundle\Form\SchedulerType;
 use AppBundle\Form\PaymentOptionsType;
+use Codeception\Util\HttpCode;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use DbBundle\Entity\Setting;
@@ -131,6 +133,19 @@ class SettingController extends AbstractController
     {
         return $this->render('AppBundle:Setting:banner.html.twig');
     }
+
+    public function saveMaintenanceAction(Request $request): JsonResponse 
+    {
+        $this->denyAccessUnlessGranted(['ROLE_MAINTENANCE']);
+
+        $payload = $request->request->all();
+        
+        $this->getManager()->updateSetting('system.maintenance', $payload['value']);
+        
+        return $this->json(['success'], Response::HTTP_OK);
+    }
+
+
 
     /**
      * Get Setting Manager.
