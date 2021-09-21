@@ -17,5 +17,9 @@ ApiBundle\Request\Transaction\WithdrawRequest:
           min: 1
           minMessage: You should add atleast one product
       - Valid: ~
+    customerFee:
+      - NotBlank: ~
+    companyFee:
+      - NotBlank: ~
     meta:
       - Valid: ~
