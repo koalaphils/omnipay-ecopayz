@@ -248,16 +248,16 @@ class AuthHandler
     {
         $customerProduct = $this->customerProductRepository->findOneByCustomerAndProductCode($customer, Product::PIWIXCHANGE_CODE);
 
-        // if ($customerProduct === null) {
-        //     $customerProduct = CustomerProduct::create($customer);
-        //     $product = $this->productRepository->getProductByCode(Product::PIWIXCHANGE_CODE);
-        //     $customerProduct->setProduct($product);
-        //     $customerProduct->setUsername('PIW_' . $customer->getId());
-        //     $customerProduct->setBalance('0.00');
-        //     $customerProduct->setIsActive(true);
-        //     $this->entityManager->persist($customerProduct);
-        //     $this->entityManager->flush();
-        // }
+        if ($customerProduct === null) {
+            $customerProduct = CustomerProduct::create($customer);
+            $product = $this->productRepository->getProductByCode(Product::PIWIXCHANGE_CODE);
+            $customerProduct->setProduct($product);
+            $customerProduct->setUsername('PIW_' . $customer->getId());
+            $customerProduct->setBalance('0.00');
+            $customerProduct->setIsActive(true);
+            $this->entityManager->persist($customerProduct);
+            $this->entityManager->flush();
+        }
     }
 
     private function loginToPinnacle(?string $pinUserCode, $locale): ?array
