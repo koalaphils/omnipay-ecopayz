@@ -31,6 +31,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public const DETAIL_BITCOIN_INFO = 'bitcoin';
     public const DETAIL_BITCOIN_ADDRESS = 'bitcoin.receiver_unique_address';
+	public const DETAIL_BITCOIN_XPUB = 'bitcoin.xpub';
     public const DETAIL_BITCOIN_BLOCKCHAIN_RATE = 'bitcoin.block_chain_rate';
     public const DETAIL_BITCOIN_RATE = 'bitcoin.rate';
     public const DETAIL_BITCOIN_TOTAL_REQUESTED_BTC = 'bitcoin.total_requested_btc';
@@ -628,18 +629,6 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         foreach ($this->getSubTransactions() as $subTransaction) {
             $subTransaction->copyImmutableCustomerProductData();
         }
-    }
-
-    public function setPaymentOptionType($paymentOptionType): self
-    {
-        $this->paymentOptionType = $paymentOptionType;
-
-        return $this;
-    }
-
-    public function getPaymentOptionType(): ?string
-    {
-        return $this->paymentOptionType;
     }
 
     public function getCustomerAmount()
@@ -1453,6 +1442,23 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 		}
 	}
 
+	public function getPaymentOptionOnRecord()
+	{
+		return $this->getDetail('paymentOption', null);
+	}
+
+	public function getPaymentOptionType(): ?string
+	{
+		return $this->paymentOptionType;
+	}
+
+	public function setPaymentOptionType($paymentOptionType): self
+	{
+		$this->paymentOptionType = $paymentOptionType;
+
+		return $this;
+	}
+
 	public function setPaymentOptionDetails($fields)
 	{
 		if ($this->getPaymentOptionOnTransaction() === null) {
@@ -1467,11 +1473,6 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     {
         return $this->getDetail('paymentOptionOnTransaction', null);
     }
-
-	public function getPaymentOptionOnRecord()
-	{
-		return $this->getDetail('paymentOption', null);
-	}
 
     public function hasTransactionPaymentOptionOnRecord(): bool
     {
@@ -1504,7 +1505,6 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 		}
 
 		if (PaymentOptionService::isConfiguredToUseAccountId($paymentOptionType)) {
-			$displayField = $paymentOptionOnTransaction['account_id'];
 			return "{$paymentOptionType}({$paymentOptionOnTransaction['account_id']})";
 		}
 

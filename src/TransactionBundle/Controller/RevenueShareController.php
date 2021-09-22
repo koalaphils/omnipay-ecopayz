@@ -30,13 +30,21 @@ class RevenueShareController extends AbstractController
         $form = $transactionManager->createForm($transaction, false);
         $commissionPeriod = $transactionManager->getCommissionPeriodForRevenueShareTransaction((int)$transaction->getId());
 
-        return $this->render("TransactionBundle:Transaction/Type:revenue_share.html.twig", [
-            'form' => $form->createView(),
-            'type' => 'revenue_share',
-            'gateway' => $transaction->getGateway(),
-            'transaction' => $transaction,
-            'commissionPeriod' => $commissionPeriod,
-            'pinnacleTransacted' => false,
-        ]);
+
+	    $context = [
+		    'form' => $form->createView(),
+		    'type' => 'revenue_share',
+		    'gateway' => $transaction->getGateway(),
+		    'transaction' => $transaction,
+		    'commissionPeriod' => $commissionPeriod,
+		    'pinnacleTransacted' => false,
+	    ];
+
+	    if ($transaction->isPaymentBitcoin() && !empty($btcTransactDetails = $transactionManager->getBitcoinTransactionDetails($transaction)))
+	    {
+		    $context['bitcoinTransactionDetails'] = $btcTransactDetails;
+	    }
+
+        return $this->render("TransactionBundle:Transaction/Type:revenue_share.html.twig", $context);
     }
 }

@@ -367,7 +367,7 @@ class TransactionOldController extends AbstractController
             }
 
             if (array_has($transactionRequest, 'paymentOption')) {
-	            $isPaymentOptionIdBitcoin = false;
+				$isPaymentOptionIdBitcoin = $transaction->isPaymentBitcoin();
             }
 
             if ($transaction->isNew() && $transaction->isDeposit() && $isPaymentOptionIdBitcoin) {

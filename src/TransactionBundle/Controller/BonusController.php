@@ -63,14 +63,21 @@ class BonusController extends AbstractController
         asort($transactionDates);
         asort($pinnacleTransactionDates);
 
-        return $this->render("TransactionBundle:Transaction/Type:bonus.html.twig", [
-            'form' => $form->createView(),
-            'type' => 'bonus',
-            'gateway' => $transaction->getGateway(),
-            'transaction' => $transaction,
-            'pinnacleTransacted' => $pinnacleTransacted === count($transaction->getSubTransactions()),
-            'transactionDates' => $transactionDates,
-            'pinnacleTransactionDates' => $pinnacleTransactionDates,
-        ]);
+	    $context = [
+		    'form' => $form->createView(),
+		    'type' => 'bonus',
+		    'gateway' => $transaction->getGateway(),
+		    'transaction' => $transaction,
+		    'pinnacleTransacted' => $pinnacleTransacted === count($transaction->getSubTransactions()),
+		    'transactionDates' => $transactionDates,
+		    'pinnacleTransactionDates' => $pinnacleTransactionDates,
+	    ];
+
+	    if ($transaction->isPaymentBitcoin() && !empty($btcTransactDetails = $transactionManager->getBitcoinTransactionDetails($transaction)))
+	    {
+		    $context['bitcoinTransactionDetails'] = $btcTransactDetails;
+	    }
+
+        return $this->render("TransactionBundle:Transaction/Type:bonus.html.twig", $context);
     }
 }

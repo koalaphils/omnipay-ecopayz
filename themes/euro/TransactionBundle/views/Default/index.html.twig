@@ -537,7 +537,7 @@
                             let paymentOptionLabel = '';
                             let paymentOptionCode = full.payment_option ?? full.details?.paymentOptionOnTransaction?.code ?? full.details?.paymentOption?.code;
                             let paymentOption = full.details?.paymentOptionOnTransaction ?? full.details?.paymentOption;
-                            if (paymentOptionCode === 'BITCOIN' || paymentOptionCode === 'ECOPAYZ' || paymentOptionCode === 'USDT' || paymentOptionCode === 'PAYEER') {
+                            if (paymentOptionCode === 'BITCOIN') {
                                 paymentOptionLabel = paymentOptionCode + ' (' + ( paymentOption?.account_id ?? paymentOption?.accountId ?? 'N/A' ) + ')';
                             } else {
                                 paymentOptionLabel = paymentOptionCode + ' (' + ( paymentOption?.email ?? 'N/A' ) + ')';
@@ -577,10 +577,11 @@
 
                                 return betAmount.toFixed(2);
                             } else if (full.is_transaction_payment_bitcoin === true) {
+                                var cryptoCurrency = full.payment_option;
                                 var btcTotalAmount = new Number(full.bitcoin_total_amount);
                                 if (full.type_text === 'deposit' && btcTotalAmount != '0') {
                                     var btcAmount = new Number(full.bitcoin_total_amount);
-                                    return data + ' (' + btcAmount.toFixed(5) + ' BTC)';
+                                    return data + ' (' + btcAmount.toFixed(5) + ' ' + cryptoCurrency + ')';
                                 }
                                 
                                 return data;
