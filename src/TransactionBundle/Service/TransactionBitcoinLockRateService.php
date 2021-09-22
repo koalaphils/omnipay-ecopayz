@@ -2,6 +2,7 @@
 
 namespace TransactionBundle\Service;
 
+use AppBundle\Service\PaymentOptionService;
 use DbBundle\Entity\Transaction;
 use DbBundle\Repository\UserRepository;
 use DbBundle\Repository\TransactionRepository;
@@ -77,12 +78,6 @@ class TransactionBitcoinLockRateService extends AbstractTransactionService
     
     public function setLoggerForUser(User $user, ConsoleLogger $logger): void
     {
-        $roles = $user->getRoles();
-
-        if (!in_array('role.bitcoin.setting', $roles)) {
-            throw new \Exception('Access Denied.');
-        }
-        
         $logger->info(sprintf('Login User: %s [%s]', $user->getUsername(), $user->getId()));
     }
     
@@ -91,9 +86,9 @@ class TransactionBitcoinLockRateService extends AbstractTransactionService
         return $this->getBitcoinManager()->getBitcoinAutoLockDownRateStatus();
     }
 
-    public function lockBitcoinTransactions(): void
+    public function lockBitcoinTransactions($lockDownInterval): void
     {
-        $transactions = $this->getBitcoinTransactionsToLock();
+        $transactions = $this->getBitcoinTransactionsToLock($lockDownInterval);
         if (empty($transactions)) {
             $this->log('No transaction found');
         } else {
@@ -105,7 +100,8 @@ class TransactionBitcoinLockRateService extends AbstractTransactionService
 
     public function lockBitcoinTransaction(Transaction $transaction): void
     {
-        if (!$this->getBitcoinAutoLockRateStatus()) {
+	    $bitcoinSettings = $this->getPaymentOptionService()->getPaymentOption(PaymentOptionService::BITCOIN)['settings']['provider'];
+	    if ($bitcoinSettings['autoLock'] !== true) {
             return;
         }
 
@@ -118,18 +114,9 @@ class TransactionBitcoinLockRateService extends AbstractTransactionService
         $this->reloadTransactionTables($result);
     }
 
-    private function getBitcoinTransactionsToLock(): array
+    private function getBitcoinTransactionsToLock($lockDownInterval): array
     {
-        $result = [];
-        $bitcoinLockDownRateSetting = $this->getBitcoinManager()->getBitcoinLockDownRateSetting();
-        $hasBitcoinPaymentOption = $this->getBitcoinPaymentOption();
-        if (!empty($hasBitcoinPaymentOption)) {
-            $result = $this->getTransactionRepository()->getBitcoinTransactionsToLock(
-                $bitcoinLockDownRateSetting['minutesLockDownInterval'] . ' ' . SettingModel::BITCOIN_TIME_DURATION_NAME
-            );
-        }
-
-        return $result;
+	    return $this->getTransactionRepository()->getBitcoinTransactionsToLock($lockDownInterval. ' minutes');
     }
 
     public function lockTransactions(array $transactions): array
@@ -177,4 +164,9 @@ class TransactionBitcoinLockRateService extends AbstractTransactionService
     {
         return $this->container->get('security.token_storage');
     }
+
+	private function getPaymentOptionService(): PaymentOptionService
+	{
+		return $this->container->get('app.service.payment_option_service');
+	}
 }

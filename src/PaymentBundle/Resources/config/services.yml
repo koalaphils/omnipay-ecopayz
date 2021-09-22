@@ -26,6 +26,7 @@ services:
             - ['setPublisher', ['@app.publisher']]
             - [ setBitcoinAdjustmentComponent, ['@payment.bitcoin_adjustment'] ]
             - [ setBlockchain, ['@payment.blockchain'] ]
+            - [ setPaymentOptionService, ['@app.service.payment_option_service'] ]
         parent: app.base_manager
 
     PaymentBundle\Manager\BitcoinManager: '@payment.bitcoin_manager'
@@ -74,13 +75,11 @@ services:
         class: PaymentBundle\Controller\Bitcoin\CaptureAction
         calls:
             - ['setMemberManager', ['@member.manager']]
-            - ['setBlockchain', ['@payment.blockchain']]
             - ['setRouteName', ['payment.member_notify_bitcoin']]
             - ['setTokenFactory', ['@payment.member_token_factory']]
-            - ['setCycleFundRouteName', ['payment.cycle_fund_notify_bitcoin']]
-            - ['setUrlGenerator', ['@=service("router").getGenerator()']]
             - ['setLogger', ['@logger']]
-            - ['setCallbackHost', ['%blockchain.callback_host%']]
+            - ['setCustomerPaymentOptionService', [ '@app.service.customer_payment_option_service' ]]
+            - ['setPaymentOptionService', [ '@app.service.payment_option_service' ]]
 
     payment.bitcoin.notify:
         class: PaymentBundle\Controller\Bitcoin\NotifyAction
@@ -93,10 +92,10 @@ services:
             - ['setTokenStorage', ['@security.token_storage']]
             - ['setPublisher', ['@app.publisher']]
             - ['setConfirmations', ['@=service("payment.bitcoin_manager").getListOfConfirmations()']]
-            - ['setBlockchain', ['@payment.blockchain']]
             - ['setLogger', ['@monolog.logger.blockchain_callback']]
             - ['setEventDispatcher', ['@event_dispatcher']]
             - ['setBitcoinManager', ['@payment.bitcoin_manager']]
+            - ['setPaymentOptionService', ['@app.service.payment_option_service']]
 
     payment.payum.blockchain.gateway_factory_builder:
         class: Payum\Core\Bridge\Symfony\Builder\GatewayFactoryBuilder

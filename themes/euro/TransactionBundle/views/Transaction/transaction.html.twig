@@ -101,13 +101,22 @@
                 {{ form_row(form.number) }}
                 {{ form_row(form.date) }}
                 {{ form_row(form.currency) }}
-                {% if transaction.isTransactionPaymentBitcoin() %}
+                {% if transaction.isPaymentBitcoin() %}
                     <div class="col-sm-12 btc-deposit-address">
                         <div class="form-group">
-                            <label class="control-label">Bitcoin Address</label>
+                            <label class="control-label">{{ transaction.getPaymentOptionType() }} Address</label>
                             <div class="input-group">
                                 <span class="input-group-addon"><strong>{{ "fields.receiverAddress"|trans({},'TransactionBundle') }}</strong></span>
                                 {{ form_widget(form.receiverAddress) }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 btc-deposit-address">
+                        <div class="form-group">
+                            <label class="control-label">{{ transaction.getPaymentOptionType() }} Transaction Hash</label>
+                            <div class="input-group">
+                                <span class="input-group-addon"><strong>{{ "fields.transactionHash"|trans({},'TransactionBundle') }}</strong></span>
+                                <span class="input-group-addon"><strong>{{ transaction.bitcoinTransactionHash }}</strong></span>
                             </div>
                         </div>
                     </div>
@@ -116,7 +125,7 @@
                             <div class="input-group" id="deposit-request-range-wrap">
                                 <div>
                                     <input type="text" class="form-control" value="1" disabled="disabled">
-                                    <span class="currency">BTC</span>
+                                    <span id="digitalCurrencyLabel" class="currency">{{ transaction.getPaymentOptionType() }}</span>
                                 </div>
                                 <span class="input-group-addon bg-inverted b-0">=</span>
                                 <div id="Transaction_deposit_request_rate" name="Transaction[deposit_request_rate]">
@@ -126,38 +135,73 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label">BTC Amount Received on Blockchain</label>
+                            <div class="input-group">
+                                <span class="input-group-addon text-left"><strong>{{ transaction.getBitcoinValue() }}</strong></span>
+                            </div>
+                        </div>
+                    </div>
                 {% endif %}
             </div>
 
+            {% if bitcoinTransactionDetails is defined %}
+                <div class="row">
+                    <div class="col-lg-3 col-md-3">
+                        Confirmation Count
+                    </div>
+                    <div class="col-lg-3 col-md-3">
+                        {{ bitcoinTransactionDetails.confirmationCount }}
+                    </div>
+                    <div class="col-lg-3 col-md-3">
+                        Actual Amount Sent
+                    </div>
+                    <div class="col-lg-3 col-md-3">
+                        {{ bitcoinTransactionDetails.amountSent }}
+                    </div>
+                </div>
+            {% endif %}
+
             <div class="row hide" id="bitcoinFields">
-                <div class="col-sm-12 btc-deposit-address">
+                {% if transaction.isNew() %}
+                    <div class="col-sm-12 btc-deposit-address">
+                        <div class="form-group m-b-5">
+                            <label class="control-label">Bitcoin Address</label>
+                            <div class="input-group">
+                                <span class="input-group-addon"><strong>{{ "fields.receiverAddress"|trans({},'TransactionBundle') }}</strong></span>
+                                {{ form_widget(form.details.bitcoin.receiver_unique_address) }}
+                            </div>
+                            <span class="help-block"><ul></ul></span>
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <div class="form-group"><label class="control-label" for="Transaction_details_deposit_request_rate">{{ "fields.depositRequestRate"|trans({},'TransactionBundle') }}</label>
+                            <div class="input-group" id="deposit-request-range-wrap">
+                                <div>
+                                    <input type="text" class="form-control" value="1" disabled="disabled">
+                                    <span class="currency">BTC</span>
+                                </div>
+                                <span class="input-group-addon bg-inverted b-0">=</span>
+                                <div id="Transaction_deposit_request_rate" name="Transaction[deposit_request_rate]">
+                                    {{ form_widget(form.details.bitcoin.rate) }}
+                                    <span class="currency">EURO</span>
+                                </div>
+                            </div>
+                            <span class="help-block"><ul></ul></span>
+                        </div>
+                    </div>
+                {% else %}
+                 <div class="col-sm-12 btc-deposit-address">
                     <div class="form-group m-b-5">
-                        <label class="control-label">Bitcoin Address</label>
-                        <div class="input-group">
-                            <span class="input-group-addon"><strong>{{ "fields.receiverAddress"|trans({},'TransactionBundle') }}</strong></span>
-                            {{ form_widget(form.details.bitcoin.receiver_unique_address) }}
-                        </div>
-                        <span class="help-block"><ul></ul></span>
+                        {{ form_widget(form.details.bitcoin.receiver_unique_address, {attr: {class: 'hidden'}}) }}
+                        {{ form_widget(form.details.bitcoin.rate, {attr: {class: 'hidden'}})  }}
                     </div>
                 </div>
-                <div class="col-sm-12">
-                    <div class="form-group"><label class="control-label" for="Transaction_details_deposit_request_rate">{{ "fields.depositRequestRate"|trans({},'TransactionBundle') }}</label>
-                        <div class="input-group" id="deposit-request-range-wrap">
-                            <div>
-                                <input type="text" class="form-control" value="1" disabled="disabled">
-                                <span class="currency">BTC</span>
-                            </div>
-                            <span class="input-group-addon bg-inverted b-0">=</span>
-                            <div id="Transaction_deposit_request_rate" name="Transaction[deposit_request_rate]">
-                                {{ form_widget(form.details.bitcoin.rate) }}
-                                <span class="currency">EURO</span>
-                            </div>
-                        </div>
-                        <span class="help-block"><ul></ul></span>
-                    </div>
-                </div>
+                {% endif %}
             </div>
         </div>
+
         {{ form_row(form.subTransactions) }}
         {% if transaction.isDeposit() or transaction.isWithdrawal() %}
             <div class="card-box">
@@ -345,7 +389,7 @@
     <script type="text/javascript" src="{{ asset("bundles/app/js/currency_exchangeRate.js") }}"></script>
     <script type="text/javascript" src="{{ asset("assets/plugins/magnific-popup/js/jquery.magnific-popup.min.js") }}"></script>
     <script type="text/javascript" id="summaryScript">
-        var transactionData = {{ form.vars.data|serialize('json', serialization_context().setSerializeNull(true).setGroups(['Default', 'details']))|raw }};
+        var transactionData = {{ form.vars.data|serialize('json', serialization_context().setSerializeNull(true).setGroups(['Default', 'details', 'customer']))|raw }};
 
         // reload page if accessed from history (to regen transaction#)
         if (!!window.performance && window.performance.navigation.type === 2) {
@@ -366,9 +410,13 @@
             this.options = options;
         }
 
-        function resetBitcoinFields(memberPaymentOptionText) {
-            $('#{{form.details.bitcoin.rate.vars.id}}').val('');
-            $('#{{form.details.bitcoin.receiver_unique_address.vars.id}}').val(memberPaymentOptionText);
+        function resetBitcoinFields(memberPaymentOptionText, cpoDetails) {
+            if (cpoDetails.hasOwnProperty("receiverAddress")) {
+                $("#Transaction_receiverAddress").val(cpoDetails['receiverAddress']);
+                $("#Transaction_details_bitcoin_receiver_unique_address").val(cpoDetails['receiverAddress']);
+                $("#Transaction_details_bitcoin_receiver_unique_address").removeClass('hide');
+                $("#Transaction_details_bitcoin_receiver_unique_address").removeAttr('disabled');
+            }
         }
 
         function removeBitcoinErrors() {
@@ -376,15 +424,18 @@
             $('#bitcoinFields').find('.help-block ul li').remove();
         }
 
-        function loadBitcoinFields(memberPaymentOptionText) {
+        function loadBitcoinFields(paymentOption, cpoDetails) {
             $('#bitcoinFields').removeClass('hide');
+            $('#addressLabel').text(paymentOption + ' Address');
+            $('#digitalCurrencyLabel').text(paymentOption);
+
             removeBitcoinErrors();
-            resetBitcoinFields(memberPaymentOptionText);
+            resetBitcoinFields(paymentOption, cpoDetails[paymentOption]);
         }
 
-        function unloadBitcoinFields() {
+        function unloadBitcoinFields(paymentOption, cpoDetails) {
             $('#bitcoinFields').addClass('hide');
-            resetBitcoinFields();
+            resetBitcoinFields(paymentOption, cpoDetails);
         }
 
         SummaryObject.prototype.process = function(forceProcess) {

@@ -663,13 +663,12 @@ class TransactionRepository extends BaseRepository
     {
         $qb = $this->createQueryBuilder('transaction');
         $qb
-            ->select('transaction, paymentOptionType, m')
-            ->innerJoin('transaction.paymentOptionType', 'paymentOptionType')
+            ->select('transaction, m')
             ->innerJoin('transaction.customer', 'm')
             ->where($qb->expr()->andX()->addMultiple([
                 'transaction.customer = :memberId',
                 'transaction.type = :type',
-                'paymentOptionType.paymentMode = :paymentMode',
+                'transaction.paymentOptionType  = :paymentOptionType',
                 'transaction.status = :status',
                 'transaction.isVoided = false'
             ]))
@@ -681,7 +680,7 @@ class TransactionRepository extends BaseRepository
                 'memberId' => $memberId,
                 'confirmation' => $confirmation,
                 'type' => Transaction::TRANSACTION_TYPE_DEPOSIT,
-                'paymentMode' => PaymentOption::PAYMENT_MODE_BITCOIN,
+                'paymentOptionType' => 'BITCOIN',
                 'status' => Transaction::TRANSACTION_STATUS_START,
             ])
             ->setMaxResults(2)

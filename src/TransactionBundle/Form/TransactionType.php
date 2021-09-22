@@ -459,7 +459,7 @@ class TransactionType extends AbstractType
     {
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
             $transaction = $event->getData();
-            if ($transaction->isTransactionPaymentBitcoin() && !$transaction->isNew()) {
+            if ($transaction->isPaymentBitcoin() && !$transaction->isNew()) {
                 $form = $event->getForm();
                 $form->add('receiverAddress', Type\TextType::class, [
                     'translation_domain' => 'TransactionBundle',

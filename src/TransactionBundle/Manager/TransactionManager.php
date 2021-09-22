@@ -4,6 +4,7 @@ namespace TransactionBundle\Manager;
 
 use AppBundle\Exceptions\FormValidationException;
 use AppBundle\Helper\Publisher;
+use AppBundle\Service\PaymentOptionService;
 use AppBundle\ValueObject\Number;
 use DbBundle\Entity\CommissionPeriod;
 use DbBundle\Entity\CustomerGroup;
@@ -744,7 +745,7 @@ class TransactionManager extends TransactionOldManager
                     'class' => 'btn-danger',
                     'status' => 'void',
                 ];
-        } else if ($transaction->isTransactionPaymentBitcoin() && !$transaction->isVoided() && $transaction->getStatus() == Transaction::TRANSACTION_STATUS_START && $transaction->isDeposit()) {
+        } else if ($transaction->isPaymentBitcoin() && !$transaction->isVoided() && $transaction->getStatus() == Transaction::TRANSACTION_STATUS_START && $transaction->isDeposit()) {
             $actions['decline'] = ['label' => 'Decline', 'class' => 'btn-danger', 'status' => Transaction::TRANSACTION_STATUS_DECLINE];
             $actions['confirm'] = ['label' => 'Confirm', 'class' => 'btn-success', 'status' => Transaction::TRANSACTION_STATUS_ACKNOWLEDGE];
             $isForVoidingOrDecline = true;
@@ -794,13 +795,6 @@ class TransactionManager extends TransactionOldManager
                     if ($isForVoidingOrDecline) {
                         $groups[] = 'isForVoidingOrDecline';
                     }
-                }
-
-                if ($transaction->hasDepositUsingBitcoin()) {
-                    if (($key = array_search('withDecimalPlacesValidation', $groups)) !== false) {
-                        unset($groups[$key]);
-                    }
-                    $groups[] = 'withBitcoin';
                 }
 
                 return $groups;
@@ -930,6 +924,22 @@ class TransactionManager extends TransactionOldManager
         return $statuses;
     }
 
+	public function getBitcoinTransactionDetails(Transaction $transaction): array
+	{
+		$btcTransactDetails = [];
+		if ($transaction->isPaymentBitcoin() && !empty($transaction->getBitcoinTransactionHash())) {
+			$hash = $transaction->getBitcoinTransactionHash();
+			$address = $transaction->getBitcoinAddress();
+
+			$btcTransactDetails = [
+				'confirmationCount' => $this->getPaymentOptionService()->getBitcoinTransactionConfirmations($hash),
+				'amountSent' => $this->getPaymentOptionService()->getBitcoinTransactionAmountSent($hash, $address),
+			];
+		}
+
+		return $btcTransactDetails;
+	}
+
     public function getTransactionById(int $id): Transaction
     {
         $transaction = $this->getRepository()->findById($id);
@@ -977,5 +987,10 @@ class TransactionManager extends TransactionOldManager
 	private function getCustomerPaymentOptionService()
 	{
 		return $this->getContainer()->get('app.service.customer_payment_option_service');
+	}
+
+	private function getPaymentOptionService(): PaymentOptionService
+	{
+		return $this->getContainer()->get('app.service.payment_option_service');
 	}
 }

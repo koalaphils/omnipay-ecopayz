@@ -154,10 +154,10 @@
                     var paymentOption = this.value;
                     var transactionType = '{{ form.parent.vars.value.type }}';
 
-                    if (paymentOption === 'BITCOIN' || paymentOption === 'USDT' || ((paymentOption === 'NETELLER' || paymentOption === 'SKRILL') && transactionType == Global.transaction.type.deposit)) {
-                        window.loadBitcoinFields((matches === null ? '' :matches[1]));
+                    if (paymentOption === 'BITCOIN') {
+                        window.loadBitcoinFields(paymentOption, cpoDetails);
                     } else {
-                        window.unloadBitcoinFields();
+                        window.unloadBitcoinFields(paymentOption, cpoDetails);
                     }
                 }
             });
@@ -445,7 +445,7 @@
 
         Product.prototype = {
             "init": function() {
-                var isPaymentBitcoin = "{{ form.parent.vars.value.isTransactionPaymentBitcoin }}";
+                var isPaymentBitcoin = "{{ form.parent.vars.value.isPaymentBitcoin }}";
                 
                 if (!isPaymentBitcoin) {
                     this.info.amount = (new Decimal(this.info.amount)).toFixed(2,1);
@@ -463,7 +463,8 @@
                 this.view.find('.subtransaction-type').val(subtransaction.type);
                 subtransactionAmountText = new Decimal(subtransaction.amount).toFixed(2);
                 if (isPaymentBitcoin && this.info.isAMSTransaction) {
-                    subtransactionAmountText = subtransactionAmountText + ' (' + this.info.bitcoinRequestedAmount + ' BTC)';
+                    let cryptoCurrency = transactionData.payment_option == 'BITCOIN' ? 'BTC' : transactionData.payment_option;
+                    subtransactionAmountText = subtransactionAmountText + ' (' + this.info.bitcoinRequestedAmount + ' ' + cryptoCurrency  + ')';
                 }
                 this.view.find('span.subtransaction-amount').html(subtransactionAmountText);
                 this.view.find('input.subtransaction-amount').val(subtransactionAmountText);
@@ -524,6 +525,24 @@
                 });
 
                 this.view.data('product',this);
+
+                this.view.find('.subtransaction-has-fee').on('click', { 'product': this }, function (e) {
+                    var group = $(this).data('group');
+                    var clickedRadio = this;
+                    $('[data-group="' + group + '"]').each(function () {
+                        if (this != clickedRadio) {
+                            this.checked = false;
+                        }
+                    });
+
+                    for(var i in e.data.product.list.items) {
+                      e.data.product.list.items[i].info.hasFee = false;
+                      e.data.product.list.items[i].applySummary();
+                    }
+
+                    e.data.product.info.hasFee = true;
+                    e.data.product.applySummary();
+                });
 
                 this.view.find('input.subtransaction-amount').on('keyup',{'product': this},function(e) {
                     var _val = Number.parseFloat($(this).val());
@@ -882,7 +901,12 @@
                 } else {
                     addSummaryInfo(field, $(this).val());
                 }
-                applySummary();
+                var product = $('input:radio.subtransaction-has-fee:checked').closest('.customer-product').data('product');
+                if (product) {
+                    product.list.items[product.index].applySummary(false);
+                } else {
+                    applySummary();
+                }
             });
         });
     </script>

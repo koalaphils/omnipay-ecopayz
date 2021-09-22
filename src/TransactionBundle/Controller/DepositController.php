@@ -64,16 +64,23 @@ class DepositController extends  AbstractController
         asort($transactionDates);
         asort($pinnacleTransactionDates);
 
-        return $this->render("TransactionBundle:Transaction/Type:deposit.html.twig", [
-            'form' => $form->createView(),
-            'type' => 'deposit',
-            'gateway' => $transaction->getGateway(),
-            'transaction' => $transaction,
-            'bitcoinConfirmations' => $confirmations,
-            'pinnacleTransacted' => $pinnacleTransacted === count($transaction->getSubTransactions()),
-            'transactionDates' => $transactionDates,
-            'pinnacleTransactionDates' => $pinnacleTransactionDates,
-        ]);
+		$context = [
+			'form' => $form->createView(),
+			'type' => 'deposit',
+			'gateway' => $transaction->getGateway(),
+			'transaction' => $transaction,
+			'bitcoinConfirmations' => $confirmations,
+			'pinnacleTransacted' => $pinnacleTransacted === count($transaction->getSubTransactions()),
+			'transactionDates' => $transactionDates,
+			'pinnacleTransactionDates' => $pinnacleTransactionDates,
+		];
+
+		if ($transaction->isPaymentBitcoin() && !empty($btcTransactDetails = $transactionManager->getBitcoinTransactionDetails($transaction)))
+		{
+			$context['bitcoinTransactionDetails'] = $btcTransactDetails;
+		}
+
+        return $this->render("TransactionBundle:Transaction/Type:deposit.html.twig", $context);
     }
 
     public function saveAction(Request $request, int $id): Response
