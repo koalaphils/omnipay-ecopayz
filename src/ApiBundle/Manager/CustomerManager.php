@@ -28,12 +28,6 @@ use ApiBundle\Event\CustomerCreatedEvent;
 use Firebase\JWT\JWT;
 use MemberBundle\Manager\MemberManager;
 
-/**
- * Description of CustomerManager
- *
- * @author Cydrick Nonog <cydrick.nonog@zmtsys.com>
- * @author Paolo Abendanio <cesar.abendanio@zmtsys.com>
- */
 class CustomerManager extends AbstractManager
 {
     public function passwordIsValid(Customer $customer, string $password): bool

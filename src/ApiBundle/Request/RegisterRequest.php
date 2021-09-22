@@ -9,65 +9,19 @@ use Symfony\Component\Validator\GroupSequenceProviderInterface;
 
 class RegisterRequest implements GroupSequenceProviderInterface
 {
-    /**
-     * @var string
-     */
     private $email;
-
-    /**
-     * @var string
-     */
     private $phoneNumber;
-
-    /**
-     * @var string
-     */
     private $countryPhoneCode;
-
-    /**
-     * @var string
-     */
     private $verificationCode;
-
-    /**
-     * @var string
-     */
     private $password;
-
-    /**
-     * @var string
-     */
     private $repeatPassword;
-
-    /**
-     * @var string
-     */
     private $currency;
-
-    /**
-     * @var string
-     */
     private $locale;
-
-    /**
-     * @var string
-     */
     private $ipAddress;
-
-    /**
-     * @var string
-     */
     private $referrerUrl;
-
-    /**
-     * @var string
-     */
     private $originUrl;
-
-    /**
-     * @var string
-     */
     private $registrationSite;
+    private $referralCode;
 
     public static function createFromRequest(Request $request): self
     {
@@ -79,6 +33,7 @@ class RegisterRequest implements GroupSequenceProviderInterface
         $instance->repeatPassword = $request->get('repeat_password', '');
         $instance->currency = $request->get('currency', '');
         $instance->countryPhoneCode = $request->get('country_phone_code', '');
+        $instance->referralCode = $request->get('referral_code', '');
 
         $instance->locale = $request->getLocale();
         if ($request->request->has('registration_locale')) {
@@ -169,6 +124,11 @@ class RegisterRequest implements GroupSequenceProviderInterface
         }
 
         return $payload;
+    }
+    
+    public function getReferralCode()
+    {
+        return $this->referralCode;
     }
 
     private function __construct()

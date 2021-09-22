@@ -742,13 +742,6 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this->currency;
     }
 
-    /**
-     * Set country.
-     *
-     * @param string $country
-     *
-     * @return \DbBundle\Entity\Customer
-     */
     public function setCountry($country)
     {
         $this->country = $country;
@@ -916,10 +909,11 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     public function getPreferences()
     {
         $preferences = $this->getUser()->getPreferences();
-        $preferences += $this->extraPreferences;
+        if ($this->extraPreferences) {
+            $preferences += $this->extraPreferences;
+        }
 
         $preferences['paymentOptionTypes'] = [];
-
         foreach ($this->getPaymentOptions() as $paymentOption) {
             if (!in_array($paymentOption->getPaymentOption()->getCode(), $preferences['paymentOptionTypes'])) {
                 $preferences['paymentOptionTypes'][] = $paymentOption->getPaymentOption()->getCode();
@@ -1100,7 +1094,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this->getAffiliate() instanceof Customer;
     }
 
-    public function getReferrer(): ?Customer
+    public function getReferrer()
     {
         return $this->getAffiliate();
     }
@@ -1299,14 +1293,6 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         $referrer = $this->getAffiliate();
         $referrerDetails = [];
 
-        if (!is_null($referrer)) {
-            $referrerDetails = [
-                'id' => $referrer->getId(),
-                'fullName' => $referrer->getFullName(),
-                'username' => $referrer->getUsername(),
-            ];
-        }
-
         return $referrerDetails;
     }
 
@@ -1424,5 +1410,10 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     public function isRevenueShareEnabled(): bool
     {
         return $this->allowRevenueShare;
+    }
+
+    public function isLinkedToAffiliate(): bool
+    {
+        return $this->getAffiliate() !== null;
     }
 }

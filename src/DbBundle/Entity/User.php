@@ -801,4 +801,9 @@ class User extends Entity implements ActionInterface, TimestampInterface, Advanc
     {
         $this->auditRevision->removeElement($auditRevision);
     }
+
+    public function isAffiliate(): bool
+    {
+        return $this->type === self::USER_TYPE_AFFILIATE;
+    }
 }

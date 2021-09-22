@@ -12,34 +12,11 @@ use Symfony\Component\Validator\GroupSequenceProviderInterface;
 
 class WithdrawRequest implements GroupSequenceProviderInterface
 {
-    /**
-     * @var string
-     */
     protected $paymentOptionType;
-
-    /**
-     * @var Meta
-     */
     protected $meta;
-
-    /**
-     * @var string
-     */
     protected $paymentOption;
-
-    /**
-     * @var Product[]
-     */
     protected $products;
-
-    /**
-     * @var string
-     */
     protected $verificationCode;
-
-    /**
-     * @var Customer
-     */
     protected $member;
 
     public static function createFromRequest(Request $request): self
@@ -49,6 +26,8 @@ class WithdrawRequest implements GroupSequenceProviderInterface
         $instance->meta = Meta::createFromArray($request->get('meta', []), $instance->paymentOptionType, false, true, false);
         $instance->paymentOption = $request->get('payment_option', '');
         $instance->products = [];
+        $instance->customerFee = $request->get('customer_fee', '');
+        $instance->companyFee = $request->get('company_fee', '');
         $instance->verificationCode = $request->get('verification_code', '');
         foreach ($request->get('products', []) as $product) {
             $instance->products[] = new Product(
@@ -123,5 +102,25 @@ class WithdrawRequest implements GroupSequenceProviderInterface
         }
 
         return $payload;
+    }
+    
+    public function setCustomerFee(string $customerFee)
+    {
+        $this->customerFee = $customerFee;
+    }
+
+    public function getCustomerFee()
+    {
+        return $this->customerFee;
+    }
+
+    public function setCompanyFee(string $companyFee)
+    {
+        $this->companyFee = $companyFee;
+    }
+
+    public function getCompanyFee()
+    {
+        return $this->companyFee;
     }
 }

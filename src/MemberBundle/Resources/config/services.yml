@@ -18,6 +18,7 @@ services:
         lazy: true
         arguments:
             - '@doctrine'
+            - '@app.service.affiliate_service'
             
     member.manager:
         class: MemberBundle\Manager\MemberManager

@@ -122,7 +122,6 @@ class PageManager
         foreach ($dataNames as $dataName) {
             $this->getData($dataName);
         }
-
         return $this->data;
     }
 
@@ -226,6 +225,7 @@ class PageManager
     private function generateWidget(string $widgetName, array $properties = []): AbstractPageWidget
     {
         $widgetInfo = $this->widgetsInfo[$widgetName];
+        
         $widget = new $widgetInfo['type']($widgetInfo['action'], $widgetName, $this);
         $widget->setContainer($this->container);
         $widget->setProperties(array_merge($widgetInfo['properties'], $properties));

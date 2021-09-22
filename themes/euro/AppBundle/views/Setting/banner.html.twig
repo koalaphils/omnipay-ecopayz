@@ -1,0 +1,14 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}{{ 'page.title.setting.banner'|trans({},'AppBundle') }}{% endblock %}
+
+{% block pageTitle -%}{{ "settings.banner.label"|trans({},"AppBundle") }}{%- endblock pageTitle %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.setting"|trans({},"AppBundle") }}</li>
+    <li class="active">{{ "settings.banner.label"|trans({},"AppBundle") }}</li>
+{%- endblock %}
+
+{% block page %}
+  <iframe id="bannerSetting" src="/iframe/banner-setting/" style="width: 100%; height: 90vh; border: none;"></iframe>
+{% endblock %}

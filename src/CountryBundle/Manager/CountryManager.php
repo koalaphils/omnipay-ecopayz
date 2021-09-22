@@ -59,7 +59,7 @@ class CountryManager extends AbstractManager
             'headers' => ['Accept-Encoding' => 'gzip, deflate'],
             'verify' => false
         ]);
-        $response = $client->get('https://restcountries.eu/rest/v2/all');
+        $response = $client->get('https://raw.githubusercontent.com/koalaphils/restcountries/master/src/main/resources/countriesV2.json');
 
         $data = json_decode($response->getBody(), true);
         $countries =  array_reduce($data, function ($carry, $datum) {

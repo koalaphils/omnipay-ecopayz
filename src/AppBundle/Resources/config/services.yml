@@ -284,3 +284,8 @@ services:
     app.service.customer_payment_option_service:
         class: AppBundle\Service\CustomerPaymentOptionService
         arguments: [ '@app.service.http_service', '@app.service.payment_option_service', '@app.service.jwt_service', '@request_stack', '@logger' ]
+
+    app.service.affiliate_service:
+        class: AppBundle\Service\AffiliateService
+        arguments: ["@app.service.http_service", "@jwt_generator"]
+
