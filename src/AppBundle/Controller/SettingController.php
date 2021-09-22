@@ -10,6 +10,7 @@ use Codeception\Util\HttpCode;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use DbBundle\Entity\Setting;
+use Exception;
 
 /**
  * Description of SettingController.
@@ -23,27 +24,11 @@ class SettingController extends AbstractController
         $this->denyAccessUnlessGranted(['ROLE_MAINTENANCE']);
 
         $maintenance = $this->getManager()->getSetting('maintenance');
-        $maintenance['enabled'] = ($maintenance['enabled']) ? true : false;
 
         $form = $this->createForm(MaintenanceType::class, $maintenance);
-        $form->handleRequest($request);
+        $data = $this->getManager()->getSetting('system.maintenance');
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $data = $form->getData();
-            $this->getManager()->updateSetting('maintenance.enabled', $data['enabled']);
-
-            $this->getSession()->getFlashBag()->add(
-                'notifications',
-                [
-                    'title' => $this->getTranslator()->trans('notification.setting.title', [], 'AppBundle'),
-                    'message' => $this->getTranslator()->trans('notification.setting.message', [], 'AppBundle'),
-                ]
-            );
-
-            return $this->redirectToRoute('app.setting.maintenance_page');
-        }
-
-        return $this->render('AppBundle:Setting:maintenance.html.twig', ['form' => $form->createView()]);
+        return $this->render('AppBundle:Setting:maintenance.html.twig', ['data' => $data, 'form' => $form->createView()]);
     }
 
     public function paymentOptionAction(Request $request)
@@ -140,12 +125,14 @@ class SettingController extends AbstractController
 
         $payload = $request->request->all();
         
-        $this->getManager()->updateSetting('system.maintenance', $payload['value']);
-        
-        return $this->json(['success'], Response::HTTP_OK);
+        try {
+            $this->getManager()->updateMaintenanceSetting($payload);
+        } catch (Exception $exception) {
+            throw $exception;
+        } 
+
+        return new JsonResponse(['message' => 'Maintenance settings updated successfully.'], Response::HTTP_OK);
     }
-
-
 
     /**
      * Get Setting Manager.
@@ -155,5 +142,15 @@ class SettingController extends AbstractController
     protected function getManager()
     {
         return $this->getContainer()->get('app.setting_manager');
+    }
+
+        /**
+     * Get setting repository.
+     *
+     * @return \DbBundle\Repository\SettingRepository
+     */
+    protected function getSettingRepository()
+    {
+        return $this->getDoctrine()->getRepository('DbBundle:Setting');
     }
 }

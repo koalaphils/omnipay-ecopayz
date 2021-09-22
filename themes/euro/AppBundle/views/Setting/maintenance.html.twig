@@ -38,22 +38,16 @@
                     <div class="row">
                         <div class="col-sm-6">
                             <div class="list-group m-b-0">
+                                {% for item in data.app %}
                                 <a href="#" class="list-group-item"> 
                                     <div class="row">
-                                        <label class="col-sm-3 control-label">Member Site</label>
+                                        <label class="col-sm-3 control-label">{{ item.label }}</label>
                                         <div class="col-sm-6">
-                                            <input name="app" attr-key="memberSite" class="switch" type="checkbox" data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
+                                            <input attr-key="app_{{ item.key }}" class="switch" type="checkbox" {% if item.value == true %}checked{% endif %} data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
                                         </div>
                                     </div>
-                                </a> 
-                                <a href="#" class="list-group-item"> 
-                                    <div class="row">
-                                        <label class="col-sm-3 control-label">Affiliate Site</label>
-                                        <div class="col-sm-6">
-                                            <input name="app" attr-key="affiliateSite" class="switch" type="checkbox" data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
-                                        </div>
-                                    </div>
-                                </a> 
+                                </a>
+                                {% endfor %}  
                             </div>
                         </div>
                         <div class="col-sm-6"></div>
@@ -61,35 +55,21 @@
                 </div>
             </div>
             <div class="tab-pane" id="integration">
-                <div class="card-box">
+                <div class="card-box">  
                     <h4 class="m-b-20"><b>Integration Maintenance</b></h4>
                     <div class="row">
                         <div class="col-sm-6">
                             <div class="list-group m-b-0">
+                                {% for item in data.integration %}
                                 <a href="#" class="list-group-item"> 
                                     <div class="row">
-                                        <label class="col-sm-3 control-label">PIWIXchange</label>
+                                        <label class="col-sm-3 control-label">{{ item.label }}</label>
                                         <div class="col-sm-6">
-                                            <input name="integration" attr-key="piwixchange" class="switch" type="checkbox" data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
+                                            <input attr-key="integration_{{ item.key }}" class="switch" type="checkbox" {% if item.value == true %}checked{% endif %} data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
                                         </div>
                                     </div>
-                                </a> 
-                                <a href="#" class="list-group-item"> 
-                                    <div class="row">
-                                        <label class="col-sm-3 control-label">Sports</label>
-                                        <div class="col-sm-6">
-                                            <input name="integration" attr-key="sports" class="switch" type="checkbox" data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
-                                        </div>
-                                    </div>
-                                </a> 
-                                <a href="#" class="list-group-item">
-                                    <div class="row">
-                                        <label class="col-sm-3 control-label">Casino</label>
-                                        <div class="col-sm-6">
-                                            <input name="integration" attr-key="casino" class="switch" type="checkbox" data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
-                                        </div>
-                                    </div>
-                                </a> 
+                                </a>
+                                {% endfor %}  
                             </div>
                         </div>
                         <div class="col-sm-6"></div>
@@ -104,29 +84,12 @@
 <script type="text/javascript">
     $(document).ready(function() {
         $('.switch').on('change', function() {
-            
-            var integration = [];
-            var app = [];
-
-            $('input[name="integration"]').each(function() {
-                var currentStatus = this.checked ? true : false;
-                var activeMaintenance = $(this).attr('attr-key');
-                integration.push({activeMaintenance: currentStatus});
-            });
-
-            $('input[name="app"]').each(function() {
-                var currentStatus = this.checked ? true : false;
-                var activeMaintenance = $(this).attr('attr-key');
-                integration.push({activeMaintenance: currentStatus});
-            });
-
-            console.log(integration);
-            console.log(app);
-
+            var currentStatus = this.checked ? true : false;
+            var activeMaintenance = $(this).attr('attr-key').split('_');
             $.ajax({
                 type: 'POST',
                 url: "{{ path('app.setting.maintenance_save') }}",
-                data: {'type': activeMaintenance[0],  'value': {'integration': integration, 'app': app}},
+                data: {'type': activeMaintenance[0],  'key': activeMaintenance[1], 'value': currentStatus},
                 dataType: 'json',
             }).then(function (response) {
                 console.log(response);

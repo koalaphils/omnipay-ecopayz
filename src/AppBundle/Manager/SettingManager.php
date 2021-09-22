@@ -140,6 +140,19 @@ class SettingManager extends AbstractManager
         return true;
     }
 
+    public function updateMaintenanceSetting(array $payload): void 
+    {
+        $data = $this->getSetting('system.maintenance');
+
+        array_walk($data, function (&$value, $key) use ($payload) {
+            if ($key === $payload['type']) {
+                $value[$payload['key']]['value'] = filter_var($payload['value'], FILTER_VALIDATE_BOOLEAN);
+            }
+        });
+
+        $this->getRepository()->updateSetting($payload['type'], 'system.maintenance', $data, true);
+    }
+
     public function getCode($code)
     {
         if (in_array($code, $this->settingCodes)) {
