@@ -113,3 +113,5 @@ parameters:
     aws_s3.region: "${AWS_REGION}"
     aws_s3.bucket: "${AWS_BUCKET}"
 
+
+    api_gateway_service: "${API_GATEWAY_SERVICE}"

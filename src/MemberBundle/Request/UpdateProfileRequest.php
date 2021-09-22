@@ -19,6 +19,7 @@ class UpdateProfileRequest
     private $joinedAt;
     private $userType;
 
+    private $referralCode;
     private $affiliateLink;
     private $referrerSite;
     private $registrationSite;
@@ -51,11 +52,11 @@ class UpdateProfileRequest
 
 
         if ($customer->getCountry() !== null) {
-            $request->country = $customer->getCountry();
+            $request->country = $customer->getCountry()->getId();
         }
 
         $request->currency = $customer->getCurrency()->getId();
-        $request->referrer = $customer->getReferral();
+        $request->referrer = $customer->getAffiliate() ? $customer->getAffiliate() : null;
         $request->joinedAt = $customer->getJoinedAt();
         $request->affiliateLink = $customer->getUser()->getPreference('affiliateCode');
         $request->referrerSite = $customer->getDetail('registration.referrer_url', '');
@@ -67,15 +68,11 @@ class UpdateProfileRequest
         $request->riskSetting = $customer->getRiskSetting();
         $request->tags = $customer->getTags();
         $request->clientIp = $customer->getDetail('registration.ip');
+        $request->referralCode  = $customer->getDetail('referral_code');
 
         foreach ($customer->getGroups() as $group) {
             $request->groups[] = $group->getId();
         }
-
-        if ($customer->getAffiliate() !== null) {
-            $request->referrer = $customer->getAffiliate()->getId();
-        }
-
         $request->locale = $customer->getLocale();
 
         return $request;
@@ -166,7 +163,7 @@ class UpdateProfileRequest
         $this->birthDate = $birthDate;
     }
 
-    public function getCountry(): ?string
+    public function getCountry(): ?int
     {
         return $this->country;
     }
@@ -214,6 +211,16 @@ class UpdateProfileRequest
     public function setJoinedAt(\DateTimeInterface $joinedAt): void
     {
         $this->joinedAt = $joinedAt;
+    }
+
+    public function getReferralCode(): ?string
+    {
+        return $this->referralCode;
+    }
+
+    public function setReferralCode($referralCode)
+    {
+        $this->referralCode = $referralCode;
     }
 
     public function getAffiliateLink(): ?string

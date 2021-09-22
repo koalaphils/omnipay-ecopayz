@@ -33,6 +33,8 @@ use FOS\OAuthServerBundle\Security\Authentication\Token\OAuthToken;
 use OAuth2\OAuth2;
 use OAuth2\OAuth2AuthenticateException;
 use OAuth2\OAuth2ServerException;
+use PinnacleBundle\Component\Exceptions\PinnacleError;
+use PinnacleBundle\Component\Exceptions\PinnacleException;
 use PinnacleBundle\Service\PinnacleService;
 use React\Http\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -413,17 +415,19 @@ class AuthHandler
         $tokenString = $request->get('token');
         try {
             $token = $this->oauthService->verifyAccessToken($tokenString);
-
             if ($token->getUser()->getCustomer()->getPinUserCode()) {
                 $this->pinnacleService->getAuthComponent()->logout($token->getUser()->getCustomer()->getPinUserCode());
-            }   
-           
-            $this->deleteUserAccessToken(null, [$tokenString]);
-            $this->loginUser($token->getUser());
-            $this->customerManager->handleAudit('logout');
+            } 
         } catch (OAuth2AuthenticateException $exception) {
             if ($exception->getDescription() === 'The access token provided has expired.') {
                 $this->deleteUserAccessToken(null, [$tokenString]);
+            }
+        } catch (PinnacleError | PinnacleException $exception) {    
+        } finally {
+            $this->deleteUserAccessToken(null, [$tokenString]);
+            if ($token !== null) {
+                $this->loginUser($token->getUser());
+                $this->customerManager->handleAudit('logout');
             }
         }
     }

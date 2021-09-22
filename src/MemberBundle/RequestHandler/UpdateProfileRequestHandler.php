@@ -5,18 +5,20 @@ namespace MemberBundle\RequestHandler;
 
 use MemberBundle\Manager\MemberManager;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\EventDispatcher\Event;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
+use AppBundle\Service\AffiliateService;
 use AppBundle\Event\GenericEntityEvent;
 use AuditBundle\Manager\AuditManager;
 use DbBundle\Entity\AuditRevisionLog;
 use DbBundle\Entity\Country;
 use DbBundle\Entity\Currency;
 use DbBundle\Entity\Customer;
+use DbBundle\Repository\CustomerGroupRepository;
 use DbBundle\Entity\Customer as Member;
 use DbBundle\Entity\CustomerGroup;
 use DbBundle\Entity\MarketingTool;
+use DbBundle\Entity\User;
+use DbBundle\Repository\UserRepository;
 use DbBundle\Listener\VersionableListener;
 use Doctrine\ORM\EntityManager;
 use MemberBundle\Event\ReferralEvent;
@@ -27,29 +29,28 @@ class UpdateProfileRequestHandler
 {
     private $entityManager;
     private $requestStack;
-    private $eventDisptacher;
     private $auditManager;
     private $memberManager;
+    private $affiliateService;
 
     public function __construct(
         EntityManager $entityManager,
         RequestStack $requestStack,
-        EventDispatcherInterface $eventDispatcher,
         AuditManager $auditManager,
-        MemberManager $memberManager
+        MemberManager $memberManager,
+        AffiliateService $affiliateService
     )
     {
         $this->entityManager = $entityManager;
         $this->requestStack = $requestStack;
-        $this->eventDisptacher = $eventDispatcher;
         $this->auditManager = $auditManager;
         $this->memberManager = $memberManager;
+        $this->affiliateService = $affiliateService;
     }
 
     public function handle(UpdateProfileRequest $request)
     {
         $customer = $request->getCustomer();
-        $originalAffiliateLink = $customer->getUser()->getPreference('affiliateCode');
         $originalPromoCode = $customer->getUser()->getPreference('promoCode');
 
         $customer->getUser()->setUsername($request->getUsername());
@@ -69,57 +70,15 @@ class UpdateProfileRequestHandler
         $customer->setRiskSetting($request->getRiskSetting());
         $customer->setTags($request->getTags());
         $customer->setLocale($request->getLocale());
-
-        $this->setReferrerByCode($request->getAffiliateLink(), $customer);
-
-        if ($this->hasChangeAffiliateLink($request->getAffiliateLink(), $originalAffiliateLink)) {
-            $marketingTool = $this->entityManager->getRepository(MarketingTool::class)->findMarketingToolByMember($customer);
-            if ($marketingTool instanceof MarketingTool) {
-                $this->updateAffiliateLink($marketingTool, $customer, $originalAffiliateLink);
-            } else {
-                $marketingTool = new MarketingTool();
-                $this->createNewAffiliateLink($marketingTool, $customer, $originalAffiliateLink);
-            }
-
-            $affiliateLinkLogDetails = [$originalAffiliateLink, $request->getAffiliateLink()];
-
-            $this->logMarketingDetails($marketingTool, $affiliateLinkLogDetails, []);
-        }
-
-        if ($this->hasPreviousEmptyAffiliateLink($request->getAffiliateLink(), $originalAffiliateLink)) {
-            $marketingTool = new MarketingTool();
-            $marketingTool->setMember($customer);
-
-            $affiliateLinkLogDetails = [$originalAffiliateLink, $request->getAffiliateLink()];
-
-            $this->logMarketingDetails($marketingTool, $affiliateLinkLogDetails, []);
-        }
-
-        if ($this->hasChangePromoCode($request->getPromoCode(), $originalPromoCode)) {
-            $marketingTool = new MarketingTool();
-            $marketingTool->setMember($customer);
-
-            $promoCodeLogDetails = [$customer->getUser()->getPreference('promoCode'), $request->getPromoCode()];
-
-            $this->logMarketingDetails($marketingTool, [], $promoCodeLogDetails);
-        }
-
-        $customer->getUser()->setPreference('affiliateCode', $request->getAffiliateLink());
-        $customer->getUser()->setPreference('promoCode', $request->getPromoCode());
-
-        $memberGroups = [];
+        $customer->setDetail('referral_code', $request->getReferralCode());
+        
         foreach ($request->getGroups() as $groupId) {
-            $memberGroups[] = $this->entityManager->getPartialReference(CustomerGroup::class, $groupId);
-        }
-        $customer->setGroups($memberGroups);
-
-        $this->dispatchAffiliateLinkingEvent($customer, $request->getReferrer());
-        if (!is_null($request->getReferrer())) {
-            $customer->setAffiliate($this->entityManager->getPartialReference(Customer::class, $request->getReferrer()));
-        } else {
-            $customer->setAffiliate($request->getReferrer());
+            $group = $this->getCustomerGroupRepository()->findOneById($groupId);
+            $customer->addGroup($group);
         }
 
+        $this->processAffiliate($request, $customer);
+        
         $this->entityManager->persist($customer->getUser());
         $this->entityManager->flush($customer->getUser());
         $this->entityManager->persist($customer);
@@ -128,86 +87,40 @@ class UpdateProfileRequestHandler
         return $customer;
     }
 
-    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher): void
+    private function processAffiliate($request, $customer)
     {
-        $this->eventDisptacher = $eventDispatcher;
-    }
+        $originalAffiliate = $customer->getAffiliate() ? $customer->getAffiliate() : null;
+        $newAffiliate = $request->getReferrer();
+        // Do remapping if there is a change in affiliate
+        if (+$originalAffiliate !== $newAffiliate) {
+            if ($originalAffiliate !== null) {
+                $this->affiliateService->removeMember(
+                    $customer->getUser()->getId(),
+                    $originalAffiliate
+                );
+            }
+            
+            if ($newAffiliate !== null) {
+                $this->affiliateService->addMember(
+                    $customer->getUser()->getId(),
+                    $newAffiliate
+                );
 
-    protected function dispatchEvent(string $eventName, Event $event): void
-    {
-        $this->getEventDispatcher()->dispatch($eventName, $event);
-    }
+                $customer->setAffiliate($newAffiliate);
+            }
 
-    private function getEventDispatcher(): EventDispatcherInterface
-    {
-        return $this->eventDisptacher;
-    }
-
-    private function hasChangeAffiliateLink(?string $newAffiliateLink = '', ?string $originalAffiliateLink = ''): bool
-    {
-        if (($originalAffiliateLink != null) && ($originalAffiliateLink != $newAffiliateLink)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private function dispatchAffiliateLinkingEvent(Customer $member,  ?string $currentReferrerId): void
-    {
-        $oldReferrer = $member->getReferral();
-
-        if ($oldReferrer === null && $currentReferrerId !== null) {
-            $newReferrer = $this->entityManager->getRepository(Customer::class)->findById($currentReferrerId);
-            $this->dispatchEvent(Events::EVENT_REFERRAL_LINKED, new ReferralEvent($newReferrer, $member));
-        }
-    }
-
-    private function hasChangePromoCode(?string $newPromoCode = '', ?string $originalPromoCode = ''): bool
-    {
-        return $originalPromoCode != $newPromoCode;
-    }
-
-    private function hasPreviousEmptyAffiliateLink(?string $newAffiliateLink = '', ?string $originalAffiliateLink = ''): bool
-    {
-        return $originalAffiliateLink == null && $newAffiliateLink != null ? true : false;
-    }
-
-    private function updateAffiliateLink($marketingTool, $customer, $originalAffiliateLink): void
-    {
-        $marketingTool->preserveOriginal();
-        $marketingTool->setMember($customer);
-        $marketingTool->setAffiliateLink($originalAffiliateLink);
-
-        $this->dispatchEvent(VersionableListener::VERSIONABLE_SAVE, new GenericEntityEvent($marketingTool));
-    }
-
-    private function createNewAffiliateLink(MarketingTool $marketingTool, Customer $customer, ?string $originalAffiliateLink = ''): void
-    {
-        $marketingTool->setMember($customer);
-        $marketingTool->setAffiliateLink($originalAffiliateLink);
-        $marketingTool->preserveOriginal();
-
-        $this->dispatchEvent(VersionableListener::VERSIONABLE_SAVE, new GenericEntityEvent($marketingTool));
-    }
-
-    private function logMarketingDetails(MarketingTool $marketingTool, array $affiliateLinkLogDetails = [], array $promoCodeLogDetails = []): void
-    {
-        $auditLogFields = [
-            'affiliateLink' => $affiliateLinkLogDetails,
-            'promoCode' => $promoCodeLogDetails
-        ];
-
-        $this->auditManager->audit($marketingTool, AuditRevisionLog::OPERATION_UPDATE, null, $auditLogFields);
-    }
-
-    private function setReferrerByCode(?string $referrerCode, Member $member): void
-    {
-        if (!is_null($referrerCode) && $referrerCode !== '') {
-            $referrer = $this->memberManager->getReferrerByReferrerCode($referrerCode);
-
-            if (!is_null($referrer)) {
-                $member->setReferrerByCode($referrer);
+            if ($request->getReferrer() === null) {
+                $customer->setAffiliate(null);
             }
         }
+    }
+    private function getCustomerGroupRepository(): CustomerGroupRepository
+    {
+        return $this->entityManager->getRepository(CustomerGroup::class);
+    }
+
+    private function getUserRepository(): UserRepository
+    {
+        return $this->entityManager->getRepository(User::class);
     }
 }

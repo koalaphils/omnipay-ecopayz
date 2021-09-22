@@ -57,6 +57,7 @@ use \DateTime;
 class MemberManager extends AbstractManager
 {
     private $translator;
+    protected $entityManager;
     private $settingManager;
     private $eventDispatcher;
     private $transactionManager;
@@ -152,6 +153,7 @@ class MemberManager extends AbstractManager
                 ['commissionIds' => $commissionScheduleIds, 'memberId' => $memberId],
                 count($commissionScheduleIds)
             );
+            
 
         $runningRevenueSharesIdKeyed = [];
         foreach ($runningRevenueShares as $runningRevenueShare) {
@@ -218,64 +220,16 @@ class MemberManager extends AbstractManager
         return array_slice($returnedData, $startingPointOfArray, $numberOfItemsToDisplay);
     }
 
-    public function linkMember(Member $member, ?string $referrerCode): array
-    {
-        $code = Response::HTTP_UNPROCESSABLE_ENTITY;
-        $referrerDetails = ['id' => '', 'name' => '', 'username' => ''];
-        $notifications = [
-            [
-                'type' => 'error',
-                'title' => $this->getTranslator()->trans(
-                    'notification.linkMember.error.title',
-                    [],
-                    'MemberBundle'
-                ),
-                'message' => $this->getTranslator()->trans(
-                    'notification.linkMember.error.message',
-                    ['%code%' => $referrerCode],
-                    'MemberBundle'
-                ),
-            ],
-        ];
+    public function linkMember(Member $member)
+    {   
+        $affiliateService = $this->get('app.service.affiliate_service');
+        $response = $affiliateService->linkMemberViaReferralCode($member->getReferralCode(), $member->getUser()->getId());
+        $affiliateUserId = $response['affiliate_user_id'];
 
-        if ($referrerCode !== '' && !is_null($referrerCode)) {
-            $referrer = $this->getReferrerByReferrerCode($referrerCode);
+        $member->setAffiliate($affiliateUserId);
 
-            if (!is_null($referrer)) {
-                $this->getEventDispatcher()->dispatch(Events::EVENT_REFERRAL_LINKED, new ReferralEvent($referrer, $member));
-                $member->linkReferrer($referrer);
-                $this->getEntityManager()->persist($member);
-                $this->getEntityManager()->flush($member);
-
-                $code = Response::HTTP_OK;
-                $notifications = [
-                    [
-                        'type' => 'success',
-                        'title' => $this->getTranslator()->trans(
-                            'notification.linkMember.success.title',
-                            [],
-                            'MemberBundle'
-                        ),
-                        'message' => $this->getTranslator()->trans(
-                            'notification.linkMember.success.message',
-                            ['%name%' => $member->getFullName(), '%referrer%' => $referrer->getFullName()],
-                            'MemberBundle'
-                        ),
-                    ],
-                ];
-                $referrerDetails = [
-                    'id' => $referrer->getId(),
-                    'name' => $referrer->getFullName(),
-                    'username' => $referrer->getUsername(),
-                ];
-            }
-        }
-
-        return [
-            '__notifications' => $notifications,
-            'code' => $code,
-            'referrer' => $referrerDetails,
-        ];
+        $this->entityManager->persist($member);
+        $this->entityManager->flush();
     }
 
     public function getReferrerByReferrerCode(?string $referrerCode): ?Member
@@ -323,8 +277,14 @@ class MemberManager extends AbstractManager
         return $this->settingManager->getSetting('origin.origins') ?? [];
     }
 
-    public function getCurrentPeriodReferralTurnoversAndCommissions(int $referrerId, DateTimeInterface $currentDate, array $filters): array
+    public function getCurrentPeriodReferralTurnoversAndCommissions($customer, DateTimeInterface $currentDate, array $filters): array
     {
+        $affiliateUserId = $customer->getUser()->getId();
+        // $affiliateService = $this->get('app.service.affiliate_service');
+        // $affiliateDetails = $affiliateService->getAffiliate($affiliateUserId);
+        $filters['affiliateUserId'] = $affiliateUserId;
+
+
         if (empty($filters['dwlDateFrom'] ?? null) || empty($filters['dwlDateTo'] ?? null)) {
             /* Removed temporarily [PIW-330]
             $currentPeriod = $this->getCommissionManager()->getCommissionPeriodForDate($currentDate);
@@ -336,7 +296,7 @@ class MemberManager extends AbstractManager
 
         $piwiWallet = $this->getProductRepository()->getPiwiWalletProduct();
         $filters['piwiWalletProductId'] = $piwiWallet->getId();
-        $turnoversWinLossCommissions = $this->getTurnoversAndCommissionsByMember($referrerId, $filters);
+        $turnoversWinLossCommissions = $this->getTurnoversAndCommissionsByMember($affiliateUserId, $filters);
 
         return $turnoversWinLossCommissions;
     }
@@ -354,10 +314,11 @@ class MemberManager extends AbstractManager
         }   
     }
 
-    public function getTurnoversAndCommissionsByMember(int $referrerId, array $filters): array
+    public function getTurnoversAndCommissionsByMember(int $affiliateUserId, array $filters): array
     {
         $memberRepository = $this->getRepository();
-        $referrerDetails = $memberRepository->findById($referrerId);
+        // Customer Entity
+        $referrerDetails = $memberRepository->getByUserId($affiliateUserId);
         $filters['hideZeroTurnover'] = array_get($filters, 'hideZeroTurnover', false);
         $filters['startDate'] = $this->getSettingManager()->getSetting('commission.startDate');
 
@@ -379,15 +340,13 @@ class MemberManager extends AbstractManager
         if (!(empty($filters['dwlDateFrom'] ?? null) || empty($filters['dwlDateTo'] ?? null))) {
             $this->precision = isset($filters['precision']) ? $filters['precision'] : 2;
             $membersAndProducts = $memberRepository->getAllReferralProductListByReferrer(
-                    $filters, $orders, $referrerId, $filters['offset'], $filters['limit']
-                );
-            
+                $filters, $orders, $affiliateUserId, $filters['offset'], $filters['limit']
+            );
             $products = [];
             $allProducts = array_column($membersAndProducts, 'productId');
-
             foreach ($allProducts as $product) {
                 $products[$product]['id'] = $product;
-                $products[$product]['schemas'] = $this->getMemberRevenueShareRepository()->findSchemeByRange($referrerId, $product, $filters);
+                $products[$product]['schemas'] = $this->getMemberRevenueShareRepository()->findSchemeByRange($referrerDetails->getId(), $product, $filters);
                 $products[$product]['lastKey'] = count($products[$product]['schemas']) - 1;
             }
 
@@ -476,8 +435,8 @@ class MemberManager extends AbstractManager
                     }
                 }
             }
-            $result['recordsFiltered'] = $memberRepository->getReferralProductListFilterCountByReferrer($filters, $referrerId);
-            $result['recordsTotal'] = $memberRepository->getReferralProductListTotalCountByReferrer($filters, $referrerId);
+            $result['recordsFiltered'] = $memberRepository->getReferralProductListFilterCountByReferrer($filters);
+            $result['recordsTotal'] = $memberRepository->getReferralProductListTotalCountByReferrer($filters, $filters['affiliateUserId']);
         }
 
         $currencyPerRecord = array_column($result['allRecords'], 'currencyCode');
@@ -488,7 +447,6 @@ class MemberManager extends AbstractManager
             'dwlDateFrom' => $filters['dwlDateFrom'],
             'dwlDateTo' => $filters['dwlDateTo'],
         ];
-
         return $result;
     }
 
@@ -607,12 +565,13 @@ class MemberManager extends AbstractManager
     {
         $separator = ',';
         $member = $this->getRepository()->find($referrerId);
+        $affiliateUserId = $member->getUser()->getId();
         $memberCurrencyCode = $member->getCurrencyCode();
         $allowRevenueShare = $member->isRevenueShareEnabled();
 
-        $filters['limit'] = $this->getRepository()->getReferralProductListTotalCountByReferrer($filters, $referrerId);
+        $filters['limit'] = $this->getRepository()->getReferralProductListTotalCountByReferrer($filters, $affiliateUserId);
         $filters['offset'] = 0;
-        $result = $this->getTurnoversAndCommissionsByMember($referrerId, $filters);
+        $result = $this->getTurnoversAndCommissionsByMember($member->getUser()->getId(), $filters);
 
         $dateFrom = new DateTimeImmutable($result['period']['dwlDateFrom']);
         $result['period']['dwlDateFrom'] = $dateFrom->format('Y-m-d');

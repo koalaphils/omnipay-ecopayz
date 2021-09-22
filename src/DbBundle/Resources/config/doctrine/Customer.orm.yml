@@ -134,6 +134,9 @@ DbBundle\Entity\Customer:
             type: string
             column: customer_country_code
             nullable: true
+        affiliate:
+            type: integer
+            column: customer_affiliate_id
     manyToOne:
         currency:
             targetEntity: DbBundle\Entity\Currency
@@ -141,11 +144,11 @@ DbBundle\Entity\Customer:
                 nullable: true
                 name: customer_currency_id
                 referencedColumnName: currency_id
-        affiliate:
-            targetEntity: DbBundle\Entity\Customer
-            joinColumn:
-                name: customer_affiliate_id
-                referencedColumnName: customer_id
+        # affiliate:
+        #     targetEntity: DbBundle\Entity\Customer
+        #     joinColumn:
+        #         name: customer_affiliate_id
+        #         referencedColumnName: customer_id
     oneToOne:
         user:
             targetEntity: DbBundle\Entity\User
