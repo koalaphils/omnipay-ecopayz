@@ -146,8 +146,8 @@ class SettingManager extends AbstractManager
 
         array_walk($data, function (&$value, $key) use ($payload) {
             if ($key === $payload['type']) {
-                $value[$payload['key']]['value'] = filter_var($payload['value'], FILTER_VALIDATE_BOOLEAN);
-            }
+                $value[$payload['index']]['value'] = $payload['value'];
+            }   
         });
 
         $this->getRepository()->updateSetting($payload['type'], 'system.maintenance', $data, true);

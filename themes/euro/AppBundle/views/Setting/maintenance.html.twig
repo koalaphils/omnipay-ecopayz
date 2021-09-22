@@ -38,12 +38,12 @@
                     <div class="row">
                         <div class="col-sm-6">
                             <div class="list-group m-b-0">
-                                {% for item in data.app %}
+                                {% for index, item in data.app %}
                                 <a href="#" class="list-group-item"> 
                                     <div class="row">
                                         <label class="col-sm-3 control-label">{{ item.label }}</label>
                                         <div class="col-sm-6">
-                                            <input attr-key="app_{{ item.key }}" class="switch" type="checkbox" {% if item.value == true %}checked{% endif %} data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
+                                            <input attr-key="app_{{ index }}_{{ item.key }}" class="switch" type="checkbox" {% if item.value == true %}checked{% endif %} data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
                                         </div>
                                     </div>
                                 </a>
@@ -60,12 +60,12 @@
                     <div class="row">
                         <div class="col-sm-6">
                             <div class="list-group m-b-0">
-                                {% for item in data.integration %}
+                                {% for index, item in data.integration %}
                                 <a href="#" class="list-group-item"> 
-                                    <div class="row">
+                                    <div class="row">   
                                         <label class="col-sm-3 control-label">{{ item.label }}</label>
                                         <div class="col-sm-6">
-                                            <input attr-key="integration_{{ item.key }}" class="switch" type="checkbox" {% if item.value == true %}checked{% endif %} data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
+                                            <input attr-key="integration_{{ index }}_{{ item.key }}" class="switch" type="checkbox" {% if item.value == true %}checked{% endif %} data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
                                         </div>
                                     </div>
                                 </a>
@@ -86,15 +86,25 @@
         $('.switch').on('change', function() {
             var currentStatus = this.checked ? true : false;
             var activeMaintenance = $(this).attr('attr-key').split('_');
+            var title = currentStatus ? 'Enabled' : 'Disabled';
+            var swalType = currentStatus ? 'success' : 'info';
             $.ajax({
                 type: 'POST',
                 url: "{{ path('app.setting.maintenance_save') }}",
-                data: {'type': activeMaintenance[0],  'key': activeMaintenance[1], 'value': currentStatus},
+                data: {'type': activeMaintenance[0],  'index': activeMaintenance[1], 'key': activeMaintenance[2], 'value': currentStatus},
                 dataType: 'json',
             }).then(function (response) {
-                console.log(response);
+                swal({
+                    'type': swalType,
+                    'title': title,
+                    'text': response.message + title.toLowerCase() 
+                });
             }).fail( function( jqXHR, textStatus, errorThrown ) {
-                console.log(errorThrown);
+                swal({
+                    'type': 'danger',
+                    'title': 'Error',
+                    'text': errorThrown
+                });
             });
         }); 
     });

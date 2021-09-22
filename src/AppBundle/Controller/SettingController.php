@@ -124,14 +124,15 @@ class SettingController extends AbstractController
         $this->denyAccessUnlessGranted(['ROLE_MAINTENANCE']);
 
         $payload = $request->request->all();
-        
+        $payload['value'] = filter_var($payload['value'], FILTER_VALIDATE_BOOLEAN);
+
         try {
             $this->getManager()->updateMaintenanceSetting($payload);
         } catch (Exception $exception) {
             throw $exception;
         } 
 
-        return new JsonResponse(['message' => 'Maintenance settings updated successfully.'], Response::HTTP_OK);
+        return new JsonResponse(['message' => ucfirst($payload['type']) . ' maintenance for '. $payload['key'] .' has been '], Response::HTTP_OK);
     }
 
     /**
