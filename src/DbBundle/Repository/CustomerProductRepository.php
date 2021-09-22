@@ -156,7 +156,7 @@ class CustomerProductRepository extends BaseRepository
     {
         $qb = $this
             ->createQueryBuilder('cp')
-            ->select('PARTIAL cp.{id, userName, balance, isActive, details}, PARTIAL p.{id, name, code, details, deletedAt}, c')
+            ->select('PARTIAL cp.{id, userName, balance, isActive, details}, PARTIAL p.{id, name, details, deletedAt, code}, c')
             ->leftJoin('cp.customer', 'c')
             ->leftJoin('cp.product', 'p')
             ->orderBy('cp.createdAt', 'DESC')
@@ -438,13 +438,9 @@ class CustomerProductRepository extends BaseRepository
         $queryBuilder
             ->join('cp.product', 'p', Join::WITH, 'JSON_CONTAINS(p.details, :acWalletTag) = 0')
             ->join('cp.customer', 'c')
-            ->join('c.affiliate', 'a')
-            ->setParameter('acWalletTag', json_encode(['ac_wallet' => true]));
+            ->setParameter('acWalletTag', json_encode(['ac_wallet' => true]))
+        ;
 
-        if (array_get($filters, 'member', null) !== null) {
-            $queryBuilder->andWhere($queryBuilder->expr()->eq('a.id', ':referrerId'));
-            $queryBuilder->setParameter('referrerId', array_get($filters, 'member'));
-        }
 
         return $queryBuilder;
     }

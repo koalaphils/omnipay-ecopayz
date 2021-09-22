@@ -14,6 +14,7 @@ use DbBundle\Repository\CustomerPaymentOptionRepository;
 use DbBundle\Repository\SessionRepository;
 use DbBundle\Collection\Collection;
 use Doctrine\ORM\EntityManager;
+use Exception;
 use OAuth2\OAuth2AuthenticateException;
 use PinnacleBundle\Service\PinnacleService;
 use ProductIntegrationBundle\ProductIntegrationFactory;
@@ -87,27 +88,41 @@ class MemberHandler
     public function handleGetBalance(Customer $member): array
     {
         $userCode = $member->getPinUserCode();
-        $player = $this->pinnacleService->getPlayerComponent()->getPlayer($userCode);
         $customerProducts = $member->getActiveProducts();
 
         $productBalance = [];
         $availableBalance = new Number(0);
+        $pinAvailableBalance = new Number(0);
+        $pinOutstandingBalance = new Number(0);
+
+        try {
+            $player = $this->pinnacleService->getPlayerComponent()->getPlayer($userCode);
+            $pinAvailableBalance = $player->availableBalance();
+            $pinOutstandingBalance = $player->outstanding();
+        } catch (Exception $ex) {
+            $pinAvailableBalance = '';
+            $pinOutstandingBalance = '';
+        }
 
         foreach ($customerProducts as $customerProduct) {
             $productCode = $customerProduct->getProduct()->getCode();
             $productUsername = $customerProduct->getUserName();
             $token = $this->jwtGeneratorService->generate([]);
 
-            $productBalance[$productCode] = $this->productFactory->getIntegration(strtolower($productCode))->getBalance($token, $productUsername);
-            $availableBalance = $availableBalance->plus($productBalance[$productCode]);
+            try {
+                $productBalance[$productCode] = $this->productFactory->getIntegration(strtolower($productCode))->getBalance($token, $productUsername);
+                $availableBalance = $availableBalance->plus($productBalance[$productCode]);
+            } catch (Exception $exception) {
+                $productBalance[$productCode] = '';
+            }
         }
 
         return [
             'balance' => $member->getBalance(),
             'available_balance' => $availableBalance,
-            'pinnacle_balance' => $player->availableBalance(),
+            'pinnacle_balance' => $pinAvailableBalance,
             'product_balance' => $productBalance,
-            'outstanding' => $player->outstanding()
+            'outstanding' => $pinOutstandingBalance
         ];
     }
 

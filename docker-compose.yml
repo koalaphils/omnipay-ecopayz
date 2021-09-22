@@ -37,8 +37,8 @@ x-environment: &php-env
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_DATABASE=0
-      - REDIS_REPLICA_HOST=
-      - REDIS_REPLICA_PORT=
+      - REDIS_REPLICA_HOST=redis
+      - REDIS_REPLICA_PORT=6379
       - ECOPAYZ_TEST_MODE=true
       - BC_KEY=2db87356-bfbb-412d-8403-39b669cd9a9d
       - BC_WALLET_URL=http://wallet:3000
@@ -62,6 +62,7 @@ x-environment: &php-env
       - SESSION_EXPIRATION_TIME=3600
       - ACCESS_TOKEN_EXPIRES_IN=3600
       - API_GATEWAY_URL=http://api-gateway/api/v1
+      - API_GATEWAY_SERVICE=http://api-gateway
       - EWL_URL=http://api-gateway/api/v1/ewl
 services:
   database:
@@ -76,6 +77,7 @@ services:
       - MYSQL_DATABASE=backoffice_db
       - MYSQL_USER=backoffice
       - SESSION_EXPIRATION_TIME=86400
+      - API_GATEWAY_SERVICE=http://api-gateway
       - EWL_URL=http://api-gateway/api/v1/ewl
     networks:
       - piwinet
@@ -105,9 +107,10 @@ services:
       target: prod
     image: php-container
     volumes:
-      - .:/var/www/html:cached
-      - bo_cache:/var/www/html/var/cache
-      - uploads:/uploads:cached
+      - .:/var/www/html
+      # - .:/var/www/html:cached
+      # - bo_cache:/var/www/html/var/cache
+      # - uploads:/uploads:cached
     depends_on:
       - database
       - mailhog

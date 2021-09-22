@@ -97,6 +97,11 @@ class SettingController extends AbstractController
         return $this->render('AppBundle:Setting:scheduler.html.twig', ['form' => $formAutoDecline->createView()]);
     }
 
+    public function bannerAction(Request $request)
+    {
+        return $this->render('AppBundle:Setting:banner.html.twig');
+    }
+
     /**
      * Get Setting Manager.
      *

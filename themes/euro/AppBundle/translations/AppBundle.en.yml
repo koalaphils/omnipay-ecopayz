@@ -35,6 +35,7 @@ page:
                 paymentOption: Settings | Payment Options
                 scheduler: Settings | Task Scheduler
                 bitcoin: Settings | Bitcoin
+                banner: Settings | Banner
 
 layout:
     Notification: Notification
@@ -78,6 +79,8 @@ roles:
         removefield: Remove Payment Option Field
 
 settings:
+    banner:
+        label: Banner
     maintenance:
         label: Maintenance
         fields:
