@@ -49,12 +49,7 @@ class UpdateProfileRequest
         $request->gender = $customer->getGender();
         $request->userType = $customer->getUser()->getType();
         $request->phoneNumber = $customer->getUser()->getPhoneNumber();
-
-
-        if ($customer->getCountry() !== null) {
-            $request->country = $customer->getCountry()->getId();
-        }
-
+	    $request->country = $customer->getCountry();
         $request->currency = $customer->getCurrency()->getId();
         $request->referrer = $customer->getAffiliate() ? $customer->getAffiliate() : null;
         $request->joinedAt = $customer->getJoinedAt();
@@ -163,12 +158,12 @@ class UpdateProfileRequest
         $this->birthDate = $birthDate;
     }
 
-    public function getCountry(): ?int
+    public function getCountry()
     {
         return $this->country;
     }
 
-    public function setCountry(int $country): void
+    public function setCountry($country): void
     {
         $this->country = $country;
     }
