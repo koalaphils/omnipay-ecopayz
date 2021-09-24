@@ -749,6 +749,14 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this;
     }
 
+	/**
+	 * Get country.
+	 */
+	public function getCountry()
+	{
+		return $this->country;
+	}
+
     public function setCountryName(string $countryName): self
     {
         $this->countryName = $countryName;
@@ -759,17 +767,6 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     public function getCountryName(): string
     {
         return $this->countryName ?? '';
-    }
-
-
-    /**
-     * Get country.
-     *
-     * @return \DbBundle\Entity\Country
-     */
-    public function getCountry()
-    {
-        return $this->country;
     }
 
     public function getGroups()
