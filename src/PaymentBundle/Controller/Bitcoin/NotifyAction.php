@@ -93,7 +93,6 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
 
             throw $this->createOkResponse();
         }
-
         try {
             $transaction = $this->transactionRepository->getLessThanConfirmationBitcoinTransactionForMember($member->getId(), count($this->confirmations) - 1);
         } catch (NoResultException $e) {
@@ -116,8 +115,9 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
             throw $this->createOkResponse();
         }
 
+
         $transactionHash = $transaction->getBitcoinTransactionHash();
-        if ($transactionHash !== '' && $transactionHash !== $httpRequest->query['transaction_hash']) {
+        if ($transactionHash !== '' && $transactionHash !== $httpRequest->query['transaction_hash']) {  
             $this->logWithHttpRequest(
                 LogLevel::ERROR,
                 sprintf(

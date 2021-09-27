@@ -44,12 +44,11 @@ class CustomerRepository extends BaseRepository
         $qb = $this->createQueryBuilder('c');
         $qb->join('c.user', 'u');
         $qb->join('c.currency', 'ccu');
-        $qb->leftJoin('c.country', 'cco');
         $qb->leftjoin('c.groups', 'g');
         $qb->select(
             'PARTIAL c.{id, fName, mName, pinUserCode, pinLoginId, lName, fullName, country, currency, balance, socials, joinedAt, birthDate, socials, details, contacts, verifiedAt, isAffiliate, isCustomer, transactionPassword, files, riskSetting, tags, notifications}'
             . ', PARTIAL u.{username, id, email, isActive, activationSentTimestamp, activationTimestamp, preferences, password, resetPasswordCode, resetPasswordSentTimestamp}'
-            . ', PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}, g'
+            . ', PARTIAL ccu.{id, name, code, rate}, g'
         );
         $qb->where('c.id = :id')->setParameter('id', $memberId);
 

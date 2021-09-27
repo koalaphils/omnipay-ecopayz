@@ -98,9 +98,9 @@ class CaptureAction implements ActionInterface
 	    $cpoDetails = $this->getCustomerPaymentOptionDetails($member, $receivingAddress['address']);
 	    $transaction->setPaymentOptionDetails($cpoDetails['onTransaction']);
 	    $transaction->setPaymentOptionOnRecord($cpoDetails['onRecord']);
-        if ($transaction->getPaymentOption()->getField('account_id', '') === '') {
-            $transaction->getPaymentOption()->setField('account_id', $member->getBitcoinAddress());
-        }
+        // if ($transaction->getPaymentOption()->getField('account_id', '') === '') {
+        //     $transaction->getPaymentOption()->setField('account_id', $member->getBitcoinAddress());
+        // }
     }
 
 	private function getCustomerPaymentOptionDetails($customer, $receivingAddress)
