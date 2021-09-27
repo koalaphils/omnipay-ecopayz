@@ -66,6 +66,7 @@ roles:
     superAdmin: Super Admin
     groups:
         system: System
+        paymentOption: Payment Option
     api: Acess API
     maintenance: Maintenance
     updateSettings: Update Settings
