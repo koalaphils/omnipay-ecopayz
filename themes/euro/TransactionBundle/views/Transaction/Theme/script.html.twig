@@ -950,8 +950,6 @@
                                 }
                             }
                             notification('Validation Failed', 'Some fields are invalid', 'error');
-                            $('#{{ form.actions.vars.id }} button').removeAttr('disabled');
-                            $('.btn-void-transaction').removeAttr('disabled');
                         } else if (typeof data.errorMessage !== 'undefined') {
                             notification('Transaction Error!', data.errorMessage, 'error');
                         }
@@ -960,8 +958,6 @@
                         $('#{{ form.vars.id }}').find('.form-group').removeClass('has-error');
                         $('#{{ form.vars.id }}').find('.help-block ul li').remove();
                         $('#btnSave').attr('disabled', 'disabled');
-                        $('#{{ form.actions.vars.id }} button').attr('disabled', 'disabled');
-                        $('.btn-void-transaction').attr('disabled', 'disabled');
                     },
                     'complete': function (xhr, textStatus) {
                         $('#btnSave').removeAttr('disabled');
