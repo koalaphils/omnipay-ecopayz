@@ -46,7 +46,7 @@ class SettingController extends AbstractController
 
     public function paymentOptionAction(Request $request)
     {
-        $this->denyAccessUnlessGranted(['ROLE_VIEW_PAYMENTOPTIONS']);
+        $this->denyAccessUnlessGranted(['ROLE_PAYMENTOPTION_VIEW']);
 
         return $this->render('AppBundle:Setting:paymentOption.html.twig');
     }

@@ -367,6 +367,7 @@ class TransactionOldController extends AbstractController
             }
 
             if (array_has($transactionRequest, 'paymentOption')) {
+	            $transaction->setPaymentOptionType(array_get($transactionRequest, 'paymentOption'));
 				$isPaymentOptionIdBitcoin = $transaction->isPaymentBitcoin();
             }
 
@@ -380,9 +381,6 @@ class TransactionOldController extends AbstractController
             ]);
             $response = ['success' => true];
             try {
-                if ($transaction->isDeposit() && $isPaymentOptionIdBitcoin) {
-                    $this->getMemberManager()->updateMemberPaymentOptionBitcoinAddress($transactionRequest);
-                }
                 $transaction = $this->getManager()->handleFormTransaction($form, $request);
                 $response['data'] = $transaction;
                 $this->getManager()->commit();
