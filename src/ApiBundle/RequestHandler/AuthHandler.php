@@ -222,7 +222,7 @@ class AuthHandler
         $locale = !empty($memberLocale) ? $memberLocale : 'en';
 
         $this->createPiwiWalletIfNotExisting($user->getCustomer());
-        // $this->createPiwixProductIfNotExisting($user->getCustomer());
+        $this->createPiwixProductIfNotExisting($user->getCustomer());
 
         return [
             'pinnacle' => $this->loginToPinnacle($user->getCustomer()->getPinUserCode(), $locale),
