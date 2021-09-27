@@ -222,7 +222,7 @@ class AuthHandler
         $locale = !empty($memberLocale) ? $memberLocale : 'en';
 
         $this->createPiwiWalletIfNotExisting($user->getCustomer());
-        $this->createPiwixProductIfNotExisting($user->getCustomer());
+        // $this->createPiwixProductIfNotExisting($user->getCustomer());
 
         return [
             'pinnacle' => $this->loginToPinnacle($user->getCustomer()->getPinUserCode(), $locale),
@@ -413,6 +413,7 @@ class AuthHandler
     public function handleLogout(Request $request): void
     {
         $tokenString = $request->get('token');
+        $token = null;
         try {
             $token = $this->oauthService->verifyAccessToken($tokenString);
             if ($token->getUser()->getCustomer()->getPinUserCode()) {

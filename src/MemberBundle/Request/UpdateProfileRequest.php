@@ -52,7 +52,7 @@ class UpdateProfileRequest
 
 
         if ($customer->getCountry() !== null) {
-            $request->country = $customer->getCountry()->getId();
+            $request->country = $customer->getCountry();
         }
 
         $request->currency = $customer->getCurrency()->getId();
@@ -150,7 +150,6 @@ class UpdateProfileRequest
         } else {
             $this->fullName = $fullName;
         }
-
     }
 
     public function getBirthDate(): ?\DateTimeInterface
@@ -163,7 +162,7 @@ class UpdateProfileRequest
         $this->birthDate = $birthDate;
     }
 
-    public function getCountry(): ?int
+    public function getCountry()
     {
         return $this->country;
     }

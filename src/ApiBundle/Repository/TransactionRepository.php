@@ -193,17 +193,16 @@ class TransactionRepository
     {
         $queryBuilder = $this->createQueryBuilder('transaction');
         $queryBuilder
-            ->select('transaction', 'paymentOptionType')
-            ->innerJoin('transaction.paymentOptionType', 'paymentOptionType')
+            ->select('transaction')
             ->where('transaction.customer = :customer')
             ->andWhere('transaction.type = :type')
             ->andWhere('transaction.status NOT IN (:status)')
             ->andWhere('transaction.isVoided != true')
-            ->andWhere('paymentOptionType.paymentMode = :paymentMode')
+            ->andWhere('transaction.paymentOptionType = :paymentOptionType')
             ->andWhere("IFNULL(JSON_CONTAINS(transaction.details, 'false', '$.bitcoin.acknowledged_by_user'), true) = true")
             ->setParameter('customer', $memberId)
             ->setParameter('type', $transactionType)
-            ->setParameter('paymentMode', PaymentOption::PAYMENT_MODE_BITCOIN)
+            ->setParameter('paymentOptionType', PaymentOption::PAYMENT_MODE_BITCOIN)
             ->setParameter('status', [Transaction::TRANSACTION_STATUS_END, Transaction::TRANSACTION_STATUS_DECLINE], Connection::PARAM_INT_ARRAY)
         ;
 
