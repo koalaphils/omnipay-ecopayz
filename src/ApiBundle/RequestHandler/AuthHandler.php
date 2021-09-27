@@ -413,6 +413,7 @@ class AuthHandler
     public function handleLogout(Request $request): void
     {
         $tokenString = $request->get('token');
+        $token = null;
         try {
             $token = $this->oauthService->verifyAccessToken($tokenString);
             if ($token->getUser()->getCustomer()->getPinUserCode()) {

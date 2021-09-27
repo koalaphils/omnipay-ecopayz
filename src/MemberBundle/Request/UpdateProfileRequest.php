@@ -49,7 +49,9 @@ class UpdateProfileRequest
         $request->gender = $customer->getGender();
         $request->userType = $customer->getUser()->getType();
         $request->phoneNumber = $customer->getUser()->getPhoneNumber();
-	    $request->country = $customer->getCountry();
+        if ($customer->getCountry() !== null) {
+            $request->country = $customer->getCountry();
+        }
         $request->currency = $customer->getCurrency()->getId();
         $request->referrer = $customer->getAffiliate() ? $customer->getAffiliate() : null;
         $request->joinedAt = $customer->getJoinedAt();
@@ -145,7 +147,6 @@ class UpdateProfileRequest
         } else {
             $this->fullName = $fullName;
         }
-
     }
 
     public function getBirthDate(): ?\DateTimeInterface

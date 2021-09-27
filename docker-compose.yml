@@ -46,7 +46,7 @@ x-environment: &php-env
       - BC_XPUB_PORT=22
       - BC_XPUB__USER=xpub
       - BC_XPUB__PASSWORD=zmtsysxpub
-      - BC_CALLBACK_HOST=https://cydrick.serveo.net
+      - BC_CALLBACK_HOST=https://localhost
       - TRUSTED_PROXIES=172.0.0.0/8,10.0.0.0/8,192.0.0.0/8
       - TIMEZONE=Etc/GMT+4
       - MSERVICE_USERNAME=admin

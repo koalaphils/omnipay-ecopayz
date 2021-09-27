@@ -3,16 +3,15 @@ ApiBundle\Request\Transaction\Product:
   getters:
     username:
       - NotBlank: ~
-      - AppBundle\Validator\Constraints\Exists:
-          entityClass: DbBundle\Entity\CustomerProduct
-          valuePath: value
-          column: userName
-          joinExpression: "INNER JOIN e.product p"
-          expression: "AND e.customer = :memberId AND p.code = :productCode"
-          expressionParams:
-            memberId: root.getMemberId()
-            productCode: object.getProductCode()
-          ignoreNull: false
+      # - AppBundle\Validator\Constraints\Exists:
+      #     entityClass: DbBundle\Entity\CustomerProduct
+      #     valuePath: value
+      #     column: userName
+      #     joinExpression: "INNER JOIN e.product p"
+      #     expression: "AND e.customer = :memberId AND p.code = :productCode"
+      #     expressionParams:
+      #       memberId: root.getMemberId()
+      #     ignoreNull: false
     amount:
       - NotBlank: ~
       - NotEqualTo:
