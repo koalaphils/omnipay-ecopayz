@@ -77,7 +77,7 @@ class CustomerPaymentOptionService
 			if (isset($options['timestamp']) && $options['timestamp'] === true) {
 				$fieldValues['updatedAt'] = (new \DateTime())->format('yyyy-mm-dd');
 			}
-
+			
 			$activeCpoFields = $customerPaymentOptions->getActiveFieldsForPaymentOptionOrCreateWhenNone(
 				$paymentOption,
 				$transactionType,
