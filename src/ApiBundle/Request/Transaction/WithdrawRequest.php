@@ -53,9 +53,6 @@ class WithdrawRequest implements GroupSequenceProviderInterface
         return $this->meta;
     }
 
-    /**
-     * @return Product[]
-     */
     public function getProducts(): array
     {
         return $this->products;
@@ -122,5 +119,10 @@ class WithdrawRequest implements GroupSequenceProviderInterface
     public function getCompanyFee()
     {
         return $this->companyFee;
+    }
+
+    public function getAccountId()
+    {
+        return $this->getMeta()->getFields()->getAccountId();
     }
 }
