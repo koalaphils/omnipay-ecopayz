@@ -31,7 +31,6 @@ class AppKernel extends Kernel
             new GroupBundle\GroupBundle(),
             new ProductBundle\ProductBundle(),
             new CurrencyBundle\CurrencyBundle(),
-            new CountryBundle\CountryBundle(),
             new CustomerBundle\CustomerBundle(),
             new \MemberBundle\MemberBundle(),
             new GatewayBundle\GatewayBundle(),

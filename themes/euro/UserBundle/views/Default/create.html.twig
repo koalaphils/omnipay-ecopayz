@@ -28,11 +28,8 @@
         <a class="btn btn-inverse waves-effect waves-light pull-right m-b-10" href="{{ path("user.list_page") }}"> <span><i class="ti-arrow-left m-r-5"></i></span> {{ "Back to User List"|trans({}, 'UserBundle') }}</a>
         {% endif %}
         <ul class="list-inline quicklinks font-13 font-normal text-right">
-            {% if is_granted(['ROLE_COUNTRY_VIEW' , 'ROLE_TRANSACTION_VIEW' , 'ROLE_ADD_USER_GROUP']) %}
+            {% if is_granted(['ROLE_TRANSACTION_VIEW' , 'ROLE_ADD_USER_GROUP']) %}
             <li>{{ "quickLinks.name"|trans({}, 'UserBundle') }}:</li>
-            {% endif %}
-            {% if is_granted('ROLE_COUNTRY_VIEW') %}
-            <li><a href="{{ path("country.list_page", {'type': 'withdraw'}) }}">{{ "quickLinks.country"|trans({}, 'UserBundle') }}</a></li>|
             {% endif %}
             {% if is_granted('ROLE_TRANSACTION_VIEW') %}
             <li><a href="{{ path("transaction.list_page") }}">{{ "quickLinks.transHistory"|trans({}, 'UserBundle') }}</a></li>|

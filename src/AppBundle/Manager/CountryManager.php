@@ -1,30 +1,13 @@
 <?php
 
-namespace CountryBundle\Manager;
+namespace AppBundle\Manager;
 
 use AppBundle\Manager\AbstractManager;
 use GuzzleHttp\Client;
 use Symfony\Component\Cache\Simple\RedisCache;
-use Symfony\Component\Form\Form;
-use Symfony\Component\HttpFoundation\Request;
-use AppBundle\Exceptions\FormValidationException;
-use Symfony\Component\Validator\Constraints\DateTime;
 
 class CountryManager extends AbstractManager
 {
-    public function handleForm(Form $form, Request $request)
-    {
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $country = $form->getData();
-            $this->getRepository()->save($country);
-            
-            return $country;
-        }
-        
-        throw new FormValidationException($form);
-    }
-    
     public function getCountryList($filters = null)
     {
         $countries = $this->getCountries();
@@ -96,7 +79,7 @@ class CountryManager extends AbstractManager
         $countries = $this->getCountries();
         return $countries[$code]['name'];
     }
-    
+
     protected function getRepository()
     {
         return $this->getDoctrine()->getRepository('DbBundle:Country');

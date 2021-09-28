@@ -289,3 +289,10 @@ services:
         class: AppBundle\Service\AffiliateService
         arguments: ["@app.service.http_service", "@jwt_generator"]
 
+    country.manager:
+        class: AppBundle\Manager\CountryManager
+        parent: app.base_manager
+        calls:
+            - [ setContainer, [ '@service_container' ] ]
+
+
