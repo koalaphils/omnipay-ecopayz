@@ -140,7 +140,7 @@
                 </li>#}
                 {% endif %}
 
-                {% if is_granted(['ROLE_USER_VIEW', 'ROLE_GROUP_VIEW', 'ROLE_COUNTRY_VIEW', 'ROLE_AUDIT_VIEW']) %}
+                {% if is_granted(['ROLE_USER_VIEW', 'ROLE_GROUP_VIEW', 'ROLE_AUDIT_VIEW']) %}
                 <li class="has_sub" id="menu-admin">
                     <a class="waves-effect" href="javascript:void(0)">
                         <i class="ti-user"></i>
@@ -154,9 +154,6 @@
                         {% endif %}
                         {% if is_granted('ROLE_GROUP_VIEW') %}
                         <li><a href="{{ path("group.list_page") }}">User Group</a></li>
-                        {% endif %}
-                        {% if is_granted('ROLE_COUNTRY_VIEW') %}
-                        <li><a href="{{ path("country.list_page") }}">Country</a></li>
                         {% endif %}
                         {% if is_granted('ROLE_AUDIT_VIEW') %}
                         <li><a href="{{ path("audit.list_page", { 'type' : 'support' }) }}">Support Log</a></li>

@@ -123,7 +123,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     protected $currency;
 
     /**
-     * @var Country
+     * @var string
      */
     protected $country;
 

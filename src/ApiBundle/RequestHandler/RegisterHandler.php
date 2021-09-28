@@ -8,7 +8,7 @@ use ApiBundle\Request\RegisterRequest;
 use AppBundle\Helper\Publisher;
 use AppBundle\Manager\MailerManager;
 use AppBundle\Manager\SettingManager;
-use CountryBundle\Manager\CountryManager;
+use AppBundle\Manager\CountryManager;
 use DbBundle\Entity\Customer as Member;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerProduct as MemberProduct;

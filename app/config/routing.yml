@@ -131,14 +131,6 @@ product:
     defaults:
         _locale: "%locale%"
 
-country:
-    resource: "@CountryBundle/Resources/config/routing.yml"
-    prefix:   /{_locale}/country
-    requirements:
-        _locale: "%app_locales%"
-    defaults:
-        _locale: "%locale%"
-
 currency:
     resource: "@CurrencyBundle/Resources/config/routing.yml"
     prefix:   /{_locale}/currency

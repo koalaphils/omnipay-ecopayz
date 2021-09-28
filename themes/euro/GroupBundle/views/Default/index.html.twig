@@ -18,8 +18,7 @@
     <a class="btn btn-primary waves-effect waves-light pull-right m-b-10" href="{{ path("group.create_page") }}"><span><i class="ti-plus m-r-5"></i></span> {{ "quickLinks.addUserGroup"|trans({}, 'GroupBundle') }}</a>
     <ul class="list-inline quicklinks font-13 font-normal text-right">
         <li>{{ "quickLinks.name"|trans({}, 'GroupBundle') }}:</li>
-        <li><a href="{{ path("user.list_page") }}">{{ "quickLinks.user"|trans({}, 'GroupBundle') }}</a></li>|
-        <li><a href="{{ path("country.list_page") }}">{{ "quickLinks.country"|trans({}, 'GroupBundle') }}</a></li>
+        <li><a href="{{ path("user.list_page") }}">{{ "quickLinks.user"|trans({}, 'GroupBundle') }}</a></li>
     </ul>
 </div>    
 {% endblock pageHeaderExtra %}
