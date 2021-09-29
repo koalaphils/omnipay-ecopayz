@@ -186,7 +186,7 @@ class GatewayType extends AbstractType
 
     protected function getPaymentOptionTypes()
     {
-	    return array_reduce($this->poService->getAllPaymentOptions()['data'], function ($acc, $po) {
+	    return array_reduce($this->poService->getAllPaymentOptions(), function ($acc, $po) {
 		    $acc[$po['name']] = $po['code'];
 
 		    return $acc;

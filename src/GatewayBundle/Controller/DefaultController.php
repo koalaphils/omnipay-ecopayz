@@ -73,7 +73,7 @@ class DefaultController extends AbstractController
         $this->getMenuManager()->setActive('gateway.list');
 
         $gateway = $this->getGatewayRepository()->getWithCurrency($id);
-        $paymentOptionModes = array_reduce($this->getPaymentOptionService()->getAllPaymentOptions()['data'], function ($acc, $po) {
+        $paymentOptionModes = array_reduce($this->getPaymentOptionService()->getAllPaymentOptions(), function ($acc, $po) {
             $acc[$po['name']] = $po['code'];
 
             return $acc;

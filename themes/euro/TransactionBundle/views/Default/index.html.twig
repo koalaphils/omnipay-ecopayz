@@ -126,7 +126,7 @@
         var userPreferences = {{ app.user.getPreference('ui.transaction.list.column.visibility')|json_encode()|raw }};
         var filter = {{ filter|json_encode()|raw }};
         var nonPendingStatuses = {{ nonPendingStatuses|json_encode()|raw }};
-        var paymentOptions = {{ paymentOptions.data|json_encode()|raw }};
+        var paymentOptions = {{ paymentOptions|json_encode()|raw }};
         var statusChoices = {};
         var report = {
             'exportUrl': '{{ path('transaction.download') }}',

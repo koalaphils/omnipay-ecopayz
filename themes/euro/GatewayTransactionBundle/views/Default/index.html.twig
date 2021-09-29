@@ -96,7 +96,7 @@
     
     <script type="text/javascript" >
         var userPreferences = {{ app.user.getPreference('ui.gatewayTransaction.list.column.visibility')|json_encode()|raw }};
-        var paymentOptions = {{ paymentOptions.data|json_encode()|raw }};
+        var paymentOptions = {{ paymentOptions|json_encode()|raw }};
 
         $(function(){
             var listTable = new ZTable('#gatewayTransaction',  {
