@@ -146,7 +146,6 @@ widgets:
                         function: '@app.service.payment_option_service::getAllPaymentOptions'
                         label: result['name']
                         value: result['code']
-                        from: data
                 currencies:
                     dom: <'form-group form-group-sm m-r-10 xs-filter'i>
                     label: Currency

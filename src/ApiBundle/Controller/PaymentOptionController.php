@@ -114,7 +114,7 @@ class PaymentOptionController extends AbstractController
 	{
 		/** @var PaymentOptionService $paymentOptionService */
 		$paymentOptionService = $this->get('app.service.payment_option_service');
-		$paymentOptions =  $paymentOptionService->getAllPaymentOptions()['data'];
+		$paymentOptions =  $paymentOptionService->getAllPaymentOptions();
 
 		$poCodes = array_map(function($po) {
 			return $po['code'];
