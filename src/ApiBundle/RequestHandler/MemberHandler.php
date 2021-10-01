@@ -174,13 +174,12 @@ class MemberHandler
     public function changeMemberCountry(Customer $member, string $countryCode): array
     {
         try {
-            $country = $this->countryRepository->findByCode($countryCode);
-            $member = $member->setCountry($country);
+            $member = $member->setCountry($countryCode);
 
             $this->entityManager->persist($member);
             $this->entityManager->flush($member);
 
-            $response = ['error' => false, 'data' => $country, 'status' => 200];
+            $response = ['error' => false, 'data' => $countryCode, 'status' => 200];
 
         } catch (OAuth2AuthenticateException $exception) {
             $response = ['error' => true, 'data' => $exception->getMessage(), 'status' => $exception->getCode()];
