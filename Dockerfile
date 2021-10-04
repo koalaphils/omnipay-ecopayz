@@ -107,6 +107,7 @@ RUN composer config --global use-github-api false \
   ; rm -rf vendor && mkdir -p vendor \
   ; php -d memory_limit=-1 `which composer` install --no-scripts --no-autoloader || exit 1 \
   ; composer dumpautoload -no --apcu --no-scripts \
+  ; composer run initialize-web \
   ;
 VOLUME /var/www/html/vendor
 
