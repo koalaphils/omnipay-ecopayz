@@ -42,3 +42,8 @@ fi
 if [ "${WITH_CORRECT_SCORE}" = "false" ]; then
   sed -i "s/\S*include\S*.*correct-score\.conf\.location.*$//g" /etc/nginx/templates/default.conf.template
 fi
+
+set -eux
+nc -z ${PHPHOST} ${PHPPORT}
+
+rsync --rsh="sshpass -p ${PHP_SSH_PASS} ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -l ${PHP_SSH_USER}" -lrizc --include 'web/' --include 'src/' --include 'themes/' --exclude '/*'  ${PHPHOST}:/var/www/html/ /var/www/html >&1
