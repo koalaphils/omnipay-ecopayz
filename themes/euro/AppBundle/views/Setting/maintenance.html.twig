@@ -64,8 +64,14 @@
                                 <a href="#" class="list-group-item"> 
                                     <div class="row">   
                                         <label class="col-sm-3 control-label">{{ item.label }}</label>
-                                        <div class="col-sm-6">
+                                        <div class="col-sm-4">
                                             <input attr-key="integration_{{ index }}_{{ item.key }}" class="switch" type="checkbox" {% if item.value == true %}checked{% endif %} data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="checkbox checkbox-pink">
+                                                <input type="checkbox" name="default_active_tab" class="activeTab" value="{{ item.key }}" {% if item.is_default == true %}checked{% endif %}>
+                                                <label for="checkbox1"> Make default active Tab </label>
+                                            </div>
                                         </div>
                                     </div>
                                 </a>
@@ -107,6 +113,13 @@
                 });
             });
         }); 
+
+        $('.activeTab').on('click', function() {
+            var checkboxes = document.getElementsByName('default_active_tab')
+            checkboxes.forEach((item) => {
+                if (item.value !== $(this).val()) item.checked = false
+            })
+        });
     });
 </script>
 {% endblock %}
