@@ -58,6 +58,8 @@ framework:
     cache:
         app: cache.adapter.apcu
         system: cache.adapter.apcu
+    profiler:
+        enabled: false
 
 swiftmailer:
     transport: "%mailer_transport%"
@@ -83,6 +85,7 @@ jms_serializer:
             DbBundleEntity:
                 namespace_prefix: DbBundle\Entity
                 path: "@DbBundle/Resources/config/serializer"
+        caceh: apcu
     default_context:
         serialization:
             serialize_null: true
