@@ -140,13 +140,29 @@ class SettingManager extends AbstractManager
         return true;
     }
 
-    public function updateMaintenanceSetting(array $payload): void 
+    public function updateMaintenanceSetting(array $payload, bool $isSettingActiveTab = false): void 
     {
         $data = $this->getSetting('system.maintenance');
 
-        array_walk($data, function (&$value, $key) use ($payload) {
+        array_walk($data, function (&$items, $key) use ($payload, $isSettingActiveTab) {
             if ($key === $payload['type']) {
-                $value[$payload['index']]['value'] = $payload['value'];
+                if (!$isSettingActiveTab) {
+                    $items[$payload['index']]['value'] = $payload['value'];
+                } else {
+                    $updatedItems = [];
+                    $index = 0;
+                    foreach ($items as $item) {
+                        if ($payload['key'] === $item['key']) {
+                            $item['is_default'] = $payload['is_default'];
+                        } else {
+                            $item['is_default'] = false;
+                        }
+
+                        $updatedItems[$index++] = $item;
+                    }
+                    
+                    $items = $updatedItems;
+                }
             }   
         });
 

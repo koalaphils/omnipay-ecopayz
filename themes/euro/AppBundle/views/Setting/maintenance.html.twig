@@ -69,7 +69,7 @@
                                         </div>
                                         <div class="col-sm-4">
                                             <div class="checkbox checkbox-pink">
-                                                <input type="checkbox" name="default_active_tab" class="activeTab" value="{{ item.key }}" {% if item.is_default == true %}checked{% endif %}>
+                                                <input attr-key="{{ index }}_{{ item.key }}" type="checkbox" name="default_active_tab" class="activeTab" value="{{ item.key }}" {% if item.is_default == true %}checked{% endif %}>
                                                 <label for="checkbox1"> Make default active Tab </label>
                                             </div>
                                         </div>
@@ -115,10 +115,32 @@
         }); 
 
         $('.activeTab').on('click', function() {
-            var checkboxes = document.getElementsByName('default_active_tab')
+            var checkboxes = document.getElementsByName('default_active_tab');
+            var activeTab = $(this).attr('attr-key').split('_');
+            var tabStatus = this.checked ? true : false;
+
             checkboxes.forEach((item) => {
                 if (item.value !== $(this).val()) item.checked = false
-            })
+            });
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ path('app.setting.maintenance_save') }}",
+                data: {'type': 'integration',  'index': activeTab[0], 'key': activeTab[1], 'is_default': tabStatus},
+                dataType: 'json',
+            }).then(function (response) {
+                swal({
+                    'type': 'success',
+                    'title': 'Success',
+                    'text': response.message
+                });
+            }).fail( function( jqXHR, textStatus, errorThrown ) {
+                swal({
+                    'type': 'danger',
+                    'title': 'Error',
+                    'text': errorThrown
+                });
+            });
         });
     });
 </script>
