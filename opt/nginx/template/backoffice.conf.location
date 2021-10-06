@@ -27,6 +27,7 @@ location ~ ^/healthcheck\.php(/|$) {
   fastcgi_param PATH_INFO $fastcgi_path_info;
   fastcgi_param HTTPS $proxy_https if_not_empty;
   fastcgi_param HTTP_HOST $real_host;
+  fastcgi_param SERVER_NAME $server_name;
   fastcgi_pass $upstream_endpoint;
   internal;
 }
