@@ -85,7 +85,7 @@ jms_serializer:
             DbBundleEntity:
                 namespace_prefix: DbBundle\Entity
                 path: "@DbBundle/Resources/config/serializer"
-        caceh: apcu
+        cache: apcu
     default_context:
         serialization:
             serialize_null: true

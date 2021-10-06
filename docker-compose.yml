@@ -129,6 +129,8 @@ services:
       - .:/var/www/html
     environment:
       - WITH_PAYMENT_OPTIONS=true
+      - PHPHOST=piwibo-php
+      - PHPPORT=9000
       - ENVIRONMENT=dev
       - FPM_SERVER=piwibo-php:9000
       - TIMEZONE=Etc/GMT+4
