@@ -92,26 +92,9 @@
         $('.switch').on('change', function() {
             var currentStatus = this.checked ? true : false;
             var activeMaintenance = $(this).attr('attr-key').split('_');
-            var title = currentStatus ? 'Enabled' : 'Disabled';
-            var swalType = currentStatus ? 'success' : 'info';
-            $.ajax({
-                type: 'POST',
-                url: "{{ path('app.setting.maintenance_save') }}",
-                data: {'type': activeMaintenance[0],  'index': activeMaintenance[1], 'key': activeMaintenance[2], 'value': currentStatus},
-                dataType: 'json',
-            }).then(function (response) {
-                swal({
-                    'type': swalType,
-                    'title': title,
-                    'text': response.message + title.toLowerCase() 
-                });
-            }).fail( function( jqXHR, textStatus, errorThrown ) {
-                swal({
-                    'type': 'danger',
-                    'title': 'Error',
-                    'text': errorThrown
-                });
-            });
+            var payload = {'type': activeMaintenance[0],  'index': activeMaintenance[1], 'key': activeMaintenance[2], 'value': currentStatus};
+
+            updateMaintenanceSettings(payload);
         }); 
 
         $('.activeTab').on('click', function() {
@@ -119,18 +102,41 @@
             var activeTab = $(this).attr('attr-key').split('_');
             var tabStatus = this.checked ? true : false;
 
-            checkboxes.forEach((item) => {
-                if (item.value !== $(this).val()) item.checked = false
-            });
+            if (!tabStatus) {
+                this.checked = true;
+                swal({
+                    'type': 'warning',
+                    'title': 'Warning',
+                    'text': 'Please choose one active tab.'
+                });
+            } else {
+                checkboxes.forEach((item) => {
+                    if (item.value !== $(this).val()) {
+                        item.checked = false;
+                    } 
+
+                    var payload = {'type': 'integration',  'index': activeTab[0], 'key': activeTab[1], 'is_default': tabStatus};
+
+                    updateMaintenanceSettings(payload);
+                });
+            }
+        });
+
+        var updateMaintenanceSettings = function(payload) {
+            var swalType = 'success';
+
+            if (payload.hasOwnProperty('value')) {
+                swalType = payload.value ? 'success' : 'info';
+            }
 
             $.ajax({
                 type: 'POST',
                 url: "{{ path('app.setting.maintenance_save') }}",
-                data: {'type': 'integration',  'index': activeTab[0], 'key': activeTab[1], 'is_default': tabStatus},
+                data: payload,
                 dataType: 'json',
             }).then(function (response) {
                 swal({
-                    'type': 'success',
+                    'type': swalType,
                     'title': 'Success',
                     'text': response.message
                 });
@@ -141,7 +147,7 @@
                     'text': errorThrown
                 });
             });
-        });
+        }
     });
 </script>
 {% endblock %}

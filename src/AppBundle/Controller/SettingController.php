@@ -128,7 +128,8 @@ class SettingController extends AbstractController
 
         if (isset($payload['value'])) {
             $payload['value'] = filter_var($payload['value'], FILTER_VALIDATE_BOOLEAN);
-            $message = ['message' => ucfirst($payload['type']) . ' maintenance for '. $payload['key'] .' has been '];
+            $status = $payload['value'] ? 'Enabled' : 'Disabled';
+            $message = ['message' => ucfirst($payload['type']) . ' maintenance for '. $payload['key'] .' has been ' . $status];
         }
         
         if (isset($payload['is_default'])) {
