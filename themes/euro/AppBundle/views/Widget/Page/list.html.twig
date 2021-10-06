@@ -196,10 +196,10 @@
                         features.{{ filterName }}.value = '{{ app.request.get(filterDetail.value[1:], '') }}';
                     {% endif %}
 
-                        {# {% if filterDetail.type == 'select' and filterDetail.choicesFrom is defined %}
-                            delete features.{{ filterName }}.choicesFrom;
-                            features.{{ filterName }}.choices = {{ widget.getFilterChoices(filterName)|json_encode()|raw('js') }};
-                        {% endif %} #}
+                    {% if filterDetail.type == 'select' and filterDetail.choicesFrom is defined %}
+                        delete features.{{ filterName }}.choicesFrom;
+                        features.{{ filterName }}.choices = {{ widget.getFilterChoices(filterName)|json_encode()|raw('js') }};
+                    {% endif %}
 
                     {% if filterDetail.initialized is defined %}
                         features.{{ filterName }}.initialized = {{ filterDetail.initialized }};
