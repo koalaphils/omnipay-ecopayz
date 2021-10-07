@@ -135,7 +135,7 @@ class SettingController extends AbstractController
         if (isset($payload['is_default'])) {
             $isSettingActiveTab = true;
             $payload['is_default'] = filter_var($payload['is_default'], FILTER_VALIDATE_BOOLEAN);
-            $message = ['message' => ucfirst($payload['key']) .' has been set as active tab.'];
+            $message = ['message' => ucfirst($payload['key']) .' has been set as default active tab.'];
         }
 
         try {

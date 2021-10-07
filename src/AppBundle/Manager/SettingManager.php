@@ -152,12 +152,7 @@ class SettingManager extends AbstractManager
                     $updatedItems = [];
                     $index = 0;
                     foreach ($items as $item) {
-                        if ($payload['key'] === $item['key']) {
-                            $item['is_default'] = $payload['is_default'];
-                        } else {
-                            $item['is_default'] = false;
-                        }
-
+                        $item['is_default'] = $payload['key'] === $item['key'] ? $payload['is_default'] : false;
                         $updatedItems[$index++] = $item;
                     }
                     
