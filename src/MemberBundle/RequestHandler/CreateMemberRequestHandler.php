@@ -25,6 +25,7 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoder;
 use UserBundle\Manager\UserManager;
 use ApiBundle\Service\JWTGeneratorService;
 use ProductIntegrationBundle\ProductIntegrationFactory;
+use Psr\Log\LoggerInterface;
 
 class CreateMemberRequestHandler
 {
@@ -38,6 +39,7 @@ class CreateMemberRequestHandler
     private $jwtGeneratorService;
     private $productIntegrationFactory;
     private $affiliateService;
+    private $logger;
 
     public function __construct(
         string $asianconnectUrl,
@@ -49,7 +51,8 @@ class CreateMemberRequestHandler
         PinnacleService $pinnacleService,
         JWTGeneratorService $jwtGeneratorService,
         ProductIntegrationFactory $productIntegrationFactory,
-        AffiliateService $affiliateService
+        AffiliateService $affiliateService, 
+        LoggerInterface $logger
     ) {
         $this->entityManager = $entityManager;
         $this->requestStack = $requestStack;
@@ -61,6 +64,7 @@ class CreateMemberRequestHandler
         $this->jwtGeneratorService = $jwtGeneratorService;
         $this->productIntegrationFactory = $productIntegrationFactory;
         $this->affiliateService = $affiliateService;
+        $this->logger = $logger;
     }
 
     public function handle(CreateMemberRequest $request)
@@ -172,6 +176,7 @@ class CreateMemberRequestHandler
                     'sessionId' => $this->getSessionId(),
                 ]);
             } catch (\Exception $ex) {
+                $this->logger->info($ex->getMessage());
                 throw new \Exception('Failed to create EVO Account.', Response::HTTP_UNPROCESSABLE_ENTITY);
             }
         }
