@@ -37,8 +37,10 @@ class EvolutionIntegration implements ProductIntegrationInterface
         $response = $this->http->get('/balance' . '?id=' . $id, $token);
         $object = json_decode(((string) $response->getBody()));
 
-        $this->logger->info('EVOLUTION GET BALANCE ERROR');
-        $this->logger->debug((string) $response->getBody());
+        if (property_exists($object, 'error')) {
+            $this->logger->info('EVOLUTION ERROR: ' . (string) $response->getBody());
+            throw new IntegrationException('Error getting balance in evolution.', 422);
+        }
 
         return $object->userbalance->tbalance;
     }
