@@ -19,7 +19,7 @@ DbBundle\Entity\Customer:
             type: DbBundle\Entity\Currency
         country:
             groups: ['Default']
-            exp: object.getCountry()
+            exp: object.getCountryName()
             serialized_name: country
             type: string
         countryName:

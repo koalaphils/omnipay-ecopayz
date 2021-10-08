@@ -24,6 +24,7 @@ class EvolutionIntegration implements ProductIntegrationInterface
     {
         $response = $this->http->post('/auth', $token, $body);
         $object = json_decode(((string) $response->getBody()));
+        $this->logger->debug((string) $response->getBody());
         
         return [
             'entry' => $object->entry,
