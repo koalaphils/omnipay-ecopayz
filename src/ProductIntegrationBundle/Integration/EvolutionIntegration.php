@@ -3,6 +3,7 @@
 namespace ProductIntegrationBundle\Integration;
 
 use Exception;
+use Psr\Log\LoggerInterface;
 use ProductIntegrationBundle\Exception\IntegrationException\DebitIntegrationException;
 use ProductIntegrationBundle\Persistence\HttpPersistence;
 use ProductIntegrationBundle\Exception\IntegrationException;
@@ -11,10 +12,12 @@ use ProductIntegrationBundle\Exception\IntegrationException\CreditIntegrationExc
 class EvolutionIntegration implements ProductIntegrationInterface
 {
     private $http;
+    private $logger;
 
-    public function __construct(HttpPersistence $http)
+    public function __construct(HttpPersistence $http, LoggerInterface $logger)
     {
         $this->http = $http;
+        $this->logger = $logger;
     }
 
     public function auth(string $token, $body = []): array
@@ -33,6 +36,9 @@ class EvolutionIntegration implements ProductIntegrationInterface
     {
         $response = $this->http->get('/balance' . '?id=' . $id, $token);
         $object = json_decode(((string) $response->getBody()));
+
+        $this->logger('EVOLUTION GET BALANCE ERROR');
+        $this->logger($object);
 
         return $object->userbalance->tbalance;
     }
