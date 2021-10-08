@@ -105,6 +105,7 @@ widgets:
                         function: '@country.manager::getCountryList'
                         label: result['name'] ~ ' (' ~ result['code'] ~ ')'
                         value: result['code']
+                        preselect: true
                 currency:
                     options:
                         label: Currency

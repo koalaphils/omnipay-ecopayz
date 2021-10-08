@@ -749,12 +749,9 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this;
     }
 
-	/**
-	 * Get country.
-	 */
 	public function getCountry()
 	{
-		return $this->countryName;
+		return $this->country;
 	}
 
     public function setCountryName(string $countryName): self

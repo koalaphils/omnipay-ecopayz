@@ -70,12 +70,12 @@ class CreateMemberRequestHandler
     public function handle(CreateMemberRequest $request)
     {
         $user = new User();
-        $country = null;
+        $country = $request->getCountry();
+
         if ($request->isUseEmail()) {
             $username = $request->getEmail();
             $user->setSignupType(User::SIGNUP_TYPE_EMAIL);
         } else {
-            $country = $this->getCountryRepository()->findById($request->getCountry());
             $username = str_replace('+', '', $country->getPhoneCode() . $request->getPhoneNumber());
         }
 

@@ -220,7 +220,7 @@ class AuthHandler
         $memberLocale = $user->getCustomer()->getLocale();
         $memberLocale = strtolower(str_replace('_', '-', $memberLocale));
         $locale = !empty($memberLocale) ? $memberLocale : 'en';
-
+        
         $this->createPiwiWalletIfNotExisting($user->getCustomer());
         $this->createPiwixProductIfNotExisting($user->getCustomer());
 

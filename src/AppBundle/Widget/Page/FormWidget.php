@@ -463,11 +463,9 @@ class FormWidget extends AbstractPageWidget
                 $options['choices'] = array_filter($choices, function($choice) {
                     return $choice !== null;
                 });
-
                 $options['empty_data'] = null;
                 $options['required'] = false;
                 $options['placeholder'] = 'Unknown';
-
             } else {
                 $options['choices'] = $choices;
             }
