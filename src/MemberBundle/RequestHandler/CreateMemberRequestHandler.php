@@ -162,24 +162,24 @@ class CreateMemberRequestHandler
                 $memberEvoProduct->setBalance('0.00');
                 $memberEvoProduct->setIsActive(true);
                 $member->addProduct($memberEvoProduct);
-            }
 
-            try {
-                $jwt = $this->jwtGeneratorService->generate([]);
-                $integration->auth($jwt, [
-                    'id' => $memberEvoProduct->getUsername(),
-                    'lastName' => $request->getFullName() ? $request->getFullName() : $username,
-                    'firstName' => $request->getFullName() ? $request->getFullName() : $username,
-                    'nickname' => str_replace("Evolution_","", $memberEvoProduct->getUsername()),
-                    'country' => $country ? $country : 'UK',
-                    'language' => 'en',
-                    'currency' => $currency->getCode(),
-                    'ip' => $this->getClientIp(),
-                    'sessionId' => $this->getSessionId(),
-                ]);
-            } catch (\Exception $ex) {
-                $this->logger->info($ex->getMessage());
-                throw new \Exception('Failed to create EVO Account.', Response::HTTP_UNPROCESSABLE_ENTITY);
+                try {
+                    $jwt = $this->jwtGeneratorService->generate([]);
+                    $integration->auth($jwt, [
+                        'id' => $memberEvoProduct->getUsername(),
+                        'lastName' => $request->getFullName() ? $request->getFullName() : $username,
+                        'firstName' => $request->getFullName() ? $request->getFullName() : $username,
+                        'nickname' => str_replace("Evolution_","", $memberEvoProduct->getUsername()),
+                        'country' => $country ? $country : 'UK',
+                        'language' => 'en',
+                        'currency' => $currency->getCode(),
+                        'ip' => $this->getClientIp(),
+                        'sessionId' => $this->getSessionId(),
+                    ]);
+                } catch (\Exception $ex) {
+                    $this->logger->info($ex->getMessage());
+                    throw new \Exception('Failed to create EVO Account.', Response::HTTP_UNPROCESSABLE_ENTITY);
+                }
             }
         }
 
