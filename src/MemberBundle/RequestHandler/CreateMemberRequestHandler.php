@@ -153,14 +153,16 @@ class CreateMemberRequestHandler
             $member->setPinUserCode($pinnaclePlayer->userCode());
             $member->addProduct($memberPinProduct);
 
-            $integration = $this->productIntegrationFactory->getIntegration(Product::EVOLUTION_PRODUCT_CODE);
-            $evolutionProduct = $this->getProductRepository()->getProductByCode(Product::EVOLUTION_PRODUCT_CODE);
-            $memberEvoProduct = new CustomerProduct();
-            $memberEvoProduct->setProduct($evolutionProduct);
-            $memberEvoProduct->setUsername('Evolution_' . uniqid());
-            $memberEvoProduct->setBalance('0.00');
-            $memberEvoProduct->setIsActive(true);
-            $member->addProduct($memberEvoProduct);
+            if ($currency->getCode() === 'EUR') {
+                $integration = $this->productIntegrationFactory->getIntegration(Product::EVOLUTION_PRODUCT_CODE);
+                $evolutionProduct = $this->getProductRepository()->getProductByCode(Product::EVOLUTION_PRODUCT_CODE);
+                $memberEvoProduct = new CustomerProduct();
+                $memberEvoProduct->setProduct($evolutionProduct);
+                $memberEvoProduct->setUsername('Evolution_' . uniqid());
+                $memberEvoProduct->setBalance('0.00');
+                $memberEvoProduct->setIsActive(true);
+                $member->addProduct($memberEvoProduct);
+            }
 
             try {
                 $jwt = $this->jwtGeneratorService->generate([]);
