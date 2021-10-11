@@ -169,7 +169,7 @@ class CreateMemberRequestHandler
                     'lastName' => $request->getFullName() ? $request->getFullName() : $username,
                     'firstName' => $request->getFullName() ? $request->getFullName() : $username,
                     'nickname' => str_replace("Evolution_","", $memberEvoProduct->getUsername()),
-                    'country' => $country ? $country->getCode() : 'UK',
+                    'country' => $country ? $country : 'UK',
                     'language' => 'en',
                     'currency' => $currency->getCode(),
                     'ip' => $this->getClientIp(),
