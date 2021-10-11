@@ -36,6 +36,7 @@ DbBundle\Entity\Customer:
             groups: ['socials']
         details:
             expose: true
+            groups: ['Default']
         files:
             groups: ['files']
         contacts:
@@ -104,6 +105,7 @@ DbBundle\Entity\Customer:
             expose: true
             type: boolean
             serialized_name: is_enabled
+            groups: ['Default']
         isAffiliate:
             exp: object.getIsAffiliate()
             expose: true
