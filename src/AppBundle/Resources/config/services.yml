@@ -51,6 +51,8 @@ services:
 
     app.setting_manager:
         class: AppBundle\Manager\SettingManager
+        autowire: true
+        autoconfigure: true
         calls:
             - [ 'setContainer', ['@service_container'] ]
             - [ 'registerSettingMenu' ]

@@ -2,6 +2,9 @@
 
 namespace AppBundle\Manager;
 
+use AppBundle\Helper\Publisher;
+use AppBundle\WebsocketTopics;
+
 /**
  * Description of SettingManager.
  *
@@ -16,14 +19,16 @@ class SettingManager extends AbstractManager
     protected $settingsInfo;
     protected $settingCodes;
     protected $existingCodes;
+    private $publisher;
 
-    public function __construct()
+    public function __construct(Publisher $publisher)
     {
         $this->menus = [];
         $this->settings = null;
         $this->settingsInfo = [];
         $this->settingCodes = [];
         $this->existingCodes = [];
+        $this->publisher = $publisher;
     }
 
     public function registerSettingMenu()
@@ -162,6 +167,8 @@ class SettingManager extends AbstractManager
         });
 
         $this->getRepository()->updateSetting($payload['type'], 'system.maintenance', $data, true);
+        $this->publisher->publish(WebsocketTopics::TOPIC_INTEGRATION_MAINTENANCE . '.cmgk5956tk6114bc41d039a', json_encode($payload));
+        //$this->publisher->publishUsingWamp(WebsocketTopics::TOPIC_MAINTENANCE_INTEGRATION_TRIGGERED . '.cmgk5956tk6114bc41d039a', $payload);
     }
 
     public function getCode($code)
