@@ -148,6 +148,7 @@ class SettingManager extends AbstractManager
     public function updateMaintenanceSetting(array $payload, bool $isSettingActiveTab = false): void 
     {
         $data = $this->getSetting('system.maintenance');
+        $topic = $payload['type'] === 'app' ? WebsocketTopics::TOPIC_APP_MAINTENANCE : WebsocketTopics::TOPIC_INTEGRATION_MAINTENANCE;
 
         array_walk($data, function (&$items, $key) use ($payload, $isSettingActiveTab) {
             if ($key === $payload['type']) {
@@ -167,8 +168,7 @@ class SettingManager extends AbstractManager
         });
 
         $this->getRepository()->updateSetting($payload['type'], 'system.maintenance', $data, true);
-        $this->publisher->publish(WebsocketTopics::TOPIC_INTEGRATION_MAINTENANCE . '.cmgk5956tk6114bc41d039a', json_encode($payload));
-        //$this->publisher->publishUsingWamp(WebsocketTopics::TOPIC_MAINTENANCE_INTEGRATION_TRIGGERED . '.cmgk5956tk6114bc41d039a', $payload);
+        $this->publisher->publishUsingWamp($topic . '.cmgk5956tk6114bc41d039a', $payload);
     }
 
     public function getCode($code)
