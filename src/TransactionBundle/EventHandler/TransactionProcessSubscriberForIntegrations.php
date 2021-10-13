@@ -230,6 +230,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
 
                 if ($subTransaction->isDeposit()) {
                     try {
+                        $this->logger->info('Trying to debig on integration');
                         $newBalance = $this->debit($productCode, $transactionNumber, $currency, $customerProductUsername, $amount, $jwt);
                         $subTransaction->getCustomerProduct()->setBalance($newBalance);
                     } catch (DebitIntegrationException $ex) {

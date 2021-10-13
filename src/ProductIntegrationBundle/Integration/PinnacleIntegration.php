@@ -13,16 +13,19 @@ use ProductIntegrationBundle\Exception\IntegrationException\CreditIntegrationExc
 use ProductIntegrationBundle\Exception\IntegrationException\DebitIntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
 use ProductIntegrationBundle\Persistence\HttpPersistence;
+use Psr\Log\LoggerInterface;
 
 class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayerInterface
 {
     private $pinnacleService;
     private $http;
+    private $logger;
 
-    public function __construct(HttpPersistence $http, PinnacleService $pinnacleService)
+    public function __construct(HttpPersistence $http, PinnacleService $pinnacleService, LoggerInterface $logger)
     {
         $this->http = $http;
         $this->pinnacleService = $pinnacleService;
+        $this->logger = $logger;
     }
 
     public function auth(string $token, $body = []): array
@@ -73,8 +76,9 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
 
             return $response->availableBalance();
         } catch(PinnacleError $exception) {
+            $this->logger->info('CAUGHT EXCEPTION ON PINNACLE INTEGRATION');
             throw new DebitIntegrationException($exception->getMessage(), 422, $exception);
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             throw new DebitIntegrationException($exception->getMessage(), 422, $exception);
         }
     }
