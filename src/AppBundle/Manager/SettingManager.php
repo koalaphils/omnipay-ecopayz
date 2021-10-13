@@ -4,6 +4,7 @@ namespace AppBundle\Manager;
 
 use AppBundle\Helper\Publisher;
 use AppBundle\WebsocketTopics;
+use Exception;
 
 /**
  * Description of SettingManager.
@@ -150,25 +151,29 @@ class SettingManager extends AbstractManager
         $data = $this->getSetting('system.maintenance');
         $topic = $payload['type'] === 'app' ? WebsocketTopics::TOPIC_APP_MAINTENANCE : WebsocketTopics::TOPIC_INTEGRATION_MAINTENANCE;
 
-        array_walk($data, function (&$items, $key) use ($payload, $isSettingActiveTab) {
-            if ($key === $payload['type']) {
-                if (!$isSettingActiveTab) {
-                    $items[$payload['index']]['value'] = $payload['value'];
-                } else {
-                    $updatedItems = [];
-                    $index = 0;
-                    foreach ($items as $item) {
-                        $item['is_default'] = $payload['key'] === $item['key'] ? $payload['is_default'] : false;
-                        $updatedItems[$index++] = $item;
+        try {
+            array_walk($data, function (&$items, $key) use ($payload, $isSettingActiveTab) {
+                if ($key === $payload['type']) {
+                    if (!$isSettingActiveTab) {
+                        $items[$payload['index']]['value'] = $payload['value'];
+                    } else {
+                        $updatedItems = [];
+                        $index = 0;
+                        foreach ($items as $item) {
+                            $item['is_default'] = $payload['key'] === $item['key'] ? $payload['is_default'] : false;
+                            $updatedItems[$index++] = $item;
+                        }
+                        
+                        $items = $updatedItems;
                     }
-                    
-                    $items = $updatedItems;
-                }
-            }   
-        });
-
-        $this->getRepository()->updateSetting($payload['type'], 'system.maintenance', $data, true);
-        $this->publisher->publishUsingWamp($topic . '.cmgk5956tk6114bc41d039a', $payload);
+                }   
+            });
+    
+            $this->getRepository()->updateSetting($payload['type'], 'system.maintenance', $data, true);
+            $this->publisher->publishUsingWamp($topic . '.zimimwa_websocket', $payload);
+        } catch (Exception $exception) {
+            throw $exception;
+        }
     }
 
     public function getCode($code)
