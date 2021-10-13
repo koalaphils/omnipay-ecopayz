@@ -77,7 +77,7 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
             return $response->availableBalance();
         } catch(PinnacleError $exception) {
             $this->logger->info('CAUGHT EXCEPTION ON PINNACLE INTEGRATION');
-            throw new DebitIntegrationException($exception->getMessage(), 422, $exception);
+            throw new DebitIntegrationException($exception->getMessage(), 422);
         } catch (\Exception $exception) {
             throw new DebitIntegrationException($exception->getMessage(), 422, $exception);
         }
