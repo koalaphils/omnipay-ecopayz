@@ -27,7 +27,6 @@ class SettingController extends AbstractController
 
         $form = $this->createForm(MaintenanceType::class, $maintenance);
         $data = $this->getManager()->getSetting('system.maintenance');
-        dump($data);
 
         return $this->render('AppBundle:Setting:maintenance.html.twig', ['data' => $data, 'form' => $form->createView()]);
     }
