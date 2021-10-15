@@ -27,6 +27,7 @@ class SettingController extends AbstractController
 
         $form = $this->createForm(MaintenanceType::class, $maintenance);
         $data = $this->getManager()->getSetting('system.maintenance');
+        dump($data);
 
         return $this->render('AppBundle:Setting:maintenance.html.twig', ['data' => $data, 'form' => $form->createView()]);
     }
@@ -128,7 +129,7 @@ class SettingController extends AbstractController
 
         if (isset($payload['value'])) {
             $payload['value'] = filter_var($payload['value'], FILTER_VALIDATE_BOOLEAN);
-            $status = $payload['value'] ? 'Enabled' : 'Disabled';
+            $status = $payload['value'] ? 'Activated' : 'Deactivated';
             $message = ['message' => ucfirst($payload['type']) . ' maintenance for '. $payload['key'] .' has been ' . $status];
         }
         
