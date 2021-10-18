@@ -71,7 +71,7 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
 
         $payload = $this->createPayloadFromCustomerProduct($customerProduct);
 
-        $this->publisher->publish(Topics::TOPIC_CUSTOMER_PRODUCT_SUSPENDED . '.' . $channel, json_encode($payload));
+        $this->publisher->publishUsingWamp(Topics::TOPIC_CUSTOMER_PRODUCT_SUSPENDED . '.' . $channel, $payload);
     }
 
     public function onCustomerProductActivated(CustomerProductActivatedEvent $event)
