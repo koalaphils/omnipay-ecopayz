@@ -29,6 +29,7 @@ use ProductIntegrationBundle\ProductIntegrationFactory;
 use TransactionBundle\Exceptions\NoPiwiWalletProductException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Workflow\Event\Event as WorkflowEvent;
+use Psr\Log\LoggerInterface;
 
 class TransactionProcessSubscriberForIntegrations implements EventSubscriberInterface
 {
@@ -38,19 +39,23 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
     private $gatewayMemberTransaction;
     private $customerProductRepository;
     private $cpoService;
+    private $logger;
 
     public function __construct(
         ProductIntegrationFactory $factory,
         JWTGeneratorService $jwtGenerator,
         GatewayMemberTransaction $gatewayMemberTransaction,
         CustomerProductRepository $customerProductRepository,
-        CustomerPaymentOptionService $cpoService)
+        CustomerPaymentOptionService $cpoService,
+        LoggerInterface $logger)
     {
         $this->factory = $factory;
         $this->jwtGenerator = $jwtGenerator;
         $this->gatewayMemberTransaction = $gatewayMemberTransaction;
         $this->customerProductRepository = $customerProductRepository;
         $this->cpoService = $cpoService;
+        $this->logger = $logger;
+
     }
 
     public static function getSubscribedEvents()
