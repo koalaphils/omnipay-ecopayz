@@ -125,7 +125,7 @@ class CustomerProductController extends AbstractController
         if (is_null($customerProduct)) {
              throw new \Doctrine\ORM\NoResultException();
         } else if (!$customerProduct->getIsActive()) {
-            $customerProduct->activate();
+            $this->getManager()->suspend($customerProduct);
             $this->dispatchEvent(Events::EVENT_CUSTOMER_PRODUCT_ACTIVATED, new CustomerProductActivatedEvent($customerProduct));
             $this->_getCustomerProductRepository()->save($customerProduct);
             $message = [
@@ -153,9 +153,8 @@ class CustomerProductController extends AbstractController
         if (is_null($customerProduct)) {
              throw new \Doctrine\ORM\NoResultException();
         } else if ($customerProduct->getIsActive()) {
-            $customerProduct->suspend();
+            $this->getManager()->suspend($customerProduct);
             $this->dispatchEvent(Events::EVENT_CUSTOMER_PRODUCT_SUSPENDED, new CustomerProductSuspendedEvent($customerProduct));
-            $this->_getCustomerProductRepository()->save($customerProduct);
             $message = [
                 'type'      => 'success',
                 'title'     => $this->getTranslator()->trans('notification.suspended.title', [], 'CustomerProductBundle'),
@@ -175,31 +174,16 @@ class CustomerProductController extends AbstractController
         }
     }
 
-    /**
-     * Get Customer Product Manager.
-     *
-     * @return \CustomerBundle\Manager\CustomerProductManager
-     */
     protected function getManager()
     {
         return $this->getContainer()->get('customerproduct.manager');
     }
 
-    /**
-     * Get customer product repository.
-     *
-     * @return \DbBundle\Repository\CustomerProductRepository
-     */
     protected function _getCustomerProductRepository()
     {
         return $this->getDoctrine()->getRepository('DbBundle:CustomerProduct');
     }
 
-    /**
-     * Get product repository.
-     *
-     * @return \DbBundle\Repository\ProductRepository
-     */
     protected function _getProductRepository()
     {
         return $this->getDoctrine()->getRepository('DbBundle:Product');

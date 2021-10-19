@@ -67,4 +67,10 @@ class EwlIntegration implements ProductIntegrationInterface
             throw new DebitIntegrationException($exception->getMessage(), $exception->getCode(), $exception);
         }
     }
+
+    public function updateStatus(string $token, string $customerId, bool $active)
+    {
+        $url = sprintf('/accounts/status/%s', $customerId);
+        $response = $this->http->put($url, $token, [ 'active' => $active ]);
+    }
 }

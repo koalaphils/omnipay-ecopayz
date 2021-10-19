@@ -10,6 +10,7 @@ class PlayerComponent extends PinnacleComponent
 {
     private const CREATE_PLAYER_PATH = '/player/create';
     private const GET_PLAYER_PATH = '/player/info';
+    private const UPDATE_STATUS_PATH = '/player/update-status';
 
     public function createPlayer(string $loginId = '', string $agentCode = '')
     {
@@ -34,5 +35,10 @@ class PlayerComponent extends PinnacleComponent
         $data = $this->get(self::GET_PLAYER_PATH, ['userCode' => $userCode]);
 
         return Player::create($data);
+    }
+
+    public function updateStatus(string $activeStatus)
+    {
+       $this->get(self::UPDATE_STATUS_PATH, ['status' => $activeStatus]);
     }
 }

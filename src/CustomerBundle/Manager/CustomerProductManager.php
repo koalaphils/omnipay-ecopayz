@@ -19,7 +19,10 @@ class CustomerProductManager extends AbstractManager
     private $memberProductRepository;
     private $router;
 
-    public function __construct(ProductIntegrationFactory $integrationFactory, JWTGeneratorService $jwtService, CustomerProductRepository $memberProductRepository, RouterInterface $router)
+    public function __construct(ProductIntegrationFactory $integrationFactory, 
+        JWTGeneratorService $jwtService, 
+        CustomerProductRepository $memberProductRepository, 
+        RouterInterface $router)
     {
         $this->integrationFactory = $integrationFactory;
         $this->jwtService = $jwtService;
@@ -86,7 +89,25 @@ class CustomerProductManager extends AbstractManager
 
         return $results;
     }
-    
+
+
+    public function suspend(CustomerProduct $customerProduct)
+    {
+        $customerProduct->suspend();
+        $integration = $this->integrationFactory->getIntegration($customerProduct->getProduct()->getCode());
+        $jwt = $this->jwtService->generate([ 'roles' => ['ROLE_ADMIN'] ]);
+        $integration->updateStatus($jwt, $customerProduct->getCustomer()->getId(), false);
+        $this->getRepository()->save($customerProduct);
+    }
+
+    public function activeate(CustomerProduct $customerProduct)
+    {
+        $customerProduct->activate();
+        $integration = $this->integrationFactory->getIntegration($customerProduct->getProduct()->getCode());
+        $jwt = $this->jwtService->generate([ 'roles' => ['ROLE_ADMIN'] ]);
+        $integration->updateStatus($jwt, $customerProduct->getCustomer()->getId(), true);
+        $this->getRepository()->save($customerProduct);
+    }
 
     public function canSyncToCustomerProduct(string $syncId, string $customerProductId): bool
     {
