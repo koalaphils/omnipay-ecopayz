@@ -9,6 +9,7 @@ use ApiBundle\Request\Transaction\DepositRequest;
 use AppBundle\Manager\SettingManager;
 use AppBundle\Service\CustomerPaymentOptionService;
 use AppBundle\Service\PaymentOptionService;
+use AppBundle\ValueObject\Number;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerPaymentOption;
 use DbBundle\Entity\SubTransaction;
@@ -128,7 +129,10 @@ class DepositHandler
                     $member->getCurrencyCode()
                 );
                 $subTransaction = new SubTransaction();
-                $subTransaction->setAmount($productInfo->getAmount());
+	            $subTransaction->setFee('customer_fee', $transaction->getFee('customer_fee'));
+	            $amount = Number::parse($productInfo->getAmount(), $member->getLocale());
+	            $subTransaction->setDetail('requestedAmount', $amount);
+	            $subTransaction->setAmount((new Number($amount))->minus($subTransaction->getFee('customer_fee', 0)));
                 $subTransaction->setCustomerProduct($memberProduct);
                 $subTransaction->setType(Transaction::TRANSACTION_TYPE_DEPOSIT);
                 foreach ($productInfo->getMeta()->getPaymentDetailsAsArray() as $key => $value) {

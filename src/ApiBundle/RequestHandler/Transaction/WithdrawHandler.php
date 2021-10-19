@@ -9,6 +9,7 @@ use ApiBundle\Request\Transaction\WithdrawRequest;
 use AppBundle\Manager\SettingManager;
 use AppBundle\Service\CustomerPaymentOptionService;
 use AppBundle\Service\PaymentOptionService;
+use AppBundle\ValueObject\Number;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerPaymentOption;
 use DbBundle\Entity\PaymentOption;
@@ -124,7 +125,8 @@ class WithdrawHandler
                     $member->getCurrencyCode()
                 );
                 $subTransaction = new SubTransaction();
-                $subTransaction->setAmount($productInfo->getAmount());
+	            $amount = Number::parse($productInfo->getAmount(), $member->getLocale());
+                $subTransaction->setAmount($amount);
                 $subTransaction->setCustomerProduct($memberProduct);
                 $subTransaction->setType(Transaction::TRANSACTION_TYPE_WITHDRAW);
                 foreach ($productInfo->getMeta()->getPaymentDetailsAsArray() as $key => $value) {
