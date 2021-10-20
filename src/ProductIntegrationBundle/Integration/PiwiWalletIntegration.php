@@ -77,4 +77,9 @@ class PiwiWalletIntegration implements ProductIntegrationInterface
             throw new DebitIntegrationException($exception->getMessage(), $exception->getCode(), $exception);
         }
     }
+
+    public function updateStatus(string $token, string $customerId, bool $active)
+    {
+        // NOOP
+    }
 }
