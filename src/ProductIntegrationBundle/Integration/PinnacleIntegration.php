@@ -86,9 +86,7 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
             $activeStatus = $active ? 'ACTIVE' : 'INACTIVE';
             $this->logger->info('PINNACLE UPDATE');
             $this->logger->debug($productUsername);
-            $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->updateStatus($productUsername, $activeStatus);
-
-            return $pinnaclePlayer->availableBalance();
+            $this->pinnacleService->getPlayerComponent()->updateStatus($productUsername, $activeStatus);
         } catch (PinnacleException $exception) {
             throw new IntegrationNotAvailableException($exception->getMessage(), 422);
         } catch (PinnacleError $exception) {
