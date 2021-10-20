@@ -77,11 +77,11 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
         }
     }
 
-    public function updateStatus(string $token, string $customerId, bool $active)
+    public function updateStatus(string $token, string $id, bool $active)
     {
         try {
             $activeStatus = $active ? 'ACTIVE' : 'INACTIVE';
-            $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->updateStatus($activeStatus);
+            $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->updateStatus($id, $activeStatus);
 
             return $pinnaclePlayer->availableBalance();
         } catch (PinnacleException $exception) {

@@ -125,7 +125,7 @@ class CustomerProductController extends AbstractController
         if (is_null($customerProduct)) {
              throw new \Doctrine\ORM\NoResultException();
         } else if (!$customerProduct->getIsActive()) {
-            $this->getManager()->suspend($customerProduct);
+            $this->getManager()->activate($customerProduct);
             $this->dispatchEvent(Events::EVENT_CUSTOMER_PRODUCT_ACTIVATED, new CustomerProductActivatedEvent($customerProduct));
             $this->_getCustomerProductRepository()->save($customerProduct);
             $message = [

@@ -8,5 +8,5 @@ interface ProductIntegrationInterface
     public function getBalance(string $token, string $id): string;
     public function credit(string $token, array $params): string;
     public function debit(string $token, array $params): string;
-    public function updateStatus(string $token, string $customerId, bool $isActive);
+    public function updateStatus(string $token, string $productUsername, bool $isActive);
 }

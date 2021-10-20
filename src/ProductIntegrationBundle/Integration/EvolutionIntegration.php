@@ -76,7 +76,7 @@ class EvolutionIntegration implements ProductIntegrationInterface
         }
     }
 
-    public function updateStatus(string $token, string $customerId, bool $active)
+    public function updateStatus(string $token, string $productUsername, bool $active)
     {
         // Noop
     }

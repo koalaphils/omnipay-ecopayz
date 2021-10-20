@@ -37,7 +37,7 @@ class PlayerComponent extends PinnacleComponent
         return Player::create($data);
     }
 
-    public function updateStatus(string $activeStatus)
+    public function updateStatus(string $userCode, string $activeStatus)
     {
        $this->get(self::UPDATE_STATUS_PATH, ['status' => $activeStatus]);
     }

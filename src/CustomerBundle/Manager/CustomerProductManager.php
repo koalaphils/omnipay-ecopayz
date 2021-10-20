@@ -96,16 +96,16 @@ class CustomerProductManager extends AbstractManager
         $customerProduct->suspend();
         $integration = $this->integrationFactory->getIntegration($customerProduct->getProduct()->getCode());
         $jwt = $this->jwtService->generate([ 'roles' => ['ROLE_ADMIN'] ]);
-        $integration->updateStatus($jwt, $customerProduct->getCustomer()->getId(), false);
+        $integration->updateStatus($jwt, $customerProduct->getUsername(), false);
         $this->getRepository()->save($customerProduct);
     }
 
-    public function activeate(CustomerProduct $customerProduct)
+    public function activate(CustomerProduct $customerProduct)
     {
         $customerProduct->activate();
         $integration = $this->integrationFactory->getIntegration($customerProduct->getProduct()->getCode());
         $jwt = $this->jwtService->generate([ 'roles' => ['ROLE_ADMIN'] ]);
-        $integration->updateStatus($jwt, $customerProduct->getCustomer()->getId(), true);
+        $integration->updateStatus($jwt, $customerProduct->getUsername(), true);
         $this->getRepository()->save($customerProduct);
     }
 
