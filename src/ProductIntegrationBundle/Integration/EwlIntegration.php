@@ -80,7 +80,7 @@ class EwlIntegration implements ProductIntegrationInterface
             $url = sprintf('/accounts/status/%s', $customerId);
             $response = $this->http->put($url, $token, [ 'active' => $active ]);
         } catch (ServerException $exception) {
-            $this->logger->debug(Psr7\Message::toString($e->getResponse()));
+            $this->logger->debug(Psr7\Message::toString($exception->getResponse()));
             throw $exception;
         }
     }
