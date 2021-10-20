@@ -69,8 +69,9 @@ class EwlIntegration implements ProductIntegrationInterface
     }
 
     public function updateStatus(string $token, string $productUsername, bool $active)
-    {
-        $url = sprintf('/accounts/status/%s', $productUsername);
+    {   
+        $customerId = explode('_', $productUsername)[1];
+        $url = sprintf('/accounts/status/%s', $customerId);
         $response = $this->http->put($url, $token, [ 'active' => $active ]);
     }
 }
