@@ -38,7 +38,7 @@ class EvolutionIntegration implements ProductIntegrationInterface
         $object = json_decode(((string) $response->getBody()));
 
         $this->logger->info('EVOLUTION BALANCE');
-        $this->logger->debug($object);
+        $this->logger->debug((string) $response->getBody());
 
         return $object->userbalance->tbalance;
     }
