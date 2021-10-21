@@ -4,6 +4,7 @@ namespace ProductIntegrationBundle\Integration;
 
 use AppBundle\ValueObject\Number;
 use Exception;
+use ProductIntegrationBundle\Exception\IntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationException\CreditIntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationException\DebitIntegrationException;
 use ProductIntegrationBundle\Persistence\HttpPersistence;
@@ -75,13 +76,8 @@ class EwlIntegration implements ProductIntegrationInterface
 
     public function updateStatus(string $token, string $productUsername, bool $active)
     {   
-        try {
-            $customerId = explode('_', $productUsername)[1];
-            $url = sprintf('/accounts/status/%s', $customerId);
-            $response = $this->http->put($url, $token, [ 'active' => $active ]);
-        } catch (ServerException $exception) {
-            $this->logger->debug(Psr7\Message::toString($exception->getResponse()));
-            throw $exception;
-        }
+        $customerId = explode('_', $productUsername)[1];
+        $url = sprintf('/accounts/status/%s', $customerId);
+        $response = $this->http->put($url, $token, [ 'active' => $active ]);
     }
 }

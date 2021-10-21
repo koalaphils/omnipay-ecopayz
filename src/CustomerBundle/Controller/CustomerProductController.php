@@ -4,6 +4,7 @@ namespace CustomerBundle\Controller;
 use AppBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use ProductIntegrationBundle\Exception\IntegrationException;
 
 use CustomerBundle\Events;
 use CustomerBundle\Event\CustomerProductSaveEvent;
@@ -149,28 +150,36 @@ class CustomerProductController extends AbstractController
 
     public function suspendAction(Request $request, $id)
     {
-        $customerProduct = $this->_getCustomerProductRepository()->find($id);
-        if (is_null($customerProduct)) {
-             throw new \Doctrine\ORM\NoResultException();
-        } else if ($customerProduct->getIsActive()) {
+        try {
+            $customerProduct = $this->_getCustomerProductRepository()->find($id);
+
+            if ($customerProduct === null) return $this->json([], 404);
+            if (!$customerProduct->getIsActive()) return $this->json(['error' => 'Customer Product is already suspended!'], 400);
+
             $this->getManager()->suspend($customerProduct);
             $this->dispatchEvent(Events::EVENT_CUSTOMER_PRODUCT_SUSPENDED, new CustomerProductSuspendedEvent($customerProduct));
+
             $message = [
                 'type'      => 'success',
                 'title'     => $this->getTranslator()->trans('notification.suspended.title', [], 'CustomerProductBundle'),
                 'message'   => $this->getTranslator()->trans('notification.suspended.message', ['%username%' => $customerProduct->getUserName() ], 'CustomerProductBundle'),
             ];
+
             if (!$request->isXmlHttpRequest()) {
                 $this->getSession()->getFlashBag()->add('notifications', $message);
-
                 return $this->redirect($request->headers->get('referer'), JsonResponse::HTTP_OK);
             } else {
                 return new JsonResponse([
                     '__notifications' => $message, JsonResponse::HTTP_OK,
                 ]);
             }
-        } else {
-            throw new \Exception('Customer Product is already activated', JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (IntegrationException $ex) {
+            return $this->json([
+                '__notifications' =>  [
+                    'type' => 'error',
+                    'title' => 'Integration error, product cannot be suspended.'
+                ]
+            ],200);
         }
     }
 
