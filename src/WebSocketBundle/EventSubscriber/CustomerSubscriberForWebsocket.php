@@ -81,8 +81,7 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
         $channel = $customer->getWebsocketDetails()['channel_id'];
 
         $payload = $this->createPayloadFromCustomerProduct($customerProduct);
-
-        $this->publisher->publish(Topics::TOPIC_CUSTOMER_PRODUCT_ACTIVATED . '.' . $channel, json_encode($payload));
+        $this->publisher->publishUsingWamp(Topics::TOPIC_CUSTOMER_PRODUCT_ACTIVATED . '.' . $channel, $payload);
     }
 
     protected function createPayloadFromCustomerProduct(CustomerProduct $customerProduct): array
