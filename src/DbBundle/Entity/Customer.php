@@ -1377,11 +1377,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
                 return $this->getDetail('registration.locale');
             }
 
-            if ($this->getCountry() === null) {
-                return '';
-            }
-
-            return '';
+            return 'en';
         }
 
         return $this->locale;
