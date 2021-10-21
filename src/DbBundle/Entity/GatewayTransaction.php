@@ -224,7 +224,7 @@ class GatewayTransaction extends Entity implements ActionInterface, TimestampInt
         return $this;
     }
 
-    public function getPaymentOption():? PaymentOption
+    public function getPaymentOption()
     {
         return $this->paymentOption;
     }
@@ -500,7 +500,7 @@ class GatewayTransaction extends Entity implements ActionInterface, TimestampInt
         return $this->getCurrency();
     }
 
-    public function getGatewayPaymentOption():? PaymentOption
+    public function getGatewayPaymentOption()
     {
         return $this->getPaymentOption();
     }

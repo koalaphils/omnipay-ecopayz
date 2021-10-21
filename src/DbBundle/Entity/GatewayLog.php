@@ -161,7 +161,7 @@ class GatewayLog extends Entity
         return $this;
     }
 
-    public function getPaymentOption():? PaymentOption
+    public function getPaymentOption()
     {
         return $this->paymentOption;
     }

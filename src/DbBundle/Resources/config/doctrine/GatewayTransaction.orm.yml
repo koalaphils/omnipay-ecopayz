@@ -75,6 +75,10 @@ DbBundle\Entity\GatewayTransaction:
             column: gateway_transaction_updated_at
             nullable: true
             version: true
+        paymentOption:
+            type: string
+            column: gateway_transaction_payment_option_code
+            nullable: false
     manyToOne:
         gateway:
             targetEntity: DbBundle\Entity\Gateway
@@ -92,8 +96,3 @@ DbBundle\Entity\GatewayTransaction:
                 nullable: false
                 name: gateway_transaction_currency_id
                 referencedColumnName: currency_id
-        paymentOption:
-            targetEntity: DbBundle\Entity\PaymentOption
-            joinColumn:
-                name: gateway_transaction_payment_option_code
-                referencedColumnName: payment_option_code
