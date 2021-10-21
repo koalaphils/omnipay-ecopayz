@@ -91,6 +91,7 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
 
         $payload['username'] = $customerProduct->getUserName();
         $payload['isActive'] = $customerProduct->getIsActive();
+        $payload['product'] = $customerProduct->getProduct()->getCode();
 
         return $payload;
     }
