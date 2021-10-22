@@ -19,9 +19,9 @@
         <a class="btn btn-inverse waves-effect waves-light pull-right m-b-10" href="{{ path("gateway_transaction.list_page") }}">{{ "menus.BackToList"|trans({},"GatewayTransactionBundle") }}<span><i class="ti-arrow-left m-r-5 cls-icn-plus"></i></span></a>
         <ul class="list-inline quicklinks font-13 font-normal text-right">
             <li>{{ "quickLinks.name"|trans({},"GatewayTransactionBundle") }}:</li>
-            <li><a href="{{ path("customer.create_page") }}"> {{ "quickLinks.addCustomer"|trans({},"GatewayTransactionBundle") }}</a></li>|
-            <li><a href="{{ path("customer.list_page") }}"> {{ "quickLinks.customerList"|trans({},"GatewayTransactionBundle") }}</a></li>|
-            <li><a href="{{ path("customer.group_list_page") }}"> {{ "quickLinks.customerGroup"|trans({},"GatewayTransactionBundle") }}</a></li>
+            <li><a href="{{ path("member.create_page") }}"> {{ "quickLinks.addMember"|trans({},"GatewayTransactionBundle") }}</a></li>|
+            <li><a href="{{ path("member.list_page") }}"> {{ "quickLinks.memberList"|trans({},"GatewayTransactionBundle") }}</a></li>|
+            <li><a href="{{ path("customer.group_list_page") }}"> {{ "quickLinks.memberGroup"|trans({},"GatewayTransactionBundle") }}</a></li>
         </ul>
     </div>
 {% endblock pageHeaderExtra %}
