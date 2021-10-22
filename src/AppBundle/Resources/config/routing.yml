@@ -27,6 +27,10 @@ app.setting.maintenance_page:
     path:       /settings/maintenance
     defaults:   { _controller: AppBundle:Setting:maintenance }
 
+app.setting.maintenance_save:
+    path:       /settings/maintenance/save
+    defaults:   { _controller: AppBundle:Setting:saveMaintenance }    
+
 app.setting.paymentoptions_page:
     path:       /settings/paymentoptions
     defaults:   { _controller: AppBundle:Setting:paymentOption }

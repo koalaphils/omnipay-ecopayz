@@ -2,6 +2,10 @@
 
 namespace AppBundle\Manager;
 
+use AppBundle\Helper\Publisher;
+use AppBundle\WebsocketTopics;
+use Exception;
+
 /**
  * Description of SettingManager.
  *
@@ -16,14 +20,16 @@ class SettingManager extends AbstractManager
     protected $settingsInfo;
     protected $settingCodes;
     protected $existingCodes;
+    private $publisher;
 
-    public function __construct()
+    public function __construct(Publisher $publisher)
     {
         $this->menus = [];
         $this->settings = null;
         $this->settingsInfo = [];
         $this->settingCodes = [];
         $this->existingCodes = [];
+        $this->publisher = $publisher;
     }
 
     public function registerSettingMenu()
@@ -138,6 +144,36 @@ class SettingManager extends AbstractManager
         array_set($this->settings, $key, $value);
 
         return true;
+    }
+
+    public function updateMaintenanceSetting(array $payload, bool $isSettingActiveTab = false): void 
+    {
+        $data = $this->getSetting('system.maintenance');
+        $topic = $payload['type'] === 'app' ? WebsocketTopics::TOPIC_APP_MAINTENANCE : WebsocketTopics::TOPIC_INTEGRATION_MAINTENANCE;
+
+        try {
+            array_walk($data, function (&$items, $key) use ($payload, $isSettingActiveTab) {
+                if ($key === $payload['type']) {
+                    if (!$isSettingActiveTab) {
+                        $items[$payload['index']]['value'] = $payload['value'];
+                    } else {
+                        $updatedItems = [];
+                        $index = 0;
+                        foreach ($items as $item) {
+                            $item['is_default'] = $payload['key'] === $item['key'] ? $payload['is_default'] : false;
+                            $updatedItems[$index++] = $item;
+                        }
+                        
+                        $items = $updatedItems;
+                    }
+                }   
+            });
+    
+            $this->getRepository()->updateSetting($payload['type'], 'system.maintenance', $data, true);
+            $this->publisher->publishUsingWamp($topic . '.zimimwa_websocket', $payload);
+        } catch (Exception $exception) {
+            throw $exception;
+        }
     }
 
     public function getCode($code)

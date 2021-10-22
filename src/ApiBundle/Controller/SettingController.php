@@ -24,19 +24,26 @@ class SettingController extends AbstractController
      */
     public function getSettingAction(Request $request, SettingManager $settingManager, AppManager $appManager): View
     {
-        $confirmations = $settingManager->getSetting('bitcoin.confirmations');
+        $settings = []; 
 
-        $settings = [
-            'piwi247.session' => $settingManager->getSetting('piwi247.session'),
-            'bitcoin.setting' => $settingManager->getSetting('bitcoin.setting'),
-            'transaction.validate' => $settingManager->getSetting('transaction.validate'),
-            'pinnacle' => $settingManager->getSetting('pinnacle'),
-            'session' => $settingManager->getSetting('session'),
-            'bitcoin.confirmations' => $confirmations,
-            'bitcoin.max_confirmations' => count($confirmations) - 1,
-            'locales' => $appManager->getAvailableLocales(),
-            'referral.expiration' => $settingManager->getSetting('referral.cookie.expiration'),
-        ];
+        if ($request->query->get('filterByCode') !== null) {
+            $code = $request->query->get('filterByCode');
+            $settings = [$code => $settingManager->getSetting($code)];
+        } else {
+            $confirmations = $settingManager->getSetting('bitcoin.confirmations');
+            $settings = [
+                'piwi247.session' => $settingManager->getSetting('piwi247.session'),
+                'bitcoin.setting' => $settingManager->getSetting('bitcoin.setting'),
+                'transaction.validate' => $settingManager->getSetting('transaction.validate'),
+                'pinnacle' => $settingManager->getSetting('pinnacle'),
+                'session' => $settingManager->getSetting('session'),
+                'bitcoin.confirmations' => $confirmations,
+                'bitcoin.max_confirmations' => count($confirmations) - 1,
+                'locales' => $appManager->getAvailableLocales(),
+                'referral.expiration' => $settingManager->getSetting('referral.cookie.expiration'),
+                'system.maintenance' => $settingManager->getSetting('system.maintenance')
+            ];
+        }
 
         return $this->view([
             'error' => false,
