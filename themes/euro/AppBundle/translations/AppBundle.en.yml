@@ -83,7 +83,7 @@ settings:
     banner:
         label: Banner
     maintenance:
-        label: Maintenance
+        label: System Maintenance
         fields:
             enabled: Enable Maintenance
     paymentOption:

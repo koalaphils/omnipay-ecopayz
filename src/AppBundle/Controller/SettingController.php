@@ -2,12 +2,15 @@
 
 namespace AppBundle\Controller;
 
+use Symfony\Component\HttpFoundation\Response;
 use AppBundle\Form\MaintenanceType;
 use AppBundle\Form\SchedulerType;
 use AppBundle\Form\PaymentOptionsType;
+use Codeception\Util\HttpCode;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use DbBundle\Entity\Setting;
+use Exception;
 
 /**
  * Description of SettingController.
@@ -21,27 +24,11 @@ class SettingController extends AbstractController
         $this->denyAccessUnlessGranted(['ROLE_MAINTENANCE']);
 
         $maintenance = $this->getManager()->getSetting('maintenance');
-        $maintenance['enabled'] = ($maintenance['enabled']) ? true : false;
 
         $form = $this->createForm(MaintenanceType::class, $maintenance);
-        $form->handleRequest($request);
+        $data = $this->getManager()->getSetting('system.maintenance');
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $data = $form->getData();
-            $this->getManager()->updateSetting('maintenance.enabled', $data['enabled']);
-
-            $this->getSession()->getFlashBag()->add(
-                'notifications',
-                [
-                    'title' => $this->getTranslator()->trans('notification.setting.title', [], 'AppBundle'),
-                    'message' => $this->getTranslator()->trans('notification.setting.message', [], 'AppBundle'),
-                ]
-            );
-
-            return $this->redirectToRoute('app.setting.maintenance_page');
-        }
-
-        return $this->render('AppBundle:Setting:maintenance.html.twig', ['form' => $form->createView()]);
+        return $this->render('AppBundle:Setting:maintenance.html.twig', ['data' => $data, 'form' => $form->createView()]);
     }
 
     public function paymentOptionAction(Request $request)
@@ -102,6 +89,34 @@ class SettingController extends AbstractController
         return $this->render('AppBundle:Setting:banner.html.twig');
     }
 
+    public function saveMaintenanceAction(Request $request): JsonResponse 
+    {
+        $this->denyAccessUnlessGranted(['ROLE_MAINTENANCE']);
+
+        $payload = $request->request->all();
+        $isSettingActiveTab = false;
+
+        if (isset($payload['value'])) {
+            $payload['value'] = filter_var($payload['value'], FILTER_VALIDATE_BOOLEAN);
+            $status = $payload['value'] ? 'Activated' : 'Deactivated';
+            $message = ['message' => ucfirst($payload['type']) . ' maintenance for '. $payload['key'] .' has been ' . $status];
+        }
+        
+        if (isset($payload['is_default'])) {
+            $isSettingActiveTab = true;
+            $payload['is_default'] = filter_var($payload['is_default'], FILTER_VALIDATE_BOOLEAN);
+            $message = ['message' => ucfirst($payload['key']) .' has been set as default active tab.'];
+        }
+
+        try {
+            $this->getManager()->updateMaintenanceSetting($payload, $isSettingActiveTab);
+        } catch (Exception $exception) {
+            throw $exception;
+        } 
+
+        return new JsonResponse($message, Response::HTTP_OK);
+    }
+
     /**
      * Get Setting Manager.
      *
@@ -110,5 +125,15 @@ class SettingController extends AbstractController
     protected function getManager()
     {
         return $this->getContainer()->get('app.setting_manager');
+    }
+
+        /**
+     * Get setting repository.
+     *
+     * @return \DbBundle\Repository\SettingRepository
+     */
+    protected function getSettingRepository()
+    {
+        return $this->getDoctrine()->getRepository('DbBundle:Setting');
     }
 }

@@ -19,7 +19,7 @@ class SettingRepository extends \DbBundle\Repository\BaseRepository
         return $qb->getQuery()->getArrayResult();
     }
 
-    public function updateSetting($key, $code, $value)
+    public function updateSetting($key, $code, $value, $isAssocArray = false)
     {
         $status = false;
 
@@ -28,13 +28,22 @@ class SettingRepository extends \DbBundle\Repository\BaseRepository
         }
 
         $qb = $this->createQueryBuilder('s');
-        $qb->update('DbBundle:Setting', 's')
+
+        if (!$isAssocArray) {
+            $qb->update('DbBundle:Setting', 's')
              ->set('s.value', 'JSON_SET(s.value, :key, :value )')
              ->setParameter('key', ['$.' . $key])
              ->setParameter('value', [$value])
              ->where($qb->expr()->eq('s.code', ':code'))
              ->setParameter('code', $code);
-
+        } else {
+            $qb->update('DbBundle:Setting', 's')
+             ->set('s.value', ':value')
+             ->where($qb->expr()->eq('s.code', ':code'))
+             ->setParameter('value', json_encode($value))
+             ->setParameter('code', $code);
+        }
+        
         $qb->getQuery()->execute();
 
         return true;
