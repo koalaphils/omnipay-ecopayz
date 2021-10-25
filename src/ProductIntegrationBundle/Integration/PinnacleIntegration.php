@@ -75,7 +75,9 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
             $response = $transactionComponent->withdraw($params['id'], Number::format($params['amount'], ['precision' => 2]));
 
             return $response->availableBalance();
-        } catch (Exception $exception) {
+        } catch(PinnacleError $exception) {
+            throw new DebitIntegrationException($exception->getMessage(), 422);
+        } catch (\Exception $exception) {
             throw new DebitIntegrationException($exception->getMessage(), 422, $exception);
         }
     }

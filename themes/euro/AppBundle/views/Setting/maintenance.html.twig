@@ -19,14 +19,192 @@
 
 {% block page %}
     <div class="col-sm-12">
-        <div class="card-box">
-            {{ form_start(form) }}
-            {{ form_widget(form) }}
-            {{ form_end(form) }}
-        </div>
+        <ul class="nav nav-tabs">
+            <li class="li-tab active">
+                <a href="#app" data-toggle="tab">
+                    <span class="hidden-xs">App Maintenance</span>
+                </a>
+            </li>
+            <li class="li-tab">
+                <a href="#integration" data-toggle="tab">
+                    <span class="hidden-xs">Integration Maintenance</span>
+                </a>
+            </li>
+        </ul>
+        {% if data is not null %}
+            <div class="tab-content bg-muted">
+                <div class="tab-pane active" id="app">
+                    <div class="card-box">
+                        <h4 class="m-b-20"><b>App Maintenance</b></h4>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="list-group m-b-0">
+                                    {% for index, item in data.app %}
+                                    <a href="#" class="list-group-item"> 
+                                        <div class="row">
+                                            <label class="col-sm-3 control-label">{{ item.label }}</label>
+                                            <div class="col-sm-6">
+                                                <input attr-key="app_{{ index }}_{{ item.key }}" class="switch" type="checkbox" {% if item.value == true %}checked{% endif %} data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
+                                            </div>
+                                        </div>
+                                    </a>
+                                    {% endfor %}  
+                                </div>
+                            </div>
+                            <div class="col-sm-6"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="integration">
+                    <div class="card-box">  
+                        <h4 class="m-b-20"><b>Integration Maintenance</b></h4>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="list-group m-b-0">
+                                    {% for index, item in data.integration %}
+                                    <a href="#" class="list-group-item"> 
+                                        <div class="row">   
+                                            <label class="col-sm-3 control-label">{{ item.label }}</label>
+                                            <div class="col-sm-4">
+                                                <input attr-key="integration_{{ index }}_{{ item.key }}" class="switch" type="checkbox" {% if item.value == true %}checked{% endif %} data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <div class="checkbox checkbox-pink">
+                                                    <input attr-key="{{ index }}_{{ item.key }}" type="checkbox" name="default_active_tab" class="activeTab" value="{{ item.key }}" {% if item.is_default == true %}checked{% endif %}>
+                                                    <label for="checkbox1"> Make default active Tab </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                    {% endfor %}  
+                                </div>
+                            </div>
+                            <div class="col-sm-6"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %} 
+            <div class="tab-content bg-muted">
+                <div class="tab-pane active">
+                    <div class="card-box">
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> Missing system maintenance settings.
+                        </div>
+                        <p class="text-muted m-b-15 font-13">
+                            Insert the settings value below with setting code <code> system.maintenance </code>
+                        </p>
+                        <pre>
+                            {
+                                "app": [
+                                    {
+                                    "key": "member",
+                                    "label": "Member Site",
+                                    "value": false
+                                    },
+                                    {
+                                    "key": "affiliate",
+                                    "label": "Afiliate Site",
+                                    "value": false
+                                    }
+                                ],
+                                "integration": [
+                                    {
+                                    "key": "piwix",
+                                    "label": "PiwixChange",
+                                    "value": false,
+                                    "is_default": true
+                                    },
+                                    {
+                                    "key": "sports",
+                                    "label": "Sports",
+                                    "value": false,
+                                    "is_default": false
+                                    },
+                                    {
+                                    "key": "casino",
+                                    "label": "Casino",
+                                    "value": false,
+                                    "is_default": false
+                                    }
+                                ]
+                            }
+                        </pre>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
     </div>
 {% endblock %}
 
 {% block javascripts %}
-    {{ form_javascript(form) }}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('.switch').on('change', function() {
+            var currentStatus = this.checked ? true : false;
+            var activeMaintenance = $(this).attr('attr-key').split('_');
+            var payload = {'type': activeMaintenance[0],  'index': activeMaintenance[1], 'key': activeMaintenance[2], 'value': currentStatus};
+
+            updateMaintenanceSettings(payload);
+        }); 
+
+        $('.activeTab').on('click', function() {
+            var checkboxes = document.getElementsByName('default_active_tab');
+            var activeTab = $(this).attr('attr-key').split('_');
+            var tabStatus = this.checked ? true : false;
+
+            if (!tabStatus) {
+                this.checked = true;
+                swal({
+                    'type': 'warning',
+                    'title': 'Warning',
+                    'text': 'Please choose one active tab.'
+                });
+            } else {
+                checkboxes.forEach((item) => {
+                    if (item.value !== $(this).val()) {
+                        item.checked = false;
+                    } 
+
+                    var payload = {'type': 'integration',  'index': activeTab[0], 'key': activeTab[1], 'is_default': tabStatus};
+
+                    updateMaintenanceSettings(payload);
+                });
+            }
+        });
+
+        var updateMaintenanceSettings = function(payload) {
+            var swalType = 'success';
+            var swalTitle = 'Success';
+        
+            if (payload.hasOwnProperty('value')) {
+                if (payload.value) {
+                    swalTitle = 'Activated';
+                } else {
+                    swalType = 'info';
+                    swalTitle = 'Deactivated';
+                }
+            }
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ path('app.setting.maintenance_save') }}",
+                data: payload,
+                dataType: 'json',
+            }).then(function (response) {
+                swal({
+                    'type': swalType,
+                    'title': swalTitle,
+                    'text': response.message
+                });
+            }).fail( function( jqXHR, textStatus, errorThrown ) {
+                swal({
+                    'type': 'error',
+                    'title': 'Error',
+                    'text': errorThrown
+                });
+            });
+        }
+    });
+</script>
 {% endblock %}
