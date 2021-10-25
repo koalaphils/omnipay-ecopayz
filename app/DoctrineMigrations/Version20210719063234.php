@@ -36,6 +36,9 @@ final class Version20210719063234 extends AbstractMigration
 	    $this->addSql('ALTER TABLE gateway DROP FOREIGN KEY FK_14FEDD7FDF7081C');
 	    $this->addSql('ALTER TABLE gateway_transaction DROP CONSTRAINT FK_4136A341FDCE26F6');
 	    $this->addSql('ALTER TABLE gateway_log DROP CONSTRAINT FK_E4BC7FD876B8098E');
+
+	    // Setting transaction.equations
+	    $this->addSql('UPDATE setting SET setting_value = JSON_SET(setting_value, "$.withdraw", JSON_OBJECT("totalAmount", JSON_OBJECT("equation", "x+y", "variables", JSON_OBJECT("x", "sum_products", "y", "total_customer_fee")), "customerAmount", JSON_OBJECT("equation", "x", "variables", JSON_OBJECT("x", "sum_products")))) where setting_id = 98');
     }
 
     public function down(Schema $schema) : void
@@ -62,5 +65,8 @@ final class Version20210719063234 extends AbstractMigration
 	    $this->addSql('ALTER TABLE gateway ADD CONSTRAINT FK_14FEDD7FDF7081C FOREIGN KEY (gateway_payment_option) REFERENCES payment_option (payment_option_code)');
 	    $this->addSql('ALTER TABLE gateway_transaction ADD CONSTRAINT FK_4136A341FDCE26F6 FOREIGN KEY (gateway_transaction_payment_option_code) REFERENCES payment_option(payment_option_code)');
 	    $this->addSql('ALTER TABLE gateway_log ADD CONSTRAINT FK_E4BC7FD876B8098E FOREIGN KEY (gateway_log_payment_option_code) REFERENCES payment_option(payment_option_code)');
+
+		// Setting transaction.equations
+	    $this->addSql('UPDATE setting SET setting_value = JSON_SET(setting_value, "$.withdraw", JSON_OBJECT("totalAmount", JSON_OBJECT("equation", "x", "variables", JSON_OBJECT("x", "sum_products")), "customerAmount", JSON_OBJECT("equation", "x-y", "variables", JSON_OBJECT("x", "sum_products", "y", "total_customer_fee")))) where setting_id = 98');
     }
 }
