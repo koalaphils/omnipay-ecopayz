@@ -194,7 +194,8 @@ class AuthHandler
             'process_payments' => $this->getPaymentOptions($user->getCustomer()->getId()),
             'products' => $member->getProducts(),
             'jwt' => $jwt,
-            'accessToken' => $accessToken->getToken()
+            'accessToken' => $accessToken->getToken(),
+            'loginPath' => $this->getDefaultLoginPath($member)
         ], $integrationResponses);
         
         $this->deleteUserAccessToken($accessToken->getUser()->getId(), [], [$accessToken->getToken()]);
@@ -503,5 +504,18 @@ class AuthHandler
 
         $this->entityManager->persist($session);
         $this->entityManager->flush($session);
+    }
+
+    private function getDefaultLoginPath(Customer $member): string 
+    {
+        if ($member->isActiveProduct(Product::PIWIXCHANGE_CODE)) {
+            return 'customer';
+        } else if ($member->isActiveProduct(Product::SPORTS_CODE)) {
+            return 'sports';
+        } else if ($member->isActiveProduct(Product::EVOLUTION_PRODUCT_CODE)) {
+            return 'casino';
+        } else {
+            return 'home';
+        }
     }
 }

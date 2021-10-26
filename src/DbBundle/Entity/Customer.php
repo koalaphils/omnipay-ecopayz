@@ -830,6 +830,19 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $activeProducts;
     }
 
+    public function isActiveProduct(string $code) : bool
+    {
+        $allProducts = $this->products;
+        $result = false;
+        foreach($allProducts as $product) {
+            if ($product->isActive() && ($product->getProduct()->getCode() === $code)) {
+                $result = true;
+            }
+        }
+
+        return $result;
+    }
+
     public function setProducts($products): self
     {
         $this->products = $products;
