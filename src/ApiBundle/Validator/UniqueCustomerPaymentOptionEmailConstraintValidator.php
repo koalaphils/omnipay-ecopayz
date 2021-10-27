@@ -3,6 +3,8 @@
 namespace ApiBundle\Validator;
 
 use ApiBundle\Model\Transaction;
+use ApiBundle\Request\Transaction\DepositRequest;
+use ApiBundle\Request\Transaction\WithdrawRequest;
 use AppBundle\Service\CustomerPaymentOptionService;
 use AppBundle\Service\PaymentOptionService;
 use Symfony\Component\Validator\Constraint;
@@ -19,7 +21,7 @@ class UniqueCustomerPaymentOptionEmailConstraintValidator extends ConstraintVali
 	}
 
 	/**
-	 * @param Transaction $transactionModel
+	 * @param DepositRequest|WithdrawRequest $transactionModel
 	 * @param Constraint $constraint
 	 */
 	public function validate($transactionModel, Constraint $constraint)
@@ -31,21 +33,21 @@ class UniqueCustomerPaymentOptionEmailConstraintValidator extends ConstraintVali
 		$value = '';
 		$field = '';
 
-		if (PaymentOptionService::isConfiguredToUseEmail($transactionModel->getPaymentOptionCode())) {
+		if (PaymentOptionService::isConfiguredToUseEmail($transactionModel->getPaymentOptionType())) {
 			$value = $transactionModel->getEmail() ?? '';
 			if ($value === '') return;
 			$field = 'email';
 		}
 
-		if (PaymentOptionService::isConfiguredToUseAccountId($transactionModel->getPaymentOptionCode())) {
+		if (PaymentOptionService::isConfiguredToUseAccountId($transactionModel->getPaymentOptionType())) {
 			$value = $transactionModel->getAccountId() ?? '';
 			if ($value === '') return;
 			$field = PaymentOptionService::USDT ? 'email' : 'account_id';
 		}
 
 		$availability = $this->cpoService->checkAvailability(
-			$transactionModel->getCustomer()->getId(),
-			$transactionModel->getPaymentOptionCode(),
+			$transactionModel->getMemberId(),
+			$transactionModel->getPaymentOptionType(),
 			$field,
 			$value
 		);
@@ -53,15 +55,12 @@ class UniqueCustomerPaymentOptionEmailConstraintValidator extends ConstraintVali
 		if (!$availability['available']) {
 			if ($field == 'account_id') {
 				$this->context->buildViolation($constraint->getAccountIdViolationMessage())->addViolation();
-				return;
 			} else {
-				if ($transactionModel->getPaymentOptionCode() == PaymentOptionService::USDT) {
-					$this->context->buildViolation($constraint->getAccountIdUsdtViolationMessage())->addViolation();
+				if ($transactionModel->getPaymentOptionType() == PaymentOptionService::USDT) {
+					$this->context->buildViolation($constraint->getAccountIdUsdtViolationMessage())->atPath($field)->addViolation();
 				} else {
-					$this->context->buildViolation($constraint->getEmailViolationMessage())->addViolation();
+					$this->context->buildViolation($constraint->getEmailViolationMessage())->atPath($field)->addViolation();
 				}
-
-				return;
 			}
 		}
 	}
