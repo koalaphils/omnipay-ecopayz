@@ -79,8 +79,8 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
         $customerProduct = $event->getCustomerProduct();
         $customer = $customerProduct->getCustomer();
         $channel = $customer->getWebsocketDetails()['channel_id'];
-
         $payload = $this->createPayloadFromCustomerProduct($customerProduct);
+        $payload['details'] = $event->getDetails();
         $this->publisher->publishUsingWamp(Topics::TOPIC_CUSTOMER_PRODUCT_ACTIVATED . '.' . $channel, $payload);
     }
 
@@ -89,11 +89,11 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
         $customer = $customerProduct->getCustomer();
         $channel = $customer->getWebsocketDetails()['channel_id'];
 
-        $payload['username'] = $customerProduct->getUserName();
-        $payload['isActive'] = $customerProduct->getIsActive();
-        $payload['product'] = $customerProduct->getProduct()->getCode();
-
-        return $payload;
+        return [
+            'username' => $customerProduct->getUserName(),
+            'isActive' => $customerProduct->getIsActive(),
+            'product' =>  $customerProduct->getProduct()->getCode()
+        ];
     }
 
     public function onReferralLinked(ReferralEvent $event): void

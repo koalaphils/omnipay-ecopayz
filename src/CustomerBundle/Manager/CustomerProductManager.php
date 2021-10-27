@@ -4,13 +4,17 @@ namespace CustomerBundle\Manager;
 
 use DbBundle\Entity\CustomerProduct;
 use DbBundle\Repository\CustomerProductRepository;
-use Symfony\Component\Routing\RouterInterface;
-use AppBundle\Manager\AbstractManager;
-use ProductIntegrationBundle\ProductIntegrationFactory;
 use ApiBundle\Service\JWTGeneratorService;
+use AppBundle\Manager\AbstractManager;
+use CustomerBundle\Events;
+use CustomerBundle\Event\CustomerProductSaveEvent;
+use CustomerBundle\Event\CustomerProductSuspendedEvent;
+use CustomerBundle\Event\CustomerProductActivatedEvent;
+use ProductIntegrationBundle\ProductIntegrationFactory;
 use ProductIntegrationBundle\Exception\IntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
 use ProductIntegrationBundle\Exception\NoSuchIntegrationException;
+use Symfony\Component\Routing\RouterInterface;
 
 class CustomerProductManager extends AbstractManager 
 {
@@ -100,13 +104,23 @@ class CustomerProductManager extends AbstractManager
         $this->getRepository()->save($customerProduct);
     }
 
-    public function activate(CustomerProduct $customerProduct)
+    public function activate(CustomerProduct $customerProduct): CustomerProductActivatedEvent
     {
         $customerProduct->activate();
+        $customer = $customerProduct->getCustomer();
         $integration = $this->integrationFactory->getIntegration($customerProduct->getProduct()->getCode());
         $jwt = $this->jwtService->generate([ 'roles' => ['ROLE_ADMIN'] ]);
         $integration->updateStatus($jwt, $customerProduct->getUsername(), true);
         $this->getRepository()->save($customerProduct);
+
+        $event = new CustomerProductActivatedEvent($customerProduct);
+        // relogin if pinnacle
+        if ($customerProduct->isPinnacle()) {
+            $details = $integration->auth($customer->getPinUserCode(), ['locale' => $customer->getLocale()]);
+            $event->setDetails($details);
+        }
+
+        return $event;
     }
 
     public function canSyncToCustomerProduct(string $syncId, string $customerProductId): bool
