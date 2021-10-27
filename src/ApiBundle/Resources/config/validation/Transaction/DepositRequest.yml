@@ -1,4 +1,6 @@
 ApiBundle\Request\Transaction\DepositRequest:
+  constraints:
+    - ApiBundle\Validator\UniqueCustomerPaymentOptionEmailConstraint: ~
   group_sequence_provider: true
   getters:
     paymentOptionType:
@@ -16,5 +18,8 @@ ApiBundle\Request\Transaction\DepositRequest:
       - NotBlank: ~
     companyFee:
       - NotBlank: ~
-    # meta:
-    #   - Valid: ~
+    email:
+      - NotNull:
+          message: "Email cannot be empty"
+      - Email:
+          message: "Invalid Email"

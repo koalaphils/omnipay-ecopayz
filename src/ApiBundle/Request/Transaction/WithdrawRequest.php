@@ -125,4 +125,9 @@ class WithdrawRequest implements GroupSequenceProviderInterface
     {
         return $this->getMeta()->getFields()->getAccountId();
     }
+
+	public function getEmail(): string
+	{
+		return $this->getMeta()->getFields()->getEmail();
+	}
 }
