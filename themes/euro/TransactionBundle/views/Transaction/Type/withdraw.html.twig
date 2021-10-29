@@ -130,7 +130,8 @@
                 'customerProduct': null,
                 'amount': 0,
                 'customerFee': null,
-                'enabled': true
+                'enabled': true,
+                'hasFee': true
             });
             {%- endfor %}
 
@@ -148,12 +149,21 @@
             });
 
             $('.btn-add-product').click(function() {
+            	var hasFee = true;
+
+            	$.each(products.items, function (key, value) {
+                    if (value?.info.hasFee) {
+                    	hasFee = false;
+                    }
+                });
+
                 products.add({
                     'type': 2,
                     'customerProduct': null,
                     'amount': 0,
                     'customerFee': null,
-                    'enabled': true
+                    'enabled': true,
+                    'hasFee': hasFee
                 });
             });
 

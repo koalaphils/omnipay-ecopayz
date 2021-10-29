@@ -132,6 +132,7 @@ class DepositHandler
 	            $subTransaction->setFee('customer_fee', $transaction->getFee('customer_fee'));
 	            $amount = Number::parse($productInfo->getAmount(), $member->getLocale());
 	            $subTransaction->setDetail('requestedAmount', $amount);
+	            $subTransaction->setDetail('hasFee', true);
 	            $subTransaction->setAmount((new Number($amount))->minus((string)$subTransaction->getFee('customer_fee', '0')));
                 $subTransaction->setCustomerProduct($memberProduct);
                 $subTransaction->setType(Transaction::TRANSACTION_TYPE_DEPOSIT);

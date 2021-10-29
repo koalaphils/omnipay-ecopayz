@@ -129,6 +129,7 @@ class WithdrawHandler
                 $subTransaction->setAmount($amount);
                 $subTransaction->setCustomerProduct($memberProduct);
                 $subTransaction->setType(Transaction::TRANSACTION_TYPE_WITHDRAW);
+	            $subTransaction->setDetail('hasFee', true);
                 foreach ($productInfo->getMeta()->getPaymentDetailsAsArray() as $key => $value) {
                     $subTransaction->setDetail($key, $value);
                 }
