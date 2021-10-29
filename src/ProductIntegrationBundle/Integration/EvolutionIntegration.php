@@ -7,14 +7,17 @@ use ProductIntegrationBundle\Exception\IntegrationException\DebitIntegrationExce
 use ProductIntegrationBundle\Persistence\HttpPersistence;
 use ProductIntegrationBundle\Exception\IntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationException\CreditIntegrationException;
+use Psr\Log\LoggerInterface;
 
 class EvolutionIntegration implements ProductIntegrationInterface
 {
     private $http;
+    private $logger;
 
-    public function __construct(HttpPersistence $http)
+    public function __construct(HttpPersistence $http, LoggerInterface $logger)
     {
         $this->http = $http;
+        $this->logger = $logger;
     }
 
     public function auth(string $token, $body = []): array
@@ -71,5 +74,10 @@ class EvolutionIntegration implements ProductIntegrationInterface
         } catch (Exception $exception) {
             throw new DebitIntegrationException($exception->getMessage(), $exception->getCode(), $exception);
         }
+    }
+
+    public function updateStatus(string $token, string $productUsername, bool $active)
+    {
+        // Noop
     }
 }
