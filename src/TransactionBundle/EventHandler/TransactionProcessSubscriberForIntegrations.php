@@ -17,6 +17,7 @@ use AppBundle\Service\CustomerPaymentOptionService;
 use DbBundle\Entity\Customer as Member;
 use DbBundle\Entity\CustomerProduct;
 use DbBundle\Entity\Product;
+use DbBundle\Entity\SubTransaction;
 use DbBundle\Entity\Transaction;
 use DbBundle\Entity\User;
 use DbBundle\Repository\CustomerProductRepository;
@@ -84,7 +85,8 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
 
         // Acknowledged
         if ($transaction->getStatus() === Transaction::TRANSACTION_STATUS_ACKNOWLEDGE) {
-            foreach ($subTransactions as $subTransaction) {
+            /** @var SubTransaction $subTransaction */
+	        foreach ($subTransactions as $subTransaction) {
                 $amount = $subTransaction->getAmount();
                 $customerProductUsername = $subTransaction->getCustomerProduct()->getUsername();
                 $productCode = strtolower($subTransaction->getCustomerProduct()->getProduct()->getCode());
@@ -103,6 +105,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                 if ($subTransaction->isWithdrawal()) {
                     try {
                         if (!($transaction->isTransferSourcePiwiWalletProduct() || $subTransaction->isPiwiWalletMemberProduct())) {
+							$amount += $subTransaction->getCustomerFee();
                             $newBalance = $this->debit($productCode, $transactionNumber, $currency, $customerProductUsername, $amount, $jwt);
                             $subTransaction->getCustomerProduct()->setBalance($newBalance);
                             $subTransaction->setHasBalanceAdjusted(true);
@@ -171,6 +174,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                 if ($subTransaction->isWithdrawal()) {
                     try {
                         if (!$transaction->isTransfer()) {
+	                        $amount += $subTransaction->getCustomerFee();
                             $this->debit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         }
                     } catch (DebitIntegrationException $ex) {
@@ -202,6 +206,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                 // If the transition is from Acknowledged to Declined
                 if ($subTransaction->isWithdrawal() && $transitionName == Transaction::TRANSACTION_STATUS_ACKNOWLEDGE . '_' . Transaction::TRANSACTION_STATUS_DECLINE) {
                     try {
+	                    $amount += $subTransaction->getCustomerFee();
                         //Debit transferred funds from PIWI Wallet.
                         $this->debit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         //Credit from Product Wallet to rollback funds.
@@ -254,6 +259,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
 
                 if ($subTransaction->isWithdrawal()) {
                     try {
+	                    $amount += $subTransaction->getCustomerFee();
                         $newBalance = $this->credit($productCode, $transactionNumber, $currency, $customerProductUsername, $amount, $jwt);
                         $subTransaction->getCustomerProduct()->setBalance($newBalance);
                     } catch (CreditIntegrationException $ex) {
