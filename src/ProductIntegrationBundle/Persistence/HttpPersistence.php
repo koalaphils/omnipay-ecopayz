@@ -49,4 +49,20 @@ class HttpPersistence
             throw new IntegrationNotAvailableException($this->baseUrl);
         }
     }
+
+    public function put(string $url, string $token, $body = [])
+    {
+        try {
+            return $this->client->put($this->baseUrl . $url, [
+                'json' => $body,
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $token,
+                ]
+            ]);
+        } catch (ClientException $e) {
+            throw new IntegrationException($e->getResponse()->getBody(), $e->getResponse()->getStatusCode());
+        } catch (ConnectException  $e) {
+            throw new IntegrationNotAvailableException($this->baseUrl);
+        }
+    }
 }

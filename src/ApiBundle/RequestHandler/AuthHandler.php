@@ -159,13 +159,6 @@ class AuthHandler
         $this->productRepository = $productRepository;
     }
 
-    /**
-     * @param Request $request
-     * @return array
-     *
-     * @throws OAuth2ServerException
-     * @throws \OAuth2\OAuth2AuthenticateException
-     */
     public function handleLogin(Request $request): array
     {
         $user = $this->userRepository->loadUserByUsernameAndType($request->get('username'), User::USER_TYPE_MEMBER);
@@ -225,9 +218,12 @@ class AuthHandler
         $this->createPiwiWalletIfNotExisting($user->getCustomer());
         $this->createPiwixProductIfNotExisting($user->getCustomer());
 
+        $pinnacleLoginResponse = $this->loginToPinnacle($user->getCustomer()->getPinUserCode(), $locale);
+        $evolutionLoginResponse = $this->loginToEvolution($jwt, $user->getCustomer(), $locale, $request);
+
         return [
-            'pinnacle' => $this->loginToPinnacle($user->getCustomer()->getPinUserCode(), $locale),
-            'evolution' => $this->loginToEvolution($jwt, $user->getCustomer(), $locale, $request)
+            'pinnacle' => $pinnacleLoginResponse,
+            'evolution' => $evolutionLoginResponse
         ];
     }
 
@@ -411,6 +407,7 @@ class AuthHandler
     public function handleLogout(Request $request): void
     {
         $tokenString = $request->get('token');
+        $token = null;
         try {
             $token = $this->oauthService->verifyAccessToken($tokenString);
             if ($token->getUser()->getCustomer()->getPinUserCode()) {
