@@ -81,4 +81,9 @@ class EvolutionIntegration implements ProductIntegrationInterface
             throw new DebitIntegrationException($exception->getMessage(), $exception->getCode(), $exception);
         }
     }
+
+    public function updateStatus(string $token, string $productUsername, bool $active)
+    {
+        // Noop
+    }
 }

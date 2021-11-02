@@ -71,7 +71,7 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
 
         $payload = $this->createPayloadFromCustomerProduct($customerProduct);
 
-        $this->publisher->publish(Topics::TOPIC_CUSTOMER_PRODUCT_SUSPENDED . '.' . $channel, json_encode($payload));
+        $this->publisher->publishUsingWamp(Topics::TOPIC_CUSTOMER_PRODUCT_SUSPENDED . '.' . $channel, $payload);
     }
 
     public function onCustomerProductActivated(CustomerProductActivatedEvent $event)
@@ -79,10 +79,9 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
         $customerProduct = $event->getCustomerProduct();
         $customer = $customerProduct->getCustomer();
         $channel = $customer->getWebsocketDetails()['channel_id'];
-
         $payload = $this->createPayloadFromCustomerProduct($customerProduct);
-
-        $this->publisher->publish(Topics::TOPIC_CUSTOMER_PRODUCT_ACTIVATED . '.' . $channel, json_encode($payload));
+        $payload['details'] = $event->getDetails();
+        $this->publisher->publishUsingWamp(Topics::TOPIC_CUSTOMER_PRODUCT_ACTIVATED . '.' . $channel, $payload);
     }
 
     protected function createPayloadFromCustomerProduct(CustomerProduct $customerProduct): array
@@ -90,10 +89,11 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
         $customer = $customerProduct->getCustomer();
         $channel = $customer->getWebsocketDetails()['channel_id'];
 
-        $payload['username'] = $customerProduct->getUserName();
-        $payload['isActive'] = $customerProduct->getIsActive();
-
-        return $payload;
+        return [
+            'username' => $customerProduct->getUserName(),
+            'isActive' => $customerProduct->getIsActive(),
+            'product' =>  $customerProduct->getProduct()->getCode()
+        ];
     }
 
     public function onReferralLinked(ReferralEvent $event): void
