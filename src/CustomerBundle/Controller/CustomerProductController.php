@@ -183,7 +183,7 @@ class CustomerProductController extends AbstractController
             return $this->json([
                 '__notifications' =>  [
                     'type' => 'error',
-                    'title' => 'Integration error, product cannot be suspended.'
+                    'title' => 'Integration error, product cannot be suspended. Try saving PIWIX account first.'
                 ]
             ],200);
         }
