@@ -506,7 +506,7 @@ class AuthHandler
     private function getDefaultLoginPath(Customer $member): string 
     {
         if ($member->isActiveProduct(Product::PIWIXCHANGE_CODE)) {
-            return 'customer';
+            return 'exchange';
         } else if ($member->isActiveProduct(Product::SPORTS_CODE)) {
             return 'sports';
         } else if ($member->isActiveProduct(Product::EVOLUTION_PRODUCT_CODE)) {
