@@ -8,7 +8,6 @@ use ProductIntegrationBundle\Exception\IntegrationException\DebitIntegrationExce
 use ProductIntegrationBundle\Persistence\HttpPersistence;
 use ProductIntegrationBundle\Exception\IntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationException\CreditIntegrationException;
-use Psr\Log\LoggerInterface;
 
 class EvolutionIntegration implements ProductIntegrationInterface
 {
