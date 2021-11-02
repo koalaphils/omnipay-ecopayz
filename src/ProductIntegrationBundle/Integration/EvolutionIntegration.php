@@ -8,6 +8,7 @@ use ProductIntegrationBundle\Exception\IntegrationException\DebitIntegrationExce
 use ProductIntegrationBundle\Persistence\HttpPersistence;
 use ProductIntegrationBundle\Exception\IntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationException\CreditIntegrationException;
+use Psr\Log\LoggerInterface;
 
 class EvolutionIntegration implements ProductIntegrationInterface
 {
@@ -80,5 +81,10 @@ class EvolutionIntegration implements ProductIntegrationInterface
         } catch (Exception $exception) {
             throw new DebitIntegrationException($exception->getMessage(), $exception->getCode(), $exception);
         }
+    }
+
+    public function updateStatus(string $token, string $productUsername, bool $active)
+    {
+        // Noop
     }
 }
