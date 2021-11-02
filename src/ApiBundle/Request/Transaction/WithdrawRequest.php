@@ -6,6 +6,7 @@ namespace ApiBundle\Request\Transaction;
 
 use ApiBundle\Request\Transaction\Meta\Meta;
 use DbBundle\Entity\Customer;
+use DbBundle\Entity\PaymentOption;
 use DbBundle\Entity\User;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\GroupSequenceProviderInterface;
@@ -129,5 +130,10 @@ class WithdrawRequest implements GroupSequenceProviderInterface
 	public function getEmail(): string
 	{
 		return $this->getMeta()->getFields()->getEmail();
+	}
+
+	public function isBitcoin(string $paymentOption): bool
+	{
+		return strtoupper($paymentOption) === strtoupper(PaymentOption::PAYMENT_MODE_BITCOIN);
 	}
 }
