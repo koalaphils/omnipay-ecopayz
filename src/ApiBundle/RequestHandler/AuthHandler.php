@@ -505,14 +505,25 @@ class AuthHandler
 
     private function getDefaultLoginPath(Customer $member): string 
     {
-        if ($member->isActiveProduct(Product::PIWIXCHANGE_CODE)) {
+        if ($member->isActiveProduct(Product::PIWIXCHANGE_CODE) && !$this->isProductUnderMaintenance('piwix')) {
             return 'exchange';
-        } else if ($member->isActiveProduct(Product::SPORTS_CODE)) {
+        } else if ($member->isActiveProduct(Product::SPORTS_CODE) && !$this->isProductUnderMaintenance('sports')) {
             return 'sports';
-        } else if ($member->isActiveProduct(Product::EVOLUTION_PRODUCT_CODE)) {
+        } else if ($member->isActiveProduct(Product::EVOLUTION_PRODUCT_CODE) && !$this->isProductUnderMaintenance('casino')) {
             return 'casino';
         } else {
             return 'home';
+        }
+    }
+
+    private function isProductUnderMaintenance($key): bool 
+    {
+        $integrationSetting = $this->settingManager->getSetting('system.maintenance')['integration'];
+
+        foreach ($integrationSetting as $integration) {
+            if ($integration['key'] === $key) {
+                return filter_var($integration['value'], FILTER_VALIDATE_BOOLEAN);
+            }
         }
     }
 }
