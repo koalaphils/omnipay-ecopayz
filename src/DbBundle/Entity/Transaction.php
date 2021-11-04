@@ -81,6 +81,8 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     const TRANSACTION_STATUS_ACKNOWLEDGE = 4;
     const TRANSACTION_STATUS_VOIDED = 'voided';
 
+	const BITCOIN_CONFIRMED_COUNT = 1;
+
     private $number;
     private $currency;
     private $amount = 0;
@@ -1163,7 +1165,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public function setBitcoinConfirmationAsConfirmed(): self
     {
-        $this->setBitcoinConfirmation(3);
+        $this->setBitcoinConfirmation(self::BITCOIN_CONFIRMED_COUNT);
 
         return $this;
     }
@@ -1190,12 +1192,12 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
             return false;
         }
 
-        return $confirmations < 3;
+        return $confirmations < self::BITCOIN_CONFIRMED_COUNT;
     }
 
     public function isBitcoinConfirmedOnConfirmation(): bool
     {
-        return $this->getBitcoinConfirmation() >= 3
+        return $this->getBitcoinConfirmation() >= self::BITCOIN_CONFIRMED_COUNT
             || $this->getStatus() == self::TRANSACTION_STATUS_ACKNOWLEDGE;
     }
 
@@ -1203,9 +1205,9 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     {
         $status = self::DETAIL_BITCOIN_STATUS_NO_CONFIRMATION;
 
-        if ($this->getBitcoinConfirmation() < 3) {
+        if ($this->getBitcoinConfirmation() < self::BITCOIN_CONFIRMED_COUNT) {
             $status = self::DETAIL_BITCOIN_STATUS_PENDING;
-        } else if ($this->getBitcoinConfirmation() >= 3) {
+        } else if ($this->getBitcoinConfirmation() >= self::BITCOIN_CONFIRMED_COUNT) {
             $status = self::DETAIL_BITCOIN_STATUS_CONFIRMED;
         }
 
@@ -1214,7 +1216,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public function hasBitcoinDepositAndNotConfirmed(): bool
     {
-        return $this->hasDepositUsingBitcoin() && $this->getBitcoinConfirmation() < 3 && $this->getStatus() != self::TRANSACTION_STATUS_ACKNOWLEDGE;
+        return $this->hasDepositUsingBitcoin() && $this->getBitcoinConfirmation() < self::BITCOIN_CONFIRMED_COUNT && $this->getStatus() != self::TRANSACTION_STATUS_ACKNOWLEDGE;
     }
 
     public static function getOtherStatus(): array

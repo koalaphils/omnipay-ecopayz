@@ -536,11 +536,12 @@ class TransactionRepository extends BaseRepository
                                 AND transaction.type = :deposit
                                 AND transaction.status != :endStatus
                                 AND transaction.isVoided = 0
-                                AND IFNULL(transaction.bitcoinConfirmationCount, 0) < 3');
+                                AND IFNULL(transaction.bitcoinConfirmationCount, 0) < :bitcoinConfirmedCount');
 
                     $queryBuilder->setParameter('bitcoin', PaymentOption::PAYMENT_MODE_BITCOIN)
                         ->setParameter('endStatus', Transaction::TRANSACTION_STATUS_END)
-                        ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT);
+                        ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT)
+	                    ->setParameter('bitcoinConfirmedCount', Transaction::BITCOIN_CONFIRMED_COUNT);
                 }
 
                 if (in_array(Transaction::DETAIL_BITCOIN_STATUS_CONFIRMED, $filters['status'])) {
@@ -549,11 +550,12 @@ class TransactionRepository extends BaseRepository
                                 AND transaction.bitcoinConfirmationCount IS NOT NULL
                                 AND transaction.status != :endStatus
                                 AND transaction.isVoided = 0
-                                AND transaction.bitcoinConfirmationCount >= 3');
+                                AND transaction.bitcoinConfirmationCount >= :bitcoinConfirmedCount');
 
                     $queryBuilder->setParameter('bitcoin', PaymentOption::PAYMENT_MODE_BITCOIN)
                         ->setParameter('endStatus', Transaction::TRANSACTION_STATUS_END)
-                        ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT);
+                        ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT)
+	                    ->setParameter('bitcoinConfirmedCount', Transaction::BITCOIN_CONFIRMED_COUNT);
                 }
             }
 
