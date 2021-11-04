@@ -122,29 +122,35 @@ class CustomerProductController extends AbstractController
 
     public function activateAction(Request $request, $id)
     {
-        $customerProduct = $this->_getCustomerProductRepository()->find($id);
-        if (is_null($customerProduct)) {
-             throw new \Doctrine\ORM\NoResultException();
-        } else if (!$customerProduct->getIsActive()) {
+        try {
+            $customerProduct = $this->_getCustomerProductRepository()->find($id);
+            if ($customerProduct === null) return $this->json([], 404);
+            if ($customerProduct->getIsActive()) return $this->json(['error' => 'Customer Product is already activated!'], 400);
+
             $event = $this->getManager()->activate($customerProduct);
             $this->dispatchEvent(Events::EVENT_CUSTOMER_PRODUCT_ACTIVATED, $event);
-            $this->_getCustomerProductRepository()->save($customerProduct);
+
             $message = [
                 'type'      => 'success',
                 'title'     => $this->getTranslator()->trans('notification.activated.title', [], 'CustomerProductBundle'),
-                'message'   => $this->getTranslator()->trans('notification.activated.message', ['%username%' => $customerProduct->getUserName()], 'CustomerProductBundle'),
+                'message'   => $this->getTranslator()->trans('notification.activated.message', ['%username%' => $customerProduct->getUserName() ], 'CustomerProductBundle'),
             ];
+
             if (!$request->isXmlHttpRequest()) {
                 $this->getSession()->getFlashBag()->add('notifications', $message);
-
                 return $this->redirect($request->headers->get('referer'), JsonResponse::HTTP_OK);
             } else {
                 return new JsonResponse([
                     '__notifications' => $message, JsonResponse::HTTP_OK,
                 ]);
             }
-        } else {
-            throw new \Exception('Customer Product is already activated', JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (IntegrationException $ex) {
+            return $this->json([
+                '__notifications' =>  [
+                    'type' => 'error',
+                    'title' => 'Integration error, product cannot be activated. Try saving PIWIX account first.'
+                ]
+            ],200);
         }
     }
 
@@ -177,7 +183,7 @@ class CustomerProductController extends AbstractController
             return $this->json([
                 '__notifications' =>  [
                     'type' => 'error',
-                    'title' => 'Integration error, product cannot be suspended.'
+                    'title' => 'Integration error, product cannot be suspended. Try saving PIWIX account first.'
                 ]
             ],200);
         }
