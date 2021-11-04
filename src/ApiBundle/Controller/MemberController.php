@@ -11,6 +11,7 @@ use MediaBundle\Manager\MediaManager;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use FOS\RestBundle\View\View;
 use ApiBundle\Manager\MemberManager;
+use Exception;
 use PinnacleBundle\Component\Exceptions\PinnacleException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -238,11 +239,22 @@ class MemberController extends AbstractController
      *     }
      * )
      */
-    public function getBalanceAction(MemberHandler $memberHandler): View
+    public function getBalanceAction(MemberHandler $memberHandler)
     {
         $user = $this->getUser();
+        $member = $user->getCustomer();
 
-        return $this->view($memberHandler->handleGetBalance($user->getCustomer()));
+        if (!is_null($member)) {
+            return $this->view($memberHandler->handleGetBalance($member));
+        } else {
+            return [
+                'balance' => '',
+                'available_balance' => '',
+                'pinnacle_balance' => '',
+                'product_balance' => '',
+                'outstanding' => ''
+            ];
+        }
     }
 
     /**
