@@ -110,22 +110,24 @@ class TransactionRepository
                                 AND t.bitcoinConfirmationCount IS NOT NULL 
                                 AND t.status != :endStatus 
                                 AND t.isVoided = 0
-                                AND t.bitcoinConfirmationCount < 3');
+                                AND t.bitcoinConfirmationCount < :bitcoinConfirmedCount');
 
                 $qb->setParameter('bitcoin', PaymentOption::PAYMENT_MODE_BITCOIN)
                     ->setParameter('endStatus', Transaction::TRANSACTION_STATUS_END)
-                    ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT);
+                    ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT)
+	                ->setParameter('bitcoinConfirmedCount', Transaction::BITCOIN_CONFIRMED_COUNT);
             } elseif (in_array(Transaction::DETAIL_BITCOIN_STATUS_CONFIRMED, $filters['status'])) {
                 $qb->andWhere('t.paymentOptionType = :bitcoin 
                                 AND t.type = :deposit
                                 AND t.bitcoinConfirmationCount IS NOT NULL 
                                 AND t.status != :endStatus 
                                 AND t.isVoided = 0
-                                AND t.bitcoinConfirmationCount = 3');
+                                AND t.bitcoinConfirmationCount = :bitcoinConfirmedCount');
 
                 $qb->setParameter('bitcoin', PaymentOption::PAYMENT_MODE_BITCOIN)
                     ->setParameter('endStatus', Transaction::TRANSACTION_STATUS_END)
-                    ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT);
+                    ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT)
+	                ->setParameter('bitcoinConfirmedCount', Transaction::BITCOIN_CONFIRMED_COUNT);
             } else {
                 $qb->andWhere('t.status IN (:status)')
                     ->andWhere('t.isVoided = 0')

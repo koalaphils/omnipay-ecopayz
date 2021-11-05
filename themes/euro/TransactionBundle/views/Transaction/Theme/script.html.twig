@@ -466,6 +466,10 @@
                     let cryptoCurrency = transactionData.payment_option == 'BITCOIN' ? 'BTC' : transactionData.payment_option;
                     subtransactionAmountText = subtransactionAmountText + ' (' + this.info.bitcoinRequestedAmount + ' ' + cryptoCurrency  + ')';
                 }
+
+                if (info.hasFee !== undefined) {
+                    this.view.find('input.subtransaction-has-fee').prop('checked', info.hasFee);
+                }
                 this.view.find('span.subtransaction-amount').html(subtransactionAmountText);
                 this.view.find('input.subtransaction-amount').val(subtransactionAmountText);
 
@@ -631,7 +635,6 @@
                 }
             },
             "applySummary": function() {
-
                 var isSubtransactionTypeDeposit = this.info.type == Global.transaction.type.deposit;
                 var isSubtransactionTypeWithdrawal = this.info.type == Global.transaction.type.withdraw;
 
@@ -660,6 +663,9 @@
                 } else if(isSubtransactionTypeWithdrawal) {
                     if (!this.info.hasBalanceAdjusted) {
                         afterBalance = afterBalance.minus(this.info.amount);
+                        if (this.info.hasFee) {
+                            afterBalance = afterBalance.minus(transactionInfo.data.fees.customerFee || 0);
+                        }
                     }
                 }
 

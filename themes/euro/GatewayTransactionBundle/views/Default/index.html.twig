@@ -296,6 +296,10 @@
                                 }
                                 $(feature.input).append(option);
                             }
+
+                            $(feature.input).selectpicker('refresh');
+                            feature.setToDone();
+                            feature.ztable.reloadTable();
                         },
                         'value': '{{ app.request.get("paymentOption", [])|json_encode|raw }}',
                     },

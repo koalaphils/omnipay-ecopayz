@@ -883,7 +883,7 @@ class TransactionManager extends TransactionOldManager
                 'type' => $isSubtransactionReadOnly,
                 'customerProduct' => $isSubtransactionReadOnly,
                 'amount' => $isSubtransactionReadOnly,
-                'hasFee' => $isReadOnly,
+                'hasFee' => $isSubtransactionReadOnly,
             ],
             'messages' => [
                 'support' => $transaction->isEnd()

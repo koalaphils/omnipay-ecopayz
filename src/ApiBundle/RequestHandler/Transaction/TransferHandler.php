@@ -72,7 +72,7 @@ class TransferHandler
             // Create a Subtransaction based on the source CustomerProduct;
             $fromSubTransaction = new SubTransaction();
             $fromSubTransaction->setCustomerProduct($sourceCustomerProduct);
-            $fromSubTransaction->setAmount($total);
+            $fromSubTransaction->setAmount($total->toString());
             $fromSubTransaction->setType(Transaction::TRANSACTION_TYPE_WITHDRAW);
             $fromSubTransaction->setImmutableCustomerProductData($sourceCustomerProduct->getUsername());
     

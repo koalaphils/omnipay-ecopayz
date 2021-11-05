@@ -215,7 +215,7 @@ class SubTransaction extends Entity implements AuditInterface
         return (!empty($this->fees)  && isset($this->fees['customer_fee']));
     }
 
-    public function getCustomerFee() : int
+    public function getCustomerFee() : float
     {
         if ($this->hasCustomerFee()) {
             return $this->fees['customer_fee'];

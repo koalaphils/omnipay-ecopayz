@@ -82,12 +82,12 @@ class DepositRequest implements GroupSequenceProviderInterface
 
     public function getPaymentDetails(): array
     {
-        return $this->getMetaData('payment_details', []);
+        return $this->getMeta()->getPaymentDetails();
     }
 
     public function getEmail(): string
     {
-        return $this->getMetaData('field.email', '');
+        return $this->getMeta()->getFields()->getEmail();
     }
 
     public function isBitcoin(string $paymentOption): bool
