@@ -4,6 +4,7 @@ namespace DbBundle\Entity;
 
 use AppBundle\ValueObject\Number;
 use DbBundle\Entity\Customer as Member;
+use DbBundle\Entity\Product;
 use DbBundle\Entity\Interfaces\ActionInterface;
 use DbBundle\Entity\Interfaces\AuditAssociationInterface;
 use DbBundle\Entity\Interfaces\AuditInterface;
@@ -389,5 +390,10 @@ class CustomerProduct extends Entity implements ActionInterface, TimestampInterf
         }
 
         return false;
+    }
+
+    public function isPinnacle(): bool
+    {
+        return $this->getProduct()->getCode() === Product::SPORTS_CODE;
     }
 }

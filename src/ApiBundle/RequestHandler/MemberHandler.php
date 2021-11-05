@@ -88,7 +88,7 @@ class MemberHandler
     public function handleGetBalance(Customer $member): array
     {
         $userCode = $member->getPinUserCode();
-        $customerProducts = $member->getActiveProducts();
+        $customerProducts = $member->getProducts();
 
         $productBalance = [];
         $availableBalance = new Number(0);

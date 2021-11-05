@@ -4,6 +4,7 @@ namespace CustomerBundle\Controller;
 use AppBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use ProductIntegrationBundle\Exception\IntegrationException;
 
 use CustomerBundle\Events;
 use CustomerBundle\Event\CustomerProductSaveEvent;
@@ -121,85 +122,83 @@ class CustomerProductController extends AbstractController
 
     public function activateAction(Request $request, $id)
     {
-        $customerProduct = $this->_getCustomerProductRepository()->find($id);
-        if (is_null($customerProduct)) {
-             throw new \Doctrine\ORM\NoResultException();
-        } else if (!$customerProduct->getIsActive()) {
-            $customerProduct->activate();
-            $this->dispatchEvent(Events::EVENT_CUSTOMER_PRODUCT_ACTIVATED, new CustomerProductActivatedEvent($customerProduct));
-            $this->_getCustomerProductRepository()->save($customerProduct);
+        try {
+            $customerProduct = $this->_getCustomerProductRepository()->find($id);
+            if ($customerProduct === null) return $this->json([], 404);
+            if ($customerProduct->getIsActive()) return $this->json(['error' => 'Customer Product is already activated!'], 400);
+
+            $event = $this->getManager()->activate($customerProduct);
+            $this->dispatchEvent(Events::EVENT_CUSTOMER_PRODUCT_ACTIVATED, $event);
+
             $message = [
                 'type'      => 'success',
                 'title'     => $this->getTranslator()->trans('notification.activated.title', [], 'CustomerProductBundle'),
-                'message'   => $this->getTranslator()->trans('notification.activated.message', ['%username%' => $customerProduct->getUserName()], 'CustomerProductBundle'),
+                'message'   => $this->getTranslator()->trans('notification.activated.message', ['%username%' => $customerProduct->getUserName() ], 'CustomerProductBundle'),
             ];
+
             if (!$request->isXmlHttpRequest()) {
                 $this->getSession()->getFlashBag()->add('notifications', $message);
-
                 return $this->redirect($request->headers->get('referer'), JsonResponse::HTTP_OK);
             } else {
                 return new JsonResponse([
                     '__notifications' => $message, JsonResponse::HTTP_OK,
                 ]);
             }
-        } else {
-            throw new \Exception('Customer Product is already activated', JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (IntegrationException $ex) {
+            return $this->json([
+                '__notifications' =>  [
+                    'type' => 'error',
+                    'title' => 'Integration error, product cannot be activated. Try saving PIWIX account first.'
+                ]
+            ],200);
         }
     }
 
     public function suspendAction(Request $request, $id)
     {
-        $customerProduct = $this->_getCustomerProductRepository()->find($id);
-        if (is_null($customerProduct)) {
-             throw new \Doctrine\ORM\NoResultException();
-        } else if ($customerProduct->getIsActive()) {
-            $customerProduct->suspend();
+        try {
+            $customerProduct = $this->_getCustomerProductRepository()->find($id);
+
+            if ($customerProduct === null) return $this->json([], 404);
+            if (!$customerProduct->getIsActive()) return $this->json(['error' => 'Customer Product is already suspended!'], 400);
+
+            $this->getManager()->suspend($customerProduct);
             $this->dispatchEvent(Events::EVENT_CUSTOMER_PRODUCT_SUSPENDED, new CustomerProductSuspendedEvent($customerProduct));
-            $this->_getCustomerProductRepository()->save($customerProduct);
+
             $message = [
                 'type'      => 'success',
                 'title'     => $this->getTranslator()->trans('notification.suspended.title', [], 'CustomerProductBundle'),
                 'message'   => $this->getTranslator()->trans('notification.suspended.message', ['%username%' => $customerProduct->getUserName() ], 'CustomerProductBundle'),
             ];
+
             if (!$request->isXmlHttpRequest()) {
                 $this->getSession()->getFlashBag()->add('notifications', $message);
-
                 return $this->redirect($request->headers->get('referer'), JsonResponse::HTTP_OK);
             } else {
                 return new JsonResponse([
                     '__notifications' => $message, JsonResponse::HTTP_OK,
                 ]);
             }
-        } else {
-            throw new \Exception('Customer Product is already activated', JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (IntegrationException $ex) {
+            return $this->json([
+                '__notifications' =>  [
+                    'type' => 'error',
+                    'title' => 'Integration error, product cannot be suspended. Try saving PIWIX account first.'
+                ]
+            ],200);
         }
     }
 
-    /**
-     * Get Customer Product Manager.
-     *
-     * @return \CustomerBundle\Manager\CustomerProductManager
-     */
     protected function getManager()
     {
         return $this->getContainer()->get('customerproduct.manager');
     }
 
-    /**
-     * Get customer product repository.
-     *
-     * @return \DbBundle\Repository\CustomerProductRepository
-     */
     protected function _getCustomerProductRepository()
     {
         return $this->getDoctrine()->getRepository('DbBundle:CustomerProduct');
     }
 
-    /**
-     * Get product repository.
-     *
-     * @return \DbBundle\Repository\ProductRepository
-     */
     protected function _getProductRepository()
     {
         return $this->getDoctrine()->getRepository('DbBundle:Product');
