@@ -153,12 +153,10 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                             $subTransaction->setHasBalanceAdjusted(true);
                         }
                     } catch (DebitIntegrationException $ex) {
-                        $this->logger->info(sprintf('Debit Integration Exception Processing Transaction Failed: %s', $transaction->getNumber()));
-                        $this->logger->debug($ex);
+                        $this->logError(__LINE__, $ex);
                         throw  $ex->getPrevious() ?? $ex;
                     } catch (CreditIntegrationException $ex) {
-                        $this->logger->info(sprintf('Credit Integration Exception Processing Transaction Failed: %s', $transaction->getNumber()));
-                        $this->logger->debug($ex);
+                        $this->logError(__LINE__, $ex);
                         if (!$transaction->isTransferDestinationPiwiWalletProduct()) {
                             $newBalance = $this->credit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                             $customerPiwiWalletProduct->setBalance($newBalance);
@@ -168,8 +166,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                         }
                         throw $ex->getPrevious() ?? $ex;
                     } catch (Exception $ex) {
-                        $this->logger->info(sprintf('Exception Processing Transaction Failed: %s', $transaction->getNumber()));
-                        $this->logger->debug($ex);
+                        $this->logError(__LINE__, $ex);
                         $subTransaction->setFailedProcessingWithIntegration(true);
                         throw $ex;
                     }
@@ -182,8 +179,10 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                             $this->debit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         }
                     } catch (DebitIntegrationException $ex) {
+                        $this->logError(__LINE__, $ex);
                         throw $ex->getPrevious() ?? $ex;
                     } catch (Exception $ex) {
+                        $this->logError(__LINE__, $ex);
                         $subTransaction->setFailedProcessingWithIntegration(true);
                         throw $ex;
                     }
@@ -279,6 +278,12 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
             $this->gatewayMemberTransaction->voidMemberTransaction($transaction);
             return;
         }
+    }
+
+    private function logError($line, $ex)
+    {
+        $this->logger->info('TRANSACTION SUBSCRIBER ERROR IN ' . $line);
+        $this->logger->debug($ex);
     }
 
     private function getCustomerPiwiWalletProduct(Member $member): ?CustomerProduct
