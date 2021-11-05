@@ -68,6 +68,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
 
     public function onTransitionEntered(WorkflowEvent $event)
     {
+        $this->logger->info('ON TRANSITION ENTERED');
         $jwt = $this->jwtGenerator->generate([]);
         /** @var Transaction $transaction */
         $transaction = $event->getSubject();
@@ -110,11 +111,13 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                             $this->credit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                         }
                     } catch (DebitIntegrationException $ex) {
+                        $this->logError(__LINE__, $ex);
                         if ($transaction->isTransfer()) {
                             throw new DebitIntegrationException('An error occurred while getting funds from ' . $productName, 422);
                         }
                         throw $ex->getPrevious() ?? $ex;
                     } catch (CreditIntegrationException $ex) {
+                        $this->logError(__LINE__, $ex);
                         if (!$transaction->isTransferSourcePiwiWalletProduct()) {
                             $newBalance = $this->credit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                             $customerPiwiWalletProduct->setBalance($newBalance);
@@ -123,6 +126,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                         }
                         throw $ex->getPrevious() ?? $ex;
                     } catch (Exception $ex) {
+                        $this->logError(__LINE__, $ex);
                         $subTransaction->setFailedProcessingWithIntegration(true);
                         throw $ex;
                     }
