@@ -505,11 +505,11 @@ class AuthHandler
 
     private function getDefaultLoginPath(Customer $member): string 
     {
-        if ($member->isActiveProduct(Product::PIWIXCHANGE_CODE) && !$this->isProductUnderMaintenance('piwix')) {
+        if ($member->isProductActive(Product::PIWIXCHANGE_CODE) && !$this->isProductUnderMaintenance('piwix')) {
             return 'exchange';
-        } else if ($member->isActiveProduct(Product::SPORTS_CODE) && !$this->isProductUnderMaintenance('sports')) {
+        } else if ($member->isProductActive(Product::SPORTS_CODE) && !$this->isProductUnderMaintenance('sports')) {
             return 'sports';
-        } else if ($member->isActiveProduct(Product::EVOLUTION_PRODUCT_CODE) && !$this->isProductUnderMaintenance('casino')) {
+        } else if ($member->isProductActive(Product::EVOLUTION_PRODUCT_CODE) && !$this->isProductUnderMaintenance('casino')) {
             return 'casino';
         } else {
             return 'home';
