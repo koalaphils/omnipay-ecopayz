@@ -73,17 +73,17 @@ class TransactionProcessSubscriber implements EventSubscriberInterface
             } elseif ($this->getTransactionWorkflow()->can($transaction, $transaction->getTypeText() . '-' . $transitionName)) {
                 $this->getTransactionWorkflow()->apply($transaction, $transaction->getTypeText() . '-' . $transitionName);
             } elseif ($this->getTransactionWorkflow()->can($transaction, $transitionName)) {
-                $this->getTransactionWorkflow()->apply($transaction, $transitionName);
-                if ($transitionName === 'new') {
-                    $this->getTransactionWorkflow()->apply($transaction, 'acknowledge');
-                    try {
-                        $this->getTransactionWorkflow()->apply($transaction, 'process');
-                    } catch (FailedTransferException $exception) {
-                        $transaction->setDetail('transfer', $exception->getMessage());
-                    } catch (Exception $exception) {
-                        throw $exception;
-                    }
-                }
+	            try {
+	                $this->getTransactionWorkflow()->apply($transaction, $transitionName);
+	                if ($transitionName === 'new') {
+	                    $this->getTransactionWorkflow()->apply($transaction, 'acknowledge');
+						$this->getTransactionWorkflow()->apply($transaction, 'process');
+	                }
+	            } catch (FailedTransferException $exception) {
+		            $transaction->setDetail('transfer', $exception->getMessage());
+	            } catch (Exception $exception) {
+		            throw $exception;
+	            }
             } else {
                 throw new TransitionGuardException('Unable to transition the transaction');
             }
