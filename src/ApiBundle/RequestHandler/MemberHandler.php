@@ -85,45 +85,55 @@ class MemberHandler
         $this->authHandler = $authHandler;
     }
 
-    public function handleGetBalance(Customer $member): array
+    public function handleGetBalance($member): array
     {
-        $userCode = $member->getPinUserCode();
-        $customerProducts = $member->getProducts();
+        if ($member instanceof Customer && !is_null($member)) {
+            $userCode = $member->getPinUserCode();
+            $customerProducts = $member->getProducts();
 
-        $productBalance = [];
-        $availableBalance = new Number(0);
-        $pinAvailableBalance = new Number(0);
-        $pinOutstandingBalance = new Number(0);
-
-        try {
-            $player = $this->pinnacleService->getPlayerComponent()->getPlayer($userCode);
-            $pinAvailableBalance = $player->availableBalance();
-            $pinOutstandingBalance = $player->outstanding();
-        } catch (Exception $ex) {
-            $pinAvailableBalance = '';
-            $pinOutstandingBalance = '';
-        }
-
-        foreach ($customerProducts as $customerProduct) {
-            $productCode = $customerProduct->getProduct()->getCode();
-            $productUsername = $customerProduct->getUserName();
-            $token = $this->jwtGeneratorService->generate([]);
+            $productBalance = [];
+            $availableBalance = new Number(0);
+            $pinAvailableBalance = new Number(0);
+            $pinOutstandingBalance = new Number(0);
 
             try {
-                $productBalance[$productCode] = $this->productFactory->getIntegration(strtolower($productCode))->getBalance($token, $productUsername);
-                $availableBalance = $availableBalance->plus($productBalance[$productCode]);
-            } catch (Exception $exception) {
-                $productBalance[$productCode] = '';
+                $player = $this->pinnacleService->getPlayerComponent()->getPlayer($userCode);
+                $pinAvailableBalance = $player->availableBalance();
+                $pinOutstandingBalance = $player->outstanding();
+            } catch (Exception $ex) {
+                $pinAvailableBalance = '';
+                $pinOutstandingBalance = '';
             }
-        }
 
-        return [
-            'balance' => $member->getBalance(),
-            'available_balance' => $availableBalance,
-            'pinnacle_balance' => $pinAvailableBalance,
-            'product_balance' => $productBalance,
-            'outstanding' => $pinOutstandingBalance
-        ];
+            foreach ($customerProducts as $customerProduct) {
+                $productCode = $customerProduct->getProduct()->getCode();
+                $productUsername = $customerProduct->getUserName();
+                $token = $this->jwtGeneratorService->generate([]);
+
+                try {
+                    $productBalance[$productCode] = $this->productFactory->getIntegration(strtolower($productCode))->getBalance($token, $productUsername);
+                    $availableBalance = $availableBalance->plus($productBalance[$productCode]);
+                } catch (Exception $exception) {
+                    $productBalance[$productCode] = '';
+                }
+            }
+
+            return [
+                'balance' => $member->getBalance(),
+                'available_balance' => $availableBalance,
+                'pinnacle_balance' => $pinAvailableBalance,
+                'product_balance' => $productBalance,
+                'outstanding' => $pinOutstandingBalance
+            ];
+        } else {
+            return [
+                'balance' => '',
+                'available_balance' => '',
+                'pinnacle_balance' => '',
+                'product_balance' => '',
+                'outstanding' => ''
+            ];
+        }
     }
 
     public function handleGetActivePaymentOptionGroupByType(Customer $member, ?string $transactionType): array

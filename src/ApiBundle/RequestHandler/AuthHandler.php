@@ -187,7 +187,8 @@ class AuthHandler
             'process_payments' => $this->getPaymentOptions($user->getCustomer()->getId()),
             'products' => $member->getProducts(),
             'jwt' => $jwt,
-            'accessToken' => $accessToken->getToken()
+            'accessToken' => $accessToken->getToken(),
+            'loginPath' => $this->getDefaultLoginPath($member)
         ], $integrationResponses);
         
         $this->deleteUserAccessToken($accessToken->getUser()->getId(), [], [$accessToken->getToken()]);
@@ -500,5 +501,29 @@ class AuthHandler
 
         $this->entityManager->persist($session);
         $this->entityManager->flush($session);
+    }
+
+    private function getDefaultLoginPath(Customer $member): string 
+    {
+        if ($member->isProductActive(Product::PIWIXCHANGE_CODE) && !$this->isProductUnderMaintenance('piwix')) {
+            return 'exchange';
+        } else if ($member->isProductActive(Product::SPORTS_CODE) && !$this->isProductUnderMaintenance('sports')) {
+            return 'sports';
+        } else if ($member->isProductActive(Product::EVOLUTION_PRODUCT_CODE) && !$this->isProductUnderMaintenance('casino')) {
+            return 'casino';
+        } else {
+            return 'home';
+        }
+    }
+
+    private function isProductUnderMaintenance($key): bool 
+    {
+        $integrationSetting = $this->settingManager->getSetting('system.maintenance')['integration'];
+
+        foreach ($integrationSetting as $integration) {
+            if ($integration['key'] === $key) {
+                return filter_var($integration['value'], FILTER_VALIDATE_BOOLEAN);
+            }
+        }
     }
 }
