@@ -161,7 +161,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                         throw  $ex->getPrevious() ?? $ex;
                     } catch (CreditIntegrationException $ex) {
                         $this->logError(__LINE__, $ex);
-                        if (!$transaction->isTransferDestinationPiwiWalletProduct()) {
+                        if ($transaction->isTransfer() && !$transaction->isTransferDestinationPiwiWalletProduct()) {
                             $newBalance = $this->credit($customerWalletCode, $transactionNumber, $currency, $customerPiwiWalletProduct->getUsername(), $amount, $jwt);
                             $customerPiwiWalletProduct->setBalance($newBalance);
                             $subTransaction->setFailedProcessingWithIntegration(false); 
