@@ -105,13 +105,29 @@
                                     $('#{{ id }}_widget_footer_{{ footerColumn }}').html(json.{{ footerInfo.from }});
                                 {% endif %}
                             {% endfor %}
+                            
+                            if (!json.hasOwnProperty('recordsTotal')) {
+                                $('#{{ id }}_container div.dataTables_info').hide();
+                                setTimeout(function() {
+                                    var footerInfo = $('#{{ id }}_container div.dataTables_info').html();
+                                    var splitter = footerInfo.split('(');
+                                    $('#{{ id }}_container div.dataTables_info').html(splitter[0]);
+                                    $('#{{ id }}_container div.dataTables_info').fadeIn(300);
+                                }, 500);
 
-                            return JSON.stringify({
-                                'draw': draw,
-                                'data': json.records,
-                                'recordsFiltered': json.recordsFiltered,
-                                'recordsTotal': json.recordsTotal
-                            });
+                                return JSON.stringify({
+                                    'draw': draw,
+                                    'data': json.records,
+                                    'recordsFiltered': json.recordsFiltered
+                                });
+                            } else {
+                                return JSON.stringify({
+                                    'draw': draw,
+                                    'data': json.records,
+                                    'recordsFiltered': json.recordsFiltered,
+                                    'recordsTotal': json.recordsTotal
+                                });
+                            }
                         },
                         {% endif %}
                         'type': '{{ properties.ajax.type|default('GET') }}',
