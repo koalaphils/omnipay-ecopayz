@@ -1014,14 +1014,14 @@
         });
 
         function toggleLinkReferrerButton() {
-            {# let isLinked = '{{ customer.isLinkedToAffiliate() }}';
+            let isLinked = '{{ customer.isLinkedToAffiliate() }}';
             let referralCode = document.getElementById('update_profileForm_data_referralCode').value;
 
             if (referralCode !== '' && !isLinked) {
                 $('#autoLink').prop('disabled', null);
             } else {
                  $('#autoLink').prop('disabled', null);
-            } #}
+            }
         };
 
         // Send Activation Email
