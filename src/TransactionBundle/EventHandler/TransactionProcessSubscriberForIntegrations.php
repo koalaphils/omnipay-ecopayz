@@ -168,7 +168,7 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                 
                             throw new FailedTransferException(Transaction::DETAIL_TRANSFER_FAILED_TO . '_' . $productName, 422);
                         }
-                        throw $ex->getPrevious() ?? $ex;
+	                    throw $ex;
                     } catch (Exception $ex) {
                         $this->logError(__LINE__, $ex);
                         $subTransaction->setFailedProcessingWithIntegration(true);
