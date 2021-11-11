@@ -55,7 +55,6 @@ class EvolutionIntegration implements ProductIntegrationInterface
             $object = json_decode(((string) $response->getBody()));
 
 	        if (property_exists($object->transfer, 'errormsg')) {
-		        $this->logger->info('EVOLUTION ERROR: ' . print_r($params));
 		        throw new CreditIntegrationException($object->transfer->errormsg, 422);
 	        }
 
