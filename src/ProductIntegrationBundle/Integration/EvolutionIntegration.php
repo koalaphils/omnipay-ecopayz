@@ -54,6 +54,8 @@ class EvolutionIntegration implements ProductIntegrationInterface
             $response = $this->http->get($url, $token);
             $object = json_decode(((string) $response->getBody()));
 
+	        dump($object);
+
             return $object->transfer->balance;
         } catch (Exception $exception) {
             throw new CreditIntegrationException($exception->getMessage(), $exception->getCode(), $exception);
