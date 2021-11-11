@@ -20,6 +20,7 @@ use DbBundle\Repository\CustomerGroupRepository;
 use DbBundle\Repository\MemberWebsiteRepository;
 use DbBundle\Repository\ProductRepository;
 use DbBundle\Repository\TwoFactorCodeRepository;
+use DbBundle\Repository\UserRepository;
 use Doctrine\ORM\EntityManager;
 use PinnacleBundle\Service\PinnacleService;
 use TwoFactorBundle\Provider\Message\StorageInterface;
@@ -58,7 +59,8 @@ class RegisterHandler
         Publisher $publisher,
         MemberWebsiteRepository $memberWebsiteRepository,
         MailerManager $mailerManager,
-        ProductIntegrationFactory $productIntegrationFactory
+        ProductIntegrationFactory $productIntegrationFactory,
+        UserRepository $userRepository
     ) {
         $this->pinnacleService = $pinnacleService;
         $this->userManager = $userManager;
@@ -74,6 +76,7 @@ class RegisterHandler
         $this->memberWebsiteRepository = $memberWebsiteRepository;
         $this->mailerManager = $mailerManager;
         $this->productIntegrationFactory =$productIntegrationFactory;
+        $this->userRepository = $userRepository;
     }
 
     public function handle(RegisterRequest $registerRequest): Member
@@ -134,6 +137,17 @@ class RegisterHandler
 
     private function generateMember(RegisterRequest $registerRequest): Member
     {
+        $system_user = $this->userRepository->loadUserByUsername('system');
+        if (!($system_user instanceof User)) {
+            throw new \Exception('Invalid User');
+        }
+        dump($system_user);
+
+        //$token = new UserPasswordToken($system_user, null, 'main', $system_user->getRoles());
+        // $this->getContainer()->get('security.token_storage')->setToken($token);
+        // $request = $this->getContainer()->get('request_stack')->getCurrentRequest();
+        // $request->headers->set('x-forwarded-for', ['127.0.0.1']);
+
         $now = new \DateTime('now');
         $user = $this->generateUser($registerRequest);
         $user->setActivationSentTimestamp($now);

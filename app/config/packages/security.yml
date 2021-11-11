@@ -31,6 +31,11 @@ security:
             pattern: ^/(%app_locales%)/api/auth/(login|logout|refreshtoken)
             security: false
 
+        
+        api_registration:
+            pattern: ^/(%app_locales%)/api/member/register
+            security: false    
+
         api:
             pattern:    ^/(%app_locales%)/api
             anonymous: false

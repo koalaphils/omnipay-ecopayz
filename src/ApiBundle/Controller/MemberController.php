@@ -185,9 +185,6 @@ class MemberController extends AbstractController
      *              "name"="registration_locale",
      *              "dataType"="string"
      *          }
-     *     },
-     *     headers={
-     *         { "name"="Authorization", "description"="Bearer <access_token>" }
      *     }
      * )
      */
