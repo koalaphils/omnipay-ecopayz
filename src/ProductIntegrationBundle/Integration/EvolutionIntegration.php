@@ -54,7 +54,7 @@ class EvolutionIntegration implements ProductIntegrationInterface
             $response = $this->http->get($url, $token);
             $object = json_decode(((string) $response->getBody()));
 
-	        dump($object);
+	        $this->logger->info('EVOLUTION ERROR: ' . (string)$response->getBody());
 
             return $object->transfer->balance;
         } catch (Exception $exception) {
