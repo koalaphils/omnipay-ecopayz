@@ -30,6 +30,7 @@ use ApiBundle\Event\TransactionCreatedEvent;
 use DbBundle\Entity\Transaction;
 use ProductIntegrationBundle\ProductIntegrationFactory;
 use ApiBundle\Service\JWTGeneratorService;
+use DbBundle\Entity\Customer;
 use Symfony\Component\HttpFoundation\Request;
 
 class MemberManager extends AbstractManager
@@ -332,6 +333,11 @@ class MemberManager extends AbstractManager
         } catch (\Exception $ex) {
             throw $ex;
         }
+    }
+
+    public function create(Customer $customer): void 
+    {
+        
     }
 
     protected function getJWTGeneratorService(): JWTGeneratorService

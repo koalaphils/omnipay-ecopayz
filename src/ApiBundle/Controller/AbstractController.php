@@ -7,10 +7,13 @@
 
 namespace ApiBundle\Controller;
 
+use App\Exception\InvalidFormException;
 use AppBundle\Helper\StrHelper;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\View\View;
+use Symfony\Component\Form\Form;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -102,5 +105,36 @@ abstract class AbstractController extends FOSRestController
     protected function getTranslator(): TranslatorInterface
     {
         return $this->container->get('translator');
+    }
+
+    /**
+     * @throws InvalidFormException if the form is invalid.
+     */
+    protected function validateForm(Form $form): void
+    {
+        if (!$form->isValid()) {
+            throw new InvalidFormException($form);
+        }
+    }
+
+    protected function isFormProcessable(FormInterface $form): bool
+    {
+        $isSubmitted = $form->isSubmitted();
+
+        if ($isSubmitted) {
+            $this->validateForm($form);
+        }
+
+        return $isSubmitted;
+    }
+
+    protected function handleRequest(FormInterface $form, Request $request): void
+    {
+        if ($request->getMethod() === 'GET') {
+            $data = $request->query->all();
+        } else {
+            $data = json_decode($request->getContent(), true);
+        }
+        $form->submit($data);
     }
 }

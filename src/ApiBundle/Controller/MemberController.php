@@ -2,7 +2,7 @@
 
 namespace ApiBundle\Controller;
 
-use ApiBundle\Form\Member\RegisterType;
+use ApiBundle\Form\Member\MemberRegisterType;
 use ApiBundle\Model\File;
 use ApiBundle\Request\RegisterRequest;
 use ApiBundle\RequestHandler\MemberHandler;
@@ -11,6 +11,8 @@ use MediaBundle\Manager\MediaManager;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use FOS\RestBundle\View\View;
 use ApiBundle\Manager\MemberManager;
+use App\Exception\InvalidFormException;
+use DbBundle\Entity\Customer;
 use PinnacleBundle\Component\Exceptions\PinnacleException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -188,24 +190,22 @@ class MemberController extends AbstractController
      *     }
      * )
      */
-    public function registerAction(Request $request, RegisterHandler $registerHandler, ValidatorInterface $validator): View
+    public function registerAction(Request $request, MemberManager $manager): JsonResponse
     {
-        $registerRequest = RegisterRequest::createFromRequest($request);
-        $violations = $validator->validate($registerRequest, null);
-        if ($violations->count() > 0) {
-            return $this->view($violations);
-        }
+        $member = new Customer();
+        $form = $this->createForm(MemberRegisterType::class, $member);
+        
+        $this->handleRequest($form, $request);
+
         try {
-            $member = $registerHandler->handle($registerRequest);
-        } catch (PinnacleException $ex) {
-            return $this->view([
-                'success' => false,
-                'error' => 'Something went wrong, contact support',
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            if ($this->isFormProcessable($form)) {
+                $manager->create($member);
+
+                return new Response('', Response::HTTP_CREATED);
+            }
+        } catch (InvalidFormException $exception) {
+            return $this->json($exception->getErrors(), Response::HTTP_UNPROCESSABLE_ENTITY);
         }
-
-
-        return $this->view($member);
     }
 
     /**
