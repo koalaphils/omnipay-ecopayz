@@ -691,7 +691,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
 
     public function getIsAffiliate()
     {
-        return $this->isAffiliate;
+        return $this->getUser()->isAffiliate();
     }
 
     public function setIsCustomer($isCustomer)
@@ -706,7 +706,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this->isCustomer;
     }
 
-    public function setAffiliate($affiliate)
+    public function setAffiliate(?int $affiliate)
     {
         $this->affiliate = $affiliate;
 
@@ -749,10 +749,10 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this;
     }
 
-	public function getCountry()
-	{
-		return $this->country;
-	}
+    public function getCountry()
+    {
+        return $this->country;
+    }
 
     public function setCountryName(string $countryName): self
     {
@@ -829,6 +829,19 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         }
 
         return $activeProducts;
+    }
+
+    public function isProductActive(string $code) : bool
+    {
+        $allProducts = $this->products;
+        $result = false;
+        foreach($allProducts as $product) {
+            if ($product->isActive() && ($product->getProduct()->getCode() === $code)) {
+                return true;
+            }
+        }
+
+        return $result;
     }
 
     public function setProducts($products): self
@@ -908,6 +921,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         }
 
         $preferences['paymentOptionTypes'] = [];
+
         foreach ($this->getPaymentOptions() as $paymentOption) {
             if (!in_array($paymentOption->getPaymentOption()->getCode(), $preferences['paymentOptionTypes'])) {
                 $preferences['paymentOptionTypes'][] = $paymentOption->getPaymentOption()->getCode();
@@ -1401,9 +1415,14 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     {
         return $this->allowRevenueShare;
     }
-
+    
     public function isLinkedToAffiliate(): bool
     {
         return $this->getAffiliate() !== null;
+    }
+
+    public function getReferralCode(): ?string
+    {
+        return $this->getDetail('referral_code', null);
     }
 }

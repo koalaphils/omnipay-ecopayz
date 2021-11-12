@@ -238,7 +238,7 @@ class MemberController extends AbstractController
      *     }
      * )
      */
-    public function getBalanceAction(MemberHandler $memberHandler): View
+    public function getBalanceAction(MemberHandler $memberHandler)
     {
         $user = $this->getUser();
 
