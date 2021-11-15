@@ -182,7 +182,7 @@ class DepositHandler
 			$fieldValues['account_id'] = $transactionModel->getAccountId();
 		}
 
-		if ($paymentOptionCode === PaymentOptionService::BITCOIN && $transactionType == Transaction::TRANSACTION_TYPE_WITHDRAW) {
+		if ($paymentOptionCode === PaymentOptionService::BITCOIN && $transactionType == Transaction::TRANSACTION_TYPE_DEPOSIT) {
 			$options['replace'] = true;
 		}
 
