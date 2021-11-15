@@ -198,7 +198,7 @@ class MemberController extends AbstractController
         $this->handleRequest($form, $request);
 
         try {
-            if ($this->isFormProcessable($form)) {
+            if ($this->isFormValid($form)) {
                 $manager->create($member);
 
                 return new Response('', Response::HTTP_CREATED);

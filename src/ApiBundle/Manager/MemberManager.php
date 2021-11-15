@@ -335,9 +335,9 @@ class MemberManager extends AbstractManager
         }
     }
 
-    public function create(Customer $customer): void 
+    public function create(Customer $member): void 
     {
-        
+        dump($member);
     }
 
     protected function getJWTGeneratorService(): JWTGeneratorService

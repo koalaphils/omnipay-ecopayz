@@ -117,7 +117,7 @@ abstract class AbstractController extends FOSRestController
         }
     }
 
-    protected function isFormProcessable(FormInterface $form): bool
+    protected function isFormValid(FormInterface $form): bool
     {
         $isSubmitted = $form->isSubmitted();
 
