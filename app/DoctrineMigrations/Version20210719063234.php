@@ -41,7 +41,7 @@ final class Version20210719063234 extends AbstractMigration
 	    $this->addSql('UPDATE setting SET setting_value = JSON_SET(setting_value, "$.withdraw", JSON_OBJECT("totalAmount", JSON_OBJECT("equation", "x+y", "variables", JSON_OBJECT("x", "sum_products", "y", "total_customer_fee")), "customerAmount", JSON_OBJECT("equation", "x", "variables", JSON_OBJECT("x", "sum_products")))) where setting_id = 98');
 
         // Update OAUTH token column length
-        $this->addSql(' ALTER TABLE oauth2_access_token MODIFY token VARCHAR(500)');
+        $this->addSql('ALTER TABLE oauth2_access_token MODIFY token VARCHAR(500)');
     }
 
     public function down(Schema $schema) : void
