@@ -30,8 +30,16 @@ use ApiBundle\Event\TransactionCreatedEvent;
 use DbBundle\Entity\Transaction;
 use ProductIntegrationBundle\ProductIntegrationFactory;
 use ApiBundle\Service\JWTGeneratorService;
+use DbBundle\Entity\Currency;
+use DbBundle\Entity\User;
 use DbBundle\Entity\Customer;
 use Symfony\Component\HttpFoundation\Request;
+use UserBundle\Manager\UserManager;
+use DbBundle\Repository\CurrencyRepository;
+use AppBundle\Manager\SettingManager;
+use DbBundle\Entity\CustomerGroup;
+use DbBundle\Repository\CustomerGroupRepository;
+use AppBundle\Manager\MailerManager;
 
 class MemberManager extends AbstractManager
 {
@@ -335,9 +343,120 @@ class MemberManager extends AbstractManager
         }
     }
 
-    public function create(Customer $member): void 
+    public function handle(Member $member): Member
     {
-        dump($member);
+        $member = $this->createMember($member);
+        $this->entityManager->beginTransaction();
+        try {
+            $this->changeCodeAsUsed($member->getDetail('verification_code'));
+            $this->entityManager->persist($member);
+            $this->entityManager->flush($member);
+
+            $this->entityManager->commit();
+
+            try {
+                $this->sendEmail($member);
+
+                $this->publisher->publishUsingWamp('member.registered', [
+                    'message' => $member->getUser()->getUsername() . ' was registered',
+                    'title' => 'New Member',
+                    'otherDetails' => [
+                        'id' => $member->getId(),
+                        'type' => 'profile'
+                    ]
+                ]);
+            } catch (\Exception $exception) {
+                // Do nothing
+            }
+        } catch (\PDOException $ex) {
+            $this->entityManager->rollback();
+            throw $ex;
+        }
+
+        return $member;
+    }
+
+    private function changeCodeAsUsed(string $code): void
+    {
+        $codeModel = $this->twoFactorCodeRepository->getCode($code);
+        $codeModel->setToUsed();
+        $this->codeStorage->saveCode($codeModel);
+    }
+
+    private function sendEmail(Member $member): void
+    {
+        $email = $member->getUser()->getEmail();
+        $payload = [
+            'provider' => $email === '' ?  'phone' : 'email',
+            'phone' => $email === '' ?  $member->getPhoneNumber() : '',
+            'email' => $email !== '' ? $email : '',
+            'ip' => $member->getDetail('ip'),
+            'from' => $email === '' ?   $member->getPhoneNumber() : $email,
+        ];
+
+        $subject = $this->getSettingManager()->getSetting('registration.mail.subject');
+        $to = $this->getSettingManager()->getSetting('registration.mail.to');
+
+        $this->getMailerManager()->send($subject, $to, 'registered.html.twig', $payload);
+    }
+
+    public function createMember(Customer $member): Member 
+    {
+        $now = new \DateTime('now');
+        $defaultMemberGroup = $this->getMemberGroupRepository()->getDefaultGroup();
+        $currency = $this->getCurrencyRepository()->findByCode($member->getCurrency());
+        $pinnacleProduct = $this->getPinnacleProduct();
+
+        $user = $member->getUser();
+        $user->setSignupType(User::SIGNUP_TYPE_EMAIL);
+        $user->setUsername($user->getEmail());
+        $user->setType(User::USER_TYPE_MEMBER);
+        $user->setRoles(['ROLE_MEMBER' => 2]);
+        $user->setActivationCode($this->getUserManager()->encodeActivationCode($user));
+        $user->setIsActive(true);
+        $user->setPassword($this->getUserManager()->encodePassword($user, $user->getPassword()));
+        $user->setActivationSentTimestamp($now);
+        $user->setActivationTimestamp($now);
+
+        $member->setCurrency($currency);
+        $member->setIsCustomer(true);
+        $member->setTransactionPassword();
+        $member->setLevel();
+        $member->setBalance(0);
+        $member->setJoinedAt($now);
+        $member->setFName('');
+        $member->setLName('');
+        $member->setFullName('');
+
+        try {
+            $integration = $this->getProductIntegrationFactory()->getIntegration('pinbet');
+            $response = $integration->create();
+
+            $memberProduct = new MemberProduct();
+            $memberProduct->setProduct($pinnacleProduct);
+            $memberProduct->setUserName($response['user_code']);
+            $memberProduct->setBalance('0.00');
+            $memberProduct->setIsActive(true);
+            
+            $member->setPinLoginId($response['login_id']);
+            $member->setPinUserCode($response['user_code']);  
+
+            $member->addProduct($memberProduct);
+        } catch(\Exception $ex) {
+            //Catch generic exception since we on what error to throw.
+        }       
+       
+        $member->addGroup($defaultMemberGroup);
+        $member->setDetail('websocket', ['channel_id' => uniqid(generate_code(10, false, 'ld'))]);
+
+        return $member;
+    }
+
+    private function getPinnacleProduct(): Product
+    {
+        $productCode = $this->getSettingManager()->getSetting('pinnacle.product');
+
+        return $this->getProductRepository()->getProductByCode($productCode);
     }
 
     protected function getJWTGeneratorService(): JWTGeneratorService
@@ -380,6 +499,16 @@ class MemberManager extends AbstractManager
         return $this->getDoctrine()->getRepository(CommissionPeriod::class);
     }
 
+    private function getCurrencyRepository(): CurrencyRepository
+    {
+        return $this->getDoctrine()->getRepository(Currency::class);
+    }
+
+    private function getMemberGroupRepository(): CustomerGroupRepository
+    {
+        return $this->getDoctrine()->getRepository(CustomerGroup::class);
+    }
+
     private function getReferralToolGenerator(): ReferralToolGenerator
     {
         return $this->get('app.referral_tool_generator');
@@ -398,5 +527,20 @@ class MemberManager extends AbstractManager
     private function getMemberRequestManager(): MemberRequestManager
     {
         return $this->get('member_request.manager');
+    }
+
+    private function getUserManager(): UserManager
+    {
+        return $this->get('user.manager');
+    }
+
+    private function getSettingManager(): SettingManager
+    {
+        return $this->get('app.setting_manager');
+    }
+
+    private function getMailerManager(): MailerManager
+    {
+        return $this->get('app.mailer_manager');
     }
 }

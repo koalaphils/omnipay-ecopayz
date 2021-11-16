@@ -190,7 +190,7 @@ class MemberController extends AbstractController
      *     }
      * )
      */
-    public function registerAction(Request $request, MemberManager $manager): JsonResponse
+    public function registerAction(Request $request, MemberManager $manager): View
     {
         $member = new Customer();
         $form = $this->createForm(MemberRegisterType::class, $member);
@@ -199,12 +199,17 @@ class MemberController extends AbstractController
 
         try {
             if ($this->isFormValid($form)) {
-                $manager->create($member);
+                $result = $manager->create($member);
 
-                return new Response('', Response::HTTP_CREATED);
+                return $this->view($result);
             }
         } catch (InvalidFormException $exception) {
-            return $this->json($exception->getErrors(), Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->view($exception->getErrors(), Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (PinnacleException $ex) {
+            return $this->view([
+                'success' => false,
+                'error' => 'Something went wrong, contact support',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 

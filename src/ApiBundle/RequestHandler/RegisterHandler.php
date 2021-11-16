@@ -153,6 +153,7 @@ class RegisterHandler
         $user->setActivationSentTimestamp($now);
         $user->setActivationTimestamp($now);
         $defaultMemberGroup = $this->memberGroupRepository->getDefaultGroup();
+        
         $currency = $this->currencyRepository->findByCode($registerRequest->getCurrency());
         $pinnacleProduct = $this->getPinnacleProduct();
 

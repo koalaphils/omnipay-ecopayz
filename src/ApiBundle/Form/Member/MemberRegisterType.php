@@ -20,13 +20,6 @@ class MemberRegisterType extends AbstractType
         $builder->add('details', Type\CollectionType::class, [
             'allow_add' => true
         ]);
-        
-        //$builder->add('referralCode', Type\TextType::class);
-        //$builder->add('referrerOriginSite', Type\TextType::class);
-        //$builder->add('referreSite', Type\TextType::class);
-        //$builder->add('registrationSite', Type\TextType::class);
-        //$builder->add('registrationLocale', Type\TextType::class);
-        //$builder->add('verificationCode', Type\TextType::class);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
