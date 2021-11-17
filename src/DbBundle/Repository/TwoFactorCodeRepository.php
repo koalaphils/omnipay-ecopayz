@@ -36,7 +36,7 @@ class TwoFactorCodeRepository extends EntityRepository implements StorageInterfa
         try {
             return $queryBuilder->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
-            throw new CodeDoesNotExistsException(sprintf('Code %s does not exists', $code));
+            throw new CodeDoesNotExistsException('Invalid code. Please check the code and try again.');
         }
     }
 }

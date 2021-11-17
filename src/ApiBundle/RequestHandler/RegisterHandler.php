@@ -214,7 +214,7 @@ class RegisterHandler
         if ($registerRequest->getCountryPhoneCode() !== '') {
             $country = $this->countryRepository->findByPhoneCode($registerRequest->getCountryPhoneCode());
             $member->setCountry($country);
-        }
+        }   
 
         return $member;
     }

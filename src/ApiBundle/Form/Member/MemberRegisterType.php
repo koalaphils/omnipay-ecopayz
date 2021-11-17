@@ -15,8 +15,12 @@ class MemberRegisterType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder->add('user', UserFormType::class);
-        $builder->add('phoneNumber', Type\TextType::class);
-        $builder->add('currency', Type\TextType::class);
+        $builder->add('phoneNumber', Type\TextType::class, [
+            'required' => true
+        ]);
+        $builder->add('currency', Type\TextType::class, [
+            'required' => true
+        ]);
         $builder->add('details', Type\CollectionType::class, [
             'allow_add' => true
         ]);

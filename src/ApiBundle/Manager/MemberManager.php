@@ -40,6 +40,10 @@ use AppBundle\Manager\SettingManager;
 use DbBundle\Entity\CustomerGroup;
 use DbBundle\Repository\CustomerGroupRepository;
 use AppBundle\Manager\MailerManager;
+use AppBundle\Helper\Publisher;
+use DbBundle\Entity\TwoFactorCode;
+use DbBundle\Repository\TwoFactorCodeRepository;
+use TwoFactorBundle\Provider\Message\StorageInterface;
 
 class MemberManager extends AbstractManager
 {
@@ -346,18 +350,19 @@ class MemberManager extends AbstractManager
     public function handle(Member $member): Member
     {
         $member = $this->createMember($member);
-        $this->entityManager->beginTransaction();
+        $this->getEntityManager()->beginTransaction();
         try {
+            //dump($member->getDetail('registration'));
             $this->changeCodeAsUsed($member->getDetail('verification_code'));
-            $this->entityManager->persist($member);
-            $this->entityManager->flush($member);
+            $this->getEntityManager()->persist($member);
+            $this->getEntityManager()->flush($member);
 
-            $this->entityManager->commit();
+            $this->getEntityManager()->commit();
 
             try {
                 $this->sendEmail($member);
 
-                $this->publisher->publishUsingWamp('member.registered', [
+                $this->getPublisher()->publishUsingWamp('member.registered', [
                     'message' => $member->getUser()->getUsername() . ' was registered',
                     'title' => 'New Member',
                     'otherDetails' => [
@@ -369,35 +374,11 @@ class MemberManager extends AbstractManager
                 // Do nothing
             }
         } catch (\PDOException $ex) {
-            $this->entityManager->rollback();
+            $this->getEntityManager()->rollback();
             throw $ex;
         }
 
         return $member;
-    }
-
-    private function changeCodeAsUsed(string $code): void
-    {
-        $codeModel = $this->twoFactorCodeRepository->getCode($code);
-        $codeModel->setToUsed();
-        $this->codeStorage->saveCode($codeModel);
-    }
-
-    private function sendEmail(Member $member): void
-    {
-        $email = $member->getUser()->getEmail();
-        $payload = [
-            'provider' => $email === '' ?  'phone' : 'email',
-            'phone' => $email === '' ?  $member->getPhoneNumber() : '',
-            'email' => $email !== '' ? $email : '',
-            'ip' => $member->getDetail('ip'),
-            'from' => $email === '' ?   $member->getPhoneNumber() : $email,
-        ];
-
-        $subject = $this->getSettingManager()->getSetting('registration.mail.subject');
-        $to = $this->getSettingManager()->getSetting('registration.mail.to');
-
-        $this->getMailerManager()->send($subject, $to, 'registered.html.twig', $payload);
     }
 
     public function createMember(Customer $member): Member 
@@ -452,6 +433,30 @@ class MemberManager extends AbstractManager
         return $member;
     }
 
+    private function changeCodeAsUsed(string $code): void
+    {
+        $codeModel = $this->getTwoFactorCodeRepository()->getCode($code);
+        $codeModel->setToUsed();
+        $this->getStorageInterface()->saveCode($codeModel);
+    }
+
+    private function sendEmail(Member $member): void
+    {
+        $email = $member->getUser()->getEmail();
+        $payload = [
+            'provider' => $email === '' ?  'phone' : 'email',
+            'phone' => $email === '' ?  $member->getPhoneNumber() : '',
+            'email' => $email !== '' ? $email : '',
+            'ip' => $member->getDetail('ip'),
+            'from' => $email === '' ?   $member->getPhoneNumber() : $email,
+        ];
+
+        $subject = $this->getSettingManager()->getSetting('registration.mail.subject');
+        $to = $this->getSettingManager()->getSetting('registration.mail.to');
+
+        $this->getMailerManager()->send($subject, $to, 'registered.html.twig', $payload);
+    }
+
     private function getPinnacleProduct(): Product
     {
         $productCode = $this->getSettingManager()->getSetting('pinnacle.product');
@@ -489,6 +494,16 @@ class MemberManager extends AbstractManager
         return $this->get(ProductIntegrationFactory::class);
     }
 
+    private function getPublisher(): Publisher
+    {
+        return $this->get(Publisher::class);
+    }
+
+    private function getStorageInterface(): StorageInterface
+    {
+        return $this->get(StorageInterface::class);
+    }
+
     private function getMemberRunningCommissionRepository(): MemberRunningCommissionRepository
     {
         return $this->getDoctrine()->getRepository(MemberRunningCommission::class);
@@ -502,6 +517,11 @@ class MemberManager extends AbstractManager
     private function getCurrencyRepository(): CurrencyRepository
     {
         return $this->getDoctrine()->getRepository(Currency::class);
+    }
+
+    private function getTwoFactorCodeRepository(): TwoFactorCodeRepository
+    {
+        return $this->getDoctrine()->getRepository(TwoFactorCode::class);
     }
 
     private function getMemberGroupRepository(): CustomerGroupRepository

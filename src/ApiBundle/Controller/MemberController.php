@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use TwoFactorBundle\Provider\Message\Exceptions\CodeDoesNotExistsException;
 
 class MemberController extends AbstractController
 {
@@ -199,16 +200,23 @@ class MemberController extends AbstractController
 
         try {
             if ($this->isFormValid($form)) {
-                $result = $manager->create($member);
+                $result = $manager->handle($member);
 
                 return $this->view($result);
             }
         } catch (InvalidFormException $exception) {
             return $this->view($exception->getErrors(), Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (PinnacleException $ex) {
+        } catch (CodeDoesNotExistsException $exception) {
             return $this->view([
-                'success' => false,
-                'error' => 'Something went wrong, contact support',
+                'error' => true,
+                'message' => $exception->getMessage(),
+                'status' => Response::HTTP_UNPROCESSABLE_ENTITY
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (PinnacleException $exception) {
+            return $this->view([
+                'error' => true,
+                'message' => 'Something went wrong, contact support',
+                'status' => Response::HTTP_INTERNAL_SERVER_ERROR
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
