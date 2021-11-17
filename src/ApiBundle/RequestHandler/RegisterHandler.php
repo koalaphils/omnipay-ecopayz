@@ -137,17 +137,6 @@ class RegisterHandler
 
     private function generateMember(RegisterRequest $registerRequest): Member
     {
-        $system_user = $this->userRepository->loadUserByUsername('system');
-        if (!($system_user instanceof User)) {
-            throw new \Exception('Invalid User');
-        }
-        dump($system_user);
-
-        //$token = new UserPasswordToken($system_user, null, 'main', $system_user->getRoles());
-        // $this->getContainer()->get('security.token_storage')->setToken($token);
-        // $request = $this->getContainer()->get('request_stack')->getCurrentRequest();
-        // $request->headers->set('x-forwarded-for', ['127.0.0.1']);
-
         $now = new \DateTime('now');
         $user = $this->generateUser($registerRequest);
         $user->setActivationSentTimestamp($now);
