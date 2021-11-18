@@ -32,6 +32,7 @@ class MemberRegisterType extends AbstractType
             'data_class' => Customer::class,
             'csrf_protection' => false,
             'constraints' => [new Valid()],
+            'validation_groups' => ['Default']
         ]);
     }
 }

@@ -7,7 +7,7 @@
 
 namespace ApiBundle\Controller;
 
-use App\Exception\InvalidFormException;
+use AppBundle\Exceptions\FormValidationException;
 use AppBundle\Helper\StrHelper;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\View\View;
@@ -108,12 +108,12 @@ abstract class AbstractController extends FOSRestController
     }
 
     /**
-     * @throws InvalidFormException if the form is invalid.
+     * @throws FormValidationException if the form is invalid.
      */
     protected function validateForm(Form $form): void
     {
         if (!$form->isValid()) {
-            throw new InvalidFormException($form);
+            throw new FormValidationException($form);
         }
     }
 

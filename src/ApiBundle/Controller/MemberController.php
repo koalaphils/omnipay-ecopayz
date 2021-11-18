@@ -12,6 +12,7 @@ use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use FOS\RestBundle\View\View;
 use ApiBundle\Manager\MemberManager;
 use App\Exception\InvalidFormException;
+use AppBundle\Exceptions\FormValidationException;
 use DbBundle\Entity\Customer;
 use PinnacleBundle\Component\Exceptions\PinnacleException;
 use Symfony\Component\HttpFoundation\Request;
@@ -204,8 +205,12 @@ class MemberController extends AbstractController
 
                 return $this->view($result);
             }
-        } catch (InvalidFormException $exception) {
-            return $this->view($exception->getErrors(), Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (FormValidationException $exception) {
+            return $this->view([
+                'error' => true,
+                'errors' => $exception->getErrors(),
+                'status' => Response::HTTP_UNPROCESSABLE_ENTITY
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (CodeDoesNotExistsException $exception) {
             return $this->view([
                 'error' => true,
