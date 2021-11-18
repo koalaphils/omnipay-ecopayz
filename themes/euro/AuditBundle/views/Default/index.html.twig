@@ -573,14 +573,30 @@
                             objectString += removeUnderscores(field) + ': ';
                         }
 
-                        if (value == 1) {
-                            value = 'No';
-                        } else if (value == 2) {
-                            value = 'Yes';
-                        } else if (typeof value == 'string') {
-                            value = removeUnderscores(value);
-                        } else if (value == null) {
-                            value = 'N/A';
+                        if(typeof field === "string" && field.match(/ROLE_/)) {
+                            if (value == 0) {
+                                value = 'DENY'
+                            } else if (value == 1) {
+                                value = 'INHERIT'
+                            } else if (value == 2) {
+                                value = 'ALLOW'
+                            }
+                        }else if(typeof field === 'string' && field.match(/password/i)){
+                            value = '(encoded value)'
+                        }else{
+                            if (field === 'active' && value === true) {
+                                value = 'Yes';
+                            } else if (field === 'active' && value === false) {
+                                value = 'No';
+                            } else if (value === true) {
+                                value = 'Yes';
+                            } else if (value === false) {
+                                value = 'No';
+                            } else if (typeof value == 'string') {
+                                value = removeUnderscores(value);
+                            } else if (value == null) {
+                                value = 'N/A';
+                            }
                         }
 
                         objectString += value + '</li>';
