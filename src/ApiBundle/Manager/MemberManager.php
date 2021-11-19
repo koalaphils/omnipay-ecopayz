@@ -43,6 +43,8 @@ use AppBundle\Manager\MailerManager;
 use AppBundle\Helper\Publisher;
 use DbBundle\Entity\TwoFactorCode;
 use DbBundle\Repository\TwoFactorCodeRepository;
+use TwoFactorBundle\Provider\Message\CodeModel;
+use TwoFactorBundle\Provider\Message\Exceptions\CodeDoesNotExistsException;
 use TwoFactorBundle\Provider\Message\StorageInterface;
 
 class MemberManager extends AbstractManager
@@ -352,7 +354,6 @@ class MemberManager extends AbstractManager
         $member = $this->createMember($member);
         $this->getEntityManager()->beginTransaction();
         try {
-            //dump($member->getDetail('registration'));
             $this->changeCodeAsUsed($member->getDetail('verification_code'));
             $this->getEntityManager()->persist($member);
             $this->getEntityManager()->flush($member);
@@ -389,10 +390,13 @@ class MemberManager extends AbstractManager
         $pinnacleProduct = $this->getPinnacleProduct();
 
         $user = $member->getUser();
+        //Add to Form if registration for Vendor has been implemented
         $user->setSignupType(User::SIGNUP_TYPE_EMAIL);
         $user->setUsername($user->getEmail());
         $user->setType(User::USER_TYPE_MEMBER);
         $user->setRoles(['ROLE_MEMBER' => 2]);
+        //Add to Form if registration for Vendor has been implemented
+
         $user->setActivationCode($this->getUserManager()->encodeActivationCode($user));
         $user->setIsActive(true);
         $user->setPassword($this->getUserManager()->encodePassword($user, $user->getPassword()));
@@ -436,8 +440,13 @@ class MemberManager extends AbstractManager
     private function changeCodeAsUsed(string $code): void
     {
         $codeModel = $this->getTwoFactorCodeRepository()->getCode($code);
-        $codeModel->setToUsed();
-        $this->getStorageInterface()->saveCode($codeModel);
+
+        if ($codeModel->getStatus() === 2 && !$codeModel->isExpired()) {
+            $codeModel->setToUsed();
+            $this->getStorageInterface()->saveCode($codeModel);
+        } else {
+            throw new CodeDoesNotExistsException('Invalid code. Please check the code and try again.');
+        }
     }
 
     private function sendEmail(Member $member): void
