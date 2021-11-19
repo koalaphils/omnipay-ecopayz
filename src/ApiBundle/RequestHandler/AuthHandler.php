@@ -296,7 +296,7 @@ class AuthHandler
     public function loginToEvolution(string $jwt, Customer $customer, string $locale, Request $request): ?array
     {
         try {
-            $evolutionProduct = $this->getEvolutionProduct($customer);
+            $evolutionProduct = $this->customerProductRepository->findOneByCustomerAndProductCode($customer, 'EVOLUTION');
             $evolutionIntegration = $this->productIntegrationFactory->getIntegration('evolution');
             
             $evolutionResponse = $evolutionIntegration->auth($jwt, [
@@ -317,22 +317,6 @@ class AuthHandler
         } catch (IntegrationException $ex) {
             return null;
         }
-    }
-
-    private function getEvolutionProduct(Customer $customer): CustomerProduct
-    {
-        $customerProduct = $this->customerProductRepository->findOneByCustomerAndProductCode($customer, 'EVOLUTION');
-
-        if ($customerProduct === null) {
-            $customerProduct = CustomerProduct::create($customer);
-            $product = $this->productRepository->getProductByCode('EVOLUTION');
-            $customerProduct->setProduct($product);
-            $customerProduct->setUsername('Evolution_' . uniqid());
-            $customerProduct->setBalance('0.00');
-            $customerProduct->setIsActive(true);
-        }
-
-        return $customerProduct;
     }
 
     private function getPaymentOptions(string $customerId): array
