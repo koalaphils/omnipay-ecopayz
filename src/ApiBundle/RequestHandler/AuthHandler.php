@@ -217,6 +217,7 @@ class AuthHandler
 
         $this->createPiwiWalletIfNotExisting($user->getCustomer());
         $this->createPiwixProductIfNotExisting($user->getCustomer());
+        $this->createEvolutionIfNotExisting($user->getCustomer());
 
         $pinnacleLoginResponse = $this->loginToPinnacle($user->getCustomer()->getPinUserCode(), $locale);
         $evolutionLoginResponse = $this->loginToEvolution($jwt, $user->getCustomer(), $locale, $request);
@@ -259,6 +260,23 @@ class AuthHandler
         }
     }
 
+    private function createEvolutionIfNotExisting(Customer $customer): void
+    {
+        $customerProduct = $this->customerProductRepository->findOneByCustomerAndProductCode($customer, 'EVOLUTION');
+
+        if ($customerProduct === null) {
+            $customerProduct = CustomerProduct::create($customer);
+            $product = $this->productRepository->getProductByCode('EVOLUTION');
+            $customerProduct->setProduct($product);
+            $customerProduct->setUsername('Evolution_' . uniqid());
+            $customerProduct->setBalance('0.00');
+            $customerProduct->setIsActive(true);
+
+            $this->entityManager->persist($customerProduct);
+            $this->entityManager->flush();
+        }
+    }
+
     private function loginToPinnacle(?string $pinUserCode, $locale): ?array
     {   
         try {
@@ -278,8 +296,9 @@ class AuthHandler
     public function loginToEvolution(string $jwt, Customer $customer, string $locale, Request $request): ?array
     {
         try {
-            $evolutionIntegration = $this->productIntegrationFactory->getIntegration('evolution');
             $evolutionProduct = $this->getEvolutionProduct($customer);
+            $evolutionIntegration = $this->productIntegrationFactory->getIntegration('evolution');
+            
             $evolutionResponse = $evolutionIntegration->auth($jwt, [
                 'id' => $evolutionProduct->getUsername(),
                 'lastName' => $customer->getLName() ? $customer->getLname() : $customer->getUsername(),
@@ -291,9 +310,6 @@ class AuthHandler
                 'ip' => $request->getClientIp(),
                 'sessionId' =>$request->get('session_id')
             ]);
-
-            $this->entityManager->persist($evolutionProduct);
-            $this->entityManager->flush();
             
             return $evolutionResponse;
         } catch (IntegrationNotAvailableException $ex) {
