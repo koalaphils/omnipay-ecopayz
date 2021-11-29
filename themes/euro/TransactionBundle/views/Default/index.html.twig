@@ -566,7 +566,21 @@
                         'data': 'customer_amount',
                         'defaultContent': '',
                         'render': function (data, type, full) {
-                            if (full.type_text === 'withdraw') {
+
+                            if (full.is_transaction_payment_bitcoin && full.was_created_from_ams) {
+                                var payment_option = full.payment_option ?? full.details?.paymentOptionOnTransaction?.code ?? full.details?.paymentOption?.code;
+                                var cryptoCurrency = payment_option == 'BITCOIN' ? 'BTC' : payment_option;
+                                var cryptoAmount = new Number(full.bitcoin_total_amount);
+
+                                var amount = new Number(data);
+                                if (full.type_text === 'withdraw') {
+                                    amount += new Number(full.customer_fee);
+                                }
+
+                                amount = amount.toFixed(2, 4);
+
+                                return amount + ' (' + cryptoAmount.toFixed(5, 4) + ' ' + cryptoCurrency + ')';
+                            } else if (full.type_text === 'withdraw') {
                                 var amount = new Number(data);
                                 var fee = new Number(full.customer_fee);
                                 amount += fee;
@@ -576,15 +590,6 @@
                                 var betAmount = new Number(full.amount);
 
                                 return betAmount.toFixed(2);
-                            } else if (full.is_transaction_payment_bitcoin === true) {
-                                var cryptoCurrency = full.payment_option;
-                                var btcTotalAmount = new Number(full.bitcoin_total_amount);
-                                if (full.type_text === 'deposit' && btcTotalAmount != '0') {
-                                    var btcAmount = new Number(full.bitcoin_total_amount);
-                                    return data + ' (' + btcAmount.toFixed(5) + ' ' + cryptoCurrency + ')';
-                                }
-                                
-                                return data;
                             } else if (full.type_text === 'dwl') {
                                 var subtransaction = full.sub_transactions[0];
                                 if (subtransaction.brokerage_win_loss != null) {
