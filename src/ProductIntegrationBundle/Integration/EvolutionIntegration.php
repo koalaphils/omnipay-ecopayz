@@ -37,13 +37,14 @@ class EvolutionIntegration implements ProductIntegrationInterface
     {
         $response = $this->http->get('/balance' . '?id=' . $id, $token);
         $object = json_decode(((string) $response->getBody()));
+        $balance = !is_null($object->userbalance->tbalance) ? $object->userbalance->tbalance : 'Unable to fetch balance';
 
         if (property_exists($object, 'error')) {
             $this->logger->info('EVOLUTION ERROR: ' . (string) $response->getBody());
             throw new IntegrationException('Error getting balance in evolution.', 422);
         }
 
-        return $object->userbalance->tbalance;
+        return $balance;
     }
 
     public function credit(string $token, array $params): string

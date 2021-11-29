@@ -1,4 +1,4 @@
-FROM koalaphils/php:7.4-fpm  as base
+FROM zimi/php:7.4-fpm  as base
 
 RUN  set -eux; \
   apt-get update; \
