@@ -86,3 +86,7 @@ DbBundle\Entity\Winloss:
             type: datetime
             column: winloss_created_at
             nullable: false
+        pregeneratedAt:
+            type: datetime
+            column: winloss_pregenerated_at
+            nullable: false
