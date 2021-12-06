@@ -3,6 +3,7 @@
 namespace ApiBundle\Controller;
 
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use DbBundle\Collection\Collection;
 
@@ -53,21 +54,9 @@ class CountryController extends AbstractController
         }
 
         $filters['withphonecode'] = $request->get('withphonecode', 0);
-        
-        $countries = $this->getCountryRepository()->getCountryList($filters, \Doctrine\ORM\Query::HYDRATE_OBJECT);
-        $total = $this->getCountryRepository()->getCountryListAllCount();
-        $totalFiltered = $this->getCountryRepository()->getCountryListFilterCount($filters);
+        $countries = $this->get('country.manager')->getCountries();
 
-        if ($filters['limit'] === 'all') {
-            $collection = new Collection($countries, $total, $totalFiltered, count($countries), $request->get('page', 1));
-        } else {
-            $collection = new Collection($countries, $total, $totalFiltered, $filters['limit'], $request->get('page', 1));
-        }
-
-        $view = $this->view($collection);
-        $view->getContext()->setGroups(['Default', 'API', 'items' => ['Default', 'API']]);
-
-        return $view;
+        return new JsonResponse(['items' => array_values($countries)]);
     }
     
     /**
@@ -87,7 +76,7 @@ class CountryController extends AbstractController
      */
     public function countryAction(string $code)
     {
-        $country = $this->getCountryRepository()->findOneBy(['code' => $code]);
+        $country = $this->get('country.manager')->getCountries()[$code];
         
         if ($country === null) {
             throw $this->createNotFoundException('Country not found');

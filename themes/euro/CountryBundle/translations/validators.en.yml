@@ -1,9 +1,0 @@
-country:
-    name:
-        regex: Country name has invalid characters, Valid characters (Letter, Number and Internationalize Characters)
-        min: Country name must be at least {{ limit }} characters long
-        max: Country name cannot be longer than {{ limit }} chatacters
-    code:
-        min: Country code must be at least {{ limit }} characters long
-        max: Country code cannot be longer than {{ limit }} chatacters
-        regex: Country code has invalid characters, Valid characters (Letter, Number and Internationalize Characters)

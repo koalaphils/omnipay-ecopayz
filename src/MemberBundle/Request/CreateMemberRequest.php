@@ -141,12 +141,12 @@ class CreateMemberRequest implements GroupSequenceProviderInterface
         $this->birthDate = $birthdate;
     }
 
-    public function getCountry(): ?int
+    public function getCountry()
     {
         return $this->country;
     }
 
-    public function setCountry(?int $country): void
+    public function setCountry($country): void
     {
         $this->country = $country;
     }

@@ -98,13 +98,14 @@ widgets:
                     options:
                         label: Country
                         required: false
-                    type: dropdown
+                    type: choices
+                    group: Left
                     size: 12
-                    group: Right
                     choicesFrom:
                         function: '@country.manager::getCountryList'
                         label: result['name'] ~ ' (' ~ result['code'] ~ ')'
-                        value: result['id']
+                        value: result['code']
+                        preselect: true
                 currency:
                     options:
                         label: Currency
@@ -166,7 +167,7 @@ widgets:
                     readonly: true
                 # affiliateLink:
                 #     options:
-                #         label: Referral Code
+                #         label: Referrer Code
                 #         required: false
                 #     type: text
                 #     size: 12
@@ -609,10 +610,9 @@ widgets:
                         data-size: 5
                     value: :paymentOption
                     choicesFrom:
-                        function: '@paymentoption.manager::filter'
-                        label: result.getName()
-                        value: result.getCode()
-                        from: data
+                        function: '@app.service.payment_option_service::getAllPaymentOptions'
+                        label: result['name']
+                        value: result['code']
                 types:
                     dom: <'form-group form-group-sm m-r-10 xs-filter'i>
                     label: Type

@@ -158,20 +158,4 @@ class CustomerPaymentOptionRepository extends \Doctrine\ORM\EntityRepository
 
         return $queryBuilder->getQuery()->getResult();
     }
-
-	public function searchCustomer($paymentOptionSearch, $paymentOptionsFilter)
-	{
-		$queryBuilder = $this->createQueryBuilder('cpo');
-		$queryBuilder->select('DISTINCT(cpo.customer)');
-
-		if (!empty($paymentOptionsFilter)) {
-			$queryBuilder->andWhere("cpo.paymentOption IN (:option_type)")->setParameter('option_type', $paymentOptionsFilter);
-		}
-
-		if (!empty($paymentOptionSearch)) {
-			$queryBuilder->andWhere("JSON_SEARCH(LOWER(cpo.fields), 'one', LOWER(:search)) > 0")->setParameter('search', '%' . $paymentOptionSearch . '%');
-		}
-
-		return $queryBuilder->getQuery()->getResult();
-	}
 }

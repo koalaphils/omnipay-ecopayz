@@ -214,7 +214,7 @@ class AuthHandler
         $memberLocale = $user->getCustomer()->getLocale();
         $memberLocale = strtolower(str_replace('_', '-', $memberLocale));
         $locale = !empty($memberLocale) ? $memberLocale : 'en';
-
+        
         $this->createPiwiWalletIfNotExisting($user->getCustomer());
         $this->createPiwixProductIfNotExisting($user->getCustomer());
         $this->createEvolutionIfNotExisting($user->getCustomer());
@@ -304,7 +304,7 @@ class AuthHandler
                 'lastName' => $customer->getLName() ? $customer->getLname() : $customer->getUsername(),
                 'firstName' => $customer->getFName() ? $customer->getFName() : $customer->getUsername(),
                 'nickname' => str_replace("Evolution_","", $evolutionProduct->getUsername()),
-                'country' => $customer->getCountry() ? $customer->getCountry()->getCode() : 'UK',
+                'country' => $customer->getCountry() ? $customer->getCountry(): 'UK',
                 'language' => $locale ?? 'en',
                 'currency' => $customer->getCurrency()->getCode(),
                 'ip' => $request->getClientIp(),
@@ -339,6 +339,9 @@ class AuthHandler
                 'from' => 'member_site',
             ]),
             'exp' => time() + $this->sessionExpiration,
+	        'roles' => [
+				'ROLE_AUTHENTICATED'
+	        ]
         ];
 
         return JWT::encode($token, $this->jwtKey);

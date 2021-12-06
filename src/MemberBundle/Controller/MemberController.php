@@ -2,6 +2,14 @@
 
 namespace MemberBundle\Controller;
 
+use DbBundle\Entity\Product;
+use DbBundle\Repository\ProductRepository;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use DateTime;
 use AppBundle\Controller\PageController;
 use AppBundle\Manager\PageManager;
 use AppBundle\Exceptions\HTTP\UnprocessableEntityException;
@@ -11,28 +19,18 @@ use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerGroup;
 use DbBundle\Entity\MarketingTool;
 use DbBundle\Entity\RiskSetting;
-use DbBundle\Entity\Product;
-use DbBundle\Repository\ProductRepository;
 use DbBundle\Repository\CustomerGroupRepository;
 use DbBundle\Repository\CustomerRepository;
 use DbBundle\Repository\MarketingToolRepository;
 use DbBundle\Repository\RiskSettingRepository;
 use MediaBundle\Manager\MediaManager;
 use MediaBundle\Widget\Page\MediaLibraryWidget;
-use MemberBundle\Event\ReferralEvent;
-use MemberBundle\Events;
 use MemberBundle\Manager\MemberManager;
 use MemberBundle\Manager\MemberReferralNameManager;
 use MemberBundle\Manager\MemberCommissionManager;
 use MemberBundle\Manager\MemberRevenueShareManager;
 use MemberBundle\Manager\MemberWebsiteManager;
 use GuzzleHttp\Exception\GuzzleException;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
-use DateTime;
 
 class MemberController extends PageController
 {
@@ -44,7 +42,19 @@ class MemberController extends PageController
     public function processListResult(array $result, ListWidget $widget): array
     {
         $processedResult = $result;
+        $countries = $this->get('country.manager')->getCountries();
         foreach ($processedResult['records'] as &$record) {
+            $countryName = "Country Code Not Valid {$record[0]['country']}";
+            if ($record[0]['country'] === null) {
+                $countryName = 'Unknown';
+            }
+
+            if (isset($countries[$record[0]['country']]['name'])) {
+                $countryName = $countries[$record[0]['country']]['name'];
+            }
+
+            $record[0]['countryName'] = $countryName;
+
             $record = [
                 'customer' => $record[0],
                 'referralCount' => $record['referralCount'],
@@ -56,6 +66,30 @@ class MemberController extends PageController
 
         return $processedResult;
     }
+
+	public function processPaymentOptionFilter($filters)
+	{
+		$paymentOptionsFilter = [];
+		$paymentOptionSearch = "";
+
+		//payment option filter
+		if (isset($filters['filter']['paymentOption']) && $filters['filter']['paymentOption']) {
+			$paymentOptionsFilter = $filters['filter']['paymentOption'];
+		}
+
+		//payment gateway search
+		if (isset($filters['filter']['searchCategory']) && !empty($filters['filter']['searchCategory']) &&
+			in_array('paymentGateway', $filters['filter']['searchCategory']) &&
+			$filters['filter']['search']
+		) {
+			$paymentOptionSearch =  $filters['filter']['search'];
+		}
+		if ($paymentOptionSearch || $paymentOptionsFilter) {
+			$filters['customer_payment_options'] = $this->get('app.service.customer_payment_option_service')->search($paymentOptionSearch, $paymentOptionsFilter);
+		}
+
+		return $filters;
+	}
 
     public function processCommissionResult(array $result, ListWidget $widget): array
     {
@@ -242,30 +276,6 @@ class MemberController extends PageController
 
         return ['success' => true];
     }
-
-    public function processPaymentOptionFilter($filters)
-	{
-		$paymentOptionsFilter = [];
-		$paymentOptionSearch = "";
-
-		//payment option filter
-		if (isset($filters['filter']['paymentOption']) && $filters['filter']['paymentOption']) {
-			$paymentOptionsFilter = $filters['filter']['paymentOption'];
-		}
-
-		//payment gateway search
-		if (isset($filters['filter']['searchCategory']) && !empty($filters['filter']['searchCategory']) &&
-			in_array('paymentGateway', $filters['filter']['searchCategory']) &&
-			$filters['filter']['search']
-		) {
-			$paymentOptionSearch =  $filters['filter']['search'];
-		}
-		if ($paymentOptionSearch || $paymentOptionsFilter) {
-			$filters['customer_payment_options'] = $this->getCustomerPaymentOptionManager()->searchCustomer($paymentOptionSearch, $paymentOptionsFilter);
-		}
-
-		return $filters;
-	}
 
     public function updateOnActivateReferralName(PageManager $pageManager, array $data): JsonResponse
     {

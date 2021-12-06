@@ -28,9 +28,6 @@
             {% if is_granted('ROLE_USER_CREATE') %}
             <li><a href="{{ path("user.create_page") }}">{{ "Add User"|trans({}, 'UserBundle') }}</a></li>|
             {% endif %}
-            {% if is_granted('ROLE_COUNTRY_VIEW') %}
-            <li><a href="{{ path("country.list_page", {'type': 'withdraw'}) }}">{{ "Country"|trans({}, 'UserBundle') }}</a></li>|
-            {% endif %}
             {% if is_granted('ROLE_TRANSACTION_VIEW') %}
             <li><a href="{{ path("transaction.list_page") }}">{{ "Transaction History"|trans({}, 'UserBundle') }}</a></li>
             {% endif %}

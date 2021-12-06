@@ -19,11 +19,8 @@
         <a class="btn btn-primary waves-effect waves-light pull-right m-b-10" href="{{ path('paymentoption.create_page') }}"> <span><i class="ti-plus m-r-5"></i></span> {{ "Add Payment Option"|trans({}, 'PaymentOptionBundle') }}</a>
         {% endif %}
         <ul class="list-inline quicklinks font-13 font-normal text-right">
-            {% if is_granted(['ROLE_COUNTRY_VIEW' , 'ROLE_TRANSACTION_VIEW' , 'ROLE_USER_VIEW']) %}
+            {% if is_granted(['ROLE_TRANSACTION_VIEW' , 'ROLE_USER_VIEW']) %}
             <li>Quick Links:</li>
-            {% endif %}
-            {% if is_granted('ROLE_COUNTRY_VIEW') %}
-            <li><a href="{{ path("country.list_page") }}">{{ "Country"|trans({}, 'PaymentOptionBundle') }}</a></li>|
             {% endif %}
             {% if is_granted('ROLE_TRANSACTION_VIEW') %}
             <li><a href="{{ path("transaction.list_page") }}">{{ "Transaction History"|trans({}, 'PaymentOptionBundle') }}</a></li>|

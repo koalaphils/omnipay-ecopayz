@@ -7,6 +7,9 @@ namespace ApiBundle\RequestHandler\Transaction;
 use ApiBundle\Event\TransactionCreatedEvent;
 use ApiBundle\Request\Transaction\DepositRequest;
 use AppBundle\Manager\SettingManager;
+use AppBundle\Service\CustomerPaymentOptionService;
+use AppBundle\Service\PaymentOptionService;
+use AppBundle\ValueObject\Number;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerPaymentOption;
 use DbBundle\Entity\SubTransaction;
@@ -46,6 +49,11 @@ class DepositHandler
      */
     private $customerProductRepository;
 
+	/**
+	 * @var CustomerPaymentOptionService
+	 */
+	private $customerPaymentOptionService;
+
     /**
      * @var EntityManager
      */
@@ -67,6 +75,7 @@ class DepositHandler
         CustomerPaymentOptionRepository $memberPaymentOptionRepository,
         PaymentOptionRepository $paymentOptionRepository,
         CustomerProductRepository $customerProductRepository,
+        CustomerPaymentOptionService $customerPaymentOptionService,
         EntityManager $entityManager,
         EventDispatcherInterface $eventDispatcher,
         SettingManager $settingManager
@@ -76,6 +85,7 @@ class DepositHandler
         $this->paymentOptionRepository = $paymentOptionRepository;
         $this->transactionManager = $transactionManager;
         $this->customerProductRepository = $customerProductRepository;
+		$this->customerPaymentOptionService = $customerPaymentOptionService;
         $this->entityManager = $entityManager;
         $this->eventDispatcher = $eventDispatcher;
         $this->settingManager = $settingManager;
@@ -85,24 +95,32 @@ class DepositHandler
     {
         try {
             $this->entityManager->beginTransaction();
-            $member = $this->getCurrentMember();
-            $memberPaymentOption = $this->getMemberPaymentOption($member, $depositRequest);
 
-            $email = $depositRequest->getMeta()->getFields()->getEmail();
+            $member = $this->getCurrentMember();
 
             $transaction = new Transaction();
+	        $transaction->setType(Transaction::TRANSACTION_TYPE_DEPOSIT);
             $transaction->setCustomer($member);
-            $transaction->setPaymentOption($memberPaymentOption);
-            $transaction->setType(Transaction::TRANSACTION_TYPE_DEPOSIT);
-            $transaction->setNumber($this->transactionManager->generateTransactionNumber('deposit'));
-            $transaction->setDate(new \DateTime());
-            $transaction->setFee('customer_fee', 0);
-            $transaction->setFee('company_fee', 0);
-            $transaction->setDetail('email', $email);
+	        $transaction->setNumber($this->transactionManager->generateTransactionNumber('deposit'));
+	        $transaction->setDate(new \DateTime());
+	        $transaction->setFee('customer_fee', $depositRequest->getCustomerFee());
+	        $transaction->setFee('company_fee', $depositRequest->getCompanyFee());
+            $transaction->setFee('misc_fee', 0);
+
+			$paymentOptionCode = $depositRequest->getPaymentOptionType();
+			$transaction->setPaymentOptionType($paymentOptionCode);
+
+	        // CPO details are being set on CaptureAction / NotifyAction when PO Code is bitcoin
+	        if ($paymentOptionCode !== PaymentOptionService::BITCOIN) {
+		        $cpoDetails = $this->getCustomerPaymentOptionDetails($depositRequest, Transaction::TRANSACTION_TYPE_DEPOSIT);
+		        $transaction->setPaymentOptionDetails($cpoDetails['onTransaction']);
+		        $transaction->setPaymentOptionOnRecord($cpoDetails['onRecord']);
+		        //$transaction->setAcknowledgedByUser(false);
+	        }
+
             foreach ($depositRequest->getMeta()->getPaymentDetailsAsArray() as $key => $value) {
                 $transaction->setDetail($key, $value);
             }
-            $transaction->autoSetPaymentOptionType();
 
             foreach ($depositRequest->getProducts() as $productInfo) {
                 $memberProduct = $this->customerProductRepository->findByUsernameProductCodeAndCurrencyCode(
@@ -111,7 +129,11 @@ class DepositHandler
                     $member->getCurrencyCode()
                 );
                 $subTransaction = new SubTransaction();
-                $subTransaction->setAmount($productInfo->getAmount());
+	            $subTransaction->setFee('customer_fee', $transaction->getFee('customer_fee'));
+	            $amount = Number::parse($productInfo->getAmount(), $member->getLocale());
+	            $subTransaction->setDetail('requestedAmount', $amount);
+	            $subTransaction->setDetail('hasFee', true);
+	            $subTransaction->setAmount((new Number($amount))->minus((string)$subTransaction->getFee('customer_fee', '0')));
                 $subTransaction->setCustomerProduct($memberProduct);
                 $subTransaction->setType(Transaction::TRANSACTION_TYPE_DEPOSIT);
                 foreach ($productInfo->getMeta()->getPaymentDetailsAsArray() as $key => $value) {
@@ -120,7 +142,6 @@ class DepositHandler
 
                 $transaction->addSubTransaction($subTransaction);
             }
-            $transaction->setPaymentOptionOnTransaction($memberPaymentOption);
             $transaction->retainImmutableData();
 
             $action = ['label' => 'Save', 'status' => Transaction::TRANSACTION_STATUS_START];
@@ -139,6 +160,34 @@ class DepositHandler
         }
 
     }
+
+	/**
+	 * @param $transactionModel
+	 * @param $transactionType
+	 * @return array
+	 * @throws \AppBundle\Exceptions\CustomerPaymentOptionServiceException
+	 */
+	private function getCustomerPaymentOptionDetails(DepositRequest $transactionModel, $transactionType)
+	{
+		$paymentOptionCode = $transactionModel->getPaymentOptionType();
+		$customerId = $transactionModel->getMemberId();
+		$fieldValues = [];
+		$options = [];
+
+		if (in_array($paymentOptionCode, [PaymentOptionService::SKRILL, PaymentOptionService::NETELLER])) {
+			$fieldValues['email'] = $transactionModel->getMeta()->getFields()->getEmail();
+		}
+
+		if (in_array($paymentOptionCode, [PaymentOptionService::BITCOIN])) {
+			$fieldValues['account_id'] = $transactionModel->getAccountId();
+		}
+
+		if ($paymentOptionCode === PaymentOptionService::BITCOIN && $transactionType == Transaction::TRANSACTION_TYPE_DEPOSIT) {
+			$options['replace'] = true;
+		}
+
+		return $this->customerPaymentOptionService->getCustomerPaymentOptionDetails($customerId, $paymentOptionCode, $transactionType, $fieldValues, $options);
+	}
 
     private function getMemberPaymentOption(Customer $member, DepositRequest $depositRequest): CustomerPaymentOption
     {
@@ -180,4 +229,9 @@ class DepositHandler
     {
         return $this->tokenStorage->getToken()->getUser()->getCustomer();
     }
+
+	private function getCustomerPaymentOptionService(): CustomerPaymentOptionService
+	{
+		return $this->get('app.service.customer_payment_option_service');
+	}
 }

@@ -536,11 +536,12 @@ class TransactionRepository extends BaseRepository
                                 AND transaction.type = :deposit
                                 AND transaction.status != :endStatus
                                 AND transaction.isVoided = 0
-                                AND IFNULL(transaction.bitcoinConfirmationCount, 0) < 3');
+                                AND IFNULL(transaction.bitcoinConfirmationCount, 0) < :bitcoinConfirmedCount');
 
                     $queryBuilder->setParameter('bitcoin', PaymentOption::PAYMENT_MODE_BITCOIN)
                         ->setParameter('endStatus', Transaction::TRANSACTION_STATUS_END)
-                        ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT);
+                        ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT)
+	                    ->setParameter('bitcoinConfirmedCount', Transaction::BITCOIN_CONFIRMED_COUNT);
                 }
 
                 if (in_array(Transaction::DETAIL_BITCOIN_STATUS_CONFIRMED, $filters['status'])) {
@@ -549,11 +550,12 @@ class TransactionRepository extends BaseRepository
                                 AND transaction.bitcoinConfirmationCount IS NOT NULL
                                 AND transaction.status != :endStatus
                                 AND transaction.isVoided = 0
-                                AND transaction.bitcoinConfirmationCount >= 3');
+                                AND transaction.bitcoinConfirmationCount >= :bitcoinConfirmedCount');
 
                     $queryBuilder->setParameter('bitcoin', PaymentOption::PAYMENT_MODE_BITCOIN)
                         ->setParameter('endStatus', Transaction::TRANSACTION_STATUS_END)
-                        ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT);
+                        ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT)
+	                    ->setParameter('bitcoinConfirmedCount', Transaction::BITCOIN_CONFIRMED_COUNT);
                 }
             }
 
@@ -588,9 +590,8 @@ class TransactionRepository extends BaseRepository
         }
 
         if (array_has($filters, 'customerId')) {
-            $this->queryBuilderJoin($queryBuilder, 'transaction.customer', 'customer');
             $queryBuilder
-                ->andWhere('customer.id = :customerId OR transaction.toCustomer = :customerId')
+                ->andWhere('transaction.customer = :customerId OR transaction.toCustomer = :customerId')
                 ->setParameter('customerId', $filters['customerId'])
             ;
         }
@@ -664,13 +665,12 @@ class TransactionRepository extends BaseRepository
     {
         $qb = $this->createQueryBuilder('transaction');
         $qb
-            ->select('transaction, paymentOptionType, m')
-            ->innerJoin('transaction.paymentOptionType', 'paymentOptionType')
+            ->select('transaction, m')
             ->innerJoin('transaction.customer', 'm')
             ->where($qb->expr()->andX()->addMultiple([
                 'transaction.customer = :memberId',
                 'transaction.type = :type',
-                'paymentOptionType.paymentMode = :paymentMode',
+                'transaction.paymentOptionType  = :paymentOptionType',
                 'transaction.status = :status',
                 'transaction.isVoided = false'
             ]))
@@ -682,7 +682,7 @@ class TransactionRepository extends BaseRepository
                 'memberId' => $memberId,
                 'confirmation' => $confirmation,
                 'type' => Transaction::TRANSACTION_TYPE_DEPOSIT,
-                'paymentMode' => PaymentOption::PAYMENT_MODE_BITCOIN,
+                'paymentOptionType' => 'BITCOIN',
                 'status' => Transaction::TRANSACTION_STATUS_START,
             ])
             ->setMaxResults(2)
@@ -743,4 +743,25 @@ class TransactionRepository extends BaseRepository
 
         return $queryBuilder->getQuery()->getOneOrNullResult();
     }
+
+	public function getTotalProcessedDepositTransactionsForEachPaymentOption($customerId)
+	{
+		$queryBuilder = $this->createQueryBuilder('transaction');
+
+		return $queryBuilder
+			->select('COUNT(transaction) as count', 'transaction.paymentOptionType')
+			->where($queryBuilder->expr()->andX()->addMultiple([
+				'transaction.customer = :customer',
+				'transaction.type = :type',
+				'transaction.status = :status',
+			]))
+			->groupBy('transaction.paymentOptionType')
+			->setParameters([
+				'customer' => $customerId,
+				'type' => Transaction::TRANSACTION_TYPE_DEPOSIT,
+				'status' => Transaction::TRANSACTION_STATUS_END
+			])
+			->getQuery()
+			->getResult();
+	}
 }

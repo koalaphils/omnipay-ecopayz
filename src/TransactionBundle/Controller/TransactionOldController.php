@@ -3,6 +3,9 @@
 namespace TransactionBundle\Controller;
 
 use AppBundle\Controller\AbstractController;
+use AppBundle\Exceptions\CustomerPaymentOptionServiceException;
+use AppBundle\Service\PaymentOptionService;
+use AppBundle\Service\CustomerPaymentOptionService;
 use DbBundle\Entity\SubTransaction;
 use DbBundle\Entity\Transaction;
 use Doctrine\ORM\PersistentCollection;
@@ -112,6 +115,7 @@ class TransactionOldController extends AbstractController
             'pinnacleTransacted' => false,
             'transactionDates' => [],
             'pinnacleTransactionDates' => [],
+	        'totalTransactionForCurrentMonth' => 0
         ]);
     }
 
@@ -193,28 +197,53 @@ class TransactionOldController extends AbstractController
 
     public function saveAction(Request $request, $type, $id = 'new')
     {
-        if ($id === 'new') {
-            $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_CREATE']);
-            return $this->createAction($request, $type);
-        }
+	    try {
+		    if ($id === 'new') {
+			    $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_CREATE']);
+			    return $this->createAction($request, $type);
+		    }
 
-        $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_UPDATE']);
+		    $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_UPDATE']);
+
+		    return $this->updateAction($request, $type, $id);
+	    } catch (CustomerPaymentOptionServiceException $ex) {
+		    $notifications = [
+			    'type' => 'error',
+			    'title' => 'Processing Error',
+			    'message' => $ex->getMessage(),
+		    ];
+
+		    if ($request->isXmlHttpRequest()) {
+			    return new JsonResponse(['__notifications' => [$notifications]], Response::HTTP_INTERNAL_SERVER_ERROR);
+		    }
+	    } catch (\Exception $e) {
+		    $notifications = [
+			    'type' => 'error',
+			    'title' => 'Processing Error',
+			    'message' => $e->getMessage(),
+		    ];
+		    if ($request->isXmlHttpRequest()) {
+			    return new JsonResponse(['__notifications' => [$notifications]], Response::HTTP_RESET_CONTENT);
+		    }
+	    }
 
         return $this->updateAction($request, $type, $id);
     }
 
     public function getGatewayByTransactionAction(Request $request, $type)
     {
+	    $transactionType = $this->getManager()->getType($type);
         if ($request->get('tid') !== '') {
-            $transaction = $this->getRepository('DbBundle:Transaction')->findByIdAndType($request->get('tid'), $this->getManager()->getType($type));
+            $transaction = $this->getRepository('DbBundle:Transaction')->findByIdAndType($request->get('tid'), $transactionType);
         } else {
             $transaction = new Transaction();
-            $transaction->setType($this->getManager()->getType($type));
+            $transaction->setType($transactionType);
         }
 
         $form = $this->getManager()->createForm($transaction, true, ['validation_groups' => ['noValidate']]);
         $form->handleRequest($request);
 
+        $transaction->setPaymentOptionType($transaction->getPaymentOption());
         $gateways = $this->getManager()->getGatewaysByTransaction($transaction);
 
         return $this->response($request, $gateways, ['groups' => ['Default', 'details', 'balance', 'currency']]);
@@ -338,7 +367,8 @@ class TransactionOldController extends AbstractController
             }
 
             if (array_has($transactionRequest, 'paymentOption')) {
-                $isPaymentOptionIdBitcoin = $this->getMemberManager()->isPaymentOptionIdBitcoin($transactionRequest['paymentOption']);
+	            $transaction->setPaymentOptionType(array_get($transactionRequest, 'paymentOption'));
+				$isPaymentOptionIdBitcoin = $transaction->isPaymentBitcoin();
             }
 
             if ($transaction->isNew() && $transaction->isDeposit() && $isPaymentOptionIdBitcoin) {
@@ -351,9 +381,6 @@ class TransactionOldController extends AbstractController
             ]);
             $response = ['success' => true];
             try {
-                if ($transaction->isDeposit() && $isPaymentOptionIdBitcoin) {
-                    $this->getMemberManager()->updateMemberPaymentOptionBitcoinAddress($transactionRequest);
-                }
                 $transaction = $this->getManager()->handleFormTransaction($form, $request);
                 $response['data'] = $transaction;
                 $this->getManager()->commit();
@@ -366,8 +393,7 @@ class TransactionOldController extends AbstractController
             } catch (\ProductIntegrationBundle\Exception\IntegrationException  $e) {
                 $response['success'] = false;
                 $response['errorMessage'] = $e->getMessage();
-            }    
-            
+            }
 
         } catch (PessimisticLockException $e) {
             $this->getManager()->rollBack();
@@ -402,7 +428,6 @@ class TransactionOldController extends AbstractController
     private function updateAction(Request $request, $type, $id)
     {
         $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_UPDATE']);
-
         try {
             $this->getManager()->beginTransaction();
             /* @var $transaction Transaction */

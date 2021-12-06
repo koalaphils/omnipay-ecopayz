@@ -2,17 +2,17 @@
 
 namespace PaymentBundle\Controller\Bitcoin;
 
+use AppBundle\ValueObject\Number;
 use AppBundle\Helper\Publisher;
+use AppBundle\Service\PaymentOptionService;
 use DbBundle\Entity\Transaction;
 use DbBundle\Entity\User;
 use DbBundle\Repository\CustomerRepository as MemberRepository;
 use DbBundle\Repository\TransactionRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use PaymentBundle\Component\Blockchain\BitcoinConverter;
 use PaymentBundle\Event\NotifyEvent;
 use PaymentBundle\Manager\BitcoinManager;
-use PaymentBundle\Service\Blockchain;
 use Payum\Core\Action\ActionInterface;
 use Payum\Core\Exception\RequestNotSupportedException;
 use Payum\Core\GatewayAwareInterface;
@@ -35,10 +35,10 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
     use GatewayAwareTrait;
 
     public const PUBLISH_CHANNEL = 'btc.request_status';
-    private const BLOCKCHAIN_OK_RESPONSE = '*ok*';
 
     private $transactionRepository;
     private $memberRepository;
+    private $poService;
     private $payum;
     private $tokenStorage;
     private $publisher;
@@ -60,6 +60,13 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
      */
     private $logger;
 
+	public function __construct(Payum $payum, TransactionRepository $transactionRepository, MemberRepository $memberRepository)
+	{
+		$this->transactionRepository = $transactionRepository;
+		$this->payum = $payum;
+		$this->memberRepository = $memberRepository;
+	}
+
     public function execute($request)
     {
         RequestNotSupportedException::assertSupports($this, $request);
@@ -73,7 +80,6 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
             throw $this->createOkResponse();
         }
         $token = $request->getToken();
-
         $memberId = $token->getDetails()['memberId'];
 
         try {
@@ -87,7 +93,6 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
 
             throw $this->createOkResponse();
         }
-
         try {
             $transaction = $this->transactionRepository->getLessThanConfirmationBitcoinTransactionForMember($member->getId(), count($this->confirmations) - 1);
         } catch (NoResultException $e) {
@@ -110,8 +115,9 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
             throw $this->createOkResponse();
         }
 
+
         $transactionHash = $transaction->getBitcoinTransactionHash();
-        if ($transactionHash !== '' && $transactionHash !== $httpRequest->query['transaction_hash']) {
+        if ($transactionHash !== '' && $transactionHash !== $httpRequest->query['transaction_hash']) {  
             $this->logWithHttpRequest(
                 LogLevel::ERROR,
                 sprintf(
@@ -128,7 +134,7 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
 
         $this->loginUser($transaction->getCustomer()->getUser());
         $satoshiValue = $httpRequest->query['value'];
-        $btcValue = BitcoinConverter::convertToBtc($satoshiValue);
+        $btcValue =  $this->convertToBtc($satoshiValue);
         $address = $httpRequest->query['address'];
         $confirmations = $httpRequest->query['confirmations'];
 
@@ -142,13 +148,12 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
 
             throw $this->createOkResponse();
         }
+
         $transaction->setBitcoinTransactionHash($httpRequest->query['transaction_hash']);
         $transaction->setBitcoinValue($btcValue);
         $transaction->setBitcoinValueInSatoshi($httpRequest->query['value']);
         $transaction->setBitcoinConfirmation($confirmations);
-        $transaction->setBitcoinSenderAddresses(
-            $this->getSenderAddresses($transaction->getBitcoinTransactionHash(), $transaction->getBitcoinAddress())
-        );
+        $transaction->setBitcoinSenderAddresses($this->getSenderAddresses($transaction->getBitcoinTransactionHash(), $transaction->getBitcoinAddress()));
         if (isset($this->confirmations[$confirmations])) {
             $transaction->setStatus($this->confirmations[$confirmations]->getConfirmationTransactionStatus());
         } else if ($confirmations > max(array_keys($this->confirmations))) {
@@ -207,13 +212,6 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
         $this->tokenStorage = $tokenStorage;
     }
 
-    public function __construct(Payum $payum, TransactionRepository $transactionRepository, MemberRepository $memberRepository)
-    {
-        $this->transactionRepository = $transactionRepository;
-        $this->payum = $payum;
-        $this->memberRepository = $memberRepository;
-    }
-
     public function setPublisher(Publisher $publisher): void
     {
         $this->publisher = $publisher;
@@ -222,11 +220,6 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
     public function setConfirmations(array $confirmations): void
     {
         $this->confirmations = $confirmations;
-    }
-
-    public function setBlockchain(Blockchain $blockchain): void
-    {
-        $this->blockchain = $blockchain;
     }
 
     public function setLogger(LoggerInterface $logger): void
@@ -244,16 +237,17 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
         $this->bitcoinManager = $bitcoinManager;
     }
 
-    protected function getSenderAddresses(string $hash, string $address): array
+    protected function getSenderAddresses(string $hash): array
     {
         try {
-            $transaction = $this->blockchain->getExplorer()->getTransaction($hash);
-            $inputs = $transaction->getInputs();
+	        $details = $this->poService->getBlockchainTransactionDetails($hash);
+	        $addresses = [];
+	        foreach ($details['inputs'] as $input) {
+		        $addresses[] = $input['prev_out']['addr'];
+	        }
 
-            return array_map(function (\PaymentBundle\Component\Blockchain\Model\BlockchainTransactionInput $input) {
-                return $input->getPreviousOutAddress();
-            }, $inputs);
-        } catch(\Exception $ex) {
+            return $addresses;
+        } catch (\Exception $ex) {
             return [];
         }
     }
@@ -358,6 +352,16 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
 
     private function createOkResponse(): HttpResponse
     {
-        return new HttpResponse(self::BLOCKCHAIN_OK_RESPONSE);
+        return new HttpResponse('*ok*');
     }
+
+	private function convertToBtc(string $value): string
+	{
+		return Number::div($value, "100000000")->toString();
+	}
+
+	public function setPaymentOptionService(PaymentOptionService $poService)
+	{
+		$this->poService = $poService;
+	}
 }

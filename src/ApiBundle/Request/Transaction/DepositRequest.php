@@ -11,30 +11,13 @@ use Symfony\Component\Validator\GroupSequenceProviderInterface;
 
 class DepositRequest implements GroupSequenceProviderInterface
 {
-    /**
-     * @var string
-     */
     protected $paymentOptionType;
-
-    /**
-     * @var array
-     */
     protected $meta;
-
-    /**
-     * @var string
-     */
     protected $paymentOption;
-
-    /**
-     * @var Product[]
-     */
     protected $products;
-
-    /**
-     * @var int
-     */
     protected $memberId;
+    protected $customerFee;
+    protected $companyFee;
 
     public static function createFromRequest(Request $request): self
     {
@@ -43,6 +26,8 @@ class DepositRequest implements GroupSequenceProviderInterface
         $instance->meta = Meta::createFromArray($request->get('meta', []), $instance->paymentOptionType, false);
         $instance->paymentOption = $request->get('payment_option', '');
         $instance->products = [];
+        $instance->customerFee = $request->get('customer_fee', '');
+        $instance->companyFee = $request->get('company_fee', '');
         foreach ($request->get('products', []) as $product) {
             $instance->products[] = new Product(
                 $product['username'] ?? '',
@@ -66,9 +51,6 @@ class DepositRequest implements GroupSequenceProviderInterface
         return $this->meta;
     }
 
-    /**
-     * @return Product[]
-     */
     public function getProducts(): array
     {
         return $this->products;
@@ -100,16 +82,36 @@ class DepositRequest implements GroupSequenceProviderInterface
 
     public function getPaymentDetails(): array
     {
-        return $this->getMetaData('payment_details', []);
+        return $this->getMeta()->getPaymentDetails();
     }
 
     public function getEmail(): string
     {
-        return $this->getMetaData('field.email', '');
+        return $this->getMeta()->getFields()->getEmail();
     }
 
     public function isBitcoin(string $paymentOption): bool
     {
         return strtoupper($paymentOption) === strtoupper(PaymentOption::PAYMENT_MODE_BITCOIN);
+    }
+
+    public function setCustomerFee(string $customerFee)
+    {
+        $this->customerFee = $customerFee;
+    }
+
+    public function getCustomerFee()
+    {
+        return $this->customerFee;
+    }
+
+    public function setCompanyFee(string $companyFee)
+    {
+        $this->companyFee = $companyFee;
+    }
+
+    public function getCompanyFee()
+    {
+        return $this->companyFee;
     }
 }

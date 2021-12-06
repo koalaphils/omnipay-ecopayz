@@ -2,6 +2,7 @@
 
 namespace PaymentBundle\Command;
 
+use AppBundle\Service\PaymentOptionService;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -25,19 +26,24 @@ class BitcoinAutoLockCommand extends ContainerAwareCommand
     {
         $logger = new ConsoleLogger($output);
         try {
-            $bitcoinAutoLockService = $this->getBitcoinAutoLockService();
-            
-            $bitcoinAutoLockService->createHttpRequest();
-            $user = $bitcoinAutoLockService->loginUserByUsername($input->getArgument('username'));
-            
-            if ($user instanceof User) {
-                $bitcoinAutoLockService->setLoggerForUser($user, $logger);
-            }
+	        $settings = $this->getBitcoinPaymentOptionSettings();
+	        if ($settings['autoLock'] === true)
+			{
+				$bitcoinAutoLockService = $this->getBitcoinAutoLockService();
+				$bitcoinAutoLockService->createHTTPRequest();
 
-            if ($bitcoinAutoLockService->getBitcoinAutoLockRateStatus()) {
-                $bitcoinAutoLockService->setAutoLockLogger($logger);
-                $bitcoinAutoLockService->lockBitcoinTransactions();
-            } else {
+				$user = $bitcoinAutoLockService->loginUserByUsername($input->getArgument('username'));
+
+				if ($user instanceof User)
+				{
+					$bitcoinAutoLockService->setLoggerForUser($user, $logger);
+				}
+
+				$bitcoinAutoLockService->setAutoLockLogger($logger);
+				$bitcoinAutoLockService->lockBitcoinTransactions($settings['lockDownPeriod']);
+	        }
+			else
+			{
                 throw new \Exception('Bitcoin auto lock service was not active.');
             }
         } catch (\Exception $e) {
@@ -49,6 +55,18 @@ class BitcoinAutoLockCommand extends ContainerAwareCommand
         $runTime = round((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT']) * 1000, 4);
         $logger->info(sprintf('Runtime: %s ms', $runTime));
     }
+
+	private function getBitcoinPaymentOptionSettings()
+	{
+		$bitcoinPaymentOption = $this->getPaymentOptionService()->getPaymentOption(PaymentOptionService::BITCOIN);
+
+		return $bitcoinPaymentOption['settings']['provider'];
+	}
+
+	private function getPaymentOptionService(): PaymentOptionService
+	{
+		return $this->getContainer()->get('app.service.payment_option_service');
+	}
     
     private function getBitcoinAutoLockService(): TransactionBitcoinLockRateService
     {

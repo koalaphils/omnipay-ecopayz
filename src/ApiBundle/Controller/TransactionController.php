@@ -13,6 +13,7 @@ use ApiBundle\RequestHandler\Transaction\TransactionCommandHandler;
 use ApiBundle\RequestHandler\Transaction\TransactionQueryHandler;
 use ApiBundle\RequestHandler\Transaction\TransferHandler;
 use ApiBundle\RequestHandler\Transaction\WithdrawHandler;
+use AppBundle\Service\PaymentOptionService;
 use DbBundle\Entity\Transaction;
 use Doctrine\ORM\NoResultException;
 use FOS\RestBundle\View\View;
@@ -58,7 +59,13 @@ class TransactionController extends AbstractController
         $depositRequest = DepositRequest::createFromRequest($request);
         $depositRequest->setMemberId((int) $member->getId());
 
-        $violations = $validator->validate($depositRequest, null);
+		$groups = null;
+		if (!$depositRequest->isBitcoin($depositRequest->getPaymentOptionType()))
+		{
+			$groups[] = 'withEmail';
+		}
+
+        $violations = $validator->validate($depositRequest, null, $groups);
 
         if ($violations->count() > 0) {
             return $this->view($violations);
@@ -83,6 +90,7 @@ class TransactionController extends AbstractController
      *     },
      *     parameters={
      *         {"name"="payment_option", "dataType"="string", "required"=false},
+     *         {"name"="customerFee", "dataType"="string", "required"=false},
      *         {"name"="meta[field][email]", "dataType"="string", "required"=false},
      *         {"name"="meta[field][account_id]", "dataType"="string", "required"=false},
      *         {"name"="meta[payment_details][bitcoin][rate_detail][range_start]", "dataType"="string", "required"=false},
@@ -103,6 +111,12 @@ class TransactionController extends AbstractController
         $member = $this->getUser()->getCustomer();
         $withdrawRequest = WithdrawRequest::createFromRequest($request);
         $withdrawRequest->setMember($member);
+
+	    $groups = null;
+	    if (!$withdrawRequest->isBitcoin($withdrawRequest->getPaymentOptionType()))
+	    {
+		    $groups[] = 'withEmail';
+	    }
         $violations = $validator->validate($withdrawRequest, null);
         if ($violations->count() > 0) {
             return $this->view($violations);

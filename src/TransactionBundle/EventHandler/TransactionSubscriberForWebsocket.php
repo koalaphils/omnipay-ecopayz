@@ -71,7 +71,7 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
         $payload['type'] = strtolower($event->getTransaction()->getTypeAsText());
 
         if ($event->getTransaction()->getPaymentOptionType() !== null) {
-            $payload['payment_option'] = $event->getTransaction()->getPaymentOptionType()->getCode();
+            $payload['payment_option'] = $event->getTransaction()->getPaymentOptionType();
         } else {
             $payload['payment_option'] = null;
         }

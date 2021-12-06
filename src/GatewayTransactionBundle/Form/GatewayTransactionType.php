@@ -68,7 +68,7 @@ class GatewayTransactionType extends AbstractType
                 'label' => 'fields.paymentOption',
                 'attr' => [
                     'data-autostart' => 'true',
-                    'data-ajax--url' => $this->router->generate('paymentoption.search'),
+                    'data-ajax--url' => $this->router->generate('app.payment_option.search'),
                     'data-ajax--type' => 'POST',
                     'data-minimum-input-length' => 0,
                     'data-length' => 10,
@@ -209,43 +209,22 @@ class GatewayTransactionType extends AbstractType
             }
         ));
 
-        $builder->get('paymentOption')->addViewTransformer(new CallbackTransformer(
-            function ($paymentOption) {
-                if ($paymentOption instanceof \DbBundle\Entity\PaymentOption) {
-                    $paymentOption = $this->getPaymentOptionRepository()->find($paymentOption);
+	    $builder->get('paymentOption')->addViewTransformer(new CallbackTransformer(
+		    function ($paymentOption) {
+			    if (is_string($paymentOption)) {
+				    return [['id' => $paymentOption, 'text' => $paymentOption]];
+			    }
 
-                    return [['id' => $paymentOption->getCode(), 'text' => $paymentOption->getName()]];
-                }
+			    return $paymentOption;
+		    },
+		    function ($paymentOption) {
+			    if (is_string($paymentOption)) {
+				    return $paymentOption;
+			    }
 
-                return $paymentOption;
-            },
-            function ($paymentOption) {
-                if ($paymentOption) {
-                    return $this->getPaymentOptionRepository()->find($paymentOption);
-                }
-
-                return null;
-            }
-        ));
-
-        $builder->get('paymentOption')->addModelTransformer(new CallbackTransformer(
-            function ($paymentOption) {
-                if ($paymentOption instanceof \DbBundle\Entity\PaymentOption) {
-                    $paymentOption = $this->getPaymentOptionRepository()->find($paymentOption);
-
-                    return [['id' => $paymentOption->getCode(), 'text' => $paymentOption->getName()]];
-                }
-
-                return $paymentOption;
-            },
-            function ($paymentOption) {
-                if ($paymentOption) {
-                    return $this->getPaymentOptionRepository()->find($paymentOption);
-                }
-
-                return null;
-            }
-        ));
+			    return null;
+		    }
+	    ));
 
         $builder->addEventListener(FormEvents::PRE_SET_DATA,
             function (FormEvent $event) {
@@ -516,10 +495,5 @@ class GatewayTransactionType extends AbstractType
     public function getCurrencyRepository()
     {
         return $this->doctrine->getRepository('DbBundle:Currency');
-    }
-
-    public function getPaymentOptionRepository()
-    {
-        return $this->doctrine->getRepository('DbBundle:PaymentOption');
     }
 }

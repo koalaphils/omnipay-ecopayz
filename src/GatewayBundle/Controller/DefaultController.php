@@ -7,18 +7,17 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use GatewayBundle\Form\GatewayType;
 use DbBundle\Entity\Gateway;
-use DbBundle\Entity\PaymentOption;
 
 class DefaultController extends AbstractController
 {
     public function indexAction()
     {
-        // off this feature
-        # return $this->redirectToRoute("app.dashboard_page");
-        
         $this->denyAccessUnlessGranted(['ROLE_GATEWAY_VIEW']);
+        $paymentOptions = $this->getPaymentOptionService()->getAllPaymentOptions();
 
-        return $this->render('GatewayBundle:Default:index.html.twig');
+        return $this->render('GatewayBundle:Default:index.html.twig', [
+            'paymentOptions' => $paymentOptions,
+        ]);
     }
 
     public function searchAction(Request $request)
@@ -74,30 +73,23 @@ class DefaultController extends AbstractController
         $this->getMenuManager()->setActive('gateway.list');
 
         $gateway = $this->getGatewayRepository()->getWithCurrency($id);
-        $paymentOptions = $this->getPaymentOptionRepository()->findAll();
-        $paymentOptionModes = [];
+        $paymentOptionModes = array_reduce($this->getPaymentOptionService()->getAllPaymentOptions(), function ($acc, $po) {
+            $acc[$po['name']] = $po['code'];
 
-        foreach ($paymentOptions as $paymentOption) {
-            $paymentOptionModes[$paymentOption->getCode()] = $paymentOption->getPaymentMode();
-        }
+            return $acc;
+        }, []);
 
         $form = $this->createForm(GatewayType::class, $gateway, [
             'action' => $this->getRouter()->generate('gateway.save', ['id' => $id]),
+            'payment_option' => $gateway->getPaymentOption()
         ]);
-
-        $paymentForms = [];
-        foreach ($this->getGatewayFormManager()->getModes() as $key => $configs) {
-            $paymentForms[$key] = $this->getGatewayFormManager()->getForm($key, $gateway->getConfig(), [
-                'block_prefix' => 'config',
-            ])->createView($form->get('details')->createView());
-        }
 
         $form->handleRequest($request);
 
         return $this->render('GatewayBundle:Default:update.html.twig', [
             'form' => $form->createView(),
             'gateway' => $gateway,
-            'paymentForms' => $paymentForms,
+            'paymentForms' => [],
             'paymentOptionModes' => $paymentOptionModes,
         ]);
     }
@@ -113,28 +105,14 @@ class DefaultController extends AbstractController
         }
 
         $paymentOptionValue = $request->get('Gateway')['paymentOption'];
-        $paymentOption = $this->getPaymentOptionRepository()->find($paymentOptionValue);
-
-        // $form = $this->createForm(GatewayType::class, $gateway);
-        $formBuilder = $this->getFormFactory()->createBuilder(GatewayType::class, $gateway);
-        $this->getGatewayFormManager()->getForm($paymentOption->getPaymentMode(), $gateway->getConfig(), [], $formBuilder->get('details')->get('config'));
-
-        $form = $formBuilder->getForm();
-
+        $form = $this->createForm(GatewayType::class, $gateway, [
+            'payment_option' => $paymentOptionValue,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $gateway = $form->getData();
-
-            if ($id == 'new') {
-                $gatewayData = $request->get('Gateway');
-                $type = array_get($gatewayData, 'paymentOption');
-                $paymentOption = $this->getEntityManager()->getReference(
-                    PaymentOption::class,
-                    $type
-                );
-                $gateway->setPaymentOptionEntity($paymentOption);
-            } else {
+            if ($id !== 'new') {
                 $this->getManager()->auditManualBalance($gateway);
             }
 
@@ -244,4 +222,9 @@ class DefaultController extends AbstractController
     {
         return $this->getDoctrine()->getRepository(PaymentOption::class);
     }
+
+	private function getPaymentOptionService(): \AppBundle\Service\PaymentOptionService
+	{
+		return $this->get('app.service.payment_option_service');
+	}
 }

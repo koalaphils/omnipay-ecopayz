@@ -116,7 +116,7 @@ services:
 
     api.transaction_type:
         class: ApiBundle\Form\Transaction\TransactionType
-        arguments: [ '@api.customer_transformer', '@api.payment_option_transformer' ]
+        arguments: [ '@api.customer_transformer', '@app.service.payment_option_service', '@api.payment_option_transformer' ]
         tags:
             - { name: form.type }
 
@@ -165,6 +165,12 @@ services:
     api.same_product_constraint_validator:
         class: ApiBundle\Validator\SameProductConstraintValidator
         arguments: ['@doctrine.orm.entity_manager']
+        tags:
+            - { name: validator.constraint_validator }
+
+    api.unique_customer_payment_option_email_validator:
+        class: ApiBundle\Validator\UniqueCustomerPaymentOptionEmailConstraintValidator
+        arguments: ['@app.service.customer_payment_option_service']
         tags:
             - { name: validator.constraint_validator }
 

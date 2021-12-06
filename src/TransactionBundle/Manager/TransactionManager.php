@@ -4,6 +4,7 @@ namespace TransactionBundle\Manager;
 
 use AppBundle\Exceptions\FormValidationException;
 use AppBundle\Helper\Publisher;
+use AppBundle\Service\PaymentOptionService;
 use AppBundle\ValueObject\Number;
 use DbBundle\Entity\CommissionPeriod;
 use DbBundle\Entity\CustomerGroup;
@@ -346,12 +347,21 @@ class TransactionManager extends TransactionOldManager
     public function handleFormTransaction(Form $form, Request $request)
     {
         $form->handleRequest($request);
+
         if ($form->isSubmitted() && $form->isValid()) {
             $transaction = $form->getData();
-            $transaction->retainImmutableData();
-            $transaction->autoSetPaymentOptionType();
-            $btn = $form->getClickedButton();
+            $transaction->setPaymentOptionType($transaction->getPaymentOption());
+            $transaction->setPaymentOption(null);
 
+            if ($transaction->getType() === Transaction::TRANSACTION_TYPE_DEPOSIT || $transaction->getType() === Transaction::TRANSACTION_TYPE_WITHDRAW) {
+                $cpoDetails = $this->getCustomerPaymentOptionDetails($transaction);
+                $transaction->setPaymentOptionDetails($cpoDetails['onTransaction']);
+                $transaction->setPaymentOptionOnRecord($cpoDetails['onRecord']);
+            }
+
+            $transaction->retainImmutableData();
+
+            $btn = $form->getClickedButton();
             $action = array_get($btn->getConfig()->getOption('attr', []), 'value', 'process');
 
             if ($request->request->has('toCustomer')) {
@@ -359,13 +369,34 @@ class TransactionManager extends TransactionOldManager
             }
 
             $this->processTransaction($transaction, $action);
-          
 
             return $transaction;
         }
 
         throw new FormValidationException($form);
     }
+
+	/**
+	 * @param Transaction $transaction
+	 * @return array
+	 */
+	public function getCustomerPaymentOptionDetails($transaction): array
+	{
+		$customerId = $transaction->getCustomer()->getId();
+		$paymentOptionCode = $transaction->getPaymentOptionType();
+		$options = [];
+
+		$fieldValues = $transaction->getPaymentOptionOnTransaction() ?? $transaction->getPaymentOptionOnRecord() ?? [];
+		if ($transaction->isPaymentBitcoin()) {
+			$options = ['replace' => true];
+			$fieldValues['account_id'] = $transaction->getBitcoinAddress();
+		}
+
+		$cpoDetails = $this->getCustomerPaymentOptionService()
+			->getCustomerPaymentOptionDetails($customerId, $paymentOptionCode, $transaction->getType(), $fieldValues, $options);
+
+		return $cpoDetails;
+	}
 
     public function insertTransactionLog($transaction, $old_status, $created_by){
         $log = new TransactionLog();
@@ -714,7 +745,7 @@ class TransactionManager extends TransactionOldManager
                     'class' => 'btn-danger',
                     'status' => 'void',
                 ];
-        } else if ($transaction->isTransactionPaymentBitcoin() && !$transaction->isVoided() && $transaction->getStatus() == Transaction::TRANSACTION_STATUS_START && $transaction->isDeposit()) {
+        } else if ($transaction->isPaymentBitcoin() && !$transaction->isVoided() && $transaction->getStatus() == Transaction::TRANSACTION_STATUS_START && $transaction->isDeposit()) {
             $actions['decline'] = ['label' => 'Decline', 'class' => 'btn-danger', 'status' => Transaction::TRANSACTION_STATUS_DECLINE];
             $actions['confirm'] = ['label' => 'Confirm', 'class' => 'btn-success', 'status' => Transaction::TRANSACTION_STATUS_ACKNOWLEDGE];
             $isForVoidingOrDecline = true;
@@ -764,13 +795,6 @@ class TransactionManager extends TransactionOldManager
                     if ($isForVoidingOrDecline) {
                         $groups[] = 'isForVoidingOrDecline';
                     }
-                }
-
-                if ($transaction->hasDepositUsingBitcoin()) {
-                    if (($key = array_search('withDecimalPlacesValidation', $groups)) !== false) {
-                        unset($groups[$key]);
-                    }
-                    $groups[] = 'withBitcoin';
                 }
 
                 return $groups;
@@ -859,7 +883,7 @@ class TransactionManager extends TransactionOldManager
                 'type' => $isSubtransactionReadOnly,
                 'customerProduct' => $isSubtransactionReadOnly,
                 'amount' => $isSubtransactionReadOnly,
-                'hasFee' => $isReadOnly,
+                'hasFee' => $isSubtransactionReadOnly,
             ],
             'messages' => [
                 'support' => $transaction->isEnd()
@@ -899,6 +923,22 @@ class TransactionManager extends TransactionOldManager
 
         return $statuses;
     }
+
+	public function getBitcoinTransactionDetails(Transaction $transaction): array
+	{
+		$btcTransactDetails = [];
+		if ($transaction->isPaymentBitcoin() && !empty($transaction->getBitcoinTransactionHash())) {
+			$hash = $transaction->getBitcoinTransactionHash();
+			$address = $transaction->getBitcoinAddress();
+
+			$btcTransactDetails = [
+				'confirmationCount' => $this->getPaymentOptionService()->getBitcoinTransactionConfirmations($hash),
+				'amountSent' => $this->getPaymentOptionService()->getBitcoinTransactionAmountSent($hash, $address),
+			];
+		}
+
+		return $btcTransactDetails;
+	}
 
     public function getTransactionById(int $id): Transaction
     {
@@ -943,4 +983,14 @@ class TransactionManager extends TransactionOldManager
 
         return $date->format('Ymd-His-') . generate_code(6, false, 'd') . '-' . $this->getType($type) . $suffix;
     }
+
+	private function getCustomerPaymentOptionService()
+	{
+		return $this->getContainer()->get('app.service.customer_payment_option_service');
+	}
+
+	private function getPaymentOptionService(): PaymentOptionService
+	{
+		return $this->getContainer()->get('app.service.payment_option_service');
+	}
 }

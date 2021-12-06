@@ -2,6 +2,7 @@
 
 namespace DbBundle\Entity;
 
+use AppBundle\Service\PaymentOptionService;
 use AppBundle\ValueObject\Number;
 use DbBundle\Entity\Interfaces\ActionInterface;
 use DbBundle\Entity\Interfaces\AuditAssociationInterface;
@@ -361,7 +362,7 @@ class Gateway extends Entity implements ActionInterface, TimestampInterface, Aud
 
     public function getGatewayName(): string
     {
-        return $this->getPaymentOptionEntity()->getPaymentMode();
+        return PaymentOptionService::getPaymentMode($this->paymentOption);
     }
 
     public function setConfig(array $config)

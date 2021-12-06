@@ -59,6 +59,10 @@ DbBundle\Entity\GatewayLog:
                 readOnly: true
             column: gateway_log_reference_identifier
             nullable: true
+        paymentOption:
+            type: string
+            column: gateway_log_payment_option_code
+            nullable: true
     manyToOne:
         gateway:
             targetEntity: DbBundle\Entity\Gateway
@@ -70,8 +74,3 @@ DbBundle\Entity\GatewayLog:
             joinColumn:
                 name: gateway_log_currency_id
                 referencedColumnName: currency_id
-        paymentOption:
-            targetEntity: DbBundle\Entity\PaymentOption
-            joinColumn:
-                name: gateway_log_payment_option_code
-                referencedColumnName: payment_option_code

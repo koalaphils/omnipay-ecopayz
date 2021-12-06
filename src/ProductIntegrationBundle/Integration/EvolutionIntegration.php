@@ -3,11 +3,11 @@
 namespace ProductIntegrationBundle\Integration;
 
 use Exception;
+use Psr\Log\LoggerInterface;
 use ProductIntegrationBundle\Exception\IntegrationException\DebitIntegrationException;
 use ProductIntegrationBundle\Persistence\HttpPersistence;
 use ProductIntegrationBundle\Exception\IntegrationException;
 use ProductIntegrationBundle\Exception\IntegrationException\CreditIntegrationException;
-use Psr\Log\LoggerInterface;
 
 class EvolutionIntegration implements ProductIntegrationInterface
 {
@@ -24,6 +24,7 @@ class EvolutionIntegration implements ProductIntegrationInterface
     {
         $response = $this->http->post('/auth', $token, $body);
         $object = json_decode(((string) $response->getBody()));
+        $this->logger->debug((string) $response->getBody());
         
         return [
             'entry' => $object->entry,
@@ -38,6 +39,11 @@ class EvolutionIntegration implements ProductIntegrationInterface
         $object = json_decode(((string) $response->getBody()));
         $balance = !is_null($object->userbalance->tbalance) ? $object->userbalance->tbalance : 'Unable to fetch balance';
 
+        if (property_exists($object, 'error')) {
+            $this->logger->info('EVOLUTION ERROR: ' . (string) $response->getBody());
+            throw new IntegrationException('Error getting balance in evolution.', 422);
+        }
+
         return $balance;
     }
 
@@ -48,6 +54,10 @@ class EvolutionIntegration implements ProductIntegrationInterface
             $url = sprintf('/credit?id=%s&amount=%s&transactionId=%s', $params['id'], $params['amount'], $transactionId);
             $response = $this->http->get($url, $token);
             $object = json_decode(((string) $response->getBody()));
+
+	        if (property_exists($object->transfer, 'errormsg')) {
+		        throw new CreditIntegrationException($object->transfer->errormsg, 422);
+	        }
 
             return $object->transfer->balance;
         } catch (Exception $exception) {

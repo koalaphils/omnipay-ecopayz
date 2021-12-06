@@ -7,7 +7,6 @@ imports:
     - { resource: "@UserBundle/Resources/config/services.yml" }
     - { resource: "@ProductBundle/Resources/config/services.yml" }
     - { resource: "@CurrencyBundle/Resources/config/services.yml" }
-    - { resource: "@CountryBundle/Resources/config/services.yml" }
     - { resource: "@CustomerBundle/Resources/config/services.yml" }
     - { resource: "@MemberBundle/Resources/config/services.yml" }
     - { resource: "@GatewayBundle/Resources/config/services.yml" }
@@ -19,7 +18,6 @@ imports:
     - { resource: "@SessionBundle/Resources/config/services.yml" }
     - { resource: "@ThemeBundle/Resources/config/services.yml" }
     - { resource: "@ApiBundle/Resources/config/services.yml" }
-    - { resource: "@PaymentOptionBundle/Resources/config/services.yml" }
     - { resource: "@GatewayTransactionBundle/Resources/config/services.yml" }
     - { resource: "@AuditBundle/Resources/config/services.yml" }
     - { resource: "@ReportBundle/Resources/config/services.yml" }
@@ -60,6 +58,8 @@ framework:
     cache:
         app: cache.adapter.apcu
         system: cache.adapter.apcu
+    profiler:
+        enabled: false
 
 swiftmailer:
     transport: "%mailer_transport%"
@@ -85,6 +85,7 @@ jms_serializer:
             DbBundleEntity:
                 namespace_prefix: DbBundle\Entity
                 path: "@DbBundle/Resources/config/serializer"
+        cache: apcu
     default_context:
         serialization:
             serialize_null: true
@@ -182,8 +183,8 @@ aws:
         secret: '%aws_sdk.secret%' # this will be escaped as '@not-a-real-secret'
     S3:
         version: '%aws_s3.version%'
-        region: '%aws_s3.region%'   
-        
+        region: '%aws_s3.region%'
+
 product_integration:
     integrations:
         piwix:
