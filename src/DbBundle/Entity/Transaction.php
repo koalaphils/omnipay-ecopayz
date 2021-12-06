@@ -1364,14 +1364,8 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
 	public function isTransactionPaymentBitcoin(): bool
 	{
-		$paymentOption = $this->paymentOption;
-		if (is_null($paymentOption)) {
-			return false;
-		}
-
-        return $paymentOption->getPaymentOption()->isPaymentBitcoin();
+		return $this->paymentOptionType === PaymentOptionService::BITCOIN;
     }
-
 
     public function setBitcoinIsAcknowledgeByMember(bool $bitcoinIsAcknowledgeByMember): self
     {

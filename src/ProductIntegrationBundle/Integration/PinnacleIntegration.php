@@ -47,8 +47,9 @@ class PinnacleIntegration implements ProductIntegrationInterface, PinnaclePlayer
     {
         try {
             $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->getPlayer($id);
+            $balance = !is_null($pinnaclePlayer->availableBalance()) ? $pinnaclePlayer->availableBalance() : 'Unable to fetch balance';
 
-            return $pinnaclePlayer->availableBalance();
+            return $balance;
         } catch (PinnacleException $exception) {
             throw new IntegrationNotAvailableException($exception->getMessage(), 422);
         } catch (PinnacleError $exception) {
