@@ -1,0 +1,5 @@
+location /iframe/reports {
+  proxy_pass http://reports-frontend/;
+  proxy_set_header    Host $host;
+  proxy_set_header    X-Forwarded-For $remote_addr;
+}

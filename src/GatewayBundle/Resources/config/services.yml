@@ -12,6 +12,7 @@ services:
             - "@router"
             - "@translator"
             - "@security.authorization_checker"
+            - "@app.service.payment_option_service"
         tags:
             - { name: form.type }
 

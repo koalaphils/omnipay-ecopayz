@@ -59,11 +59,6 @@ class CustomerPaymentOptionManager extends AbstractManager
         throw new FormValidationException($form);
     }
 
-	public function searchCustomer($paymentOptionSearch, $paymentOptionsFilter)
-	{
-		return $this->getRepository()->searchCustomer($paymentOptionSearch, $paymentOptionsFilter);
-	}
-
     /**
      * Get repository
      *

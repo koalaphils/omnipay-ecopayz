@@ -1,0 +1,46 @@
+set $manualhttps '$FORCEHTTPS';
+
+if ($manualhttps = 'on') {
+  set $proxy_https 'on';
+}
+
+location / {
+  try_files /web/$uri $uri /app.php$is_args$args;
+}
+
+location /healthcheck {
+  try_files $uri /healthcheck.php;
+}
+
+location /web {
+  location ~* \.(?:js|css|jpg|jpeg|gif|png|ico|eot|woff|woff2|ttf|svg|otf)$ {
+      expires max;
+      add_header Pragma public;
+      add_header Cache-Control "no-cache, public, must-revalidate, proxy-revalidate";
+  }
+}
+
+location ~ ^/healthcheck\.php(/|$) {
+  fastcgi_split_path_info ^(.+\.php)(/.*)$;
+  include fastcgi_params;
+  fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+  fastcgi_param PATH_INFO $fastcgi_path_info;
+  fastcgi_param HTTPS $proxy_https if_not_empty;
+  fastcgi_pass $upstream_endpoint;
+  internal;
+}
+
+# PROD
+location ~ ${PHPREGEX} {
+  fastcgi_split_path_info ^(.+\.php)(/.*)$;
+  include fastcgi_params;
+  fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+  fastcgi_param PATH_INFO $fastcgi_path_info;
+  fastcgi_param HTTPS $proxy_https if_not_empty;
+  fastcgi_pass $upstream_endpoint;
+  internal;
+}
+
+location ~ \.php$ {
+  return 404;
+}

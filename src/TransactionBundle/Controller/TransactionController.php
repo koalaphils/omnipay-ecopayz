@@ -6,6 +6,7 @@ namespace TransactionBundle\Controller;
 
 use AppBundle\Controller\AbstractController;
 use AppBundle\Manager\SettingManager;
+use AppBundle\Service\PaymentOptionService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -28,10 +29,13 @@ class TransactionController extends AbstractController
             $nonPendingStatuses = $transactionManager->getNonPendingTransactionStatus($statuses);
         }
 
+        $paymentOptions = $this->getPaymentOptionService()->getAllPaymentOptions();
+
         return $this->render('TransactionBundle:Default:index.html.twig', [
             'statuses' => $statuses,
             'nonPendingStatuses' => $nonPendingStatuses,
             'filter' => $filter,
+            'paymentOptions' => $paymentOptions,
         ]);
     }
 
@@ -99,4 +103,9 @@ class TransactionController extends AbstractController
 
         return $this->response($request, $statuses, []);
     }
+
+	private function getPaymentOptionService(): PaymentOptionService
+	{
+		return $this->get('app.service.payment_option_service');
+	}
 }

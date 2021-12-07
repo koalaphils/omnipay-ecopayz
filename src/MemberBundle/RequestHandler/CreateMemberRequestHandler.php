@@ -25,6 +25,7 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoder;
 use UserBundle\Manager\UserManager;
 use ApiBundle\Service\JWTGeneratorService;
 use ProductIntegrationBundle\ProductIntegrationFactory;
+use Psr\Log\LoggerInterface;
 
 class CreateMemberRequestHandler
 {
@@ -38,8 +39,10 @@ class CreateMemberRequestHandler
     private $jwtGeneratorService;
     private $productIntegrationFactory;
     private $affiliateService;
+    private $logger;
 
     public function __construct(
+        string $asianconnectUrl,
         EntityManager $entityManager,
         RequestStack $requestStack,
         UserPasswordEncoder $passwordEncoder,
@@ -48,8 +51,8 @@ class CreateMemberRequestHandler
         PinnacleService $pinnacleService,
         JWTGeneratorService $jwtGeneratorService,
         ProductIntegrationFactory $productIntegrationFactory,
-        AffiliateService $affiliateService,
-        string $asianconnectUrl
+        AffiliateService $affiliateService, 
+        LoggerInterface $logger
     ) {
         $this->entityManager = $entityManager;
         $this->requestStack = $requestStack;
@@ -61,22 +64,19 @@ class CreateMemberRequestHandler
         $this->jwtGeneratorService = $jwtGeneratorService;
         $this->productIntegrationFactory = $productIntegrationFactory;
         $this->affiliateService = $affiliateService;
+        $this->logger = $logger;
     }
 
     public function handle(CreateMemberRequest $request)
     {
         $user = new User();
-        $country = null;
+        $country = $request->getCountry();
+
         if ($request->isUseEmail()) {
             $username = $request->getEmail();
             $user->setSignupType(User::SIGNUP_TYPE_EMAIL);
         } else {
-            $country = $this->getCountryRepository()->findById($request->getCountry());
             $username = str_replace('+', '', $country->getPhoneCode() . $request->getPhoneNumber());
-        }
-
-        if ($request->getCountry() !== null && $country === null) {
-            $country = $this->getCountryRepository()->findById($request->getCountry());
         }
 
         $user->setUsername($username);
@@ -100,11 +100,11 @@ class CreateMemberRequestHandler
                 $member->addGroup($this->entityManager->getPartialReference(CustomerGroup::class, $groupId));
             }
         }
-
         if ($request->getReferal() !== null) {
             $affiliate = $this->getUserRepository()->findOneById($request->getReferal())
                 ->getCustomer()
                 ->getUser();
+
             $member->setAffiliate($affiliate->getId());
         }
 
@@ -153,30 +153,33 @@ class CreateMemberRequestHandler
             $member->setPinUserCode($pinnaclePlayer->userCode());
             $member->addProduct($memberPinProduct);
 
-            $integration = $this->productIntegrationFactory->getIntegration(Product::EVOLUTION_PRODUCT_CODE);
-            $evolutionProduct = $this->getProductRepository()->getProductByCode(Product::EVOLUTION_PRODUCT_CODE);
-            $memberEvoProduct = new CustomerProduct();
-            $memberEvoProduct->setProduct($evolutionProduct);
-            $memberEvoProduct->setUsername('Evolution_' . uniqid());
-            $memberEvoProduct->setBalance('0.00');
-            $memberEvoProduct->setIsActive(true);
-            $member->addProduct($memberEvoProduct);
+            if ($currency->getCode() === 'EUR') {
+                $integration = $this->productIntegrationFactory->getIntegration(Product::EVOLUTION_PRODUCT_CODE);
+                $evolutionProduct = $this->getProductRepository()->getProductByCode(Product::EVOLUTION_PRODUCT_CODE);
+                $memberEvoProduct = new CustomerProduct();
+                $memberEvoProduct->setProduct($evolutionProduct);
+                $memberEvoProduct->setUsername('Evolution_' . uniqid());
+                $memberEvoProduct->setBalance('0.00');
+                $memberEvoProduct->setIsActive(true);
+                $member->addProduct($memberEvoProduct);
 
-            try {
-                $jwt = $this->jwtGeneratorService->generate([]);
-                $integration->auth($jwt, [
-                    'id' => $memberEvoProduct->getUsername(),
-                    'lastName' => $request->getFullName() ? $request->getFullName() : $username,
-                    'firstName' => $request->getFullName() ? $request->getFullName() : $username,
-                    'nickname' => str_replace("Evolution_","", $memberEvoProduct->getUsername()),
-                    'country' => $country ? $country->getCode() : 'UK',
-                    'language' => 'en',
-                    'currency' => $currency->getCode(),
-                    'ip' => $this->getClientIp(),
-                    'sessionId' => $this->getSessionId(),
-                ]);
-            } catch (\Exception $ex) {
-                throw new \Exception('Failed to create EVO Account.', Response::HTTP_UNPROCESSABLE_ENTITY);
+                try {
+                    $jwt = $this->jwtGeneratorService->generate([]);
+                    $integration->auth($jwt, [
+                        'id' => $memberEvoProduct->getUsername(),
+                        'lastName' => $request->getFullName() ? $request->getFullName() : $username,
+                        'firstName' => $request->getFullName() ? $request->getFullName() : $username,
+                        'nickname' => str_replace("Evolution_","", $memberEvoProduct->getUsername()),
+                        'country' => $country ? $country : 'UK',
+                        'language' => 'en',
+                        'currency' => $currency->getCode(),
+                        'ip' => $this->getClientIp(),
+                        'sessionId' => $this->getSessionId(),
+                    ]);
+                } catch (\Exception $ex) {
+                    $this->logger->info($ex->getMessage());
+                    throw new \Exception('Failed to create EVO Account.', Response::HTTP_UNPROCESSABLE_ENTITY);
+                }
             }
         }
 
@@ -200,7 +203,7 @@ class CreateMemberRequestHandler
                 $this->affiliateService->addMember($user->getId(), $member->getAffiliate());
             }
         }
-        
+
         return $member;
     }
 

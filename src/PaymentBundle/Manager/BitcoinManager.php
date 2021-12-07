@@ -6,6 +6,7 @@ use AppBundle\Exceptions\FormValidationException;
 use AppBundle\Helper\Publisher;
 use AppBundle\Manager\AbstractManager;
 use AppBundle\Manager\SettingManager;
+use AppBundle\Service\PaymentOptionService;
 use DbBundle\Entity\BitcoinRateSetting;
 use DbBundle\Entity\PaymentOption;
 use DbBundle\Entity\User;
@@ -47,6 +48,7 @@ class BitcoinManager extends AbstractManager
     private $bitcoinAdjustmentComponent;
     private $blockchain;
     private $publisher;
+	private $poService;
 
     public function __construct(
         SettingManager $settingManager,
@@ -412,6 +414,11 @@ class BitcoinManager extends AbstractManager
         $this->blockchain = $blockchain;
     }
 
+	public function setPaymentOptionService(PaymentOptionService $poService)
+	{
+		$this->poService = $poService;
+	}
+
     public function findUserUnacknowledgedDepositBitcoinTransaction($customer): ?Transaction
     {
         $transaction = $this->transactionRepository->findUserUnacknowledgedDepositBitcoinTransaction($customer);
@@ -425,8 +432,8 @@ class BitcoinManager extends AbstractManager
 
     public function getBitcoinTransactionTimeRemaining(Transaction $transaction): string
     {
-        $bitcoinSettings = $this->getBitcoinSettings();
-        $interval = $bitcoinSettings['setting']['configuration']['minutesInterval'];
+	    $bitcoinSettings = $this->poService->getPaymentOption(PaymentOptionService::BITCOIN)['settings']['provider'];
+	    $interval = $bitcoinSettings['minutesInterval'];
 
         if ($transaction->getUpdatedAt() === null) {
             return '';
@@ -448,15 +455,16 @@ class BitcoinManager extends AbstractManager
 
     public function getBitcoinTransactionLockdownRateRemaining(Transaction $transaction): string
     {
-        $interval = $this->getBitcoinLockDownRateSetting()['minutesLockDownInterval'];
+	    $bitcoinSettings = $this->poService->getPaymentOption(PaymentOptionService::BITCOIN)['settings']['provider'];
+	    $interval = $bitcoinSettings['lockDownPeriod'];
         
         if ($transaction->getUpdatedAt() === null) {
             return '';
         }
 
-        $updatedAt = \DateTimeImmutable::createFromMutable($transaction->getUpdatedAt());
+        $updatedAt = \DateTimeImmutable::createFromMutable($transaction->getCreatedAt());
         $expiresAt = $updatedAt->add(new \DateInterval('PT' . $interval . 'M'));
-        $now = new \DateTimeImmutable();
+        $now = new \DateTime('now');
 
         if ($now < $expiresAt) {
             $remainingInterval = $expiresAt->diff($now);

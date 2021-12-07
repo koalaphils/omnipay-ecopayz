@@ -47,7 +47,7 @@
 
 {% block javascripts %}
     <script type="text/javascript">
-        var paymentOptionModes = {{ (paymentOptions|json_encode(true))|raw }};
+        var paymentOptionModes = {% if paymentOptionModes is defined %}{{ (paymentOptionModes|json_encode(true))|raw }}{% else %}{}{% endif %};
     </script>
 
     {{ form_javascript(form) }}

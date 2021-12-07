@@ -1,0 +1,5 @@
+location /iframe/correct-score {
+  proxy_pass http://correct-score-frontend/;
+  proxy_set_header    Host $host;
+  proxy_set_header    X-Forwarded-For $remote_addr;
+}

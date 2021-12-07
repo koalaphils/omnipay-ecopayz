@@ -28,11 +28,10 @@ class CustomerRepository extends BaseRepository
         $qb = $this->createQueryBuilder('c');
         $qb->join('c.user', 'u');
         $qb->join('c.currency', 'ccu');
-        $qb->leftJoin('c.country', 'cco');
         $qb->select(
             'c'
             . ', PARTIAL u.{username, id, email, isActive, activationCode, activationSentTimestamp, activationTimestamp, preferences, password, resetPasswordCode, resetPasswordSentTimestamp, type, phoneNumber}'
-            . ', PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}'
+            . ', PARTIAL ccu.{id, name, code, rate}'
         );
         $qb->where('c.id = :id')->setParameter('id', $id);
 
@@ -45,12 +44,11 @@ class CustomerRepository extends BaseRepository
         $qb = $this->createQueryBuilder('c');
         $qb->join('c.user', 'u');
         $qb->join('c.currency', 'ccu');
-        $qb->leftJoin('c.country', 'cco');
         $qb->leftjoin('c.groups', 'g');
         $qb->select(
             'PARTIAL c.{id, fName, mName, pinUserCode, pinLoginId, lName, fullName, country, currency, balance, socials, joinedAt, birthDate, socials, details, contacts, verifiedAt, isAffiliate, isCustomer, transactionPassword, files, riskSetting, tags, notifications}'
             . ', PARTIAL u.{username, id, email, isActive, activationSentTimestamp, activationTimestamp, preferences, password, resetPasswordCode, resetPasswordSentTimestamp}'
-            . ', PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}, g'
+            . ', PARTIAL ccu.{id, name, code, rate}, g'
         );
         $qb->where('c.id = :id')->setParameter('id', $memberId);
 
@@ -174,8 +172,8 @@ class CustomerRepository extends BaseRepository
 	        }
 
 	        //payment option filter/search
-	        if(array_has($filters, 'customer_payment_options')) {
-		        $customerIds = array_get($filters, 'customer_payment_options', []);
+	        if(array_has($filters, 'customer_payment_options.customer')) {
+		        $customerIds = array_get($filters, 'customer_payment_options.customer', []);
 		        if(!empty(array_get($filters, 'filter.paymentOption', []))){
 			        $qb->andWhere('c.id IN (:ids)');
 			        $qb->setParameter('ids', $customerIds);
@@ -236,9 +234,9 @@ class CustomerRepository extends BaseRepository
         $qb = $this->getCustomerListQb($filters);
         $qb
             ->select(
-                "PARTIAL c.{id, fName, mName, lName, fullName, country, currency, balance, socials, level, isAffiliate, isCustomer, details, verifiedAt, joinedAt, tags, pinUserCode}, "
+                "PARTIAL c.{id, fName, mName, country, lName, fullName, currency, balance, socials, level, isAffiliate, isCustomer, details, verifiedAt, joinedAt, tags, pinUserCode}, "
                 . "PARTIAL u.{username, id, email, preferences, createdAt, isActive, activationTimestamp, creator}, "
-                . "PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}, "
+                . "PARTIAL ccu.{id, name, code, rate}, "
                 . "PARTIAL cr.{id, username}"
             )
             ->groupBy('c.id')
@@ -319,7 +317,6 @@ class CustomerRepository extends BaseRepository
         $qb = $this->createQueryBuilder('c');
         $qb->join('c.user', 'u');
         $qb->join('c.currency', 'ccu');
-        $qb->leftJoin('c.country', 'cco');
         $qb->leftjoin('c.groups', 'ccg');
 
         if (array_has($filters, 'isAffiliate')) {
@@ -360,7 +357,7 @@ class CustomerRepository extends BaseRepository
     {
         $aliases = $this->getAliases();
         $qb = $this->getListQb($filters);
-        $qb->select('c, u, ccu, cco, ccg');
+        $qb->select('c, u, ccu, ccg');
 
         if (isset($filters['length'])) {
             $qb->setMaxResults($filters['length']);
@@ -371,7 +368,6 @@ class CustomerRepository extends BaseRepository
         $query = $qb->getQuery();
         $query->setFetchMode(\DbBundle\Entity\User::class, 'user', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER);
         $query->setFetchMode(\DbBundle\Entity\Currency::class, 'currency', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER);
-        $query->setFetchMode(\DbBundle\Entity\Country::class, 'country', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER);
 
         return $qb->getQuery()->getResult($hydrationMode);
     }
@@ -489,8 +485,9 @@ class CustomerRepository extends BaseRepository
             "PARTIAL c.{id, fName, mName, lName, fullName, country, currency, balance, socials, level, isAffiliate, isCustomer, details, verifiedAt, joinedAt, tags, pinUserCode}, "
             . "PARTIAL u.{username, id, email, preferences, createdAt, isActive,
                 activationTimestamp, creator}, "
-            . "PARTIAL ccu.{id, name, code, rate}, PARTIAL cco.{id, name, code}, "
+            . "PARTIAL ccu.{id, name, code, rate},"
             . "PARTIAL cr.{id, username}"
+
         )
             ->groupBy('c.id');
 
@@ -507,7 +504,6 @@ class CustomerRepository extends BaseRepository
         $queryBuilder = $this->createQueryBuilder('c');
         $queryBuilder->join('c.user', 'u')
             ->leftjoin('c.currency', 'ccu')
-            ->leftjoin('c.country', 'cco')
             ->leftjoin('u.creator', 'cr')
         ;
 
@@ -525,7 +521,21 @@ class CustomerRepository extends BaseRepository
         }
 
         if (!empty(array_get($filters, 'country', []))) {
-            $queryBuilder->andWhere('cco.id IN (:country)')->setParameter('country', $filters['country']);
+            $expression = $queryBuilder->expr()->orX(
+                $queryBuilder->expr()->in('c.country', $filters['country'])
+            );
+
+            $hasUnknown = count(array_filter($filters['country'], function($country) {
+                if ($country === "") {
+                    return true;
+                }
+            })) > 0;
+
+            if ($hasUnknown) {
+                $expression->add('c.country IS NULL');
+            }
+
+            $queryBuilder->andWhere($expression);
         }
 
         if (!empty(array_get($filters, 'status', []))) {

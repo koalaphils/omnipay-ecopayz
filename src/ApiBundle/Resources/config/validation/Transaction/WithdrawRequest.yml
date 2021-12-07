@@ -1,4 +1,6 @@
 ApiBundle\Request\Transaction\WithdrawRequest:
+  constraints:
+    - ApiBundle\Validator\UniqueCustomerPaymentOptionEmailConstraint: { groups: [withEmail] }
   group_sequence_provider: true
   getters:
     verificationCode:
@@ -16,6 +18,14 @@ ApiBundle\Request\Transaction\WithdrawRequest:
       - Count:
           min: 1
           minMessage: You should add atleast one product
-      - Valid: ~
-    meta:
-      - Valid: ~
+    customerFee:
+      - NotBlank: ~
+    companyFee:
+      - NotBlank: ~
+    email:
+      - NotNull:
+          message: "Email cannot be empty"
+          groups: [withEmail]
+      - Email:
+          message: "Invalid Email"
+          groups: [withEmail]

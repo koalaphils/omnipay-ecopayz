@@ -3,6 +3,7 @@
 namespace CustomerBundle\Controller;
 
 use AppBundle\Controller\AbstractController;
+use DbBundle\Entity\Transaction;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use CustomerBundle\Form\CustomerType;
@@ -52,6 +53,17 @@ class CustomerController extends AbstractController
 
         return new JsonResponse($results, JsonResponse::HTTP_OK);
     }
+
+	public function listPaymentOptionByCustomerAction(Request $request, $id)
+	{
+		$cpoService = $this->get('app.service.customer_payment_option_service');
+		$fields = $cpoService
+			->getCustomerPaymentOptions($id)
+			->getActiveFields(null, $request->query->get('type', Transaction::TRANSACTION_TYPE_DEPOSIT))
+		;
+
+		return $this->json($fields);
+	}
 
     public function listAction(Request $request)
     {

@@ -24,12 +24,14 @@ class Transaction
 {
     private $subTransactions;
     private $customer;
+	private $paymentOptionCode;
     private $memberPaymentOption;
     private $payment;
 
     private $email;
     private $transactionPassword;
     private $customerFee;
+	private $companyFee;
     private $paymentDetails;
     private $bankDetails;
     #zimi
@@ -47,6 +49,18 @@ class Transaction
         $this->setSubTransactions([]);
         $this->type = $type;
     }
+
+	public function setPaymentOptionCode(?string $paymentOptionCode)
+	{
+		$this->paymentOptionCode = $paymentOptionCode;
+
+		return $this;
+	}
+
+	public function getPaymentOptionCode(): ?string
+	{
+		return $this->paymentOptionCode;
+	}
 
     public function getSubTransactions(): \Doctrine\Common\Collections\ArrayCollection
     {
@@ -82,6 +96,18 @@ class Transaction
     {
         return $this->customer;
     }
+
+	public function setCompanyFee($companyFee = 0): self
+	{
+		$this->companyFee = $companyFee;
+
+		return $this;
+	}
+
+	public function getCompanyFee()
+	{
+		return $this->companyFee;
+	}
 
     public function setProduct($product): self
     {

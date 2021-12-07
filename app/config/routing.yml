@@ -11,18 +11,10 @@ payum_all:
 
 payment:
     resource: "@PaymentBundle/Resources/config/routing.yml"
-    
+
 paymentPrivate:
     resource: "@PaymentBundle/Resources/config/routingPrivate.yml"
     prefix:   /{_locale}
-    requirements:
-        _locale: "%app_locales%"
-    defaults:
-        _locale: "%locale%"
-
-payment_option:
-    resource: "@PaymentOptionBundle/Resources/config/routing.yml"
-    prefix:   /{_locale}/paymentoptions
     requirements:
         _locale: "%app_locales%"
     defaults:
@@ -134,14 +126,6 @@ gateway:
 product:
     resource: "@ProductBundle/Resources/config/routing.yml"
     prefix:   /{_locale}/product
-    requirements:
-        _locale: "%app_locales%"
-    defaults:
-        _locale: "%locale%"
-
-country:
-    resource: "@CountryBundle/Resources/config/routing.yml"
-    prefix:   /{_locale}/country
     requirements:
         _locale: "%app_locales%"
     defaults:

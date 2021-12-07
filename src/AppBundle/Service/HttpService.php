@@ -161,6 +161,7 @@ class HttpService
         $response = $ex->getResponse();
         if ($response->getStatusCode() === 422) {
             $body = json_decode((string) $response->getBody());
+            dump($body);
             throw new UnprocessableEntityException((array) $body->errors);
         }
 

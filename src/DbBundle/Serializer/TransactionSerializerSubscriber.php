@@ -50,7 +50,7 @@ class TransactionSerializerSubscriber implements \JMS\Serializer\EventDispatcher
         $context = $event->getContext();
         $groups = $this->getGroupsFor($context->attributes->get('groups')->get(), $context);
         
-        if ($object->isTransactionPaymentBitcoin()) {
+        if ($object->isPaymentBitcoin()) {
             $timeRemaining = $this->bitcoinManager->getBitcoinTransactionTimeRemaining($object);
             $lockDownRateTimeRemaining = $this->bitcoinManager->getBitcoinTransactionLockdownRateRemaining($object);
             $visitor->setData('time_remaining', $timeRemaining);

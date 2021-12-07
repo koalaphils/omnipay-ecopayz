@@ -53,8 +53,8 @@ widgets:
                     size: 12
                     choicesFrom:
                         function: '@country.manager::getCountryList'
-                        label: "'(' ~ result['phoneCode'] ~ ') ' ~ result['name'] ~ ' [' ~ result['code'] ~ ']'"
-                        value: result['id']
+                        label: result['name'] ~ ' (' ~ result['code'] ~ ')'
+                        value: result['code']
                         preselect: false
                 phoneNumber:
                     type: text

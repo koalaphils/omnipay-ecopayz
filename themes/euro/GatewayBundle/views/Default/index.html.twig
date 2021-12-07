@@ -75,6 +75,7 @@
 
     <script type="text/javascript" >
         var userPreferences = {{ app.user.getPreference('ui.gateway.list.column.visibility')|json_encode()|raw }};
+        var paymentOptions = {{ paymentOptions|json_encode()|raw }};
         $(function(){
             var listTable = new ZTable('#gatewayList',  {
                 'ajax': {
@@ -204,7 +205,7 @@
                             $(feature.input).selectpicker('val', '');
                         },
                         'choices': {
-                            'enabled': 'Enbaled',
+                            'enabled': 'Enabled',
                             'suspended': 'Suspended'
                         },
                         'value': []
@@ -226,19 +227,15 @@
                         'resetValue': function (feature) {
                             $(feature.input).selectpicker('val', feature.feature.value);
                         },
-                        'initialized': function (feature) {
-                            feature.ztable.waitDrawTable();
-                            $.ajax({
-                                'url': '{{ path('paymentoption.search') }}',
-                                'data' : {'select2' : true },
-                                'success': function (data) {
-                                    for (var i in data.items) {
-                                        $(feature.input).append("<option value='" + data.items[i].id + "'>" + data.items[i].text + "</option>");
-                                    }
-                                    $(feature.input).selectpicker('refresh');
-                                    feature.ztable.reloadTable();
+                        'rendered': function (feature) {
+                            var options = {};
+                            for (var i in paymentOptions) {
+                                var option = $("<option value='" + paymentOptions[i].code + "'>" + paymentOptions[i].name + "</option>");
+                                if (feature.feature.value.indexOf(paymentOptions[i].code + "") !== -1) {
+                                    option.attr('selected', 'selected');
                                 }
-                            });
+                                $(feature.input).append(option);
+                            }
                         }
                     },
                     'resetFilter': {

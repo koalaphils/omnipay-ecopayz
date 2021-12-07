@@ -60,15 +60,23 @@ class WithdrawController extends AbstractController
         }
         asort($transactionDates);
         asort($pinnacleTransactionDates);
-        return $this->render("TransactionBundle:Transaction/Type:withdraw.html.twig", [
-            'form' => $form->createView(),
-            'type' => 'withdraw',
-            'gateway' => $transaction->getGateway(),
-            'transaction' => $transaction,
-            'pinnacleTransacted' => $pinnacleTransacted === count($transaction->getSubTransactions()),
-            'transactionDates' => $transactionDates,
-            'pinnacleTransactionDates' => $pinnacleTransactionDates,
-        ]);
+
+	    $context = [
+		    'form' => $form->createView(),
+		    'type' => 'withdraw',
+		    'gateway' => $transaction->getGateway(),
+		    'transaction' => $transaction,
+		    'pinnacleTransacted' => $pinnacleTransacted === count($transaction->getSubTransactions()),
+		    'transactionDates' => $transactionDates,
+		    'pinnacleTransactionDates' => $pinnacleTransactionDates,
+	    ];
+
+	    if ($transaction->isPaymentBitcoin() && !empty($btcTransactDetails = $transactionManager->getBitcoinTransactionDetails($transaction)))
+	    {
+		    $context['bitcoinTransactionDetails'] = $btcTransactDetails;
+	    }
+
+        return $this->render("TransactionBundle:Transaction/Type:withdraw.html.twig", $context);
     }
 
     public function saveAction(Request $request, TransactionRepository $transactionRepository, TransactionManager $transactionManager, int $id): Response

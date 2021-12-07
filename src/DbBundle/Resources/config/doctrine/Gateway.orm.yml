@@ -60,12 +60,6 @@ DbBundle\Entity\Gateway:
             type: json
             column: gateway_levels
     manyToOne:
-        paymentOptionEntity:
-            targetEntity: DbBundle\Entity\PaymentOption
-            joinColumn:
-                name: gateway_payment_option
-                referencedColumnName: payment_option_code
-            nullable: true
         currency:
             targetEntity: DbBundle\Entity\Currency
             joinColumn:

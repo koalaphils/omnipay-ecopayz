@@ -270,10 +270,31 @@ services:
         tags:
             - { name: kernel.event_subscriber }
 
+    # services
     app.service.http_service:
         class: AppBundle\Service\HttpService
-        arguments: ["%api_gateway_service%", "@logger"]
+        arguments: [ "%api_gateway_url%", "@logger" ]
+
+    app.service.jwt_service:
+        class: AppBundle\Service\JWTService
+        arguments: [ "%jwt_key%", '@=service("doctrine").getRepository("DbBundle\\Entity\\User")',  '@security.token_storage' ]
+
+    app.service.payment_option_service:
+        class: AppBundle\Service\PaymentOptionService
+        arguments: [ '@app.service.http_service', '@app.service.jwt_service' ]
+
+    app.service.customer_payment_option_service:
+        class: AppBundle\Service\CustomerPaymentOptionService
+        arguments: [ '@app.service.http_service', '@app.service.payment_option_service', '@app.service.jwt_service', '@request_stack', '@logger' ]
 
     app.service.affiliate_service:
         class: AppBundle\Service\AffiliateService
         arguments: ["@app.service.http_service", "@jwt_generator"]
+
+    country.manager:
+        class: AppBundle\Manager\CountryManager
+        parent: app.base_manager
+        calls:
+            - [ setContainer, [ '@service_container' ] ]
+
+

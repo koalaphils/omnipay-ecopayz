@@ -126,6 +126,7 @@
         var userPreferences = {{ app.user.getPreference('ui.transaction.list.column.visibility')|json_encode()|raw }};
         var filter = {{ filter|json_encode()|raw }};
         var nonPendingStatuses = {{ nonPendingStatuses|json_encode()|raw }};
+        var paymentOptions = {{ paymentOptions|json_encode()|raw }};
         var statusChoices = {};
         var report = {
             'exportUrl': '{{ path('transaction.download') }}',
@@ -171,6 +172,7 @@
                     + "<'form-group form-group-sm m-r-10' c>>",
                 'ajax': {
                     'url': '{{ path("transaction.list_search") }}',
+                    'type': 'GET',
                     'data': function (data, dataTable) {
                         data.isDataTableTransaction = true;
                         report.filters = window.lodash.merge(data.filters, filter.filters);
@@ -363,27 +365,18 @@
                             'data-width': 'auto',
                             'data-size': 5
                         },
-                        'waitByTable': true,
                         'resetValue': function (feature) {
                             $(feature.input).selectpicker('val', feature.feature.value);
                         },
-                        'initialized': function (feature) {
-                            $.ajax({
-                                'url': '{{ path('paymentoption.search') }}',
-                                'success': function (data) {
-                                    var options = {};
-                                    for (var i in data.data) {
-                                        var option = $("<option value='" + data.data[i].code + "'>" + data.data[i].name + "</option>");
-                                        if (feature.feature.value.indexOf(data.data[i].code + "") !== -1) {
-                                            option.attr('selected', 'selected');
-                                        }
-                                        $(feature.input).append(option);
-                                    }
-                                    $(feature.input).selectpicker('refresh');
-                                    feature.setToDone();
-                                    feature.ztable.reloadTable();
+                        'rendered': function (feature) {
+                            var options = {};
+                            for (var i in paymentOptions) {
+                                var option = $("<option value='" + paymentOptions[i].code + "'>" + paymentOptions[i].name + "</option>");
+                                if (feature.feature.value.indexOf(paymentOptions[i].code + "") !== -1) {
+                                    option.attr('selected', 'selected');
                                 }
-                            });
+                                $(feature.input).append(option);
+                            }
                         },
                         'value': {{ app.request.get("paymentOption", [])|json_encode|raw }},
                     },
@@ -540,12 +533,17 @@
                         'data': 'immutable_payment_option_data',
                         'defaultContent': '',
                         'name': 'payment_option',
-                        'render': function (immutable_payment_option_data) {
-                            if (immutable_payment_option_data == null) {
-                                return '';
+                        'render': function (immutable_payment_option_data, type, full) {
+                            let paymentOptionLabel = '';
+                            let paymentOptionCode = full.payment_option ?? full.details?.paymentOptionOnTransaction?.code ?? full.details?.paymentOption?.code;
+                            let paymentOption = full.details?.paymentOptionOnTransaction ?? full.details?.paymentOption;
+                            if (paymentOptionCode === 'BITCOIN') {
+                                paymentOptionLabel = paymentOptionCode + ' (' + ( paymentOption?.account_id ?? paymentOption?.accountId ?? 'N/A' ) + ')';
+                            } else {
+                                paymentOptionLabel = paymentOptionCode + ' (' + ( paymentOption?.email ?? 'N/A' ) + ')';
                             }
 
-                            return immutable_payment_option_data.ellipsis(30);
+                            return paymentOptionLabel;
                         }
                     },
                     { 'data': 'currency.code', 'defaultContent': '' },
@@ -568,7 +566,21 @@
                         'data': 'customer_amount',
                         'defaultContent': '',
                         'render': function (data, type, full) {
-                            if (full.type_text === 'withdraw') {
+
+                            if (full.is_transaction_payment_bitcoin && full.was_created_from_ams) {
+                                var payment_option = full.payment_option ?? full.details?.paymentOptionOnTransaction?.code ?? full.details?.paymentOption?.code;
+                                var cryptoCurrency = payment_option == 'BITCOIN' ? 'BTC' : payment_option;
+                                var cryptoAmount = new Number(full.bitcoin_total_amount);
+
+                                var amount = new Number(data);
+                                if (full.type_text === 'withdraw') {
+                                    amount += new Number(full.customer_fee);
+                                }
+
+                                amount = amount.toFixed(2, 4);
+
+                                return amount + ' (' + cryptoAmount.toFixed(5, 4) + ' ' + cryptoCurrency + ')';
+                            } else if (full.type_text === 'withdraw') {
                                 var amount = new Number(data);
                                 var fee = new Number(full.customer_fee);
                                 amount += fee;
@@ -578,14 +590,6 @@
                                 var betAmount = new Number(full.amount);
 
                                 return betAmount.toFixed(2);
-                            } else if (full.is_transaction_payment_bitcoin === true) {
-                                var btcTotalAmount = new Number(full.bitcoin_total_amount);
-                                if (full.type_text === 'deposit' && btcTotalAmount != '0') {
-                                    var btcAmount = new Number(full.bitcoin_total_amount);
-                                    return data + ' (' + btcAmount.toFixed(5) + ' BTC)';
-                                }
-                                
-                                return data;
                             } else if (full.type_text === 'dwl') {
                                 var subtransaction = full.sub_transactions[0];
                                 if (subtransaction.brokerage_win_loss != null) {

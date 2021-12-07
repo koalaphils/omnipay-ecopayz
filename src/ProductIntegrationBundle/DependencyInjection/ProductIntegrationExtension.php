@@ -59,7 +59,6 @@ class ProductIntegrationExtension extends Extension
                 $container->setDefinition($serviceId, $httpPersistenceDefinition);
                 $arguments[] = new Reference($serviceId);
             } else {
-                
                 $arguments[] = new Reference($namedType->getName());
             }
         }

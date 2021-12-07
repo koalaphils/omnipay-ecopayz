@@ -58,7 +58,6 @@ form:
     cancel: Cancel
     send: Send
     confirm: Confirm
-    cancel: Cancel
 
 fields:
     action: Action
@@ -67,11 +66,18 @@ roles:
     superAdmin: Super Admin
     groups:
         system: System
+        paymentOption: Payment Option
     api: Acess API
     maintenance: Maintenance
     updateSettings: Update Settings
     scheduler: Scheduler
     bitcoinSetting: Bitcoin Setting
+    paymentoption:
+        create: Create Payment Option
+        view: View Payment Option
+        update: Update Payment Option
+        addfield: Add Payment Option Field
+        removefield: Remove Payment Option Field
 
 settings:
     banner:
@@ -134,7 +140,7 @@ email:
         welcome: New Member Registration %fullName%
         welcomeAffiliate: New Affiliate Registration %fullName%
         activation: Please verify your account!
-        activated: Starting betting with Asianconnect! 
+        activated: Starting betting with Asianconnect!
         resetPassword: 'Asianconnect: Reset password request!'
 
 

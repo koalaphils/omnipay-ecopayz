@@ -1,4 +1,9 @@
 ApiBundle\Model\Transaction:
+    constraints:
+        - ApiBundle\Validator\UniqueCustomerPaymentOptionEmailConstraint:
+            groups: [ withUniqueEmail ]
+        - ApiBundle\Validator\Bitcoin\BitcoinTransactionConstraint:
+            groups: [ 'bitcoin' ]
     properties:
         subTransactions:
             # zimi

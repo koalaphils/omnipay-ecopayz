@@ -44,7 +44,7 @@ class PaymentManager
             /* @var  $gateway \DbBundle\Entity\Gateway */
             $gateway = $this->getGatewayRepository()->findOneBy([
                 'currency' => $currency,
-                'paymentOptionEntity' => $paymentOption,
+                'paymentOption' => $paymentOption,
             ]);
 
             $storage = $this->payum->getStorage('PaymentBundle\Model\Payment');

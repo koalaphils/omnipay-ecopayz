@@ -61,7 +61,7 @@ class UpdateProfileRequestHandler
         $customer->setFullName($request->getFullName());
         $customer->setFName($request->getFullName());
         if ($request->getCountry() !== null) {
-            $customer->setCountry($this->entityManager->getPartialReference(Country::class, $request->getCountry()));
+            $customer->setCountry($request->getCountry());
         }
         $customer->setCurrency($this->entityManager->getPartialReference(Currency::class, $request->getCurrency()));
         $customer->setBirthDate($request->getBirthDate());

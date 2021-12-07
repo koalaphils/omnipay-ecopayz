@@ -123,7 +123,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     protected $currency;
 
     /**
-     * @var Country
+     * @var string
      */
     protected $country;
 
@@ -166,6 +166,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     private $allowRevenueShare;
 
     private $memberRequests;
+    private $countryName;
 
     /**
      * @var string
@@ -741,13 +742,6 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this->currency;
     }
 
-    /**
-     * Set country.
-     *
-     * @param string $country
-     *
-     * @return \DbBundle\Entity\Customer
-     */
     public function setCountry($country)
     {
         $this->country = $country;
@@ -755,14 +749,21 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this;
     }
 
-    /**
-     * Get country.
-     *
-     * @return \DbBundle\Entity\Country
-     */
     public function getCountry()
     {
         return $this->country;
+    }
+
+    public function setCountryName(string $countryName): self
+    {
+        $this->countryName = $countryName;
+
+        return $this;
+    }
+
+    public function getCountryName(): string
+    {
+        return $this->countryName ?? '';
     }
 
     public function getGroups()
@@ -1086,12 +1087,12 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this->getAffiliate() instanceof Customer;
     }
 
-    public function getReferral()
+    public function getReferral(): ?Customer
     {
         return $this->getAffiliate();
     }
 
-    public function setReferrer($customer): void
+    public function setReferrer(Customer $customer): void
     {
         $this->setAffiliate($customer);
     }
@@ -1390,11 +1391,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
                 return $this->getDetail('registration.locale');
             }
 
-            if ($this->getCountry() === null) {
-                return '';
-            }
-
-            return $this->getCountry()->getLocale();
+            return 'en';
         }
 
         return $this->locale;

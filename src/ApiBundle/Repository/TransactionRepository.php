@@ -110,22 +110,24 @@ class TransactionRepository
                                 AND t.bitcoinConfirmationCount IS NOT NULL 
                                 AND t.status != :endStatus 
                                 AND t.isVoided = 0
-                                AND t.bitcoinConfirmationCount < 3');
+                                AND t.bitcoinConfirmationCount < :bitcoinConfirmedCount');
 
                 $qb->setParameter('bitcoin', PaymentOption::PAYMENT_MODE_BITCOIN)
                     ->setParameter('endStatus', Transaction::TRANSACTION_STATUS_END)
-                    ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT);
+                    ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT)
+	                ->setParameter('bitcoinConfirmedCount', Transaction::BITCOIN_CONFIRMED_COUNT);
             } elseif (in_array(Transaction::DETAIL_BITCOIN_STATUS_CONFIRMED, $filters['status'])) {
                 $qb->andWhere('t.paymentOptionType = :bitcoin 
                                 AND t.type = :deposit
                                 AND t.bitcoinConfirmationCount IS NOT NULL 
                                 AND t.status != :endStatus 
                                 AND t.isVoided = 0
-                                AND t.bitcoinConfirmationCount = 3');
+                                AND t.bitcoinConfirmationCount = :bitcoinConfirmedCount');
 
                 $qb->setParameter('bitcoin', PaymentOption::PAYMENT_MODE_BITCOIN)
                     ->setParameter('endStatus', Transaction::TRANSACTION_STATUS_END)
-                    ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT);
+                    ->setParameter('deposit', Transaction::TRANSACTION_TYPE_DEPOSIT)
+	                ->setParameter('bitcoinConfirmedCount', Transaction::BITCOIN_CONFIRMED_COUNT);
             } else {
                 $qb->andWhere('t.status IN (:status)')
                     ->andWhere('t.isVoided = 0')
@@ -134,13 +136,8 @@ class TransactionRepository
         }
         
         if (array_has($filters, 'paymentOption')) {
-            $qb->join('t.paymentOption', 'po');
-            $exp = $qb->expr()->orX();
-            $exp
-                ->add('t.paymentOptionType IN (:paymentOption)')
-                ->add('po.paymentOption IN (:paymentOption)')
-            ;
-            $qb->andWhere($exp)->setParameter('paymentOption', $filters['paymentOption']);
+	        $qb->andWhere('t.paymentOptionType = :paymentOption');
+	        $qb->setParameter('paymentOption', $filters['paymentOption']);
         }
 
         if (array_has($filters, 'customerProduct')) {
@@ -198,17 +195,16 @@ class TransactionRepository
     {
         $queryBuilder = $this->createQueryBuilder('transaction');
         $queryBuilder
-            ->select('transaction', 'paymentOptionType')
-            ->innerJoin('transaction.paymentOptionType', 'paymentOptionType')
+            ->select('transaction')
             ->where('transaction.customer = :customer')
             ->andWhere('transaction.type = :type')
             ->andWhere('transaction.status NOT IN (:status)')
             ->andWhere('transaction.isVoided != true')
-            ->andWhere('paymentOptionType.paymentMode = :paymentMode')
+            ->andWhere('transaction.paymentOptionType = :paymentOptionType')
             ->andWhere("IFNULL(JSON_CONTAINS(transaction.details, 'false', '$.bitcoin.acknowledged_by_user'), true) = true")
             ->setParameter('customer', $memberId)
             ->setParameter('type', $transactionType)
-            ->setParameter('paymentMode', PaymentOption::PAYMENT_MODE_BITCOIN)
+            ->setParameter('paymentOptionType', PaymentOption::PAYMENT_MODE_BITCOIN)
             ->setParameter('status', [Transaction::TRANSACTION_STATUS_END, Transaction::TRANSACTION_STATUS_DECLINE], Connection::PARAM_INT_ARRAY)
         ;
 

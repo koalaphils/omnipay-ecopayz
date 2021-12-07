@@ -1,0 +1,7 @@
+SHELL=/bin/bash
+BASH_ENV=/env.sh
+* * * * * flock -n /var/run/lock/ac_cron_3 /usr/local/bin/php /var/www/html/app/console transaction:pending-bitcoin:lock system --no-debug -q > /proc/1/fd/1 2>/proc/1/fd/2
+0 0 * * * flock -n /var/run/lock/ac_cron_6 /usr/local/bin/php /var/www/html/app/console fos:oauth-server:clean --no-debug -q > /proc/1/fd/1 2>/proc/1/fd/2
+0 0 * * * flock -n /var/run/lock/ac_cron_7 /usr/local/bin/php /var/www/html/app/console jms-job-queue:clean-up --no-debug -q > /proc/1/fd/1 2>/proc/1/fd/2
+0 0 * * * flock -n /var/run/lock/ac_cron_8 /usr/local/bin/php /var/www/html/app/console two-factor:code:cleanup --no-debug -q > /proc/1/fd/1 2>/proc/1/fd/2
+0 0 * * * flock -n /var/run/lock/ac_cron_9 /usr/local/bin/php /var/www/html/app/console registered-member:send-email --no-debug -q > /proc/1/fd/1 2>/proc/1/fd/2

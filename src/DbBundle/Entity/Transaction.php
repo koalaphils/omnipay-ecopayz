@@ -2,6 +2,7 @@
 
 namespace DbBundle\Entity;
 
+use AppBundle\Service\PaymentOptionService;
 use AppBundle\ValueObject\Money;
 use AppBundle\ValueObject\Number;
 use DateTime;
@@ -30,6 +31,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public const DETAIL_BITCOIN_INFO = 'bitcoin';
     public const DETAIL_BITCOIN_ADDRESS = 'bitcoin.receiver_unique_address';
+	public const DETAIL_BITCOIN_XPUB = 'bitcoin.xpub';
     public const DETAIL_BITCOIN_BLOCKCHAIN_RATE = 'bitcoin.block_chain_rate';
     public const DETAIL_BITCOIN_RATE = 'bitcoin.rate';
     public const DETAIL_BITCOIN_TOTAL_REQUESTED_BTC = 'bitcoin.total_requested_btc';
@@ -78,6 +80,8 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     const TRANSACTION_STATUS_DECLINE = 3;
     const TRANSACTION_STATUS_ACKNOWLEDGE = 4;
     const TRANSACTION_STATUS_VOIDED = 'voided';
+
+	const BITCOIN_CONFIRMED_COUNT = 1;
 
     private $number;
     private $currency;
@@ -568,7 +572,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         return $this;
     }
 
-    public function getPaymentOption(): ?CustomerPaymentOption
+    public function getPaymentOption()
     {
         return $this->paymentOption;
     }
@@ -581,30 +585,10 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         return $this;
     }
 
-    public function getPaymentOptionOnTransaction(): ?CustomerPaymentOption
-    {
-        return $this->paymentOptionOnTransaction;
-    }
-
-
-    public function setPaymentOptionOnTransaction($paymentOptionOnTransaction)
-    {
-        $this->paymentOptionOnTransaction = $paymentOptionOnTransaction;
-
-        return $this;
-    }
-
-    // save data that should not be changed even if the records at the related tables change
-    // this is a poor attempt to have historical data while auditlog is still not in place
     public function retainImmutableData()
     {
         if (!$this->isClosedForFurtherProcessing()) {
             $this->copyImmutableCustomerProductData();
-            $this->setImmutableCustomerReferrer();
-            if ($this->isWithdrawal() || $this->isDeposit() || $this->isTransfer()) {
-                $this->setImmutablePaymentOptionData();
-                $this->setImmutablePaymentOptionOnTransactionData();
-            }
         }
     }
 
@@ -642,97 +626,6 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         return array_has($this->details, $key);
     }
 
-    public function isTransactionPaymentBitcoin(): bool
-    {
-        $paymentOption = $this->paymentOption;
-
-        if (is_null($paymentOption)) {
-            return false;
-        }
-
-        return $paymentOption->getPaymentOption()->isPaymentBitcoin();
-    }
-
-    /**
-     * to track the data of customer's payment option
-     * (normally starting the time of transaction creation)
-     */
-    public function setImmutablePaymentOptionData()
-    {
-        if ($this->paymentOption == null) {
-            return;
-        }
-
-        $this->setDetail('paymentOption.email', array_get($this->paymentOption->getFields(), 'email'));
-        $this->setDetail('paymentOption.code', $this->paymentOption->getPaymentOption()->getCode());
-        $this->setDetail('paymentOption.name', $this->paymentOption->getPaymentOption()->getName());
-
-        $paymentOption = $this->paymentOption->getPaymentOption();
-
-        if ($paymentOption->isPaymentEcopayz() || $paymentOption->isPaymentBitcoin()) {
-            $this->setDetail('paymentOption.accountId', array_get($this->paymentOption->getFields(), 'account_id'));
-        }
-    }
-
-    /**
-     * Set the payment option on transaction data
-     * only on creation of transactions from member site
-     */
-    public function setImmutablePaymentOptionOnTransactionData()
-    {
-        if ($paymentOptionOnTransaction = $this->getPaymentOptionOnTransaction()) {
-            $this->setDetail('paymentOptionOnTransaction.email', array_get($paymentOptionOnTransaction->getFields(), 'email'));
-            $this->setDetail('paymentOptionOnTransaction.code', $paymentOptionOnTransaction->getPaymentOption()->getCode());
-            $this->setDetail('paymentOptionOnTransaction.name', $paymentOptionOnTransaction->getPaymentOption()->getName());
-
-            if ($paymentOptionOnTransaction->getPaymentOption()->isPaymentEcopayz() || $paymentOptionOnTransaction->getPaymentOption()->isPaymentBitcoin()) {
-                $this->setDetail('paymentOptionOnTransaction.accountId', array_get($paymentOptionOnTransaction->getFields(), 'account_id'));
-            }
-        }
-    }
-
-    /**
-     * @return String the PaymentOption data info during the time that the transaction was created / requested
-     * this may not be the actual payment option used to process/finalize the transaction
-     */
-    public function getImmutablePaymentOptionData(): string
-    {
-        $email = $this->getDetail('paymentOption.email');
-        $paymentOptionCode = $this->getDetail('paymentOption.code');
-        $paymentOption = $this->getPaymentOption();
-        $label = $paymentOptionCode . ' (' . $email . ')';
-
-        if (!is_null($paymentOption)) {
-            if ($paymentOption->getPaymentOption()->isPaymentEcopayz()) {
-                $accountId = $this->getDetail('paymentOption.accountId');
-                $label = $paymentOptionCode . ' (' . $accountId . ')';
-            } elseif ($this->isTransactionPaymentBitcoin()) {
-                $label = $paymentOptionCode . ' (' . $this->getBitcoinAddress() . ')';
-            }
-        }
-
-        return $label;
-    }
-
-    public function getImmutablePaymentOptionOnTransactionData(): String
-    {
-        $email = $this->getDetail('paymentOptionOnTransaction.email');
-        $paymentOptionCode = $this->getDetail('paymentOptionOnTransaction.code');
-        $paymentOptionOnTransaction = $this->getPaymentOptionOnTransaction();
-        $label = $paymentOptionCode . ' (' . $email . ')';
-
-        if (!is_null($paymentOptionOnTransaction)) {
-            $paymentOption = $this->getPaymentOptionOnTransaction()->getPaymentOption();
-
-            if ($paymentOption->isPaymentEcopayz() || $paymentOption->isPaymentBitcoin()) {
-                $accountId = $this->getDetail('paymentOptionOnTransaction.accountId');
-                $label = $paymentOptionCode . ' (' . $accountId . ')';
-            }
-        }
-
-        return $label;
-    }
-
     public function copyImmutableCustomerProductData()
     {
         foreach ($this->getSubTransactions() as $subTransaction) {
@@ -740,37 +633,9 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         }
     }
 
-    public function setPaymentOptionType($paymentOptionType): self
-    {
-        $this->paymentOptionType = $paymentOptionType;
-
-        return $this;
-    }
-
-    public function getPaymentOptionType(): ?PaymentOption
-    {
-        $this->autoSetPaymentOptionType();
-
-        return $this->paymentOptionType;
-    }
-
     public function getCustomerAmount()
     {
         return $this->getDetail('summary.customer_amount', $this->getDetail('summary.total_amount', 0));
-    }
-
-    public function canAutoSetPaymentOptionType()
-    {
-        return $this->paymentOptionType === null && $this->paymentOption !== null;
-    }
-
-    public function autoSetPaymentOptionType(): self
-    {
-        if ($this->canAutoSetPaymentOptionType()) {
-            $this->setPaymentOptionType($this->getPaymentOption()->getPaymentOption());
-        }
-
-        return $this;
     }
 
     public function isEnd(): bool
@@ -818,11 +683,6 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         return $this->getType() === Transaction::TRANSACTION_TYPE_COMMISSION;
     }
 
-    public function isRevenueShare(): bool
-    {
-        return $this->getType() === Transaction::TRANSACTION_TYPE_REVENUE_SHARE;
-    }
-
     public function isDebitAdjustment(): bool
     {
         return $this->getType() === Transaction::TRANSACTION_TYPE_DEBIT_ADJUSTMENT;
@@ -842,6 +702,11 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     {
         return $this->isAdjustment() || $this->isDebitAdjustment() || $this->isCreditAdjustment();
     }
+
+	public function isRevenueShare(): bool
+	{
+		return $this->getType() === Transaction::TRANSACTION_TYPE_REVENUE_SHARE;
+	}
 
     public function isInProgress(): bool
     {
@@ -868,11 +733,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public function isPaymentBitcoin(): bool
     {
-        if ($this->paymentOption === null) {
-            return false;
-        }
-
-        return $this->paymentOption->getPaymentOption()->isPaymentBitcoin();
+        return $this->paymentOptionType === PaymentOptionService::BITCOIN;
     }
 
     public function isBitcoinStatusPendingConfirmation(): bool
@@ -1304,7 +1165,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public function setBitcoinConfirmationAsConfirmed(): self
     {
-        $this->setBitcoinConfirmation(3);
+        $this->setBitcoinConfirmation(self::BITCOIN_CONFIRMED_COUNT);
 
         return $this;
     }
@@ -1331,12 +1192,12 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
             return false;
         }
 
-        return $confirmations < 3;
+        return $confirmations < self::BITCOIN_CONFIRMED_COUNT;
     }
 
     public function isBitcoinConfirmedOnConfirmation(): bool
     {
-        return $this->getBitcoinConfirmation() >= 3
+        return $this->getBitcoinConfirmation() >= self::BITCOIN_CONFIRMED_COUNT
             || $this->getStatus() == self::TRANSACTION_STATUS_ACKNOWLEDGE;
     }
 
@@ -1344,9 +1205,9 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
     {
         $status = self::DETAIL_BITCOIN_STATUS_NO_CONFIRMATION;
 
-        if ($this->getBitcoinConfirmation() < 3) {
+        if ($this->getBitcoinConfirmation() < self::BITCOIN_CONFIRMED_COUNT) {
             $status = self::DETAIL_BITCOIN_STATUS_PENDING;
-        } else if ($this->getBitcoinConfirmation() >= 3) {
+        } else if ($this->getBitcoinConfirmation() >= self::BITCOIN_CONFIRMED_COUNT) {
             $status = self::DETAIL_BITCOIN_STATUS_CONFIRMED;
         }
 
@@ -1355,7 +1216,7 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
     public function hasBitcoinDepositAndNotConfirmed(): bool
     {
-        return $this->hasDepositUsingBitcoin() && $this->getBitcoinConfirmation() < 3 && $this->getStatus() != self::TRANSACTION_STATUS_ACKNOWLEDGE;
+        return $this->hasDepositUsingBitcoin() && $this->getBitcoinConfirmation() < self::BITCOIN_CONFIRMED_COUNT && $this->getStatus() != self::TRANSACTION_STATUS_ACKNOWLEDGE;
     }
 
     public static function getOtherStatus(): array
@@ -1501,6 +1362,11 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
         return $this->customerID;
     }
 
+	public function isTransactionPaymentBitcoin(): bool
+	{
+		return $this->paymentOptionType === PaymentOptionService::BITCOIN;
+    }
+
     public function setBitcoinIsAcknowledgeByMember(bool $bitcoinIsAcknowledgeByMember): self
     {
         $this->bitcoinIsAcknowledgeByMember = $bitcoinIsAcknowledgeByMember;
@@ -1563,4 +1429,86 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 
         return $source->isPiwiWalletMemberProduct();
     }
+
+	public function setPaymentOptionOnRecord($fields)
+	{
+		if ($this->getPaymentOptionOnRecord() === null) {
+			$this->setDetail('paymentOption', $fields);
+			$this->setDetail('paymentOption.code', $this->getPaymentOptionType());
+		}
+	}
+
+	public function getPaymentOptionOnRecord()
+	{
+		return $this->getDetail('paymentOption', null);
+	}
+
+	public function getPaymentOptionType(): ?string
+	{
+		return $this->paymentOptionType;
+	}
+
+	public function setPaymentOptionType($paymentOptionType): self
+	{
+		$this->paymentOptionType = $paymentOptionType;
+
+		return $this;
+	}
+
+	public function setPaymentOptionDetails($fields)
+	{
+		if ($this->getPaymentOptionOnTransaction() === null) {
+			$this->setDetail('paymentOptionOnTransaction', $fields);
+			$this->setDetail('paymentOptionOnTransaction.code', $this->getPaymentOptionType());
+		}
+
+		return $this;
+	}
+
+    public function getPaymentOptionOnTransaction()
+    {
+        return $this->getDetail('paymentOptionOnTransaction', null);
+    }
+
+    public function hasTransactionPaymentOptionOnRecord(): bool
+    {
+        return $this->getPaymentOptionOnRecord() !== null && count($this->getPaymentOptionOnRecord()) > 0;
+    }
+
+	public function getCustomerPaymentOptionOnRecordDisplay(): string
+	{
+		$paymentOptionOnRecord = $this->getPaymentOptionOnRecord();
+		$paymentOptionType = $paymentOptionOnRecord['code'];
+
+		if (PaymentOptionService::isConfiguredToUseEmail($paymentOptionType) && $paymentOptionType !== null) {
+			return isset($paymentOptionOnRecord['email']) ? "{$paymentOptionType}({$paymentOptionOnRecord['email']})" : "{$paymentOptionType}()";
+		}
+
+		if (PaymentOptionService::isConfiguredToUseAccountId($paymentOptionType) && $paymentOptionType !== null) {
+			return isset($paymentOptionOnRecord['account_id']) ? "{$paymentOptionType}({$paymentOptionOnRecord['account_id']})" : "{$paymentOptionType}()";
+		}
+
+		return '';
+	}
+
+	public function getCustomerPaymentOptionDisplayField() : string
+	{
+		$paymentOptionOnTransaction = $this->getPaymentOptionOnTransaction();
+		$paymentOptionType = $this->getPaymentOptionType();
+
+		if (PaymentOptionService::isConfiguredToUseEmail($paymentOptionType)) {
+			return "{$paymentOptionType}({$paymentOptionOnTransaction['email']})";
+		}
+
+		if (PaymentOptionService::isConfiguredToUseAccountId($paymentOptionType)) {
+			return "{$paymentOptionType}({$paymentOptionOnTransaction['account_id']})";
+		}
+
+		return '';
+	}
+
+	public function shouldIncludePaymentOption(): bool
+	{
+		return in_array($this->getType(), [self::TRANSACTION_TYPE_WITHDRAW, self::TRANSACTION_TYPE_DEPOSIT]);
+	}
 }
