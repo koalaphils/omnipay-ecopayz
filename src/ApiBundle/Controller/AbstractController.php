@@ -133,7 +133,14 @@ abstract class AbstractController extends FOSRestController
         if ($request->getMethod() === 'GET') {
             $data = $request->query->all();
         } else {
-            $data = $request->getContent() ? json_decode($request->getContent(), true) : $request->request->all();
+            if ($request->getContent()) {
+                $data =  json_decode($request->getContent(), true); 
+                if (is_null($data)) {
+                    $data = $request->request->all();
+                }
+            } else {
+                $data = $request->request->all();
+            }
         }
         
         $form->submit($data);
