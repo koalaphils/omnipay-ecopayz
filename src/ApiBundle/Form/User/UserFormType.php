@@ -31,7 +31,7 @@ class UserFormType extends AbstractType
         ->add('password', Type\RepeatedType::class, [
             'required' => true,
             'type' => Type\PasswordType::class,
-            'invalid_message' => 'The password fields must match.',
+            'invalid_message' => 'Passwords do not match',
             'constraints' => [
                 new Regex([
                     'pattern' => '/(?=^.{8,}$)(?=(.*[0-9]){2,})(?=(.*[A-Za-z]){2,})(?=(.*[+\-\/\{~\}!"^_`\[\]:$!@#%^&*\?]){2,})/',
