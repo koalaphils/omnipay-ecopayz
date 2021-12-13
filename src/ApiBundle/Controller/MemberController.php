@@ -214,7 +214,7 @@ class MemberController extends AbstractController
         } catch (CodeDoesNotExistsException $exception) {
             return $this->view([
                 'error' => true,
-                'message' => $exception->getMessage(),
+                'message' => 'Invalid Code. Please check the code and try again',
                 'status' => Response::HTTP_UNPROCESSABLE_ENTITY
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (PinnacleException $exception) {
