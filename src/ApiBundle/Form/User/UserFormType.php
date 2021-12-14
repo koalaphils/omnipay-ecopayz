@@ -28,6 +28,9 @@ class UserFormType extends AbstractType
                 ])
             ]
         ])
+        ->add('phoneNumber', Type\TextType::class, [
+            'required' => true
+        ])
         ->add('password', Type\RepeatedType::class, [
             'required' => true,
             'type' => Type\PasswordType::class,
