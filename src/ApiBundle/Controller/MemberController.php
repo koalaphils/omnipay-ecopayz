@@ -194,12 +194,12 @@ class MemberController extends AbstractController
      */
     public function registerAction(Request $request, MemberManager $manager): View
     {
-        $member = new Customer();
-        $form = $this->createForm(MemberRegisterType::class, $member);
-        
-        $this->handleRequest($form, $request);
-
         try {
+            $member = new Customer();
+            $form = $this->createForm(MemberRegisterType::class, $member);
+        
+            $this->handleRequest($form, $request);
+
             if ($this->isFormValid($form)) {
                 $result = $manager->handle($member);
 
@@ -220,7 +220,7 @@ class MemberController extends AbstractController
         } catch (PinnacleException $exception) {
             return $this->view([
                 'error' => true,
-                'message' => 'Something went wrong, contact support',
+                'message' => 'Something went wrong, please contact support.',
                 'status' => Response::HTTP_INTERNAL_SERVER_ERROR
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }

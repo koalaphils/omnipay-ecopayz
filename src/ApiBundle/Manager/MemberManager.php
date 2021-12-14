@@ -43,6 +43,7 @@ use AppBundle\Manager\MailerManager;
 use AppBundle\Helper\Publisher;
 use DbBundle\Entity\TwoFactorCode;
 use DbBundle\Repository\TwoFactorCodeRepository;
+use PinnacleBundle\Component\Exceptions\PinnacleException;
 use TwoFactorBundle\Provider\Message\CodeModel;
 use TwoFactorBundle\Provider\Message\Exceptions\CodeDoesNotExistsException;
 use TwoFactorBundle\Provider\Message\StorageInterface;
@@ -357,23 +358,17 @@ class MemberManager extends AbstractManager
             $this->changeCodeAsUsed($member->getDetail('verification_code'));
             $this->getEntityManager()->persist($member);
             $this->getEntityManager()->flush($member);
-
             $this->getEntityManager()->commit();
+            $this->sendEmail($member);
 
-            try {
-                $this->sendEmail($member);
-
-                $this->getPublisher()->publishUsingWamp('member.registered', [
-                    'message' => $member->getUser()->getUsername() . ' was registered',
-                    'title' => 'New Member',
-                    'otherDetails' => [
-                        'id' => $member->getId(),
-                        'type' => 'profile'
-                    ]
-                ]);
-            } catch (\Exception $exception) {
-                // Do nothing
-            }
+            $this->getPublisher()->publishUsingWamp('member.registered', [
+                'message' => $member->getUser()->getUsername() . ' was registered',
+                'title' => 'New Member',
+                'otherDetails' => [
+                    'id' => $member->getId(),
+                    'type' => 'profile'
+                ]
+            ]);
         } catch (\PDOException $ex) {
             $this->getEntityManager()->rollback();
             throw $ex;
@@ -390,12 +385,12 @@ class MemberManager extends AbstractManager
         $pinnacleProduct = $this->getPinnacleProduct();
 
         $user = $member->getUser();
-        //Add to Form if registration for Vendor has been implemented
+
+        //Add to UserFormType if the registration for Vendor will be implemented
         $user->setSignupType(User::SIGNUP_TYPE_EMAIL);
         $user->setUsername($user->getEmail());
         $user->setType(User::USER_TYPE_MEMBER);
         $user->setRoles(['ROLE_MEMBER' => 2]);
-        //Add to Form if registration for Vendor has been implemented
 
         $user->setActivationCode($this->getUserManager()->encodeActivationCode($user));
         $user->setIsActive(true);
@@ -428,7 +423,7 @@ class MemberManager extends AbstractManager
 
             $member->addProduct($memberProduct);
         } catch(\Exception $ex) {
-            //Catch generic exception since we on what error to throw.
+            throw new PinnacleException();
         }       
        
         $member->addGroup($defaultMemberGroup);
