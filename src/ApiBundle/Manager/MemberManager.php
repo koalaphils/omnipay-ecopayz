@@ -41,7 +41,9 @@ use DbBundle\Entity\CustomerGroup;
 use DbBundle\Repository\CustomerGroupRepository;
 use AppBundle\Manager\MailerManager;
 use AppBundle\Helper\Publisher;
+use DbBundle\Entity\Country;
 use DbBundle\Entity\TwoFactorCode;
+use DbBundle\Repository\CountryRepository;
 use DbBundle\Repository\TwoFactorCodeRepository;
 use PinnacleBundle\Component\Exceptions\PinnacleException;
 use TwoFactorBundle\Provider\Message\CodeModel;
@@ -428,6 +430,12 @@ class MemberManager extends AbstractManager
        
         $member->addGroup($defaultMemberGroup);
         $member->setDetail('websocket', ['channel_id' => uniqid(generate_code(10, false, 'ld'))]);
+        $countryPhoneCode = $member->getDetail('country_phone_code');
+
+        if ($countryPhoneCode !== '') {
+            $country = $this->getCountryRepository()->findByPhoneCode($countryPhoneCode);
+            $member->setCountry($country);
+        }
 
         return $member;
     }
@@ -481,6 +489,11 @@ class MemberManager extends AbstractManager
     private function getProductRepository(): ProductRepository
     {
         return $this->getDoctrine()->getRepository(Product::class);
+    }
+
+    private function getCountryRepository(): CountryRepository
+    {
+        return $this->getDoctrine()->getRepository(Country::class);
     }
 
     private function getMemberProductRepository(): MemberProductRepository
