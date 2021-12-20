@@ -21,6 +21,7 @@ DbBundle\Entity\Customer:
             groups: ['Default']
             exp: object.getCountryName()
             serialized_name: country
+            type: string
         countryName:
             exp: object.getCountryName()
             expose: true

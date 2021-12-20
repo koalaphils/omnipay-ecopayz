@@ -434,7 +434,8 @@ class MemberManager extends AbstractManager
 
         if ($countryPhoneCode !== '') {
             $country = $this->getCountryRepository()->findByPhoneCode($countryPhoneCode);
-            $member->setCountry($country);
+
+            $member->setCountry($country->getCode());
         }
 
         return $member;

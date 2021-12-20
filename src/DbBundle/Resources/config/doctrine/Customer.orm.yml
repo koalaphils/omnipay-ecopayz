@@ -131,7 +131,7 @@ DbBundle\Entity\Customer:
             options:
                 default: false
         country:
-            type: integer
+            type: string
             column: customer_country_code
             nullable: true
         affiliate:
