@@ -115,8 +115,7 @@ class CountryRepository extends BaseRepository
     {
         $qb = $this->createQueryBuilder('c');
         $qb->select('PARTIAL c.{id, name, phoneCode, code}');
-        $qb->where('c.phoneCode = :phone_code')->setParameter('phone_code', $code);    
-            
-        return $qb->setMaxResults(1)->getQuery()->getOneOrNullResult($hydrationMode);
+        $qb->where('c.phoneCode = :phone_code')->setParameter('phone_code', $code);        
+        return $qb->getQuery()->getOneOrNullResult($hydrationMode);
     }
 }

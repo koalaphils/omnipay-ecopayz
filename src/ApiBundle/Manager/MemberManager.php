@@ -41,6 +41,7 @@ use DbBundle\Entity\CustomerGroup;
 use DbBundle\Repository\CustomerGroupRepository;
 use AppBundle\Manager\MailerManager;
 use AppBundle\Helper\Publisher;
+use AppBundle\Manager\CountryManager;
 use DbBundle\Entity\Country;
 use DbBundle\Entity\TwoFactorCode;
 use DbBundle\Repository\CountryRepository;
@@ -433,10 +434,9 @@ class MemberManager extends AbstractManager
         $countryPhoneCode = $member->getDetail('country_phone_code');
 
         if ($countryPhoneCode !== '') {
-            $country = $this->getCountryRepository()->findByPhoneCode($countryPhoneCode);
-
-            $member->setCountry($country->getCode());
-        }
+            $country = $this->getCountryManager()->getCountryByCallingCode($countryPhoneCode);
+            $member->setCountry($country);
+        }   
 
         return $member;
     }
@@ -555,6 +555,11 @@ class MemberManager extends AbstractManager
     private function getMediaManager(): MediaManager
     {
         return $this->get('media.manager');
+    }
+
+    private function getCountryManager(): CountryManager
+    {
+        return $this->get('country.manager');
     }
 
     private function getMemberBundleManager(): MemberBundleManager
