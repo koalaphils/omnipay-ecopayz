@@ -21,7 +21,6 @@ use DbBundle\Repository\CustomerGroupRepository;
 use DbBundle\Repository\MemberWebsiteRepository;
 use DbBundle\Repository\ProductRepository;
 use DbBundle\Repository\TwoFactorCodeRepository;
-use DbBundle\Repository\UserRepository;
 use Doctrine\ORM\EntityManager;
 use PinnacleBundle\Service\PinnacleService;
 use TwoFactorBundle\Provider\Message\StorageInterface;
@@ -62,8 +61,7 @@ class RegisterHandler
         Publisher $publisher,
         MemberWebsiteRepository $memberWebsiteRepository,
         MailerManager $mailerManager,
-        ProductIntegrationFactory $productIntegrationFactory,
-        UserRepository $userRepository
+        ProductIntegrationFactory $productIntegrationFactory
     ) {
         $this->pinnacleService = $pinnacleService;
         $this->userManager = $userManager;
@@ -80,7 +78,6 @@ class RegisterHandler
         $this->memberWebsiteRepository = $memberWebsiteRepository;
         $this->mailerManager = $mailerManager;
         $this->productIntegrationFactory =$productIntegrationFactory;
-        $this->userRepository = $userRepository;
     }
 
     public function handle(RegisterRequest $registerRequest): Member
@@ -146,7 +143,6 @@ class RegisterHandler
         $user->setActivationSentTimestamp($now);
         $user->setActivationTimestamp($now);
         $defaultMemberGroup = $this->memberGroupRepository->getDefaultGroup();
-        
         $currency = $this->currencyRepository->findByCode($registerRequest->getCurrency());
         $pinnacleProduct = $this->getPinnacleProduct();
 
