@@ -1,0 +1,17 @@
+{% extends 'AppBundle:Layout:base.html.twig' %}
+
+{% block title %}Reports | Profit and Loss{% endblock %}
+
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+{% block pageTitle -%} Profit and Loss {%- endblock pageTitle %}
+
+{% block breadcrumb -%}
+    <li>{{ "breadcrumb.report"|trans({},"AppBundle") }}</li>
+    <li class="active">{{ "breadcrumb.pnlReport"|trans({},"AppBundle") }}</li>
+{%- endblock breadcrumb %}
+
+{% block page %}
+    <iframe id="report" src="/iframe/reports/pnl"></iframe>
+{% endblock page %}

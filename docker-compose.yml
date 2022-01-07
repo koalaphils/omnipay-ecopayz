@@ -130,6 +130,7 @@ services:
       - .:/var/www/html
     environment:
       - WITH_PAYMENT_OPTIONS=true
+      - WITH_REPORTS=true
       - PHPHOST=piwibo-php
       - PHPPORT=9000
       - ENVIRONMENT=dev

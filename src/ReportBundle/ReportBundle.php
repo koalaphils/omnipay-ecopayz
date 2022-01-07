@@ -43,6 +43,11 @@ class ReportBundle extends Bundle
                 'label' => 'roles.report.gateway.view',
                 'translation_domain' => 'ReportBundle',
             ],
+            'ROLE_REPORT_PNL_VIEW' => [
+                'group' => 'roles.groups.report',
+                'label' => 'roles.report.pnl.view',
+                'translation_domain' => 'ReportBundle',
+            ],
         ];
     }
 
