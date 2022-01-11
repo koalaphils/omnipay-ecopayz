@@ -20,6 +20,7 @@ class Winloss extends Entity
     private $product;
     private $status;
     private $turnover;
+    private $pregeneratedAt;
 
     public function __construct()
     {
@@ -70,4 +71,11 @@ class Winloss extends Entity
     {
         return $this->status;
     }
+
+    public function getPregeneratedAt()
+    {
+        return $this->pregeneratedAt;
+    }
+
+
 }
