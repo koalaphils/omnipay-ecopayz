@@ -23,7 +23,9 @@ class UpdateProfileRequest
     private $affiliateLink;
     private $referrerSite;
     private $registrationSite;
-    private $promoCode;
+    private $promoCodeCustom;
+    private $promoCodeReferAFriend;
+    private $referredBy;
 
     private $riskSetting;
     private $tags;
@@ -61,12 +63,13 @@ class UpdateProfileRequest
             $request->referrerSite = 'Direct';
         }
         $request->registrationSite = $customer->getDetail('registration.site', '');
-        $request->promoCode = $customer->getUser()->getPreference('promoCode', '');
+        $request->promoCodeCustom = $customer->getPromoCode('custom');
+        $request->promoCodeReferAFriend = $customer->getPromoCode('refer_a_friend');
         $request->riskSetting = $customer->getRiskSetting();
         $request->tags = $customer->getTags();
         $request->clientIp = $customer->getDetail('registration.ip');
         $request->referralCode  = $customer->getDetail('referral_code');
-
+        $request->referredBy = $customer->getReferredBy() ? $customer->getReferredBy() : 1;
         foreach ($customer->getGroups() as $group) {
             $request->groups[] = $group->getId();
         }
@@ -265,14 +268,34 @@ class UpdateProfileRequest
         }
     }
 
-    public function getPromoCode(): ?string
+    public function getReferredBy(): ?string
     {
-        return $this->promoCode;
+        return 'http://localhost:81/app_dev.php/en/members/' . $this->referredBy . '/profile';
     }
 
-    public function setPromoCode(?string $promoCode): ?string
+    public function setReferredBy(int $referredBy): void
     {
-        return $this->promoCode = $promoCode;
+        $this->referredBy = $referredBy;
+    }
+
+    public function getPromoCodeCustom(): ?string
+    {
+        return $this->promoCodeCustom;
+    }
+
+    public function setPromoCodeCustom(?string $promoCode): ?string
+    {
+        return $this->promoCodeCustom = $promoCode;
+    }
+
+    public function getPromoCodeReferAFriend(): ?string
+    {
+        return $this->promoCodeReferAFriend;
+    }
+
+    public function setPromoCodeReferAFriend(?string $promoCode): ?string
+    {
+        return $this->promoCodeReferAFriend = $promoCode;
     }
 
     public function setRiskSetting(?string $riskSetting): void

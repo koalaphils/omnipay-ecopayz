@@ -117,6 +117,12 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
      */
     protected $affiliate;
 
+
+    /**
+     * @var \DbBundle\Entity\Customer
+     */
+    protected $referredBy;
+
     /**
      * @var Currency
      */
@@ -190,6 +196,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         $this->setIsCustomer(false);
         $this->setIsAffiliate(false);
         $this->setAffiliate(null);
+        $this->setReferredBy(null);
         $this->setGroups(new \Doctrine\Common\Collections\ArrayCollection([]));
         $this->setPaymentOptions(new \Doctrine\Common\Collections\ArrayCollection([]));
         $this->setProducts(new \Doctrine\Common\Collections\ArrayCollection([]));
@@ -1424,5 +1431,36 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     public function getReferralCode(): ?string
     {
         return $this->getDetail('referral_code', null);
+    }
+
+    public function getPromoCode(string $key): ?string
+    {
+        $codes = $this->getDetail('promo_code', ['custom' => null, 'refer_a_friend' => null]);
+
+        return $codes[$key];
+    }
+
+    /**
+     * Set referredBy.
+     *
+     * @param string $referredBy
+     *
+     * @return \DbBundle\Entity\Customer
+     */
+    public function setReferredBy($referredBy)
+    {
+        $this->referredBy = $referredBy;
+
+        return $this;
+    }
+
+    /**
+     * Get referredBy.
+     *
+     * @return \DbBundle\Entity\Customer
+     */
+    public function getReferredBy()
+    {
+        return $this->referredBy;
     }
 }

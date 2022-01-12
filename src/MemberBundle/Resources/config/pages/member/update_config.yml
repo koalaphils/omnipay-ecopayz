@@ -187,14 +187,28 @@ widgets:
                             readonly: true
                     size: 12
                     type: text  
-                    group: marketLeft                                      
-                promoCode:
+                    group: marketLeft            
+                referredBy:
                     options:
-                        label: Promo Code
+                        label: Referred By
+                        required: false
+                    size: 12
+                    type: text  
+                    group: marketLeft                                 
+                promoCodeCustom:
+                    options:
+                        label: Promo Code (Custom)
                         required: false
                     type: text
                     size: 12
                     group: marketRight
+                promoCodeReferAFriend:
+                    options:
+                        label: Promo Code (Refer a Friend)
+                        required: false
+                    type: text
+                    size: 12
+                    group: marketRight    
                 riskSetting:
                     options:
                         label: Risk Setting

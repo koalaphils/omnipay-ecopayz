@@ -13,6 +13,9 @@ final class Version20220110114553 extends AbstractMigration
     public function up(Schema $schema) : void
     {
         // this up() migration is auto-generated, please modify it to your needs
+        $this->addSql('ALTER TABLE `customer` ADD `customer_referred_by` BIGINT UNSIGNED DEFAULT NULL;');
+        $this->addSql('ALTER TABLE `customer` ADD FOREIGN KEY (`customer_referred_by`) REFERENCES `customer` (`customer_id`)');    
+
         $this->addSql('CREATE TABLE promo (
             promo_id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
             promo_code VARCHAR(50) NOT NULL,
@@ -29,10 +32,8 @@ final class Version20220110114553 extends AbstractMigration
           ) ENGINE=\'InnoDB\' COLLATE \'utf8_unicode_ci\'');
   
           $this->addSql("INSERT INTO promo (promo_code, promo_name, promo_status, promo_details, promo_created_by, promo_created_at, promo_updated_by, promo_updated_at) 
-              VALUES ('REFERAFRIEND', 'Refer a friend', '1', JSON_OBJECT('preferredUrl', 'https://ac0188.com/register/'), '25106', now(), NULL, now()), 
-              ('ACFCB400', 'ACFCB400', '1', NULL, '25106', now(), NULL, now()), 
-              ('AC400', 'AC400', '1', NULL, '25106', now(), NULL, now()), 
-              ('BTC5000', 'BTC5000', '1', NULL, '25106', now(), NULL, now())");
+              VALUES ('REFERAFRIEND', 'Refer a friend', '1', JSON_OBJECT('preferredUrl', 'https://piwi247.com/signup/'), '25106', now(), NULL, now()), 
+              ('PROMO01', 'Custom Promo 1', '1', NULL, '25106', now(), NULL, now())");
   
           $this->addSql('CREATE TABLE member_promo (
             member_promo_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -54,7 +55,10 @@ final class Version20220110114553 extends AbstractMigration
 
     public function down(Schema $schema) : void
     {
-        // this down() migration is auto-generated, please modify it to your needs
+        //this down() migration is auto-generated, please modify it to your needs
+        $this->addSql('ALTER TABLE `customer` DROP FOREIGN KEY `customer_ibfk_1`');
+        $this->addSql('ALTER TABLE `customer` DROP INDEX `customer_referred_by`;');
+        $this->addSql('ALTER TABLE `customer` DROP `customer_referred_by`;');
         $this->addSql('DROP TABLE member_promo');
         $this->addSql('DROP TABLE promo');
     }
