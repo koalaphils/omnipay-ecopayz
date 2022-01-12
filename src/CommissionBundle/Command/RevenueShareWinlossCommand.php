@@ -14,6 +14,11 @@ class RevenueShareWinlossCommand extends AbstractCommand
     private const OPTION_PERIOD = 'period';
     private const OPTION_WINLOSS = 'winloss';
 
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
     protected function configure()
     {
         $this
@@ -36,6 +41,8 @@ class RevenueShareWinlossCommand extends AbstractCommand
 
         $period = $input->getOption(self::OPTION_PERIOD);
         $response = $this->loginApiGateway();
+        var_dump($response);
+
         if ($response) {
             $token = $this->getToken($response);
 
