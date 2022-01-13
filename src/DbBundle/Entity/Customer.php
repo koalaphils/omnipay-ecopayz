@@ -119,7 +119,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
 
 
     /**
-     * @var \DbBundle\Entity\Customer
+     * @var int
      */
     protected $referredBy;
 
@@ -196,7 +196,6 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         $this->setIsCustomer(false);
         $this->setIsAffiliate(false);
         $this->setAffiliate(null);
-        $this->setReferredBy(null);
         $this->setGroups(new \Doctrine\Common\Collections\ArrayCollection([]));
         $this->setPaymentOptions(new \Doctrine\Common\Collections\ArrayCollection([]));
         $this->setProducts(new \Doctrine\Common\Collections\ArrayCollection([]));
@@ -1440,27 +1439,42 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $codes[$key];
     }
 
-    /**
-     * Set referredBy.
-     *
-     * @param string $referredBy
-     *
-     * @return \DbBundle\Entity\Customer
-     */
-    public function setReferredBy($referredBy)
+    public function getPersonalLink(): ?string
     {
-        $this->referredBy = $referredBy;
+        return $this->getDetail('personal_link_id', null);
+    }
+
+    public function setPersonalLink(): self
+    {
+        $this->setDetail('personal_link_id', 'ami' . $this->getIdentifier());
 
         return $this;
     }
 
-    /**
-     * Get referredBy.
-     *
-     * @return \DbBundle\Entity\Customer
-     */
-    public function getReferredBy()
+    public function removePersonalLink(): self
     {
-        return $this->referredBy;
+        $this->setDetail('personal_link_id', null);
+
+        return $this;
+    }
+
+    public function getHasPersonalLinkEnabled(): bool
+    {
+        if ($this->getCountry()->getCode() == 'FR' && $this->getCurrency()->getCode() == 'EUR' && !$this->isTagAsAffiliate()) {
+            return true;
+        }
+
+
+        return false;
+
+    }
+
+    public function getHasReferrerLinkEnabled(): bool
+    {
+        if ($this->getPromoCode('refer_a_friend') === 'REFERAFRIEND') {
+            return true;
+        }
+
+        return false;
     }
 }

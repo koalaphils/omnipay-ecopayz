@@ -22,10 +22,11 @@ class UpdateProfileRequest
     private $referralCode;
     private $affiliateLink;
     private $referrerSite;
+    private $personalLink;
+    private $referrerLink;
     private $registrationSite;
     private $promoCodeCustom;
     private $promoCodeReferAFriend;
-    private $referredBy;
 
     private $riskSetting;
     private $tags;
@@ -69,7 +70,8 @@ class UpdateProfileRequest
         $request->tags = $customer->getTags();
         $request->clientIp = $customer->getDetail('registration.ip');
         $request->referralCode  = $customer->getDetail('referral_code');
-        $request->referredBy = $customer->getReferredBy() ? $customer->getReferredBy() : 1;
+        $request->personalLink = $customer->getDetail('personal_link_id');
+        $request->referrerLink = $customer->getDetail('referrer_id');
         foreach ($customer->getGroups() as $group) {
             $request->groups[] = $group->getId();
         }
@@ -268,14 +270,28 @@ class UpdateProfileRequest
         }
     }
 
-    public function getReferredBy(): ?string
+    public function getReferrerLink(): ?string
     {
-        return 'http://localhost:81/app_dev.php/en/members/' . $this->referredBy . '/profile';
+        if ($this->customer->getHasReferrerLinkEnabled()) {
+            return $this->referrerLink;
+        }
+
+        return '';
     }
 
-    public function setReferredBy(int $referredBy): void
+    public function setPersonalLink(?string $personalLink): void
     {
-        $this->referredBy = $referredBy;
+        $this->personalLink = $personalLink;
+    }
+
+    public function getPersonalLink(): ?string
+    {
+        return $this->personalLink;
+    }
+
+    public function setReferrerLink(?string $referrerLink): void
+    {
+        $this->referrerLink = $referrerLink;
     }
 
     public function getPromoCodeCustom(): ?string

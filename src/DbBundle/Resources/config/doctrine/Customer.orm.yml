@@ -137,9 +137,6 @@ DbBundle\Entity\Customer:
         affiliate:
             type: integer
             column: customer_affiliate_id
-        referredBy:
-            type: integer
-            column: customer_referred_by  
     manyToOne:
         currency:
             targetEntity: DbBundle\Entity\Currency
@@ -152,11 +149,6 @@ DbBundle\Entity\Customer:
         #     joinColumn:
         #         name: customer_affiliate_id
         #         referencedColumnName: customer_id
-        referredBy:
-            targetEntity: DbBundle\Entity\Customer
-            joinColumn:
-                name: customer_referred_by
-                referencedColumnName: customer_id
     oneToOne:
         user:
             targetEntity: DbBundle\Entity\User

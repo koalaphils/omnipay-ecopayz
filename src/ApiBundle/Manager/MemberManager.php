@@ -438,6 +438,14 @@ class MemberManager extends AbstractManager
             $member->setCountry($country);
         }   
 
+        if ($member->getHasPersonalLinkEnabled()) {
+
+            $member->setPersonalLink();
+
+            $this->save($member);
+
+        }
+
         return $member;
     }
 

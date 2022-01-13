@@ -12,9 +12,7 @@ final class Version20220110114553 extends AbstractMigration
 {
     public function up(Schema $schema) : void
     {
-        // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE `customer` ADD `customer_referred_by` BIGINT UNSIGNED DEFAULT NULL;');
-        $this->addSql('ALTER TABLE `customer` ADD FOREIGN KEY (`customer_referred_by`) REFERENCES `customer` (`customer_id`)');    
+        // this up() migration is auto-generated, please modify it to your needs 
 
         $this->addSql('CREATE TABLE promo (
             promo_id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -56,9 +54,6 @@ final class Version20220110114553 extends AbstractMigration
     public function down(Schema $schema) : void
     {
         //this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE `customer` DROP FOREIGN KEY `customer_ibfk_1`');
-        $this->addSql('ALTER TABLE `customer` DROP INDEX `customer_referred_by`;');
-        $this->addSql('ALTER TABLE `customer` DROP `customer_referred_by`;');
         $this->addSql('DROP TABLE member_promo');
         $this->addSql('DROP TABLE promo');
     }

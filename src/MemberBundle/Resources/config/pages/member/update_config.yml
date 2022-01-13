@@ -188,13 +188,15 @@ widgets:
                     size: 12
                     type: text  
                     group: marketLeft            
-                referredBy:
+                referrerLink:
                     options:
                         label: Referred By
                         required: false
+                        attr:
+                            readonly: true
+                    type: text
                     size: 12
-                    type: text  
-                    group: marketLeft                                 
+                    group: marketLeft                              
                 promoCodeCustom:
                     options:
                         label: Promo Code (Custom)
@@ -245,6 +247,15 @@ widgets:
                         function: '@user.manager::getUserTypes'
                         label: result['name']
                         value: result['id']
+                personalLink:
+                    options:
+                        label: Personal Link
+                        required: false
+                        attr:
+                            readonly: true
+                    type: text
+                    size: 12
+                    group: Right
                 phoneNumber:
                     options:
                         label: Phone Number
