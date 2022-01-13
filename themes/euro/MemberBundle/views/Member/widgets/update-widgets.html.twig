@@ -442,6 +442,13 @@
             ;
         }
 
+        var referrerId = $('#{{ form.vars.id }}_referrerLink').val();
+
+        if (referrerId) {
+            var referrerLink = "{{ url('member.update_page', { "id":"__id__"}, false) }}";
+            referrerLink = referrerLink.replace('/__id__', '/'+ referrerId) + '/profile';
+            $('#{{ form.vars.id }}_referrerLink').val(referrerLink);
+        }
 
         function {{ id }}ExtraExecPage()
         {
