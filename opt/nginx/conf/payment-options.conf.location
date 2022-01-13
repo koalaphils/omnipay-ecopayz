@@ -1,5 +1,6 @@
 location /iframe/payment-options {
-  proxy_pass http://payment-options-frontend/;
+  set $target payment-options-frontend:4200;
+  proxy_pass http://$target;
   proxy_set_header    Host $host;
   proxy_set_header    X-Forwarded-For $remote_addr;
 }
