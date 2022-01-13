@@ -433,17 +433,21 @@ class MemberManager extends AbstractManager
         $member->setDetail('websocket', ['channel_id' => uniqid(generate_code(10, false, 'ld'))]);
         $countryPhoneCode = $member->getDetail('country_phone_code');
 
+        $referrerCode = $member->getDetail('referral_code');
+        preg_match('/^ami/', $referrerCode, $matchCode, PREG_OFFSET_CAPTURE);
+
+        if (!empty($matchCode)) {
+            $member->setDetail('referrer_id', substr($referrerCode, 3));
+            $member->setPromoCode('refer_a_friend', 'REFERAFRIEND');
+        }
+
         if ($countryPhoneCode !== '') {
             $country = $this->getCountryManager()->getCountryByCallingCode($countryPhoneCode);
             $member->setCountry($country);
         }   
 
         if ($member->getHasPersonalLinkEnabled()) {
-
             $member->setPersonalLink();
-
-            $this->save($member);
-
         }
 
         return $member;
