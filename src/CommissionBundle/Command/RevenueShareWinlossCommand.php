@@ -41,7 +41,6 @@ class RevenueShareWinlossCommand extends AbstractCommand
 
         $period = $input->getOption(self::OPTION_PERIOD);
         $response = $this->loginApiGateway();
-        var_dump($response);
 
         if ($response) {
             $token = $this->getToken($response);

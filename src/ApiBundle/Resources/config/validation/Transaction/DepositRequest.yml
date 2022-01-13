@@ -5,11 +5,11 @@ ApiBundle\Request\Transaction\DepositRequest:
   getters:
     paymentOptionType:
       - NotBlank: ~
-      - AppBundle\Validator\Constraints\Exists:
-          entityClass: DbBundle\Entity\PaymentOption
-          valuePath: value
-          column: code
-          ignoreNull: false
+#      - AppBundle\Validator\Constraints\Exists:
+#          entityClass: DbBundle\Entity\PaymentOption
+#          valuePath: value
+#          column: code
+#          ignoreNull: false
     products:
       - Count:
           min: 1
