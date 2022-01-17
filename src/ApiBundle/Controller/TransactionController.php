@@ -218,4 +218,10 @@ class TransactionController extends AbstractController
         }
 
     }
+
+    public function notifyStatusUpdateAction()
+    {
+        dump('ON NOTIFY');
+        return $this->json(['message' => 'meow']);
+    }
 }

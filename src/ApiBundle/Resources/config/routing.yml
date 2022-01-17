@@ -21,6 +21,10 @@ api_setting:
   resource: "./routes/setting.yml"
   prefix: setting/
 
+api_transaction:
+  resource: "./routes/transaction.yml"
+  prefix:   transaction
+
 api_country:
   resource: "./routes/country.yml"
 

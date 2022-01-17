@@ -24,49 +24,14 @@ use TransactionBundle\Manager\TransactionManager;
 
 class DepositHandler
 {
-    /**
-     * @var TokenStorageInterface
-     */
     private $tokenStorage;
-
-    /**
-     * @var CustomerPaymentOptionRepository
-     */
     private $memberPaymentOptionRepository;
-
-    /**
-     * @var PaymentOptionRepository
-     */
     private $paymentOptionRepository;
-
-    /**
-     * @var TransactionManager
-     */
     private $transactionManager;
-
-    /**
-     * @var CustomerProductRepository
-     */
     private $customerProductRepository;
-
-	/**
-	 * @var CustomerPaymentOptionService
-	 */
 	private $customerPaymentOptionService;
-
-    /**
-     * @var EntityManager
-     */
     private $entityManager;
-
-    /**
-     * @var EventDispatcherInterface
-     */
     private $eventDispatcher;
-
-    /**
-     * @var SettingManager
-     */
     private $settingManager;
 
     public function __construct(
