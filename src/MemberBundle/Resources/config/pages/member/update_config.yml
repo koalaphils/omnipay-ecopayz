@@ -1422,3 +1422,40 @@ widgets:
                     symbol: c
                     attrs:
                         class: btn btn-sm btn-inverse
+    memberPromo:
+        type: AppBundle\Widget\Page\ListWidget
+        properties:
+            class: DbBundle\Entity\MemberPromo
+            dom: t
+            methods:
+                records:
+                    name: getReferralList
+                    params:
+                        filters: []
+                        orders: []
+                        limit: 10
+                        offset: 0
+                totalFiltered:
+                    name: getReferralListFilterCount
+                    params:
+                        filters: []
+                total:
+                    name: getReferralListFilterCount
+                    staticParams:
+                        filters:
+                            referrer: '@=pageManager.getData("customer").getId()'
+                            hasTransaction: true
+                            promoCode: 'REFERAFRIEND'
+            additionalFilters:
+                referrer: '@=pageManager.getData("customer").getId()'
+                hasTransaction: true
+                promoCode: 'REFERAFRIEND'
+            columns:
+                name:
+                    label: Successful Referrals
+                    type: text
+                    from: member.full_name
+                bonus:
+                    label: Bonus Awarded
+                    type: text
+                    from: transaction.amount

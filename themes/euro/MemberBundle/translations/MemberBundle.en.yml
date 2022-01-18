@@ -20,6 +20,7 @@ page:
         documents: Documents
         affiliateSettings: Affiliate Setting
         referralTools : Referral Tools
+        promotions: Promotions
 
 fields:
     fullname: Full Name
