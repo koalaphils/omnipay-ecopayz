@@ -43,9 +43,13 @@ use AppBundle\Manager\MailerManager;
 use AppBundle\Helper\Publisher;
 use AppBundle\Manager\CountryManager;
 use DbBundle\Entity\Country;
+use DbBundle\Entity\MemberPromo;
+use DbBundle\Entity\Promo;
 use DbBundle\Entity\TwoFactorCode;
 use DbBundle\Repository\CountryRepository;
+use DbBundle\Repository\PromoRepository;
 use DbBundle\Repository\TwoFactorCodeRepository;
+use Doctrine\ORM\Query;
 use PinnacleBundle\Component\Exceptions\PinnacleException;
 use TwoFactorBundle\Provider\Message\CodeModel;
 use TwoFactorBundle\Provider\Message\Exceptions\CodeDoesNotExistsException;
@@ -432,19 +436,36 @@ class MemberManager extends AbstractManager
         $member->addGroup($defaultMemberGroup);
         $member->setDetail('websocket', ['channel_id' => uniqid(generate_code(10, false, 'ld'))]);
         $countryPhoneCode = $member->getDetail('country_phone_code');
-
-        $referrerCode = $member->getDetail('referral_code');
-        preg_match('/^ami/', $referrerCode, $matchCode, PREG_OFFSET_CAPTURE);
-
-        if (!empty($matchCode)) {
-            $member->setDetail('referrer_id', substr($referrerCode, 3));
-            $member->setPromoCode('refer_a_friend', 'REFERAFRIEND');
-        }
-
+        
         if ($countryPhoneCode !== '') {
             $country = $this->getCountryManager()->getCountryByCallingCode($countryPhoneCode);
             $member->setCountry($country);
         }   
+
+        $enablePromo = false;
+        $referrerCode = $member->getDetail('referral_code');
+        preg_match('/^ami/', $referrerCode, $matchCode, PREG_OFFSET_CAPTURE);
+
+        if (!empty($matchCode)) {
+            $referrerId = substr($referrerCode, 3);
+            $member->setDetail('referrer_id', $referrerId);
+            $member->setPromoCode('refer_a_friend', 'REFERAFRIEND');
+
+            $referrer = $this->getRepository()->findById($referrerId);
+            $promo = $this->getPromoRepository()->findByCode(['search' => Promo::PROMO_REFERAFRIEND], Query::HYDRATE_OBJECT);
+
+            $memberPromo = new MemberPromo();
+            $memberPromo->setReferrer($referrer);
+            $memberPromo->setPromo($promo);
+            $enablePromo = true;
+        }
+
+        if ($member->getDetail('promo_opt_in')) {
+            $customPromoCode = $member->getPromoCode('custom');
+            if ($member->getDetail('promo_opt_in') === 'accepted') {
+                //send custom promo email
+            }
+        }
 
         if ($member->getHasPersonalLinkEnabled()) {
             $member->setPersonalLink();
@@ -497,6 +518,11 @@ class MemberManager extends AbstractManager
     protected function getRepository(): MemberRepository
     {
         return $this->getDoctrine()->getRepository(Member::class);
+    }
+
+    private function getPromoRepository(): PromoRepository
+    {
+        return $this->getDoctrine()->getRepository(Promo::class);
     }
 
     private function getProductRepository(): ProductRepository
