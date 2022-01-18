@@ -226,6 +226,6 @@ class TransactionController extends AbstractController
         $this->get('event_dispatcher')
             ->dispatch(TransactionDeclinedEvent::NAME, $event);
 
-        return $this->json(['message' => 'meow']);
+        return $this->json([]);
     }
 }
