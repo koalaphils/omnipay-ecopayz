@@ -6,6 +6,8 @@ use AppBundle\Helper\Publisher;
 use AppBundle\Service\TransactionService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use ApiBundle\Event\TransactionCreatedEvent;
+use TransactionBundle\Event\TransactionDeclinedEvent;
+use WebSocketBundle\Topics;
 
 class TransactionSubscriber implements EventSubscriberInterface
 {
@@ -22,7 +24,22 @@ class TransactionSubscriber implements EventSubscriberInterface
     {
         return [
             'transaction.created' => 'onTransactionCreated',
+            TransactionDeclinedEvent::NAME => 'onTransactionDeclined'
         ];
+    }
+
+    public function onTransactionDeclined(TransactionDeclinedEvent $event): void
+    {
+        $transaction = $event->getTransaction();
+
+        $this->publisher->publishUsingWamp(Topics::TOPIC_TRANSACTION_DECLINED . '.' . $transaction->getCustomer()->getWebsocketChannel(), [
+            'title' => 'Transaction Declined',
+            'message' => 'Transaction ' . $transaction->getNumber() . ' has been declined.',
+            'id' => $transaction->getId(),
+            'number' => $transaction->getNumber(),
+            'type' => 'deposit',
+            'status' => 'Declined',
+        ]);
     }
     
     public function onTransactionCreated(TransactionCreatedEvent $event)

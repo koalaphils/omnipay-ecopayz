@@ -23,6 +23,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use TransactionBundle\Event\TransactionDeclinedEvent;
 
 class TransactionController extends AbstractController
 {
@@ -219,9 +220,12 @@ class TransactionController extends AbstractController
 
     }
 
-    public function notifyStatusUpdateAction()
+    public function notifyStatusUpdateAction(Transaction $transaction)
     {
-        dump('ON NOTIFY');
+        $event = new TransactionDeclinedEvent($transaction);
+        $this->get('event_dispatcher')
+            ->dispatch(TransactionDeclinedEvent::NAME, $event);
+
         return $this->json(['message' => 'meow']);
     }
 }
