@@ -1445,7 +1445,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
 
     public function setPersonalLink(): self
     {
-        $this->setDetail('personal_link_id', 'ami' . $this->getIdentifier());
+        $this->setDetail('personal_link_id', 'ami' . $this->getId());
 
         return $this;
     }

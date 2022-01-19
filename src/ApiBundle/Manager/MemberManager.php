@@ -467,9 +467,10 @@ class MemberManager extends AbstractManager
             }
         }
 
-        if ($member->getHasPersonalLinkEnabled()) {
-            $member->setPersonalLink();
-        }
+        //if ($member->getHasPersonalLinkEnabled()) {
+            //$member->setPersonalLink();
+            $member->setDetail('personal_link_id', 'ami' . $member->getId());
+        //}
 
         return $member;
     }

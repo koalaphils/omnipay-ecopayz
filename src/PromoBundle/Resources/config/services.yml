@@ -1,0 +1,4 @@
+services:
+    promo.manager:
+        class: PromoBundle\Manager\PromoManager
+        parent: app.base_manager
