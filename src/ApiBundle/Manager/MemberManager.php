@@ -361,12 +361,50 @@ class MemberManager extends AbstractManager
     {
         $member = $this->createMember($member);
         $this->getEntityManager()->beginTransaction();
-        try {
+        try {   
             $this->changeCodeAsUsed($member->getDetail('verification_code'));
             $this->getEntityManager()->persist($member);
             $this->getEntityManager()->flush($member);
             $this->getEntityManager()->commit();
             $this->sendEmail($member);
+
+            dump($member);
+            
+            //Promo
+            $enablePromo = false;
+            $referrerCode = $member->getDetail('referral_code');
+            preg_match('/^ami/', $referrerCode, $matchCode, PREG_OFFSET_CAPTURE);
+
+            if (!empty($matchCode)) {
+                $referrerId = substr($referrerCode, 3);
+                $member->setDetail('referrer_id', $referrerId);
+                $member->setPromoCode('refer_a_friend', Promo::PROMO_REFERAFRIEND);
+
+                $referrer = $this->getRepository()->findById($referrerId);
+                $promo = $this->getPromoRepository()->findByCode(['search' => Promo::PROMO_REFERAFRIEND], Query::HYDRATE_OBJECT);
+
+                $memberPromo = new MemberPromo();
+                $memberPromo->setReferrer($referrer);
+                $memberPromo->setPromo($promo);
+                $enablePromo = true;
+            }
+
+            if ($member->getDetail('promo_opt_in')) {
+                $customPromoCode = $member->getPromoCode('custom');
+                if ($member->getDetail('promo_opt_in') === 'accepted') {
+                    //send custom promo email
+                }
+            }
+
+            if ($enablePromo) {
+                $memberPromo->setMember($member);
+                $this->save($memberPromo);
+            }
+
+            if ($member->getHasPersonalLinkEnabled()) {
+                $member->setPersonalLink();
+                $this->save($member);
+            }
 
             $this->getPublisher()->publishUsingWamp('member.registered', [
                 'message' => $member->getUser()->getUsername() . ' was registered',
@@ -442,36 +480,7 @@ class MemberManager extends AbstractManager
             $member->setCountry($country);
         }   
 
-        $enablePromo = false;
-        $referrerCode = $member->getDetail('referral_code');
-        preg_match('/^ami/', $referrerCode, $matchCode, PREG_OFFSET_CAPTURE);
-
-        if (!empty($matchCode)) {
-            $referrerId = substr($referrerCode, 3);
-            $member->setDetail('referrer_id', $referrerId);
-            $member->setPromoCode('refer_a_friend', 'REFERAFRIEND');
-
-            $referrer = $this->getRepository()->findById($referrerId);
-            $promo = $this->getPromoRepository()->findByCode(['search' => Promo::PROMO_REFERAFRIEND], Query::HYDRATE_OBJECT);
-
-            $memberPromo = new MemberPromo();
-            $memberPromo->setReferrer($referrer);
-            $memberPromo->setPromo($promo);
-            $enablePromo = true;
-        }
-
-        if ($member->getDetail('promo_opt_in')) {
-            $customPromoCode = $member->getPromoCode('custom');
-            if ($member->getDetail('promo_opt_in') === 'accepted') {
-                //send custom promo email
-            }
-        }
-
-        //if ($member->getHasPersonalLinkEnabled()) {
-            //$member->setPersonalLink();
-            $member->setDetail('personal_link_id', 'ami' . $member->getId());
-        //}
-
+        
         return $member;
     }
 

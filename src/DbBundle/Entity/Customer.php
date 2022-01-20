@@ -1426,9 +1426,12 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this->getDetail('referral_code', null);
     }
 
-    public function setPromoCode(string $key, string $value): void 
+    public function setPromoCode(string $key, ?string $value): void 
     {
-        $this->setDetail('promo_code', [$key => $value]);
+        $promoCodes = $this->getDetail('promo_code');
+        $promoCodes[$key] = $value;
+
+        $this->setDetail('promo_code', $promoCodes);
     }
 
     public function getPromoCode(string $key): ?string
@@ -1459,7 +1462,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
 
     public function getHasPersonalLinkEnabled(): bool
     {
-        if ($this->getCountry()->getCode() == 'FR' && $this->getCurrency()->getCode() == 'EUR' && $this->getIsCustomer()) {
+        if ($this->getCountry() == 'FR' && $this->getCurrency()->getCode() == 'EUR' && $this->getIsCustomer()) {
             return true;
         }
 

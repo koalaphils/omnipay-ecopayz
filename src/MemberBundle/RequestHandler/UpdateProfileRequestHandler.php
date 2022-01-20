@@ -24,6 +24,7 @@ use Doctrine\ORM\EntityManager;
 use MemberBundle\Event\ReferralEvent;
 use MemberBundle\Events;
 use MemberBundle\Request\UpdateProfileRequest;
+use PromoBundle\Manager\PromoManager;
 
 class UpdateProfileRequestHandler
 {
@@ -32,13 +33,15 @@ class UpdateProfileRequestHandler
     private $auditManager;
     private $memberManager;
     private $affiliateService;
+    private $promoManager;
 
     public function __construct(
         EntityManager $entityManager,
         RequestStack $requestStack,
         AuditManager $auditManager,
         MemberManager $memberManager,
-        AffiliateService $affiliateService
+        AffiliateService $affiliateService,
+        PromoManager $promoManager
     )
     {
         $this->entityManager = $entityManager;
@@ -46,12 +49,12 @@ class UpdateProfileRequestHandler
         $this->auditManager = $auditManager;
         $this->memberManager = $memberManager;
         $this->affiliateService = $affiliateService;
+        $this->promoManager = $promoManager;
     }
 
     public function handle(UpdateProfileRequest $request)
     {
         $customer = $request->getCustomer();
-        $originalPromoCode = $customer->getUser()->getPreference('promoCode');
 
         $customer->getUser()->setUsername($request->getUsername());
         $customer->getUser()->setEmail($request->getEmail());
@@ -83,6 +86,7 @@ class UpdateProfileRequestHandler
         $this->entityManager->flush($customer->getUser());
         $this->entityManager->persist($customer);
         $this->entityManager->flush($customer);
+        $this->promoManager->createPersonalLinkId($customer);
 
         return $customer;
     }

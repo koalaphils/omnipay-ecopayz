@@ -634,6 +634,24 @@ parameters:
                 label: Percentage amount in euros
                 from: 'percentageAdjustment.0'
                 to: 'percentageAdjustment.1'
+
+        memberPromo:
+            promo:
+                label: Promo
+                from: 'promo.0'
+                to: 'promo.1'
+            referrer:
+                label: Referrer
+                from: 'referrer.0'
+                to: 'referrer.1'
+            member:
+                label: Member
+                from: 'member.0'
+                to: 'member.1'
+            transaction:
+                label: Transaction
+                from: 'transaction.0'
+                to: 'transaction.1'        
                 
 
 

@@ -4,6 +4,7 @@ namespace DbBundle\Listener;
 
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\CustomerProduct;
+use DbBundle\Entity\MemberPromo;
 use DbBundle\Entity\Transaction;
 use DbBundle\Entity\User;
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
@@ -54,7 +55,7 @@ class ActionListener implements \AppBundle\Interfaces\UserAwareInterface
         if ($entity instanceof \DbBundle\Entity\Interfaces\ActionInterface) {
             $user = $this->_getUser();
             
-            if ($user === null && ($entity instanceof User || $entity instanceof CustomerProduct)) {
+            if ($user === null && ($entity instanceof User || $entity instanceof CustomerProduct || $entity instanceof MemberPromo)) {
                 //For Member Creation
                 $system = $this->getSystemUser();
                 $entity->setCreatedBy($system->getId());

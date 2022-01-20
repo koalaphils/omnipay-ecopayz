@@ -36,7 +36,6 @@ class PromoManager extends AbstractManager
             $promoDetails = array_values(array_filter($promo->getDetail('conditions'), function ($var) use ($countryCode, $currencyCode) {
                 return in_array($countryCode, $var['countries']) && in_array($currencyCode, $var['currencies']);
             }));
-
             if ($promoDetails && !$member->getIsAffiliate()) {
                 return $promoDetails;
             }
@@ -44,7 +43,6 @@ class PromoManager extends AbstractManager
 
         return [];
     }
-
 
     public function getPersonalLink(Member $member): string
     {

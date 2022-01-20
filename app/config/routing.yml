@@ -199,6 +199,14 @@ session:
     resource: "@SessionBundle/Resources/config/routing.yml"
     prefix: /{_locale}/session
 
+promo:
+    resource: "@PromoBundle/Resources/config/routing.yml"
+    prefix: /{_locale}/promo
+    requirements:
+        _locale: "%app_locales%"
+    defaults:
+        _locale: "%locale%"
+
 root:
     path: /{path}
     defaults:
