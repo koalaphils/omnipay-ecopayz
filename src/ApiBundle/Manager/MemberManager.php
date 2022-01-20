@@ -368,8 +368,6 @@ class MemberManager extends AbstractManager
             $this->getEntityManager()->commit();
             $this->sendEmail($member);
 
-            dump($member);
-            
             //Promo
             $enablePromo = false;
             $referrerCode = $member->getDetail('referral_code');
