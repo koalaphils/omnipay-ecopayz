@@ -46,7 +46,7 @@ class TransactionRepository extends BaseRepository
         return $qb->getQuery()->getSingleResult($hydrationMode);
     }
 
-    public function findByReferenceNumber($referenceNumber, $hydrationMode = Query::HYDRATE_OBJECT)
+    public function findByReferenceNumber($referenceNumber, $hydrationMode = Query::HYDRATE_OBJECT, $oneOrNull = false)
     {
         $qb = $this->createQueryBuilder('t');
         $qb->join('t.customer', 'c');
@@ -54,6 +54,11 @@ class TransactionRepository extends BaseRepository
         $qb->select('t,c');
         $qb->where('t.number = :referenceNumber')
             ->setParameter('referenceNumber', $referenceNumber);
+
+        if ($oneOrNull) {
+            return $qb->getQuery()->getOneOrNullResult($hydrationMode);
+        }
+    
 
         return $qb->getQuery()->getSingleResult($hydrationMode);
     }

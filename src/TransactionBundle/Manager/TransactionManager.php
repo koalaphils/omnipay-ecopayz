@@ -855,6 +855,10 @@ class TransactionManager extends TransactionOldManager
             'messages' => [
                 'customer' => false,
             ],
+            'referrals' => [
+                'promo' => false,
+                'transaction' => false,
+            ]
         ];
     }
 
@@ -889,6 +893,10 @@ class TransactionManager extends TransactionOldManager
                 'support' => $transaction->isEnd()
                     || $transaction->isDeclined(),
             ],
+            'referrals' => [
+                'promo' => $isSubtransactionReadOnly,
+                'transaction' => $isSubtransactionReadOnly,
+            ]
         ];
 
         if (!$transaction->isCommission() && !$transaction->isRevenueShare()) {
