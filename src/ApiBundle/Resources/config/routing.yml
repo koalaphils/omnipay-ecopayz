@@ -26,3 +26,6 @@ api_country:
 
 api_paymentoption:
   resource: "./routes/paymentoption.yml"
+
+api_promo:
+  resource: "./routes/promo.yml"

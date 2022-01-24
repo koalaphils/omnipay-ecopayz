@@ -61,6 +61,8 @@ category:
     creditAdjustment: Credit
     revenueShare: Revenue Share
     cRevenueShare: Member Revenue Share
+    promo: Promo
+    memberPromo: Member Promo
 
 operation:
     create: Created

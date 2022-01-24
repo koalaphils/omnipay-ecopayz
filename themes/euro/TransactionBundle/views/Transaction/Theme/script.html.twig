@@ -267,6 +267,10 @@
                     $('#{{ form.parent.adjustment.vars.id }}').removeAttr('disabled');
                     {% endif %}
 
+                    {% if not form.parent.promo.vars.view|default(false) and form.parent.promo.vars.id is defined %}
+                    $('#{{ form.parent.promo.vars.id }}').removeAttr('disabled');
+                    {% endif %}
+
                     var transactionisNew = {{ form.parent.vars.value.customer is null ? 'true' : 'false' }};
                     {%  if form.parent.paymentOption is defined %}
                         {% if not form.parent.paymentOption.vars.view|default(false) %}
@@ -762,6 +766,7 @@
                         {% if setting('transaction.paymentGateway') == 'customer-currency' %}
                         for (var i in data.items) {
                             if (!itemExistsInList(items, data.items[i])) {
+                                data[i].text = data[i].name;
                                 items.push(data.items[i]);
                             }
                         }
@@ -825,6 +830,14 @@
                         var field = $(this).data('field');
                         $(this).html(data.array_get(field));
                     });
+                    if (data.name === 'BONUS') {
+                        $('#promo-container').removeClass('hide');
+                        {% if not form.parent.promo.vars.view|default(false) and form.parent.promo.vars.id is defined %}
+                            $('#{{ form.parent.promo.vars.id }}').trigger('select2:select');
+                        {% endif %}
+                    } else {
+                        $('#promo-container').addClass('hide');
+                    }
                 }
             });
         });
@@ -864,6 +877,80 @@
     </script>
     {% endif %}
 {% endblock %}
+
+{% block _Transaction_promo_javascript %}
+    {% set view = view|default(false) %}
+    <script type="text/javascript">
+        $(function() {
+            $('#{{ id }}').select2({
+                'data': {{ value|serialize('json')|raw }},
+                'ajax': {
+                    'delay': 800,
+                    'data': function(params) {
+                        var page = params.page || 1;
+                        var length = $(this).data('length');
+                        var start = (page - 1) * length;
+                        return {
+                            'idColumn': $('#{{ id }}').data('id-column'),
+                            'select2': 1,
+                            'search': params.term,
+                            'start': start,
+                            '_format': 'json'
+                        };
+                    },
+                    'processResults': function(data, page) {
+                        return {
+                            'results': data.items
+                        };
+                    }
+                },
+                'templateResult': function(data) {
+                    var text = data.code ? data.code : data.text;
+                    return '<i class="ti-gift"></i> | ' + text;
+                },
+                'templateSelection': function(data, container) {
+                    return '<i class="ti-gift"></i> | ' + data.code;
+                },
+                'placeholder': {
+                    'id': null,
+                    'code': "{{ placeholder|trans({}, translation_domain) }}"
+                },
+                'escapeMarkup': function(markup) {
+                    return markup;
+                }
+            });
+
+            {% if view %}
+                $('#{{ id }}').select2("enable",false);
+                $($('#{{ id }}').data('select2').$container).find('.select2-selection').css({'background-color': "rgba(0,0,0,0)"});
+                $('#{{ id }}').trigger('select2:select');
+
+                var data = $('#{{ id }}').select2('data')[0];
+                if(data) {
+                    displayReferralsTransaction(data);
+                }
+            {% endif %}
+
+            $('#{{ id }}').on('select2:select', function(event) {
+                var data = $(this).select2('data')[0];
+                if(data) {
+                    objectExtend(data);
+                    displayReferralsTransaction(data);
+                }
+            });
+
+            function displayReferralsTransaction(data) {
+                {% if not form.parent.referralsTransaction.vars.view|default(false) and form.parent.referralsTransaction.vars.id is defined %}
+                    if (data.code === 'REFERAFRIEND') {
+                        $('#referralsTransactionNumber').removeClass('hide');
+                    } else {
+                        $('#referralsTransactionNumber').addClass('hide');
+                    }
+                {% endif %}
+            }
+        });
+    </script>
+{% endblock _Transaction_promo_javascript %}
 
 {% block _Transaction_number_javascript %}
     <script type="text/javascript">

@@ -4,7 +4,6 @@ namespace ApiBundle\Controller;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use PromoBundle\Manager\PromoManager;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Doctrine\ORM\Query;
 
@@ -45,7 +44,6 @@ class PromoController extends AbstractController
 
         return new JsonResponse($memberPromo);
     }
-
 
     private function getPromoRepository(): \DbBundle\Repository\PromoRepository
     {

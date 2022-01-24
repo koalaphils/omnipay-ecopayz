@@ -1,0 +1,10 @@
+api_promo.details:
+    path: promo/{code}
+    defaults:
+        _controller: ApiBundle:Promo:search
+    methods: [GET]
+
+api_promo.members:
+    path: promo/{code}/members
+    defaults:
+        _controller: ApiBundle:Promo:members

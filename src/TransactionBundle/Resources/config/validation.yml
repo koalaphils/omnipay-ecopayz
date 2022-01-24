@@ -1,5 +1,7 @@
 DbBundle\Entity\Transaction:
     constraints:
+        - TransactionBundle\Validator\Constraints\ReferralConstraint:
+            groups: ['default']
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
             fields: number
             groups: ['default']
