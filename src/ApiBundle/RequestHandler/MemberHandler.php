@@ -197,4 +197,21 @@ class MemberHandler
 
         return $response;
     }
+
+    public function changeMemberDefaultProduct(Customer $member, string $product): array
+    {
+        try {
+            $member = $member->setDetail('default_product', $product);
+
+            $this->entityManager->persist($member);
+            $this->entityManager->flush($member);
+
+            $response = ['error' => false, 'data' => $product, 'status' => 200];
+
+        } catch (OAuth2AuthenticateException $exception) {
+            $response = ['error' => true, 'data' => $exception->getMessage(), 'status' => $exception->getCode()];
+        }
+
+        return $response;
+    }
 }
