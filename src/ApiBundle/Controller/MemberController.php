@@ -438,6 +438,20 @@ class MemberController extends AbstractController
         return new JsonResponse($response);
     }
 
+    /**
+     * @ApiDoc(
+     *     section="Member",
+     *     description="Gets personal link of member",
+     *     views={"piwi"}
+     * )
+     */
+    public function getPersonalLinkAction(): JsonResponse
+    {
+        $data = $this->getMemberManager()->getPersonalLink();
+
+        return new JsonResponse($data, Response::HTTP_OK);
+    }
+
     private function getMemberManager(): MemberManager
     {
         return $this->container->get('api.member.manager');
