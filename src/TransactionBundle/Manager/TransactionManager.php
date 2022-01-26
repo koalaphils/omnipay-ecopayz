@@ -823,8 +823,6 @@ class TransactionManager extends TransactionOldManager
             return [];
         }
 
-
-
         $isDateMapped = $this->isDateFieldEditable($transaction);
         $isMapped = true;
 

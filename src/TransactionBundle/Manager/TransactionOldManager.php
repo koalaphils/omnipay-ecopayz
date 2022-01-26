@@ -278,8 +278,6 @@ class TransactionOldManager extends AbstractManager
             // zimi#006b4669            
             $this->getRepository()->save($cus);
         }
-        
-        $this->updateMemberPromo($transaction);
 
         if ($transaction->isDeposit() || $transaction->isWithdrawal() || $transaction->isBonus()) {
             if ($transaction->getGateway()) {
@@ -345,8 +343,6 @@ class TransactionOldManager extends AbstractManager
 
                 // $this->getRepository()->save($customerProduct);
             }
-
-            $this->updateMemberPromo($transaction, 1);
 
             // Payment Gateway
             $gateway = $transaction->getGateway();
@@ -483,29 +479,6 @@ class TransactionOldManager extends AbstractManager
         return $value;
     }
 
-
-    public function updateMemberPromo(Transaction $transaction, int $isVoided = 0): void
-    {
-        $referralsTransaction = $transaction->getReferralsTransaction();
-        if ($transaction->isBonus() && $referralsTransaction) {
-            $refTransaction = $this->getRepository()->findByReferenceNumber($referralsTransaction, null, true);
-            if ($refTransaction) {
-                $filters = [
-                    'referrer' => $transaction->getCustomer()->getIdentifier(),
-                    'member' => $refTransaction->getCustomer()->getIdentifier(),
-                    'promo' => $transaction->getPromo()
-                ];
-                $memberPromo = $this->getMemberPromoRepository()->findReferralMemberPromo($filters);
-                $memberPromo->setTransaction($transaction);
-                if ($isVoided) {
-                    $memberPromo->setTransaction(null);
-                }
-
-                $this->save($memberPromo);
-            }
-        }
-    }
-
     /**
      * Get event dispatcher.
      *
@@ -539,13 +512,5 @@ class TransactionOldManager extends AbstractManager
     protected function getGatewayLogManager()
     {
         return $this->get('gateway_log.manager');
-    }
-
-    /**
-     * @return \DbBundle\Repository\MemberPromoRepository
-     */
-    public function getMemberPromoRepository(): \DbBundle\Repository\MemberPromoRepository
-    {
-        return $this->getEntityManager()->getRepository(MemberPromo::class);
     }
 }

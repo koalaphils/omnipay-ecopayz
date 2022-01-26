@@ -1,6 +1,7 @@
 <?php
 
 namespace DbBundle\Repository;
+
 use DbBundle\Entity\MemberPromo;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Query;

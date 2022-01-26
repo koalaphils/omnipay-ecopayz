@@ -30,12 +30,14 @@ class EwlIntegration implements ProductIntegrationInterface
 
     public function getBalance(string $token, string $id): string
     {
-        $url = sprintf('/wallet/balance/%s', $id);
-        $response = $this->http->get($url, $token);
-        $body = json_decode(((string)$response->getBody()));
-        $balance = !is_null($body->availableToBet) ? $body->availableToBet : 'Unable to fetch balance';
+        // $url = sprintf('/wallet/balance/%s', $id);
+        // $response = $this->http->get($url, $token);
+        // $body = json_decode(((string)$response->getBody()));
+        // $balance = !is_null($body->availableToBet) ? $body->availableToBet : 'Unable to fetch balance';
 
-        return $balance;
+        // return $balance;
+
+        return '0';
     }
 
     public function credit(string $token, array $params): string
