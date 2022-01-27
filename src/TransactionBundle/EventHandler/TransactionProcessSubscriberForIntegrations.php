@@ -41,32 +41,23 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
     private $jwtGenerator;
     private $gatewayMemberTransaction;
     private $customerProductRepository;
-    private $transactionRepository;
     private $cpoService;
     private $logger;
-    private $entityManager;
-    //private $memberPromoRepository;
 
     public function __construct(
         ProductIntegrationFactory $factory,
         JWTGeneratorService $jwtGenerator,
         GatewayMemberTransaction $gatewayMemberTransaction,
         CustomerProductRepository $customerProductRepository,
-        TransactionRepository $transactionRepository,
-        //MemberPromoRepository $memberPromoRepository,
         CustomerPaymentOptionService $cpoService,
-        LoggerInterface $logger,
-        EntityManager $entityManager)
+        LoggerInterface $logger)
     {
         $this->factory = $factory;
         $this->jwtGenerator = $jwtGenerator;
         $this->gatewayMemberTransaction = $gatewayMemberTransaction;
         $this->customerProductRepository = $customerProductRepository;
-        $this->transactionRepository = $transactionRepository;
-       // $this->memberPromoRepository = $memberPromoRepository;
         $this->cpoService = $cpoService;
         $this->logger = $logger;
-        $this->entityManager = $entityManager;
     }
 
     public static function getSubscribedEvents()
@@ -206,7 +197,6 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
             }
 
             if ($transaction->isDeposit() || $transaction->isBonus() || $transaction->isWithdrawal()) {
-                $this->updateMemberPromo($transaction);
                 $this->gatewayMemberTransaction->processMemberTransaction($transaction);
             }
 
@@ -292,8 +282,6 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
                 }
             }
 
-            $this->updateMemberPromo($transaction, 1);
-
             $this->gatewayMemberTransaction->voidMemberTransaction($transaction);
             return;
         }
@@ -338,34 +326,5 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
         ]);
 
         return $newBalance;
-    }
-
-    public function updateMemberPromo(Transaction $transaction, int $isVoided = 0): void
-    {
-        try {
-            $referralsTransaction = $transaction->getReferralsTransaction();
-            if ($transaction->isBonus() && $referralsTransaction) {
-                $refTransaction = $this->transactionRepository->findByReferenceNumber($referralsTransaction, null, true);
-                if ($refTransaction) {
-                    $filters = [
-                        'referrer' => $transaction->getCustomer()->getIdentifier(),
-                        'member' => $refTransaction->getCustomer()->getIdentifier(),
-                        'promo' => $transaction->getPromo()
-                    ];
-                    //$memberPromo = $this->memberPromoRepository->findReferralMemberPromo($filters);
-                    $memberPromo = $this->entityManager->getRepository(MemberPromo::class)->findReferralMemberPromo($filters);              
-                    $memberPromo->setTransaction($transaction);
-                    if ($isVoided) {
-                        $memberPromo->setTransaction(null);
-                    }
-
-                    //$this->entityManager->persist($memberPromo);
-                    //$this->entityManager->flush();
-                    //$this->entityManager->refresh($memberPromo);
-                }
-            }
-        } catch (Exception $ex) {
-            throw $ex;
-        }
     }
 }

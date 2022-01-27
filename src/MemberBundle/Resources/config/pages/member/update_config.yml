@@ -1454,7 +1454,7 @@ widgets:
                 name:
                     label: Successful Referrals
                     type: text
-                    from: member.full_name
+                    from: member.user.username
                 bonus:
                     label: Bonus Awarded
                     type: text

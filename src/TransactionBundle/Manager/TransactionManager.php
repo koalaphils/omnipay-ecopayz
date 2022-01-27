@@ -30,6 +30,7 @@ use TransactionBundle\Event\TransactionProcessEvent;
 use TransactionBundle\Exceptions\TransactionNotExistsException;
 use TransactionBundle\Form\TransactionType;
 use AppBundle\Helper\WampHelper;
+use DbBundle\Entity\MemberPromo;
 
 class TransactionManager extends TransactionOldManager
 {
@@ -370,6 +371,13 @@ class TransactionManager extends TransactionOldManager
 
             $this->processTransaction($transaction, $action);
 
+            if ($transaction->isBonus()) {
+                $this->updateMemberPromo($transaction);
+                if ($action === 'void') {
+                    $this->updateMemberPromo($transaction, 1);
+                }
+            }
+
             return $transaction;
         }
 
@@ -433,6 +441,30 @@ class TransactionManager extends TransactionOldManager
 
         $url = "notification_" . $transaction->getCustomerId();
         WampHelper::publish($url, ['msg' => $message]);
+    }
+
+    public function updateMemberPromo(Transaction $transaction, int $isVoided = 0): void
+    {
+        $referralsTransaction = $transaction->getReferralsTransaction();
+        if ($transaction->isBonus() && $referralsTransaction) {
+            $refTransaction = $this->getRepository()->findByReferenceNumber($referralsTransaction, null, true);
+            if ($refTransaction) {
+                $filters = [
+                    'referrer' => $transaction->getCustomer()->getIdentifier(),
+                    'member' => $refTransaction->getCustomer()->getIdentifier(),
+                    'promo' => $transaction->getPromo()
+                ];
+
+                $memberPromo = $this->getMemberPromoRepository()->findReferralMemberPromo($filters);
+                $memberPromo->setTransaction($transaction);
+                if ($isVoided) {
+                    $memberPromo->setTransaction(null);
+                }
+                
+                $this->getEntityManager()->persist($memberPromo);
+                $this->getEntityManager()->flush($memberPromo);
+            }
+        }
     }
 
     public function getCountPerStatus(): array
@@ -966,6 +998,11 @@ class TransactionManager extends TransactionOldManager
     private function getUserRepository(): \DbBundle\Repository\UserRepository
     {
         return $this->getDoctrine()->getRepository(User::class);
+    }
+
+    public function getMemberPromoRepository(): \DbBundle\Repository\MemberPromoRepository
+    {
+        return $this->getDoctrine()->getRepository(MemberPromo::class);
     }
 
     private function isAmountFieldEditable(Transaction $transaction) : bool
