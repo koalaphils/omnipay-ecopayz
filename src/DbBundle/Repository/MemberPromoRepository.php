@@ -22,11 +22,7 @@ class MemberPromoRepository extends BaseRepository
         $queryBuilder->setMaxResults($limit);
         $queryBuilder->setFirstResult($offset);
 
-        $result = $queryBuilder->getQuery()->getResult($hydrationMode);
-    
-        dump($result);
-
-        return $result;
+        return $queryBuilder->getQuery()->getResult($hydrationMode);
     }
 
     public function getReferralListFilterCount(array $filters = []): int
