@@ -24,6 +24,7 @@ breadcrumb:
     memberSummary: Member Summary
     paymentGateway: Payment Gateway Summary
     productSummary: Product Summary
+    pnlReport: Profit and Loss Report
 
 page:
     title:

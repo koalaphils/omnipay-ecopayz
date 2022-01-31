@@ -97,3 +97,10 @@ report.gateway_transactions_export:
     path: /reports/gateways/{id}/transactions/export
     defaults:
         _controller: ReportBundle:GatewayReport:exportGatewayTransactions
+
+# PNL Reports
+report.pnl:
+    path: /reports/pnl
+    defaults:
+        _controller: ReportBundle:PnlReport:index
+    methods: [ 'GET' ]
