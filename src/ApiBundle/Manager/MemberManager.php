@@ -367,7 +367,6 @@ class MemberManager extends AbstractManager
             $this->getEntityManager()->persist($member);
             $this->getEntityManager()->flush($member);
             $this->getEntityManager()->commit();
-            $this->sendEmail($member);
 
             //Promo
             $enablePromo = false;
@@ -404,6 +403,8 @@ class MemberManager extends AbstractManager
                 $member->setPersonalLink();
                 $this->save($member);
             }
+
+            $this->sendEmail($member, $enablePromo);
 
             $this->getPublisher()->publishUsingWamp('member.registered', [
                 'message' => $member->getUser()->getUsername() . ' was registered',
@@ -495,7 +496,7 @@ class MemberManager extends AbstractManager
         }
     }
 
-    private function sendEmail(Member $member): void
+    private function sendEmail(Member $member, bool $isReferAfriend = false): void
     {
         $email = $member->getUser()->getEmail();
         $username = $member->getUSer()->getUsername();
@@ -508,10 +509,16 @@ class MemberManager extends AbstractManager
             'from' => $email === '' ?   $member->getPhoneNumber() : $email,
         ];
 
+        if ($isReferAfriend) {
+            $this->getMailerManager()->send('Welcome to PIWI247: Refer a Friend Program', $email, 'welcome-email-refer-a-friend.html.twig', $payload);
+        } else {
+            $this->getMailerManager()->send('Welcome to PIWI247', $email, 'welcome-email-default.html.twig', $payload);
+        }
+
         $subject = $this->getSettingManager()->getSetting('registration.mail.subject');
         $to = $this->getSettingManager()->getSetting('registration.mail.to');
 
-        $this->getMailerManager()->send('Welcome to PIWI247', $email, 'welcome-email-default.html.twig', $payload);
+        
         $this->getMailerManager()->send($subject, $to, 'registered.html.twig', $payload);
     }
 
