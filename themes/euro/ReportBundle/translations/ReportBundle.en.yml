@@ -49,5 +49,7 @@ roles:
             view: View Member Report
         gateway:
             view: View Payment Gateway Report
+        pnl:
+            view: View Profit and Loss Report
 notes:
     reportNotes: Please select date and currency to display result
