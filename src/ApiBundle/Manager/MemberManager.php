@@ -51,6 +51,7 @@ use DbBundle\Repository\PromoRepository;
 use DbBundle\Repository\TwoFactorCodeRepository;
 use Doctrine\ORM\Query;
 use PinnacleBundle\Component\Exceptions\PinnacleException;
+use PromoBundle\Manager\PromoManager;
 use TwoFactorBundle\Provider\Message\CodeModel;
 use TwoFactorBundle\Provider\Message\Exceptions\CodeDoesNotExistsException;
 use TwoFactorBundle\Provider\Message\StorageInterface;
@@ -497,7 +498,9 @@ class MemberManager extends AbstractManager
     private function sendEmail(Member $member): void
     {
         $email = $member->getUser()->getEmail();
+        $username = $member->getUSer()->getUsername();
         $payload = [
+            'username' => $username,
             'provider' => $email === '' ?  'phone' : 'email',
             'phone' => $email === '' ?  $member->getPhoneNumber() : '',
             'email' => $email !== '' ? $email : '',
@@ -508,6 +511,7 @@ class MemberManager extends AbstractManager
         $subject = $this->getSettingManager()->getSetting('registration.mail.subject');
         $to = $this->getSettingManager()->getSetting('registration.mail.to');
 
+        $this->getMailerManager()->send('Welcome to PIWI247', $email, 'welcome-email-default.html.twig', $payload);
         $this->getMailerManager()->send($subject, $to, 'registered.html.twig', $payload);
     }
 
@@ -516,6 +520,13 @@ class MemberManager extends AbstractManager
         $productCode = $this->getSettingManager()->getSetting('pinnacle.product');
 
         return $this->getProductRepository()->getProductByCode($productCode);
+    }
+
+    public function getPersonalLink(Member $member): array
+    {
+        $link = $this->getPromoManager()->getPersonalLink($member);
+
+        return ['link' => $link];
     }
 
     protected function getJWTGeneratorService(): JWTGeneratorService
@@ -612,6 +623,12 @@ class MemberManager extends AbstractManager
     {
         return $this->get('member.manager');
     }
+
+    private function getPromoManager(): PromoManager
+    {
+        return $this->get('promo.manager');
+    }
+
 
     private function getMemberRequestManager(): MemberRequestManager
     {

@@ -103,6 +103,6 @@ api_customers.login_to_evolution:
   defaults: { _controller: ApiBundle:Member:loginToEvolution }
   methods: [POST]
 
-api_member.get_personal_link:
+api_customers.get_personal_link:
   path: me/personal-link
   defaults: { _controller: ApiBundle:Member:getPersonalLink }

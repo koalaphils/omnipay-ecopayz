@@ -447,9 +447,11 @@ class MemberController extends AbstractController
      */
     public function getPersonalLinkAction(): JsonResponse
     {
-        $data = $this->getMemberManager()->getPersonalLink();
+        $user = $this->getUser();
+        
+        $response = $this->getMemberManager()->getPersonalLink($user->getMember());
 
-        return new JsonResponse($data, Response::HTTP_OK);
+        return new JsonResponse($response, Response::HTTP_OK);
     }
 
     private function getMemberManager(): MemberManager
