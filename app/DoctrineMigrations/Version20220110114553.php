@@ -30,7 +30,7 @@ final class Version20220110114553 extends AbstractMigration
           ) ENGINE=\'InnoDB\' COLLATE \'utf8_unicode_ci\'');
   
           $this->addSql("INSERT INTO promo (promo_code, promo_name, promo_status, promo_details, promo_created_by, promo_created_at, promo_updated_by, promo_updated_at) 
-              VALUES ('REFERAFRIEND', 'Refer a friend', '1', JSON_OBJECT('preferredUrl', 'https://piwi247.com/signup/'), '25106', now(), NULL, now()), 
+              VALUES ('REFERAFRIEND', 'Refer a friend', '1', '{\"conditions\": [{\"url\": \"https://www.piwi143.com\", \"countries\": [\"FR\", \"PH\"], \"currencies\": [\"EUR\"], \"isLinkShortened\": true}]}', '25106', now(), NULL, now()), 
               ('PROMO01', 'Custom Promo 1', '1', NULL, '25106', now(), NULL, now())");
   
           $this->addSql('CREATE TABLE member_promo (
