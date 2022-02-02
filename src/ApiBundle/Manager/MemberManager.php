@@ -371,7 +371,7 @@ class MemberManager extends AbstractManager
             //Promo
             $enablePromo = false;
             $referrerCode = $member->getDetail('referral_code');
-            preg_match('/^ami/', $referrerCode, $matchCode, PREG_OFFSET_CAPTURE);
+            preg_match('/^piw/', $referrerCode, $matchCode, PREG_OFFSET_CAPTURE);
 
             if (!empty($matchCode)) {
                 $referrerId = substr($referrerCode, 3);
