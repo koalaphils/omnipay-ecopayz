@@ -368,7 +368,6 @@ class MemberManager extends AbstractManager
             $this->getEntityManager()->flush($member);
             $this->getEntityManager()->commit();
 
-            //Promo
             $enablePromo = false;
             $referrerCode = $member->getDetail('referral_code');
             preg_match('/^piw/', $referrerCode, $matchCode, PREG_OFFSET_CAPTURE);
@@ -387,21 +386,16 @@ class MemberManager extends AbstractManager
                 $enablePromo = true;
             }
 
-            if ($member->getDetail('promo_opt_in')) {
-                $customPromoCode = $member->getPromoCode('custom');
-                if ($member->getDetail('promo_opt_in') === 'accepted') {
-                    //send custom promo email
-                }
+            $isQualified = (bool) $this->getPromoManager()->validatePersonalLinkConditions($member);
+
+            if ($isQualified) {
+                $member->setPersonalLink();
+                $this->save($member);
             }
 
             if ($enablePromo) {
                 $memberPromo->setMember($member);
                 $this->save($memberPromo);
-            }
-
-            if ($member->getHasPersonalLinkEnabled()) {
-                $member->setPersonalLink();
-                $this->save($member);
             }
 
             $this->sendEmail($member, $enablePromo);
