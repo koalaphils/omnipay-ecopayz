@@ -450,6 +450,24 @@
             $('#{{ form.vars.id }}_referrerLink').val(referrerLink);
         }
 
+        $.ajax({
+            'globalAjaxComplete': false,
+            'globalAjaxError': false,
+            'headers': {
+                'X-WIDGET-REQUEST': 'GeneratePersonalLink'
+            },
+            'type': 'GET',
+            'success': function (data) {
+                if (data.link) {
+                    $('#{{ form.vars.id }}_personalLink').val(data.link);
+                }
+            },
+        });
+
+        if ($('#{{ form.vars.id }}_promoCode').val() === "REFERAFRIEND"){
+            $('#autoLink').hide();
+        }
+
         function {{ id }}ExtraExecPage()
         {
             $(function () {
