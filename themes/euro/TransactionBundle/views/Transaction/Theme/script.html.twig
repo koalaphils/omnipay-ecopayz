@@ -830,6 +830,7 @@
                         var field = $(this).data('field');
                         $(this).html(data.array_get(field));
                     });
+                    
                     if (data.name === 'BONUS') {
                         $('#promo-container').removeClass('hide');
                         {% if not form.parent.promo.vars.view|default(false) and form.parent.promo.vars.id is defined %}
