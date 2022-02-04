@@ -92,6 +92,7 @@
     {{ block('gateway') }}
     {{ block('adjustment') }}
     {{ block('file') }}
+    {{ block('promo') }}
 {% endblock left_pane %}
 
 {% block middle_pane %}
@@ -203,6 +204,15 @@
         </div>
 
         {{ form_row(form.subTransactions) }}
+
+        {% if form.referralsTransaction is defined %}
+            <div class="card-box hide" id="referralsTransactionNumber">
+                <div class="row">
+                    {{ form_row(form.referralsTransaction) }}
+                </div>
+            </div>
+        {% endif %}
+
         {% if transaction.isDeposit() or transaction.isWithdrawal() %}
             <div class="card-box">
         {% else %}
@@ -367,6 +377,18 @@
         </div>
     {% endif %}
 {% endblock gateway %}
+
+{% block promo %}
+    {% if form.promo is defined %}
+        <div class="card-box hide" id="promo-container">
+            <h4 class="m-t-0 m-b-30 header-title">{{ "Promo"|trans({},'TransactionBundle') }}</h4>
+            <div class="form-group {% if form.promo.vars.errors|length > 0 %} has-error {% endif %}">
+                {{ form_widget(form.promo, {'attr': {'disabled': 'disabled'}}) }}
+                {{ form_errors(form.promo) }}
+            </div>
+        </div>
+    {% endif %}
+{% endblock promo %}
 
 {% block adjustment %}
     {% if form.adjustment is defined %}
