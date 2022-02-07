@@ -33,10 +33,21 @@ class PromoManager extends AbstractManager
         $currencyCode = $member->getCurrency()->getCode();
 
         if ($promo) {
-            $promoDetails = array_values(array_filter($promo->getDetail('conditions'), function ($var) use ($countryCode, $currencyCode) {
-                return in_array($countryCode, $var['countries']) && in_array($currencyCode, $var['currencies']);
+            $exempted = array_values(array_filter($promo->getDetail('conditions'), function ($var) use ($countryCode) {
+                return in_array($countryCode, $var['exempted']);
             }));
-            if ($promoDetails && !$member->getIsAffiliate()) {
+
+            if (!$exempted && !$member->getIsAffiliate()) {
+                $promoDetails = array_values(array_filter($promo->getDetail('conditions'), function ($var) use ($countryCode, $currencyCode) {
+                    return in_array($countryCode, $var['countries']) && in_array($currencyCode, $var['currencies']);
+                }));
+
+                if (!$promoDetails) {
+                    $promoDetails = array_values(array_filter($promo->getDetail('conditions'), function ($var) {
+                        return $var['isDefault'] === true;
+                    }));
+                }
+
                 return $promoDetails;
             }
         }
