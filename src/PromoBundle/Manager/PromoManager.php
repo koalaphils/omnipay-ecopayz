@@ -42,7 +42,7 @@ class PromoManager extends AbstractManager
                     return in_array($countryCode, $var['countries']) && in_array($currencyCode, $var['currencies']);
                 }));
 
-                if (!$promoDetails) {
+                if (!$promoDetails && $currencyCode === 'EUR') {
                     $promoDetails = array_values(array_filter($promo->getDetail('conditions'), function ($var) {
                         return $var['isDefault'] === true;
                     }));
