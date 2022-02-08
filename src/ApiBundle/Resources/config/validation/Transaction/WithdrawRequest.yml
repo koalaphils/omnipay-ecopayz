@@ -8,12 +8,12 @@ ApiBundle\Request\Transaction\WithdrawRequest:
           payloadPath: 'object.getVerificationPayload()'
     paymentOptionType:
       - NotBlank: ~
-      - AppBundle\Validator\Constraints\Exists:
-          entityClass: DbBundle\Entity\PaymentOption
-          valuePath: value
-          column: code
-          ignoreNull: false
-          groups: [afterBlank]
+#      - AppBundle\Validator\Constraints\Exists:
+#          entityClass: DbBundle\Entity\PaymentOption
+#          valuePath: value
+#          column: code
+#          ignoreNull: false
+#          groups: [afterBlank]
     products:
       - Count:
           min: 1
