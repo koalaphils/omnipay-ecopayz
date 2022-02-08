@@ -47,7 +47,7 @@ class PromoManager extends AbstractManager
                         return $var['isDefault'] === true;
                     }));
                 }
-
+                
                 return $promoDetails;
             }
         }
@@ -87,6 +87,7 @@ class PromoManager extends AbstractManager
     public function createPersonalLinkId(Member $member): void
     {
         $isValid = (bool) $this->validatePersonalLinkConditions($member);
+
         if ($isValid) {
             $member->setPersonalLink();
             $this->save($member);

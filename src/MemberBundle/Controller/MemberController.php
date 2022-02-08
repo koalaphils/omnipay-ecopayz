@@ -488,8 +488,13 @@ class MemberController extends PageController
     public function updateGeneratePersonalLink(PageManager $pageManager, array $data): JsonResponse
     {
         $member = $pageManager->getData('customer');
-        $link = $this->getPromoManager()->getPersonalLink($member);
+     
+        if (!$member->getPersonalLink()) {
+            $this->getPromoManager()->createPersonalLinkId($member);
+        }
 
+        $link = $this->getPromoManager()->getPersonalLink($member);
+    
         return new JsonResponse(['link' => $link], Response::HTTP_OK);
     }
 
