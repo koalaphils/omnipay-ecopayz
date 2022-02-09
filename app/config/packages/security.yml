@@ -57,7 +57,7 @@ security:
         blockchain:
             pattern: ^/blockchain
             security: false
-            
+
         main:
             pattern: ^/
             anonymous: ~

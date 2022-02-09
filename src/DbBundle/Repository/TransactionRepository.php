@@ -2,6 +2,7 @@
 
 namespace DbBundle\Repository;
 
+use AppBundle\Service\PaymentOptionService;
 use DbBundle\Entity\PaymentOption;
 use Doctrine\ORM\Query;
 use DbBundle\Entity\Transaction;
@@ -732,16 +733,16 @@ class TransactionRepository extends BaseRepository
     {
         $queryBuilder = $this->createQueryBuilder('transaction');
         $queryBuilder
-            ->select('transaction', 'paymentOptionType')
-            ->innerJoin('transaction.paymentOptionType', 'paymentOptionType')
+            ->select('transaction')
+//            ->innerJoin('transaction.paymentOptionType', 'paymentOptionType')
             ->where('transaction.customer = :customer')
             ->andWhere('transaction.type = 1')
             ->andWhere('transaction.status NOT IN (:status)')
             ->andWhere('transaction.isVoided != true')
-            ->andWhere('paymentOptionType.paymentMode = :paymentMode')
+            ->andWhere('transaction.paymentOptionType = :paymentOptionType')
             ->andWhere("JSON_CONTAINS(transaction.details, 'false', '$.bitcoin.acknowledged_by_user') = true")
             ->setParameter('customer', $memberId)
-            ->setParameter('paymentMode', PaymentOption::PAYMENT_MODE_BITCOIN)
+            ->setParameter('paymentOptionType', PaymentOptionService::BITCOIN)
             ->setParameter('status', [Transaction::TRANSACTION_STATUS_END, Transaction::TRANSACTION_STATUS_DECLINE])
             ->setMaxResults(1)
         ;

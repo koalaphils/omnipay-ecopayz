@@ -1,0 +1,4 @@
+api_transaction.notify_status_update:
+  path: notify-status-update/{transaction}
+  defaults: { _controller: ApiBundle:Transaction:notifyStatusUpdate }
+  methods: [GET]

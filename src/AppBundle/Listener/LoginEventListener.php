@@ -62,7 +62,7 @@ class LoginEventListener
             $payload = [
                 'username' => $user->getUserName(),
                 'id' => $user->getId(),
-                'roles' => $user->getRoles()
+                'roles' => $user->getRoles(),
             ];
             $jwt = JWT::encode($payload, $this->jwtKey);
             $session->set('jwt', $jwt);

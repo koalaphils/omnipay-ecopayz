@@ -7,8 +7,8 @@ x-environment: &php-env
       - APP_SECRET=ThisTokenIsNotSoSecretChangeIt
       - CUSTOMER_TEMP_PASSWORD=super@c66p@$$w0rd
       - JWT_KEY=YourSampleKeyHere
-      - SLACK_TOKEN=xoxp-190886717379-465628275376-480332621415-5498caaeea6af3c795381717e3194787
-      - SLACK_CHANNEL=cyd-piwi-error
+      - SLACK_TOKEN=xoxb-190886717379-2546177752231-FEYDikDW99RdDGn2rZLcxXTA
+      - SLACK_CHANNEL=piwi-dev-errors
       - MAIL_TRANSPORT=smtp
       - MAIL_HOST=mailhog
       - MAIL_USER=~
