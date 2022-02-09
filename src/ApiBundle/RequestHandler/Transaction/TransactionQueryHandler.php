@@ -46,7 +46,7 @@ class TransactionQueryHandler
                 throw new \Exception(sprintf('Transaction %s is not supported for bitcoin transaction', $request->getType()));
             }
 
-            return $this->transactionRepository->getLastTransactionForPaymentOption($request->getMemberId(), $paymentOptionCode, $transactionType);
+            return $this->transactionRepository->getLastTransactionForPaymentOption($request->getMemberId(), 'BITCOIN', $transactionType);
         } catch (NoResultException $exception) {
             return null;
         }

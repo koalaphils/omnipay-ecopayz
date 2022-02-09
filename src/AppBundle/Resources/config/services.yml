@@ -251,7 +251,6 @@ services:
         tags:
             - { name: jms_job_queue.scheduler, command: 'jms-job-queue:clean-up' }
             - { name: jms_job_queue.scheduler, command: 'fos:oauth-server:clean' }
-            - { name: jms_job_queue.scheduler, command: 'transaction:decline %cron_user%' }
             - { name: jms_job_queue.scheduler, command: 'revenueshare:period:compute %cron_user% --period latest' }
 
     AppBundle\Form\SchedulerType:
@@ -289,6 +288,10 @@ services:
 
     app.service.affiliate_service:
         class: AppBundle\Service\AffiliateService
+        arguments: ["@app.service.http_service", "@jwt_generator"]
+
+    app.service.transaction_service:
+        class: AppBundle\Service\TransactionService
         arguments: ["@app.service.http_service", "@jwt_generator"]
 
     country.manager:
