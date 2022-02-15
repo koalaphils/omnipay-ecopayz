@@ -47,6 +47,7 @@ use ProductIntegrationBundle\ProductIntegrationFactory;
 use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
 use ProductIntegrationBundle\Exception\IntegrationException;
 use ProductIntegrationBundle\Exception\NoPinnacleProductException;
+use PromoBundle\Manager\PromoManager;
 
 class AuthHandler
 {
@@ -116,6 +117,11 @@ class AuthHandler
     private $sessionRepository;
 
     /**
+     * @var PromoManager
+     */
+    private $promoManager;
+
+    /**
      * @var string
      */
     private $pinnacleExpiration;
@@ -138,6 +144,7 @@ class AuthHandler
         CustomerProductRepository $customerProductRepository,
         ProductRepository $productRepository,
         ProductIntegrationFactory $productIntegrationFactory,
+        PromoManager $promoManager,
         string $jwtKey
     ) {
         $this->oauthService = $oauthService;
@@ -157,6 +164,7 @@ class AuthHandler
         $this->productIntegrationFactory = $productIntegrationFactory;
         $this->customerProductRepository = $customerProductRepository;
         $this->productRepository = $productRepository;
+        $this->promoManager = $promoManager;
     }
 
     public function handleLogin(Request $request): array
@@ -188,7 +196,8 @@ class AuthHandler
             'products' => $member->getProducts(),
             'jwt' => $jwt,
             'accessToken' => $accessToken->getToken(),
-            'loginPath' => $this->getDefaultLoginPath($member)
+            'loginPath' => $this->getDefaultLoginPath($member),
+            'isQualifiedForRaf' => (bool) $this->promoManager->validatePersonalLinkConditions($member)
         ], $integrationResponses);
         
         $this->deleteUserAccessToken($accessToken->getUser()->getId(), [], [$accessToken->getToken()]);
