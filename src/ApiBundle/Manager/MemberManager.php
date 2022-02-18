@@ -421,8 +421,6 @@ class MemberManager extends AbstractManager
         $now = new \DateTime('now');
         $defaultMemberGroup = $this->getMemberGroupRepository()->getDefaultGroup();
         $currency = $this->getCurrencyRepository()->findByCode($member->getCurrency());
-        $pinnacleProduct = $this->getPinnacleProduct();
-
         $user = $member->getUser();
 
         //Add to UserFormType if the registration for Vendor will be implemented
@@ -448,19 +446,8 @@ class MemberManager extends AbstractManager
         $member->setFullName('');
 
         try {
-            $integration = $this->getProductIntegrationFactory()->getIntegration('pinbet');
-            $response = $integration->create();
-
-            $memberProduct = new MemberProduct();
-            $memberProduct->setProduct($pinnacleProduct);
-            $memberProduct->setUserName($response['user_code']);
-            $memberProduct->setBalance('0.00');
-            $memberProduct->setIsActive(true);
-            
-            $member->setPinLoginId($response['login_id']);
-            $member->setPinUserCode($response['user_code']);  
-
-            $member->addProduct($memberProduct);
+            $this->createPiwiWalletProduct($member);
+            $this->createPinnacleProduct($member);
         } catch(\Exception $ex) {
             throw new PinnacleException();
         }       
@@ -476,6 +463,36 @@ class MemberManager extends AbstractManager
 
         
         return $member;
+    }
+
+    private function createPiwiWalletProduct(): void 
+    {
+        $memberProduct = new MemberProduct();
+        $product = $this->getProductRepository()->getProductByCode(Product::MEMBER_WALLET_CODE);
+        $memberProduct->setProduct($product);
+        $memberProduct->setUsername(Product::MEMBER_WALLET_CODE . '_' . uniqid());
+        $memberProduct->setBalance('0.00');
+        $memberProduct->setIsActive(true);
+            
+        $this->save($memberProduct);
+    }
+
+    private function createPinnacleProduct(Member $member): void 
+    {
+        $pinnacleProduct = $this->getPinnacleProduct();
+        $integration = $this->getProductIntegrationFactory()->getIntegration('pinbet');
+        $response = $integration->create();
+
+        $memberProduct = new MemberProduct();
+        $memberProduct->setProduct($pinnacleProduct);
+        $memberProduct->setUserName($response['user_code']);
+        $memberProduct->setBalance('0.00');
+        $memberProduct->setIsActive(true);
+        $member->setPinLoginId($response['login_id']);
+        $member->setPinUserCode($response['user_code']);  
+        $member->addProduct($memberProduct);
+
+        $this->save($memberProduct);
     }
 
     private function changeCodeAsUsed(string $code): void
