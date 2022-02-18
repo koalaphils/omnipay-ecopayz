@@ -474,8 +474,6 @@ class MemberManager extends AbstractManager
         $memberProduct->setBalance('0.00');
         $memberProduct->setIsActive(true);
         $member->addProduct($memberProduct);
-            
-        $this->save($memberProduct);
     }
 
     private function createPinnacleProduct(Member $member): void 
@@ -492,8 +490,6 @@ class MemberManager extends AbstractManager
         $member->setPinLoginId($response['login_id']);
         $member->setPinUserCode($response['user_code']);  
         $member->addProduct($memberProduct);
-
-        $this->save($memberProduct);
     }
 
     private function changeCodeAsUsed(string $code): void
