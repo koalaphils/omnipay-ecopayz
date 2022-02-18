@@ -465,7 +465,7 @@ class MemberManager extends AbstractManager
         return $member;
     }
 
-    private function createPiwiWalletProduct(): void 
+    private function createPiwiWalletProduct(Member $member): void 
     {
         $memberProduct = new MemberProduct();
         $product = $this->getProductRepository()->getProductByCode(Product::MEMBER_WALLET_CODE);
@@ -473,6 +473,7 @@ class MemberManager extends AbstractManager
         $memberProduct->setUsername(Product::MEMBER_WALLET_CODE . '_' . uniqid());
         $memberProduct->setBalance('0.00');
         $memberProduct->setIsActive(true);
+        $member->addProduct($memberProduct);
             
         $this->save($memberProduct);
     }
