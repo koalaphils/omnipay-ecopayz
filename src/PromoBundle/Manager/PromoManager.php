@@ -64,11 +64,14 @@ class PromoManager extends AbstractManager
             $url = $url = $promoDetails[0]['url'];
             $fullUrl = $url."?rid=".$personalLinkId;
 
-            if ($promoDetails[0]['isLinkShortened']) {
-                return $this->generateShortenedLink($fullUrl);
-            } else {
-                return $fullUrl;
-            }
+            //Note: Uncomment code if url shortener will be implemented.
+            // if ($promoDetails[0]['isLinkShortened']) {
+            //     return $this->generateShortenedLink($fullUrl);
+            // } else {
+            //     return $fullUrl;
+            // }
+
+            return $fullUrl;
         }
 
         return '';
