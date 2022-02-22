@@ -82,6 +82,12 @@ api_member.change_locale:
     _controller: ApiBundle:Member:changeLocale
   methods: [POST]
 
+api_member.change_default_product:
+  path: me/change-default-product
+  defaults:
+    _controller: ApiBundle:Member:changeDefaultProduct
+  methods: [POST]
+
 api_member.change_country:
   path: me/change-country
   defaults:

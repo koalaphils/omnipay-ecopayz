@@ -18,6 +18,11 @@ class Product extends Entity implements ActionInterface, TimestampInterface, Aud
     public const PIWIXCHANGE_CODE = 'PIWIX';
     public const SPORTS_CODE = 'PINBET';
 
+	public const EXCHANGE_VALUE = 'exchange';
+	public const PIWIX_VALUE = 'piwix';
+	public const SPORTS_VALUE = 'sports';
+	public const CASINO_VALUE = 'casino';
+
     /**
      * @var string
      */

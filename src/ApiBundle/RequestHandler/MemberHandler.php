@@ -197,4 +197,14 @@ class MemberHandler
 
         return $response;
     }
+
+    public function changeMemberDefaultProduct(Customer $member, string $product): array
+    {
+        $member = $member->setDetail('default_product', $product);
+
+        $this->entityManager->persist($member);
+        $this->entityManager->flush($member);
+
+        return ['error' => false, 'data' => $product, 'status' => 200];
+    }
 }
