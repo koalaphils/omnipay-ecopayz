@@ -30,7 +30,7 @@ final class Version20220110114553 extends AbstractMigration
           ) ENGINE=\'InnoDB\' COLLATE \'utf8_unicode_ci\'');
   
           $this->addSql("INSERT INTO promo (promo_code, promo_name, promo_status, promo_details, promo_created_by, promo_created_at, promo_updated_by, promo_updated_at) 
-              VALUES ('REFERAFRIEND', 'Refer a friend', '1', '{\"conditions\": [{\"url\": \"https://www.piwi143.com\", \"exempted\": [\"GB\", \"RU\", \"UA\", \"IN\", \"BY\", \"MD\", \"AZ\", \"TH\", \"CN\", \"HK\", \"MY\", \"SG\", \"TW\", \"MO\"], \"countries\": [\"ALL\"], \"isDefault\": true, \"currencies\": [\"EUR\"], \"isLinkShortened\": true}]}', '25106', now(), NULL, now())");
+              VALUES ('REFERAFRIEND', 'Refer a friend', '1', '{\"conditions\": [{\"url\": \"https://www.piwi143.com\", \"exempted\": [\"GB\", \"RU\", \"UA\", \"IN\", \"BY\", \"MD\", \"AZ\", \"TH\", \"CN\", \"HK\", \"MY\", \"SG\", \"TW\", \"MO\"], \"countries\": [\"ALL\"], \"isDefault\": true, \"currencies\": [\"EUR\"], \"isLinkShortened\": false}]}', '2', now(), NULL, now())");
   
           $this->addSql('CREATE TABLE member_promo (
             member_promo_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
