@@ -229,13 +229,12 @@ class TransactionRepository extends BaseRepository
         $queryBuilder->addSelect("CONCAT(
             IFNULL(JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.code')), JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOption.code'))) ,
             '(' ,
-                IFNULL(NULLIF(transaction.virtualBitcoinReceiverUniqueAddress, 'null'), 
-                    IFNULL(JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.email')), 
-                        IFNULL(JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOption.email')),
-                            IFNULL(JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.accountId')), '') 
-                        )
-                    )
-                ),
+                    CASE
+                        WHEN JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.email')) != '' THEN JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.email'))
+                        WHEN JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.account_id')) != '' THEN JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.account_id'))
+                        ELSE ''
+                     END
+                ,
             ')'
             )
             as immutablePaymentOptionDataOnTransaction");
