@@ -534,14 +534,21 @@
                         'defaultContent': '',
                         'name': 'payment_option',
                         'render': function (immutable_payment_option_data, type, full) {
+                            const transaction_type_transfer = {{ constant("DbBundle\\Entity\\Transaction::TRANSACTION_TYPE_TRANSFER") }};
+                            const transaction_type_bonus = {{ constant("DbBundle\\Entity\\Transaction::TRANSACTION_TYPE_BONUS") }};
                             let paymentOptionLabel = '';
-                            let paymentOptionCode = full.payment_option ?? full.details?.paymentOptionOnTransaction?.code ?? full.details?.paymentOption?.code;
-                            let paymentOption = full.details?.paymentOptionOnTransaction ?? full.details?.paymentOption;
-                            if (paymentOptionCode === 'BITCOIN') {
-                                paymentOptionLabel = paymentOptionCode + ' (' + ( paymentOption?.account_id ?? paymentOption?.accountId ?? 'N/A' ) + ')';
+                            if (transaction_type_transfer == full.type || transaction_type_bonus == full.type) {
+                                paymentOptionLabel = 'N/A'
                             } else {
-                                paymentOptionLabel = paymentOptionCode + ' (' + ( paymentOption?.email ?? 'N/A' ) + ')';
+                                let paymentOptionCode = full.payment_option ?? full.details?.paymentOptionOnTransaction?.code ?? full.details?.paymentOption?.code;
+                                let paymentOption = full.details?.paymentOptionOnTransaction ?? full.details?.paymentOption;
+                                if (paymentOptionCode === 'BITCOIN') {
+                                    paymentOptionLabel = paymentOptionCode + ' (' + ( paymentOption?.account_id ?? paymentOption?.accountId ?? 'N/A' ) + ')';
+                                } else {
+                                    paymentOptionLabel = paymentOptionCode + ' (' + ( paymentOption?.email ?? 'N/A' ) + ')';
+                                }
                             }
+
 
                             return paymentOptionLabel;
                         }
