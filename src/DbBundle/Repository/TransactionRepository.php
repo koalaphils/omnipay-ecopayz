@@ -232,18 +232,24 @@ class TransactionRepository extends BaseRepository
         $queryBuilder->addSelect('IFNULL(JSON_UNQUOTE(JSON_EXTRACT(transaction.fees, \'$.total_company_fee\')), 0) as companyFee');
         $queryBuilder->addSelect('IFNULL(JSON_UNQUOTE(JSON_EXTRACT(transaction.fees, \'$.total_customer_fee\')), 0) as memberFee');
         $queryBuilder->addSelect("CONCAT(
-            IFNULL(JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.code')), JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOption.code'))) ,
+            JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.code')),
             '(' ,
-                IFNULL(NULLIF(transaction.virtualBitcoinReceiverUniqueAddress, 'null'), 
-                    IFNULL(JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.email')), 
-                        IFNULL(JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOption.email')),
-                            IFNULL(JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.accountId')), '') 
-                        )
-                    )
-                ),
+                    CASE
+                        WHEN 
+                            JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.email')) != '' AND
+                            JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.email')) != 'null'
+                        THEN 
+                            JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.email'))
+                        WHEN 
+                            JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.account_id')) != '' OR
+                            JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.account_id')) != 'null'
+                        THEN 
+                            JSON_UNQUOTE(JSON_EXTRACT(transaction.details, '$.paymentOptionOnTransaction.account_id'))
+                        ELSE ''
+                     END
+                ,
             ')'
-            )
-            as immutablePaymentOptionDataOnTransaction");
+            ) as immutablePaymentOptionDataOnTransaction");
         $queryBuilder->addSelect('IF (createdBy.type = '. User::USER_TYPE_MEMBER .',true,false) as wasCreatedFromAms');
         $queryBuilder->addSelect('currency.code as currencyCode');
         $queryBuilder->addSelect("
