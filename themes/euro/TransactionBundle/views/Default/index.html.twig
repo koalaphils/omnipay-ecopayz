@@ -149,6 +149,8 @@
                 statusChoices[i] = nonPendingStatuses[i].label;
             }
         }
+
+        console.log('STATUS CHOICES', statusChoices)
         $(function(){
             var listTable = new ZTable('#transactionList',  {
                 'colvis': {

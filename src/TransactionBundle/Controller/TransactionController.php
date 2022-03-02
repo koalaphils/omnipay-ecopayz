@@ -7,6 +7,7 @@ namespace TransactionBundle\Controller;
 use AppBundle\Controller\AbstractController;
 use AppBundle\Manager\SettingManager;
 use AppBundle\Service\PaymentOptionService;
+use DbBundle\Entity\Transaction;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -25,6 +26,13 @@ class TransactionController extends AbstractController
         if (trim($request->get('filter', '')) !== '') {
             $filterName = $request->get('filter');
             $filter = $settingManager->getSetting('transaction.list.filters.' . $filterName, []);
+            if ($filterName === 'processed') {
+                $nonPendingStatuses = [
+                    Transaction::TRANSACTION_STATUS_END => $statuses[Transaction::TRANSACTION_STATUS_END],
+                    Transaction::TRANSACTION_STATUS_DECLINE => $statuses[Transaction::TRANSACTION_STATUS_DECLINE],
+                    Transaction::TRANSACTION_STATUS_VOIDED => $statuses[Transaction::TRANSACTION_STATUS_VOIDED],
+                ];
+            }
         } else {
             $nonPendingStatuses = $transactionManager->getNonPendingTransactionStatus($statuses);
         }
