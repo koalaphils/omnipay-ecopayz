@@ -8,6 +8,7 @@ use AppBundle\Controller\AbstractController;
 use AppBundle\Manager\SettingManager;
 use AppBundle\Service\PaymentOptionService;
 use DbBundle\Entity\Transaction;
+use ProductBundle\Manager\ProductManager;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -15,7 +16,7 @@ use TransactionBundle\Manager\TransactionManager;
 
 class TransactionController extends AbstractController
 {
-    public function indexAction(Request $request, TransactionManager $transactionManager, SettingManager $settingManager)
+    public function indexAction(Request $request, TransactionManager $transactionManager, ProductManager $productManager, SettingManager $settingManager)
     {
         $this->denyAccessUnlessGranted(['ROLE_TRANSACTION_VIEW']);
         $statuses = $transactionManager->getTransactionStatus();
@@ -38,12 +39,14 @@ class TransactionController extends AbstractController
         }
 
         $paymentOptions = $this->getPaymentOptionService()->getAllPaymentOptions();
+		$productOptions = $productManager->getProductList();
 
         return $this->render('TransactionBundle:Default:index.html.twig', [
             'statuses' => $statuses,
             'nonPendingStatuses' => $nonPendingStatuses,
             'filter' => $filter,
             'paymentOptions' => $paymentOptions,
+	        'productOptions' => $productOptions
         ]);
     }
 

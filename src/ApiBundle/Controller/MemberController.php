@@ -291,6 +291,29 @@ class MemberController extends AbstractController
     /**
      * @ApiDoc(
      *     section="Current Login Member",
+     *     description="Change member default product",
+     *     views={"piwi"},
+     *     requirements={
+     *          {
+     *             "name"="product",
+     *             "dataType"="string"
+     *         }
+     *     },
+     *     headers={
+     *         { "name"="Authorization", "description"="Bearer <access_token>" }
+     *     }
+     * )
+     */
+    public function changeDefaultProductAction(Request $request, MemberHandler $memberHandler): View
+    {
+        $member = $this->getUser()->getCustomer();
+
+        return $this->view($memberHandler->changeMemberDefaultProduct($member, $request->get('product')));
+    }
+
+    /**
+     * @ApiDoc(
+     *     section="Current Login Member",
      *     description="Change member country",
      *     views={"piwi"},
      *     requirements={
