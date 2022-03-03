@@ -143,13 +143,13 @@
                                 .append('<li>' + error.message + '</li>');
                         }
 
-                        $('#{{ form.vars.id }}')find(":submit").removeAttr("disabled");
+                        $('#{{ form.vars.id }}').find(":submit").removeAttr("disabled");
                     }
                 },
                 'success':
                     {% if properties.success is not defined %}
                     function (data) {
-                        $('#{{ form.vars.id }}')find(":submit").removeAttr("disabled");
+                        $('#{{ form.vars.id }}').find(":submit").removeAttr("disabled");
                         {% if properties.resettable is defined and properties.resettable == true %}
                             $('#{{ form.vars.id }}').get(0).reset();
                         {% endif %}
