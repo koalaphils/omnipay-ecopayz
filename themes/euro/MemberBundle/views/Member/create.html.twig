@@ -68,5 +68,13 @@
             });
         });
         useEmail();
+
+        $("form#create_createForm_data").submit(function () {
+            var formID = $(this);
+            formID.find(":submit").attr('disabled', 'disabled');
+            setTimeout(function () {
+               formID.find(":submit").removeAttr("disabled");
+            }, 3000);
+        });
     </script>
 {% endblock javascripts %}
