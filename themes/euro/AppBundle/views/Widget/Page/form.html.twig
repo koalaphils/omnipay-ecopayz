@@ -123,6 +123,7 @@
                 'beforeSend': function () {
                     $('#{{ form.vars.id }}').find('.form-group').removeClass('has-error');
                     $('#{{ form.vars.id }}').find('.form-group .help-block ul li').remove();
+                    $('#{{ form.vars.id }}').find(":submit").attr('disabled', 'disabled');
                 },
                 'headers': {
                     'X-WIDGET-DATA': '{{ id }}_data',
@@ -141,11 +142,14 @@
                                 .find('.help-block ul')
                                 .append('<li>' + error.message + '</li>');
                         }
+
+                        $('#{{ form.vars.id }}').removeAttr("disabled");
                     }
                 },
                 'success':
                     {% if properties.success is not defined %}
                     function (data) {
+                        $('#{{ form.vars.id }}').removeAttr("disabled");
                         {% if properties.resettable is defined and properties.resettable == true %}
                             $('#{{ form.vars.id }}').get(0).reset();
                         {% endif %}
