@@ -160,6 +160,9 @@
                         }
                     }
                     {% else %}
+                        function () {
+                            $('#{{ form.vars.id }}').find(":submit").removeAttr("disabled");
+                        }
                         {{ properties.success }}
                     {% endif %}
             });
