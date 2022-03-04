@@ -2793,7 +2793,6 @@ values (1, 'BITCOIN', 1, 'Blockchain BTC', 2546610.2500000000, 1, 3, '2019-05-10
         '{"config": [], "methods": {"deposit": {"type": "deposit", "equation": "+(a-b)", "variables": [{"var": "a", "value": "total_amount"}, {"var": "b", "value": "company_fee"}]}, "withdraw": {"type": "withdraw", "equation": "-(a+b)", "variables": [{"var": "a", "value": "customer_amount"}, {"var": "b", "value": "company_fee"}]}}}',
         '[]');
 
-
 insert into customer_group_gateway (cgg_gateway_id, cgg_customer_group_id, cgg_conditions, cgg_created_by,
                                     cgg_created_at, cgg_updated_by, cgg_updated_at)
 values (1, 1, 'customer.currency == "EUR" and transaction.payment_option == "BITCOIN"', 1, '2019-05-10 09:19:15', null,
