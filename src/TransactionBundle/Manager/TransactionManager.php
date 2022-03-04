@@ -67,6 +67,7 @@ class TransactionManager extends TransactionOldManager
     public function findTransactions(Request $request)
     {
         $filters = $request->get('filters', []);
+        dump($filters);
         $orders = $request->get('orders', [['column' => 'transaction.date', 'dir' => 'desc']]);
         $limit = (int) $request->get('length', 10);
         $page = (int) $request->get('page', 1);
