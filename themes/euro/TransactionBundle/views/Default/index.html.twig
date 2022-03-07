@@ -223,8 +223,10 @@
                         'rendered': function (feature) {
                             $(feature.input).click(function() {
                                 var query = {
-                                    'filters': filter.filters
+                                    'filters': window.lodash.merge(report.filters, filter.filters)
                                 }
+
+                                console.log(query)
 
                                 window.open(report.exportUrl + '?' + $.param(query), '_blank');
                             });
