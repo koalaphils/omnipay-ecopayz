@@ -223,8 +223,9 @@
                         'rendered': function (feature) {
                             $(feature.input).click(function() {
                                 var query = {
-                                    'filters': report.filters
+                                    'filters': filter.filters
                                 }
+
                                 window.open(report.exportUrl + '?' + $.param(query), '_blank');
                             });
                         }
