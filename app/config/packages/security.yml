@@ -31,6 +31,19 @@ security:
             pattern: ^/(%app_locales%)/api/auth/(login|logout|refreshtoken)
             security: false
 
+        
+        api_registration:
+            pattern: ^/(%app_locales%)/api/member/register
+            security: false    
+
+        api_2fa:
+            pattern: ^/(%app_locales%)/api/2fa/requestcode
+            security: false        
+
+        api_check_account:
+            pattern: ^/(%app_locales%)/api/member/email-phone/check-if-exists
+            security: false    
+
         api:
             pattern:    ^/(%app_locales%)/api
             anonymous: false

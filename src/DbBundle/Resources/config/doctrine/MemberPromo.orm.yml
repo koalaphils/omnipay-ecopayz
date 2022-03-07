@@ -1,0 +1,62 @@
+DbBundle\Entity\MemberPromo:
+    type: entity
+    table: member_promo
+    repositoryClass: DbBundle\Repository\MemberPromoRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: member_promo_id
+            options:
+                unsigned: true
+    fields:
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: member_promo_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            column: member_promo_updated_at
+            nullable: true
+        createdBy:
+            type: bigint
+            column: member_promo_created_by
+            options:
+                unsigned: true
+            nullable: false
+        createdAt:
+            type: datetime
+            column: member_promo_created_at
+            nullable: false
+    manyToOne:
+        referrer:
+            targetEntity: DbBundle\Entity\Customer
+            joinColumn:
+                name: member_promo_referrer_id
+                referencedColumnName: customer_id
+            cache:
+                usage: READ_ONLY
+        member:
+            targetEntity: DbBundle\Entity\Customer
+            joinColumn:
+                name: member_promo_member_id
+                referencedColumnName: customer_id
+            cache:
+                usage: READ_ONLY
+        promo:
+            targetEntity: DbBundle\Entity\Promo
+            joinColumn:
+                name: member_promo_promo_id
+                referencedColumnName: promo_id
+            cache:
+                usage: READ_ONLY
+    oneToOne:
+        transaction:
+            targetEntity: DbBundle\Entity\Transaction
+            joinColumn:
+                name: member_promo_transaction_id
+                referencedColumnName: transaction_id

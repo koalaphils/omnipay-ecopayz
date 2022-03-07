@@ -1,0 +1,4 @@
+promo.list_search:
+    path:       /search
+    defaults:   { _controller: PromoBundle:Default:search }
+    condition:  "context.getMethod() in ['POST', 'GET'] and request.isXMLHttpRequest()"

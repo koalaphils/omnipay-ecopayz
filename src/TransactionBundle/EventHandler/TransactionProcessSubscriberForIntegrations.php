@@ -15,11 +15,15 @@ use ApiBundle\Service\JWTGeneratorService;
 use AppBundle\Service\CustomerPaymentOptionService;
 use DbBundle\Entity\Customer as Member;
 use DbBundle\Entity\CustomerProduct;
+use DbBundle\Entity\MemberPromo;
 use DbBundle\Entity\Product;
 use DbBundle\Entity\SubTransaction;
 use DbBundle\Entity\Transaction;
 use DbBundle\Entity\User;
 use DbBundle\Repository\CustomerProductRepository;
+use DbBundle\Repository\MemberPromoRepository;
+use DbBundle\Repository\TransactionRepository;
+use Doctrine\ORM\EntityManager;
 use Exception;
 use GatewayTransactionBundle\Manager\GatewayMemberTransaction;
 use ProductIntegrationBundle\Exception\IntegrationException\CreditIntegrationException;
@@ -35,7 +39,6 @@ class TransactionProcessSubscriberForIntegrations implements EventSubscriberInte
 {
     private $factory;
     private $jwtGenerator;
-    private $pinnacleService;
     private $gatewayMemberTransaction;
     private $customerProductRepository;
     private $cpoService;

@@ -2,6 +2,9 @@
 
 namespace DbBundle\Listener;
 
+use DbBundle\Entity\Customer;
+use DbBundle\Entity\CustomerProduct;
+use DbBundle\Entity\MemberPromo;
 use DbBundle\Entity\Transaction;
 use DbBundle\Entity\User;
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
@@ -34,9 +37,13 @@ class ActionListener implements \AppBundle\Interfaces\UserAwareInterface
         return $this->entityManager->getRepository(User::class)->findAdminByUsername('admin');
     }
 
+    private function getSystemUser(): User
+    {
+        return $this->entityManager->getRepository(User::class)->findAdminByUsername('system');
+    }
+
     public function prePersist(LifecycleEventArgs $eventArgs)
     {
-        
         $entity = $eventArgs->getObject();
 
         if ($entity instanceof \DbBundle\Entity\User && property_exists($entity, 'forSetup')) {
@@ -46,19 +53,26 @@ class ActionListener implements \AppBundle\Interfaces\UserAwareInterface
         }
 
         if ($entity instanceof \DbBundle\Entity\Interfaces\ActionInterface) {
-            $adminUser = $this->_getUser();
-            if ((!$adminUser instanceof User) && $this->isUnderTestEnvironment()) {
-                $adminUser = $this->getSuperAdmin();
-            }
-
-            if (!$adminUser instanceof User) {
-                throw new \Exception('There is no logged-in user');
-            }
-            $entity->setCreatedBy($adminUser->getId());
-            if ($entity instanceof Transaction || $entity instanceof User) {
-                # this is just a workaround
-                # until transaction.createdBy or user.createdBy is associated to User entity (requires others who implement ActionListener to do the same)
-                $entity->setCreator($adminUser);
+            $user = $this->_getUser();
+            
+            if ($user === null && ($entity instanceof User || $entity instanceof CustomerProduct || $entity instanceof MemberPromo)) {
+                //For Member Creation
+                $system = $this->getSystemUser();
+                $entity->setCreatedBy($system->getId());
+            } else {
+                if ((!$user instanceof User) && $this->isUnderTestEnvironment()) {
+                    $user = $this->getSuperAdmin();
+                }
+    
+                if (!$user instanceof User) {
+                    throw new \Exception('There is no logged-in user');
+                }
+                $entity->setCreatedBy($user->getId());
+                if ($entity instanceof Transaction || $entity instanceof User) {
+                    # this is just a workaround
+                    # until transaction.createdBy or user.createdBy is associated to User entity (requires others who implement ActionListener to do the same)
+                    $entity->setCreator($user);
+                }
             }
         }
     }
