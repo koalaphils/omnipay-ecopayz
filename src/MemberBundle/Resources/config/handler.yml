@@ -15,7 +15,7 @@ services:
     member.handler.update_profile:
         class: MemberBundle\RequestHandler\UpdateProfileRequestHandler
         lazy: true
-        arguments: ["@doctrine.orm.entity_manager", "@request_stack", "@audit.manager", "@member.manager", "@app.service.affiliate_service"]
+        arguments: ["@doctrine.orm.entity_manager", "@request_stack", "@audit.manager", "@member.manager", "@app.service.affiliate_service", "@promo.manager"]
     member.handler.update_password:
         class: MemberBundle\RequestHandler\UpdatePasswordRequestHandler
         lazy: true

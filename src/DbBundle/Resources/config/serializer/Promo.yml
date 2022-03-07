@@ -1,0 +1,13 @@
+DbBundle\Entity\Promo:
+    exclusion_policy: ALL
+    properties:
+        id:
+            expose: true
+        name:
+            expose: true
+        code:
+            expose: true
+        details:
+            expose: true
+        status:
+            expose: true

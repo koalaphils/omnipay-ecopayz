@@ -2,7 +2,7 @@
 
 namespace ApiBundle\Controller;
 
-use ApiBundle\Form\Member\RegisterType;
+use ApiBundle\Form\Member\MemberRegisterType;
 use ApiBundle\Model\File;
 use ApiBundle\Request\RegisterRequest;
 use ApiBundle\RequestHandler\MemberHandler;
@@ -11,11 +11,15 @@ use MediaBundle\Manager\MediaManager;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use FOS\RestBundle\View\View;
 use ApiBundle\Manager\MemberManager;
+use App\Exception\InvalidFormException;
+use AppBundle\Exceptions\FormValidationException;
+use DbBundle\Entity\Customer;
 use PinnacleBundle\Component\Exceptions\PinnacleException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use TwoFactorBundle\Provider\Message\Exceptions\CodeDoesNotExistsException;
 
 class MemberController extends AbstractController
 {
@@ -185,30 +189,41 @@ class MemberController extends AbstractController
      *              "name"="registration_locale",
      *              "dataType"="string"
      *          }
-     *     },
-     *     headers={
-     *         { "name"="Authorization", "description"="Bearer <access_token>" }
      *     }
      * )
      */
-    public function registerAction(Request $request, RegisterHandler $registerHandler, ValidatorInterface $validator): View
+    public function registerAction(Request $request, MemberManager $manager): View
     {
-        $registerRequest = RegisterRequest::createFromRequest($request);
-        $violations = $validator->validate($registerRequest, null);
-        if ($violations->count() > 0) {
-            return $this->view($violations);
-        }
         try {
-            $member = $registerHandler->handle($registerRequest);
-        } catch (PinnacleException $ex) {
+            $member = new Customer();
+            $form = $this->createForm(MemberRegisterType::class, $member);
+        
+            $this->handleRequest($form, $request);
+
+            if ($this->isFormValid($form)) {
+                $result = $manager->handle($member);
+
+                return $this->view($result);
+            }
+        } catch (FormValidationException $exception) {
             return $this->view([
-                'success' => false,
-                'error' => 'Something went wrong, contact support',
+                'error' => true,
+                'errors' => $exception->getErrors(),
+                'status' => Response::HTTP_UNPROCESSABLE_ENTITY
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (CodeDoesNotExistsException $exception) {
+            return $this->view([
+                'error' => true,
+                'message' => 'Invalid Code. Please check the code and try again',
+                'status' => Response::HTTP_UNPROCESSABLE_ENTITY
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (PinnacleException $exception) {
+            return $this->view([
+                'error' => true,
+                'message' => 'Something went wrong, please contact support.',
+                'status' => Response::HTTP_INTERNAL_SERVER_ERROR
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-
-        return $this->view($member);
     }
 
     /**
@@ -444,6 +459,22 @@ class MemberController extends AbstractController
         $response = $manager->loginToEvolution($user->getMember(), $request);
 
         return new JsonResponse($response);
+    }
+
+    /**
+     * @ApiDoc(
+     *     section="Member",
+     *     description="Gets personal link of member",
+     *     views={"piwi"}
+     * )
+     */
+    public function getPersonalLinkAction(): JsonResponse
+    {
+        $user = $this->getUser();
+        
+        $response = $this->getMemberManager()->getPersonalLink($user->getMember());
+
+        return new JsonResponse($response, Response::HTTP_OK);
     }
 
     private function getMemberManager(): MemberManager

@@ -1425,4 +1425,56 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     {
         return $this->getDetail('referral_code', null);
     }
+
+    public function setPromoCode(string $key, ?string $value): void 
+    {
+        $promoCodes = $this->getDetail('promo_code');
+        $promoCodes[$key] = $value;
+
+        $this->setDetail('promo_code', $promoCodes);
+    }
+
+    public function getPromoCode(string $key): ?string
+    {
+        $codes = $this->getDetail('promo_code', ['custom' => null, 'refer_a_friend' => null]);
+
+        return $codes[$key];
+    }
+
+    public function getPersonalLink(): ?string
+    {
+        return $this->getDetail('personal_link_id', null);
+    }
+
+    public function setPersonalLink(): self
+    {
+        $this->setDetail('personal_link_id', 'piw' . $this->getId());
+
+        return $this;
+    }
+
+    public function removePersonalLink(): self
+    {
+        $this->setDetail('personal_link_id', null);
+
+        return $this;
+    }
+
+    public function getHasPersonalLinkEnabled(): bool
+    {
+        if ($this->getCountry() == 'FR' && $this->getCurrency()->getCode() == 'EUR' && $this->getIsCustomer()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function getHasReferrerLinkEnabled(): bool
+    {
+        if ($this->getPromoCode('refer_a_friend') === 'REFERAFRIEND') {
+            return true;
+        }
+
+        return false;
+    }
 }

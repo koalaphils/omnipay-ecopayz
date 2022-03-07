@@ -88,23 +88,29 @@ class AuditManager extends AbstractManager
         $auditRev = new AuditRevision();
         $adminAccount = $this->getUser();
 
-        if ((!$adminAccount instanceof User) && $this->isUnderTestEnvironment()) { // system is under test
-            $adminAccount = $this->getEntityManager()->getRepository(User::class)->findAdminByUsername('admin');
+        if ($adminAccount === null) {
+            //For Member creation
+            $adminAccount = $this->getEntityManager()->getRepository(User::class)->findAdminByUsername('system');
             $auditRev->setClientIp('127.0.0.1');
         } else {
-            $request = $this->getContainer()->get('request_stack')->getCurrentRequest();
-            if ($request instanceof Request) {
-                $headers = $request->headers->all();
-                if (isset($headers['x-forwarded-for']) && !empty($headers['x-forwarded-for'][0])) {
-                    $auditRev->setClientIp($headers['x-forwarded-for'][0]);
-                } else {
-                    $auditRev->setClientIp($request->getClientIp());
-                }
-            } else {
+            if ((!$adminAccount instanceof User) && $this->isUnderTestEnvironment()) { // system is under test
+                $adminAccount = $this->getEntityManager()->getRepository(User::class)->findAdminByUsername('admin');
                 $auditRev->setClientIp('127.0.0.1');
+            } else {
+                $request = $this->getContainer()->get('request_stack')->getCurrentRequest();
+                if ($request instanceof Request) {
+                    $headers = $request->headers->all();
+                    if (isset($headers['x-forwarded-for']) && !empty($headers['x-forwarded-for'][0])) {
+                        $auditRev->setClientIp($headers['x-forwarded-for'][0]);
+                    } else {
+                        $auditRev->setClientIp($request->getClientIp());
+                    }
+                } else {
+                    $auditRev->setClientIp('127.0.0.1');
+                }
             }
         }
-
+        
         $auditRev->setUser($adminAccount);
         $auditRev->setTimestamp(new \DateTime());
 

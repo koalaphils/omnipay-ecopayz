@@ -30,7 +30,31 @@ use ApiBundle\Event\TransactionCreatedEvent;
 use DbBundle\Entity\Transaction;
 use ProductIntegrationBundle\ProductIntegrationFactory;
 use ApiBundle\Service\JWTGeneratorService;
+use DbBundle\Entity\Currency;
+use DbBundle\Entity\User;
+use DbBundle\Entity\Customer;
 use Symfony\Component\HttpFoundation\Request;
+use UserBundle\Manager\UserManager;
+use DbBundle\Repository\CurrencyRepository;
+use AppBundle\Manager\SettingManager;
+use DbBundle\Entity\CustomerGroup;
+use DbBundle\Repository\CustomerGroupRepository;
+use AppBundle\Manager\MailerManager;
+use AppBundle\Helper\Publisher;
+use AppBundle\Manager\CountryManager;
+use DbBundle\Entity\Country;
+use DbBundle\Entity\MemberPromo;
+use DbBundle\Entity\Promo;
+use DbBundle\Entity\TwoFactorCode;
+use DbBundle\Repository\CountryRepository;
+use DbBundle\Repository\PromoRepository;
+use DbBundle\Repository\TwoFactorCodeRepository;
+use Doctrine\ORM\Query;
+use PinnacleBundle\Component\Exceptions\PinnacleException;
+use PromoBundle\Manager\PromoManager;
+use TwoFactorBundle\Provider\Message\CodeModel;
+use TwoFactorBundle\Provider\Message\Exceptions\CodeDoesNotExistsException;
+use TwoFactorBundle\Provider\Message\StorageInterface;
 
 class MemberManager extends AbstractManager
 {
@@ -334,6 +358,192 @@ class MemberManager extends AbstractManager
         }
     }
 
+    public function handle(Member $member): Member
+    {
+        $member = $this->createMember($member);
+        $this->getEntityManager()->beginTransaction();
+        try {   
+            $this->changeCodeAsUsed($member->getDetail('verification_code'));
+            $this->getEntityManager()->persist($member);
+            $this->getEntityManager()->flush($member);
+            $this->getEntityManager()->commit();
+
+            $enablePromo = false;
+            $referrerCode = $member->getDetail('referral_code');
+            preg_match('/^piw/', $referrerCode, $matchCode, PREG_OFFSET_CAPTURE);
+
+            if (!empty($matchCode)) {
+                $referrerId = substr($referrerCode, 3);
+                $member->setDetail('referrer_id', $referrerId);
+                $member->setPromoCode('refer_a_friend', Promo::PROMO_REFERAFRIEND);
+
+                $referrer = $this->getRepository()->findById($referrerId);
+                $promo = $this->getPromoRepository()->findByCode(['search' => Promo::PROMO_REFERAFRIEND], Query::HYDRATE_OBJECT);
+
+                $memberPromo = new MemberPromo();
+                $memberPromo->setReferrer($referrer);
+                $memberPromo->setPromo($promo);
+                $enablePromo = true;
+            }
+
+            $isQualified = (bool) $this->getPromoManager()->validatePersonalLinkConditions($member);
+
+            if ($isQualified) {
+                $member->setPersonalLink();
+                $this->save($member);
+            }
+
+            if ($enablePromo) {
+                $memberPromo->setMember($member);
+                $this->save($memberPromo);
+            }
+
+            $this->sendEmail($member, $enablePromo);
+
+            $this->getPublisher()->publishUsingWamp('member.registered', [
+                'message' => $member->getUser()->getUsername() . ' was registered',
+                'title' => 'New Member',
+                'otherDetails' => [
+                    'id' => $member->getId(),
+                    'type' => 'profile'
+                ]
+            ]);
+        } catch (\PDOException $ex) {
+            $this->getEntityManager()->rollback();
+            throw $ex;
+        }
+
+        return $member;
+    }
+
+    public function createMember(Customer $member): Member 
+    {
+        $now = new \DateTime('now');
+        $defaultMemberGroup = $this->getMemberGroupRepository()->getDefaultGroup();
+        $currency = $this->getCurrencyRepository()->findByCode($member->getCurrency());
+        $user = $member->getUser();
+
+        //Add to UserFormType if the registration for Vendor will be implemented
+        $user->setSignupType(User::SIGNUP_TYPE_EMAIL);
+        $user->setUsername($user->getEmail());
+        $user->setType(User::USER_TYPE_MEMBER);
+        $user->setRoles(['ROLE_MEMBER' => 2]);
+
+        $user->setActivationCode($this->getUserManager()->encodeActivationCode($user));
+        $user->setIsActive(true);
+        $user->setPassword($this->getUserManager()->encodePassword($user, $user->getPassword()));
+        $user->setActivationSentTimestamp($now);
+        $user->setActivationTimestamp($now);
+
+        $member->setCurrency($currency);
+        $member->setIsCustomer(true);
+        $member->setTransactionPassword();
+        $member->setLevel();
+        $member->setBalance(0);
+        $member->setJoinedAt($now);
+        $member->setFName('');
+        $member->setLName('');
+        $member->setFullName('');
+
+        try {
+            $this->createPiwiWalletProduct($member);
+            $this->createPinnacleProduct($member);
+        } catch(\Exception $ex) {
+            throw new PinnacleException();
+        }       
+       
+        $member->addGroup($defaultMemberGroup);
+        $member->setDetail('websocket', ['channel_id' => uniqid(generate_code(10, false, 'ld'))]);
+        $countryPhoneCode = $member->getDetail('country_phone_code');
+        
+        if ($countryPhoneCode !== '') {
+            $country = $this->getCountryManager()->getCountryByCallingCode($countryPhoneCode);
+            $member->setCountry($country);
+        }   
+
+        
+        return $member;
+    }
+
+    private function createPiwiWalletProduct(Member $member): void 
+    {
+        $memberProduct = new MemberProduct();
+        $product = $this->getProductRepository()->getProductByCode(Product::MEMBER_WALLET_CODE);
+        $memberProduct->setProduct($product);
+        $memberProduct->setUsername(Product::MEMBER_WALLET_CODE . '_' . uniqid());
+        $memberProduct->setBalance('0.00');
+        $memberProduct->setIsActive(true);
+        $member->addProduct($memberProduct);
+    }
+
+    private function createPinnacleProduct(Member $member): void 
+    {
+        $pinnacleProduct = $this->getPinnacleProduct();
+        $integration = $this->getProductIntegrationFactory()->getIntegration('pinbet');
+        $response = $integration->create();
+
+        $memberProduct = new MemberProduct();
+        $memberProduct->setProduct($pinnacleProduct);
+        $memberProduct->setUserName($response['user_code']);
+        $memberProduct->setBalance('0.00');
+        $memberProduct->setIsActive(true);
+        $member->setPinLoginId($response['login_id']);
+        $member->setPinUserCode($response['user_code']);  
+        $member->addProduct($memberProduct);
+    }
+
+    private function changeCodeAsUsed(string $code): void
+    {
+        $codeModel = $this->getTwoFactorCodeRepository()->getCode($code);
+
+        if ($codeModel->getStatus() === 2 && !$codeModel->isExpired()) {
+            $codeModel->setToUsed();
+            $this->getStorageInterface()->saveCode($codeModel);
+        } else {
+            throw new CodeDoesNotExistsException('Invalid code. Please check the code and try again.');
+        }
+    }
+
+    private function sendEmail(Member $member, bool $isReferAfriend = false): void
+    {
+        $email = $member->getUser()->getEmail();
+        $username = $member->getUSer()->getUsername();
+        $payload = [
+            'username' => $username,
+            'provider' => $email === '' ?  'phone' : 'email',
+            'phone' => $email === '' ?  $member->getPhoneNumber() : '',
+            'email' => $email !== '' ? $email : '',
+            'ip' => $member->getDetail('ip'),
+            'from' => $email === '' ?   $member->getPhoneNumber() : $email,
+        ];
+
+        if ($isReferAfriend) {
+            $this->getMailerManager()->send('Welcome to PIWI247: Refer a Friend Program', $email, 'welcome-email-refer-a-friend.html.twig', $payload);
+        } else {
+            $this->getMailerManager()->send('Welcome to PIWI247', $email, 'welcome-email-default.html.twig', $payload);
+        }
+
+        $subject = $this->getSettingManager()->getSetting('registration.mail.subject');
+        $to = $this->getSettingManager()->getSetting('registration.mail.to');
+
+        
+        $this->getMailerManager()->send($subject, $to, 'registered.html.twig', $payload);
+    }
+
+    private function getPinnacleProduct(): Product
+    {
+        $productCode = $this->getSettingManager()->getSetting('pinnacle.product');
+
+        return $this->getProductRepository()->getProductByCode($productCode);
+    }
+
+    public function getPersonalLink(Member $member): array
+    {
+        $link = $this->getPromoManager()->getPersonalLink($member);
+
+        return ['link' => $link];
+    }
+
     protected function getJWTGeneratorService(): JWTGeneratorService
     {
         return $this->get('jwt_generator');
@@ -344,9 +554,19 @@ class MemberManager extends AbstractManager
         return $this->getDoctrine()->getRepository(Member::class);
     }
 
+    private function getPromoRepository(): PromoRepository
+    {
+        return $this->getDoctrine()->getRepository(Promo::class);
+    }
+
     private function getProductRepository(): ProductRepository
     {
         return $this->getDoctrine()->getRepository(Product::class);
+    }
+
+    private function getCountryRepository(): CountryRepository
+    {
+        return $this->getDoctrine()->getRepository(Country::class);
     }
 
     private function getMemberProductRepository(): MemberProductRepository
@@ -364,6 +584,16 @@ class MemberManager extends AbstractManager
         return $this->get(ProductIntegrationFactory::class);
     }
 
+    private function getPublisher(): Publisher
+    {
+        return $this->get(Publisher::class);
+    }
+
+    private function getStorageInterface(): StorageInterface
+    {
+        return $this->get(StorageInterface::class);
+    }
+
     private function getMemberRunningCommissionRepository(): MemberRunningCommissionRepository
     {
         return $this->getDoctrine()->getRepository(MemberRunningCommission::class);
@@ -372,6 +602,21 @@ class MemberManager extends AbstractManager
     private function getCommissionPeriodRepository(): CommissionPeriodRepository
     {
         return $this->getDoctrine()->getRepository(CommissionPeriod::class);
+    }
+
+    private function getCurrencyRepository(): CurrencyRepository
+    {
+        return $this->getDoctrine()->getRepository(Currency::class);
+    }
+
+    private function getTwoFactorCodeRepository(): TwoFactorCodeRepository
+    {
+        return $this->getDoctrine()->getRepository(TwoFactorCode::class);
+    }
+
+    private function getMemberGroupRepository(): CustomerGroupRepository
+    {
+        return $this->getDoctrine()->getRepository(CustomerGroup::class);
     }
 
     private function getReferralToolGenerator(): ReferralToolGenerator
@@ -384,13 +629,39 @@ class MemberManager extends AbstractManager
         return $this->get('media.manager');
     }
 
+    private function getCountryManager(): CountryManager
+    {
+        return $this->get('country.manager');
+    }
+
     private function getMemberBundleManager(): MemberBundleManager
     {
         return $this->get('member.manager');
     }
 
+    private function getPromoManager(): PromoManager
+    {
+        return $this->get('promo.manager');
+    }
+
+
     private function getMemberRequestManager(): MemberRequestManager
     {
         return $this->get('member_request.manager');
+    }
+
+    private function getUserManager(): UserManager
+    {
+        return $this->get('user.manager');
+    }
+
+    private function getSettingManager(): SettingManager
+    {
+        return $this->get('app.setting_manager');
+    }
+
+    private function getMailerManager(): MailerManager
+    {
+        return $this->get('app.mailer_manager');
     }
 }

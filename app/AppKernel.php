@@ -58,6 +58,7 @@ class AppKernel extends Kernel
             new \Aws\Symfony\AwsBundle(),
             new MemberRequestBundle\MemberRequestBundle(),
             new ProductIntegrationBundle\ProductIntegrationBundle(),
+            new PromoBundle\PromoBundle()
         );
 
         if (in_array($this->getEnvironment(), array('dev', 'test'), true)) {

@@ -1,0 +1,53 @@
+DbBundle\Entity\Promo:
+    type: entity
+    table: promo
+    repositoryClass: DbBundle\Repository\PromoRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: AUTO
+            column: promo_id
+            options:
+                unsigned: true
+    fields:
+        code:
+            type: string
+            length: 50
+            unique: true
+            column: promo_code
+        name:
+            type: string
+            length: 255
+            unique: true
+            nullable: false
+            column: promo_name
+        status:
+            type: tinyint
+            column: promo_status
+            nullable: false
+            options:
+                default: 0
+        details:
+            type: json
+            column: promo_details
+        createdBy:
+            type: bigint
+            column: promo_created_by
+            options:
+                unsigned: true
+        createdAt:
+            type: datetime
+            column: promo_created_at
+        updatedBy:
+            type: bigint
+            nullable: true
+            column: promo_updated_by
+            options:
+                unsigned: true
+        updatedAt:
+            type: datetime
+            nullable: true
+            column: promo_updated_at
+    lifecycleCallbacks: {  }
