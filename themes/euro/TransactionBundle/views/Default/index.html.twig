@@ -226,8 +226,6 @@
                                     'filters': window.lodash.merge(report.filters, filter.filters)
                                 }
 
-                                console.log(query)
-
                                 window.open(report.exportUrl + '?' + $.param(query), '_blank');
                             });
                         }
