@@ -226,6 +226,11 @@
                                     'filters': window.lodash.merge(report.filters, filter.filters)
                                 }
 
+                                let statusFilter = $('select[name="status"]');
+                                if (statusFilter !== null) {
+                                    report.filters.status = statusFilter.val();
+                                }
+
                                 window.open(report.exportUrl + '?' + $.param(query), '_blank');
                             });
                         }
