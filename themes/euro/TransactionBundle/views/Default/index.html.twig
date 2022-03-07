@@ -223,12 +223,16 @@
                         'rendered': function (feature) {
                             $(feature.input).click(function() {
                                 var query = {
-                                    'filters': window.lodash.merge(report.filters, filter.filters)
+                                    'filters': report.filters
+                                }
+
+                                if (filter.filters.status) {
+                                    query.filters.status = filter.filters.status
                                 }
 
                                 let statusFilter = $('select[name="status"]');
-                                if (statusFilter !== null) {
-                                    report.filters.status = statusFilter.val();
+                                if (statusFilter !== null && statusFilter.val()) {
+                                    query.filters.status = statusFilter.val();
                                 }
 
                                 window.open(report.exportUrl + '?' + $.param(query), '_blank');
