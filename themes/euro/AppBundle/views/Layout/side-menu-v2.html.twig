@@ -76,7 +76,7 @@
                     <ul class="list-unstyled">
                         {% if is_granted('ROLE_TRANSACTION_VIEW') %}
                         <li><a href="{{ path("transaction.list_page", {'filter': 'pending'}) }}">Pending</a></li>
-                        <li><a href="{{ path("transaction.list_page") }}">Transaction History</a></li>
+                        <li><a href="{{ path("transaction.list_page", {'filter': 'processed'}) }}">Transaction History</a></li>
                         {% endif %}
                         {% if is_granted('ROLE_GATEWAY_TRANSACTION_VIEW') %}
                         <li><a href="{{ path("gateway_transaction.list_page") }}">Payment Gateway Transaction</a></li>

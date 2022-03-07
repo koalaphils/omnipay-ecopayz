@@ -150,6 +150,7 @@
                 statusChoices[i] = nonPendingStatuses[i].label;
             }
         }
+
         $(function(){
             var listTable = new ZTable('#transactionList',  {
                 'colvis': {
@@ -177,6 +178,11 @@
                     'data': function (data, dataTable) {
                         data.isDataTableTransaction = true;
                         report.filters = window.lodash.merge(data.filters, filter.filters);
+
+                        let statusFilter = $('select[name="status"]');
+                        if (statusFilter !== null) {
+                            report.filters.status = statusFilter.val();
+                        }
 
                         return data;
                     },
@@ -219,6 +225,16 @@
                                 var query = {
                                     'filters': report.filters
                                 }
+
+                                if (filter.filters.status) {
+                                    query.filters.status = filter.filters.status
+                                }
+
+                                let statusFilter = $('select[name="status"]');
+                                if (statusFilter !== null && statusFilter.val()) {
+                                    query.filters.status = statusFilter.val();
+                                }
+
                                 window.open(report.exportUrl + '?' + $.param(query), '_blank');
                             });
                         }
@@ -565,14 +581,21 @@
                         'defaultContent': '',
                         'name': 'payment_option',
                         'render': function (immutable_payment_option_data, type, full) {
+                            const transaction_type_transfer = {{ constant("DbBundle\\Entity\\Transaction::TRANSACTION_TYPE_TRANSFER") }};
+                            const transaction_type_bonus = {{ constant("DbBundle\\Entity\\Transaction::TRANSACTION_TYPE_BONUS") }};
                             let paymentOptionLabel = '';
-                            let paymentOptionCode = full.payment_option ?? full.details?.paymentOptionOnTransaction?.code ?? full.details?.paymentOption?.code;
-                            let paymentOption = full.details?.paymentOptionOnTransaction ?? full.details?.paymentOption;
-                            if (paymentOptionCode === 'BITCOIN') {
-                                paymentOptionLabel = paymentOptionCode + ' (' + ( paymentOption?.account_id ?? paymentOption?.accountId ?? 'N/A' ) + ')';
+                            if (transaction_type_transfer == full.type || transaction_type_bonus == full.type) {
+                                paymentOptionLabel = 'N/A'
                             } else {
-                                paymentOptionLabel = paymentOptionCode + ' (' + ( paymentOption?.email ?? 'N/A' ) + ')';
+                                let paymentOptionCode = full.payment_option ?? full.details?.paymentOptionOnTransaction?.code ?? full.details?.paymentOption?.code;
+                                let paymentOption = full.details?.paymentOptionOnTransaction ?? full.details?.paymentOption;
+                                if (paymentOptionCode === 'BITCOIN') {
+                                    paymentOptionLabel = paymentOptionCode + ' (' + ( paymentOption?.account_id ?? paymentOption?.accountId ?? 'N/A' ) + ')';
+                                } else {
+                                    paymentOptionLabel = paymentOptionCode + ' (' + ( paymentOption?.email ?? 'N/A' ) + ')';
+                                }
                             }
+
 
                             return paymentOptionLabel;
                         }

@@ -139,7 +139,6 @@ class TransactionManager extends TransactionOldManager
         $products = [];
         if (isset($filters['product']) && !empty($filters['product'])) {
             $products = $this->getDoctrine()->getRepository(\DbBundle\Entity\Product::class)->getProductByIds($filters['product']);
-
         }
 
         $query = $this->getTransactionsForExportQuery($request);
