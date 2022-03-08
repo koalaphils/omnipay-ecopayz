@@ -50,6 +50,7 @@ class AuditRevisionLog extends Entity
     const CATEGORY_RUNNING_REVENUE_SHARE = 36;
     const CATEGORY_CUSTOMER_TRANSACTION_REVENUE_SHARE = 37;
     const CATEGORY_MEMBER_REQUEST_KYC = 39;
+    const CATEGORY_MEMBER_PROMO = 40;
 
     private $details;
 
@@ -259,6 +260,9 @@ class AuditRevisionLog extends Entity
             case self::CATEGORY_CUSTOMER_TRANSACTION_REVENUE_SHARE:
                 $key = 'cRevenueShare';
                 break;
+            case self::CATEGORY_MEMBER_PROMO:
+                $key = 'memberPromo';
+                break;    
         }
 
         return $key;

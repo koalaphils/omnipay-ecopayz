@@ -178,6 +178,34 @@ class TransactionType extends AbstractType
             ]
         ]);
 
+        if ($options['data']->getTypeText() == 'bonus') {
+            $builder->add('promo', CType\Select2Type::class, [
+                'label' => 'fields.promo',
+                'required' => true,
+                'attr' => [
+                    'data-autostart' => 'true',
+                    'data-ajax--url' => $this->router->generate('promo.list_search'),
+                    'data-ajax--type' => 'POST',
+                    'data-minimum-input-length' => 0,
+                    'data-length' => 10,
+                    'data-ajax--cache' => 1,
+                    'data-minimum-results-for-search' => 'Infinity',
+                    'data-use-template-result' => 'promoTemplateResult',
+                    'data-use-template-selection' => 'promoTemplateSelection',
+                ],
+                'placeholder' => 'Select Promo Code',
+                'translation_domain' => 'TransactionBundle',
+                'mapped' => array_get(array_get($builder->getOption('unmap'), 'referrals', ['promo' => true]), 'promo', true),
+            ]);
+
+            $builder->add('referralsTransaction', Type\TextType::class, [
+                'label' => 'fields.referralsTransaction',
+                'translation_domain' => 'TransactionBundle',
+                'required' => false,
+                'property_path' => 'details[referrals][transaction]',
+            ]);
+        }
+
         $this->showVoidOrDeclineReason($builder);
         $this->showReceiverForBitcoin($builder);
         $this->showAdjustmentType($builder);
@@ -233,6 +261,23 @@ class TransactionType extends AbstractType
                 return $customerEntity;
             }
         ));
+
+        if ($options['data']->getTypeText() == 'bonus') {
+            $builder->get('promo')->addViewTransformer(new CallbackTransformer(
+                function ($promo) {
+                    if ($promo) {
+                        $entity = $this->getPromoRepository()->findById($promo);
+
+                        return [$entity];
+                    }
+
+                    return $promo;
+                },
+                function ($promo) {
+                    return $promo;
+                }
+            ));
+        }
 
         if ($options['isCommission'] === false && $options['isRevenueShare'] === false && $options['hasAdjustment'] === false) {
             $builder->get('gateway')->addModelTransformer(new CallbackTransformer(
@@ -327,6 +372,7 @@ class TransactionType extends AbstractType
             'isCommission' => false,
             'isRevenueShare' => false,
             'hasAdjustment' => false,
+            'isBonus' => false,
         ]);
     }
 
@@ -530,5 +576,10 @@ class TransactionType extends AbstractType
                 ]);
             }
         });
+    }
+
+    public function getPromoRepository()
+    {
+        return $this->doctrine->getRepository('DbBundle:Promo');
     }
 }

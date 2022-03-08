@@ -278,7 +278,7 @@ class TransactionOldManager extends AbstractManager
             // zimi#006b4669            
             $this->getRepository()->save($cus);
         }
-        
+
         if ($transaction->isDeposit() || $transaction->isWithdrawal() || $transaction->isBonus()) {
             if ($transaction->getGateway()) {
                 $this->processPaymentGatewayBalance($transaction);

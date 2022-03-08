@@ -140,7 +140,7 @@ class PageManager
 
             array_set($this->data, $name, call_user_func_array($callback, $arguments));
         }
-
+        
         return array_get($this->data, $name, null);
     }
 

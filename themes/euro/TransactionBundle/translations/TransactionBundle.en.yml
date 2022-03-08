@@ -52,6 +52,8 @@ fields:
     depositRate: Deposit Rate
     depositRequestRate: Deposit Request Rate
     senderAddress: Sender
+    promo: Promo
+    referralsTransaction: Referrals Transaction Number
 
 menus:
     Transaction: Transaction

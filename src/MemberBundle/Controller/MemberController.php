@@ -31,6 +31,7 @@ use MemberBundle\Manager\MemberCommissionManager;
 use MemberBundle\Manager\MemberRevenueShareManager;
 use MemberBundle\Manager\MemberWebsiteManager;
 use GuzzleHttp\Exception\GuzzleException;
+use PromoBundle\Manager\PromoManager;
 
 class MemberController extends PageController
 {
@@ -484,6 +485,22 @@ class MemberController extends PageController
         return new JsonResponse(['name' => $customer->getFName(), 'email' => $customer->getUser()->getEmail()], JsonResponse::HTTP_OK);
     }   
 
+    public function updateGeneratePersonalLink(PageManager $pageManager, array $data): JsonResponse
+    {
+        $member = $pageManager->getData('customer');
+        $link = '';
+
+        if ($member->getCountry()) {
+            if (!$member->getPersonalLink()) {
+                $this->getPromoManager()->createPersonalLinkId($member);
+            }
+
+            $link = $this->getPromoManager()->getPersonalLink($member);
+        }
+
+        return new JsonResponse(['link' => $link], Response::HTTP_OK);
+    }
+
     private function getCustomerRepository(): CustomerRepository
     {
         return $this->getRepository(Customer::class);
@@ -537,6 +554,11 @@ class MemberController extends PageController
     private function getMediaManager(): MediaManager
     {
         return $this->get('media.manager');
+    }
+
+    private function getPromoManager(): PromoManager
+    {
+        return $this->get('promo.manager');
     }
 
     private function getMemberWebsiteManager(): MemberWebsiteManager

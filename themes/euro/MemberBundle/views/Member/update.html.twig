@@ -182,6 +182,13 @@
                         </div>
                     </div>
                 </div>
+                <div class="tab-pane" id="promotions">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="col-md-12">{{ widget_render(widgets.memberPromo) }}</div>
+                        </div>
+                    </div>
+                </div>
         </div>
     </div>
 {% endblock %}
@@ -421,13 +428,20 @@
 
         function getTransactionPaymentOptions(data, type, full)
         {
+            const transaction_type_transfer = {{ constant("DbBundle\\Entity\\Transaction::TRANSACTION_TYPE_TRANSFER") }};
+            const transaction_type_bonus = {{ constant("DbBundle\\Entity\\Transaction::TRANSACTION_TYPE_BONUS") }};
             var paymentOptionLabel = full.payment_option;
-            if (full.payment_option === 'SKRILL' || full.payment_option === 'NETELLER') {
-                paymentOptionLabel = full.payment_option + ' (' + full.details.paymentOptionOnTransaction.email + ')';
-            }
 
-            if (full.payment_option === 'BITCOIN') {
-                paymentOptionLabel = full.payment_option + ' (' + full.details.paymentOptionOnTransaction.account_id + ')';
+            if (transaction_type_transfer == full.type || transaction_type_bonus == full.type) {
+                paymentOptionLabel = 'N/A'
+            } else {
+                if (full.payment_option === 'SKRILL' || full.payment_option === 'NETELLER') {
+                    paymentOptionLabel = full.payment_option + ' (' + full.details.paymentOptionOnTransaction.email + ')';
+                }
+
+                if (full.payment_option === 'BITCOIN') {
+                    paymentOptionLabel = full.payment_option + ' (' + full.details.paymentOptionOnTransaction.account_id + ')';
+                }
             }
 
             return paymentOptionLabel;

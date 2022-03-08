@@ -1511,4 +1511,36 @@ class Transaction extends Entity implements ActionInterface, TimestampInterface,
 	{
 		return in_array($this->getType(), [self::TRANSACTION_TYPE_WITHDRAW, self::TRANSACTION_TYPE_DEPOSIT]);
 	}
+
+    public function getPromo()
+    {
+        return $this->getDetail('referrals.promo');
+    }
+
+    public function setPromo($promo = null)
+    {
+        $this->setDetail('referrals.promo', $promo);
+
+        return $this;
+    }
+
+    public function setPromoCode($code = null)
+    {
+        $this->setDetail('referrals.promoCode', $code);
+
+        return $this;
+    }
+
+    public function getReferralsTransaction()
+    {
+        return $this->getDetail('referrals.transaction');
+    }
+
+    public function setReferralsTransaction($referralsTransaction = null)
+    {
+        $this->setDetail('referrals.transaction', $referralsTransaction);
+
+        return $this;
+    }
+
 }

@@ -203,7 +203,7 @@ class RegisterHandler
         if ($registerRequest->getCountryPhoneCode() !== '') {
             $country = $this->countryManager->getCountryByCallingCode($registerRequest->getCountryPhoneCode());
             $member->setCountry($country);
-        }
+        }   
 
         return $member;
     }
