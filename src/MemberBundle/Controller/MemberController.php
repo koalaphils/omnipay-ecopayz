@@ -44,7 +44,6 @@ class MemberController extends PageController
     {
         $processedResult = $result;
         $countries = $this->get('country.manager')->getCountries();
-        dump($processedResult);
         foreach ($processedResult['records'] as &$record) {
             $countryName = "Country Code Not Valid {$record['country']}";
             if ($record['country'] === null) {
