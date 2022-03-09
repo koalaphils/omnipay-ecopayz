@@ -44,23 +44,24 @@ class MemberController extends PageController
     {
         $processedResult = $result;
         $countries = $this->get('country.manager')->getCountries();
+        dump($processedResult);
         foreach ($processedResult['records'] as &$record) {
-            $countryName = "Country Code Not Valid {$record[0]['country']}";
-            if ($record[0]['country'] === null) {
+            $countryName = "Country Code Not Valid {$record['country']}";
+            if ($record['country'] === null) {
                 $countryName = 'Unknown';
             }
 
-            if (isset($countries[$record[0]['country']]['name'])) {
-                $countryName = $countries[$record[0]['country']]['name'];
+            if (isset($countries[$record['country']]['name'])) {
+                $countryName = $countries[$record['country']]['name'];
             }
 
-            $record[0]['countryName'] = $countryName;
+            $record['countryName'] = $countryName;
 
             $record = [
-                'customer' => $record[0],
-                'referralCount' => $record['referralCount'],
+                'customer' => $record,
+//                'referralCount' => $record['referralCount'],
                 'routes' => [
-                    'update' => $this->getRouter()->generate('member.update_page', ['id' => $record[0]['id']]),
+                    'update' => $this->getRouter()->generate('member.update_page', ['id' => $record['id']]),
                 ],
             ];
         }
