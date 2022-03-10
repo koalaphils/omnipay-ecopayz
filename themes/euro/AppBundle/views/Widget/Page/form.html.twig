@@ -138,7 +138,6 @@
                         var errors = xhr.responseJSON.errors;
                         for (var index in errors) {
                             var error = errors[index];
-                            console.log(error.formId);
                             $('#' + error.formId)
                                 .closest('.form-group').addClass('has-error')
                                 .find('.help-block ul')
