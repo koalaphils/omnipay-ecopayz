@@ -242,9 +242,9 @@ class CustomerRepository extends BaseRepository
             ->groupBy('c.id')
         ;
 
-        if (array_get($filters, 'withReferralCount', 1)) {
-            $qb->addSelect("(SELECT COUNT(ref.id) FROM " . \DbBundle\Entity\Customer::class . " ref WHERE ref.affiliate = c.id) referralCount");
-        }
+//        if (array_get($filters, 'withReferralCount', 1)) {
+//            $qb->addSelect("(SELECT COUNT(ref.id) FROM " . \DbBundle\Entity\Customer::class . " ref WHERE ref.affiliate = c.id) referralCount");
+//        }
 
         if (!empty($orders)) {
             foreach ($orders as $order) {

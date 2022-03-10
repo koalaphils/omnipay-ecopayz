@@ -66,11 +66,13 @@ widgets:
                 password:
                     options:
                         label: Password
+                        required: true
                     type: password
                     group: Left
                 confirmPassword:
                     options:
                         label: Confirm Password
+                        required: true
                     type: password
                     group: Left
                 status:
@@ -122,6 +124,7 @@ widgets:
                 currency:
                     options:
                         label: Currency
+                        required: true
                     type: choices
                     group: Right
                     size: 12
@@ -135,6 +138,7 @@ widgets:
                         label: Date Joined
                         widget: 'single_text'
                         format: 'M/dd/yyyy h:mm:ss a'
+                        required: true
                     type: datetime
                     group: Right
                     size: 12
@@ -142,6 +146,7 @@ widgets:
                     options:
                         label: Groups
                         multiple: true
+                        required: true
                     type: choices
                     group: Right
                     size: 12
@@ -155,6 +160,7 @@ widgets:
                 userType:
                     options:
                         label: Type
+                        required: true
                     type: choices
                     group: Right
                     size: 12
