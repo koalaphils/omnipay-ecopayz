@@ -97,6 +97,8 @@ MemberBundle\Request\CreateMemberRequest:
             - Count:
                 min: 1
                 minMessage: Customer must have at least one group.
+        userType:
+            - NotBlank: ~        
 MemberBundle\Request\UpdateProfileRequest:
     constraints:
         - AppBundle\Validator\Constraints\Unique:

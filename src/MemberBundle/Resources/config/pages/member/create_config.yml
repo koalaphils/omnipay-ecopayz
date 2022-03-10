@@ -124,7 +124,6 @@ widgets:
                 currency:
                     options:
                         label: Currency
-                        required: true
                     type: choices
                     group: Right
                     size: 12
@@ -146,7 +145,7 @@ widgets:
                     options:
                         label: Groups
                         multiple: true
-                        required: true
+                        required: false
                     type: choices
                     group: Right
                     size: 12
@@ -160,7 +159,6 @@ widgets:
                 userType:
                     options:
                         label: Type
-                        required: true
                     type: choices
                     group: Right
                     size: 12

@@ -133,16 +133,19 @@
                 },
                 'statusCode': {
                     422: function (xhr, textStatus, errorThrown) {
+                        $('#{{ form.vars.id }}').find(":submit").removeAttr("disabled");
                         $(this).data('global-ajax-error', false);
                         var errors = xhr.responseJSON.errors;
                         for (var index in errors) {
                             var error = errors[index];
+                            console.log(error.formId);
                             $('#' + error.formId)
                                 .closest('.form-group').addClass('has-error')
                                 .find('.help-block ul')
                                 .append('<li>' + error.message + '</li>');
                         }
-
+                    },
+                    500: function (xhr, textStatus, errorThrown) {
                         $('#{{ form.vars.id }}').find(":submit").removeAttr("disabled");
                     }
                 },
@@ -160,10 +163,10 @@
                         }
                     }
                     {% else %}
-                        function () {
+                        {{ properties.success }}
+                        function (data) {
                             $('#{{ form.vars.id }}').find(":submit").removeAttr("disabled");
                         }
-                        {{ properties.success }}
                     {% endif %}
             });
         }
