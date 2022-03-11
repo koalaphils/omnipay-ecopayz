@@ -45,7 +45,11 @@ class Scheduler implements JobScheduler
             return time() - $lastRunAt->getTimestamp() >= 86400;
         }
 
-        if ($commandName === 'revenueshare:period:compute' || $commandName === 'two-factor:code:cleanup') {
+        if ($commandName === 'revenueshare:period:compute') {
+            return time() - $lastRunAt->getTimestamp() >= 86400;
+        }
+
+        if ( $commandName === 'two-factor:code:cleanup') {
             return time() - $lastRunAt->getTimestamp() >= 86400;
         }
 
