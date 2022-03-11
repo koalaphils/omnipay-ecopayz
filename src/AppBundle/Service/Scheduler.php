@@ -37,11 +37,11 @@ class Scheduler implements JobScheduler
             return time() - $lastRunAt->getTimestamp() >= 86400;
         }
 
-        if ($commandName === 'transaction:decline') {
-            return time() - $lastRunAt->getTimestamp() >= 60;
+        if ($commandName === 'revenueshare:period:winloss') {
+            return time() - $lastRunAt->getTimestamp() >= 86400;
         }
 
-        if ($commandName === 'revenueshare:period:winloss') {
+        if ($commandName === 'revenueshare:period:compute') {
             return time() - $lastRunAt->getTimestamp() >= 86400;
         }
 
