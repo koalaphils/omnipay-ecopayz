@@ -84,7 +84,7 @@ widgets:
                 fullName:
                     options:
                         label: Full Name
-                        required: false
+                        required: true
                     type: text
                     group: Left
                     size: 12

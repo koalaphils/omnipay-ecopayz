@@ -63,16 +63,16 @@ MemberBundle\Request\CreateMemberRequest:
             - Expression:
                 expression: this.isConfirmPasswordCorrect()
                 message: Confirm password must be equal to Password
-        # fullName:            
-        #     - Length:
-        #         min: 1
-        #         minMessage: customer.fullName.min
-        #         max: 100
-        #         maxMessage: customer.fullName.max
-        #     - Regex:
-        #         pattern: '/^[A-Za-z0-9\s\P{Han}]*$/u'
-        #         match: true
-        #         message: customer.fullName.regex
+        fullName:            
+            - Length:
+                min: 2
+                minMessage: customer.fullName.min
+                max: 100
+                maxMessage: customer.fullName.max
+            - Regex:
+                pattern: '/^[A-Za-z0-9\s\P{Han}]*$/u'
+                match: true
+                message: customer.fullName.regex
         birthDate:
             - Date: ~
             - GreaterThanOrEqual:
