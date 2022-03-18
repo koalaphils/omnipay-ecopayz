@@ -59,7 +59,13 @@ class EvolutionIntegration implements ProductIntegrationInterface
 		        throw new CreditIntegrationException($object->transfer->errormsg, 422);
 	        }
 
-            return $object->transfer->balance;
+            $balance = $object->transfer->balance;
+
+            if ($balance === null) {
+                throw new CreditIntegrationException('An error occurred while sending funds to Casino.', 422);
+            }
+
+            return $balance;
         } catch (Exception $exception) {
             throw new CreditIntegrationException($exception->getMessage(), $exception->getCode(), $exception);
         }
@@ -81,7 +87,14 @@ class EvolutionIntegration implements ProductIntegrationInterface
                 
                 throw new DebitIntegrationException($message, 422);
             }
-            return $object->transfer->balance;
+            
+            $balance = $object->transfer->balance;
+
+            if ($balance === null) {
+                throw new DebitIntegrationException('An error occurred while getting funds from Casino.', 422);
+            }
+
+            return $balance;
         } catch (Exception $exception) {
             throw new DebitIntegrationException($exception->getMessage(), $exception->getCode(), $exception);
         }
