@@ -20,14 +20,13 @@ class CurrencyRepository extends BaseRepository
     public function getCurrencyListQb($filters)
     {
         $qb = $this->createQueryBuilder('c');
-
         if (isset($filters['search'])) {
-//            $qb->andWhere($qb->expr()->orX()->addMultiple([
-//                'c.name LIKE :search',
-//                'c.code LIKE :search',
-//            ]))->setParameter('search', '%' . $filters['search'] . '%');
+            $qb->andWhere($qb->expr()->orX()->addMultiple([
+                'c.name LIKE :search',
+                'c.code LIKE :search',
+            ]))->setParameter('search', '%' . $filters['search'] . '%');
         }
-
+        $qb->andWhere("c.code NOT IN ('GBP')");
         if (array_has($filters, 'currencyNames')) {
             $currencyNames = array_get($filters, 'currencyNames');
             if (!is_array($currencyNames)) {
@@ -62,7 +61,6 @@ class CurrencyRepository extends BaseRepository
         $qb = $this->getCurrencyListQb($filters);
         $qb->leftJoin('c.updater', 'updater');
         $qb->select('PARTIAL c.{id, name, code, rate, updatedAt, createdAt}, PARTIAL updater.{id, username}');
-        $qb->where("c.code = 'EUR'");
 
         if (!empty($orders)) {
             foreach ($orders as $order) {
