@@ -22,10 +22,10 @@ class CurrencyRepository extends BaseRepository
         $qb = $this->createQueryBuilder('c');
 
         if (isset($filters['search'])) {
-            $qb->andWhere($qb->expr()->orX()->addMultiple([
-                'c.name LIKE :search',
-                'c.code LIKE :search',
-            ]))->setParameter('search', '%' . $filters['search'] . '%');
+//            $qb->andWhere($qb->expr()->orX()->addMultiple([
+//                'c.name LIKE :search',
+//                'c.code LIKE :search',
+//            ]))->setParameter('search', '%' . $filters['search'] . '%');
         }
 
         if (array_has($filters, 'currencyNames')) {
