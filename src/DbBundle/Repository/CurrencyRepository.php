@@ -62,6 +62,7 @@ class CurrencyRepository extends BaseRepository
         $qb = $this->getCurrencyListQb($filters);
         $qb->leftJoin('c.updater', 'updater');
         $qb->select('PARTIAL c.{id, name, code, rate, updatedAt, createdAt}, PARTIAL updater.{id, username}');
+        $qb->where("c.code = 'EUR'");
 
         if (!empty($orders)) {
             foreach ($orders as $order) {
