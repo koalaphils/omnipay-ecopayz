@@ -26,7 +26,7 @@ class CurrencyRepository extends BaseRepository
                 'c.code LIKE :search',
             ]))->setParameter('search', '%' . $filters['search'] . '%');
         }
-        $qb->andWhere("c.code NOT IN ('GBP')");
+        $qb->andWhere("c.code NOT IN ('GBP', 'BTC')");
         if (array_has($filters, 'currencyNames')) {
             $currencyNames = array_get($filters, 'currencyNames');
             if (!is_array($currencyNames)) {
