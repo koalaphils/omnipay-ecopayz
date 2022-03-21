@@ -33,9 +33,7 @@ class DefaultController extends AbstractController
     {
         $this->denyAccessUnlessGranted(['ROLE_CURRENCY_VIEW']);
         $filters = $request->request->all();
-        dump($filters);
         $results = $this->getManager()->getCurrencyList($filters);
-        dump($results);
 
         return new JsonResponse($results, JsonResponse::HTTP_OK);
     }
