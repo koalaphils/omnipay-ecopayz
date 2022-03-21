@@ -29,3 +29,5 @@ ApiBundle\Request\Transaction\WithdrawRequest:
       - Email:
           message: "Invalid Email"
           groups: [withEmail]
+      - ApiBundle\Validator\VerifiedMemberAccountConstraint:
+          groups: [withEmail]
