@@ -19,7 +19,7 @@ class VerifiedMemberAccountConstraintValidator extends ConstraintValidator
     public function validate($value, Constraint $constraint)
     {   
         $member = $this->getUser()->getMember();
-        dump($member);
+  
         if ($member == null) {
             return;            
         }
