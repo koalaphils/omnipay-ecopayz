@@ -6,5 +6,16 @@ use Symfony\Component\Validator\Constraint;
 
 class VerifiedMemberAccountConstraint extends Constraint
 {
-    public $message = 'Member Account is not yet verified.';
+    protected $accountValidationMessage = 'Member Account is not yet verified.';
+
+    
+	public function getTargets()
+	{
+		return self::CLASS_CONSTRAINT;
+	}
+
+    public function getAccountValidationMessage(): string
+	{
+		return $this->accountValidationMessage;
+	}
 }

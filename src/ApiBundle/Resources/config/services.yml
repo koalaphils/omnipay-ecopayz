@@ -204,7 +204,7 @@ services:
             - { name: validator.constraint_validator }
 
     api.verified_member_account.validator:
-        class: ApiBundle\Validator\VerifiedMemberAccountValidator
+        class: ApiBundle\Validator\VerifiedMemberAccountConstraintValidator
         arguments:
             - '@security.token_storage'
         tags:

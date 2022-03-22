@@ -1,6 +1,7 @@
 ApiBundle\Request\Transaction\WithdrawRequest:
   constraints:
     - ApiBundle\Validator\UniqueCustomerPaymentOptionEmailConstraint: { groups: [withEmail] }
+    - ApiBundle\Validator\VerifiedMemberAccountConstraint: {}
   group_sequence_provider: true
   getters:
     verificationCode:
@@ -28,6 +29,4 @@ ApiBundle\Request\Transaction\WithdrawRequest:
           groups: [withEmail]
       - Email:
           message: "Invalid Email"
-          groups: [withEmail]
-      - ApiBundle\Validator\VerifiedMemberAccountConstraint:
           groups: [withEmail]
