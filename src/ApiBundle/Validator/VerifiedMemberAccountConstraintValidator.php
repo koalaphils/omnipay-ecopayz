@@ -6,7 +6,6 @@ use DbBundle\Entity\User;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
-use ApiBundle\Request\Transaction\WithdrawRequest;
 
 class VerifiedMemberAccountConstraintValidator extends ConstraintValidator
 {
@@ -17,11 +16,7 @@ class VerifiedMemberAccountConstraintValidator extends ConstraintValidator
         $this->tokenStorage = $tokenStorage;
     }
 
-	/**
-	 * @param WithdrawRequest $transactionModel
-	 * @param Constraint $constraint
-	 */
-	public function validate($transactionModel, Constraint $constraint)
+	public function validate($value, Constraint $constraint)
 	{
         $member = $this->getUser()->getMember();
 
