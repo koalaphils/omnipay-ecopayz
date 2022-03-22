@@ -16,8 +16,8 @@ class VerifiedMemberAccountConstraintValidator extends ConstraintValidator
         $this->tokenStorage = $tokenStorage;
     }
 
-	public function validate($value, Constraint $constraint)
-	{
+    public function validate($value, Constraint $constraint)
+    {
         $member = $this->getUser()->getMember();
 
         if ($member == null) {
