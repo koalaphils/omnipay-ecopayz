@@ -299,7 +299,7 @@ class MemberController extends PageController
         $records = array_map(function ($affiliate) {
             return [
                 'id' => $affiliate['user_id'],
-                'text' => $affiliate['name'],
+                'text' => $affiliate['name'] . ' (' . $affiliate['username'] . ')',
             ];
         }, $affiliates['data']);
 
