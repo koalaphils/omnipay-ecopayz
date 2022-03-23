@@ -20,14 +20,13 @@ class CurrencyRepository extends BaseRepository
     public function getCurrencyListQb($filters)
     {
         $qb = $this->createQueryBuilder('c');
-
         if (isset($filters['search'])) {
             $qb->andWhere($qb->expr()->orX()->addMultiple([
                 'c.name LIKE :search',
                 'c.code LIKE :search',
             ]))->setParameter('search', '%' . $filters['search'] . '%');
         }
-
+        $qb->andWhere("c.code NOT IN ('GBP', 'BTC')");
         if (array_has($filters, 'currencyNames')) {
             $currencyNames = array_get($filters, 'currencyNames');
             if (!is_array($currencyNames)) {

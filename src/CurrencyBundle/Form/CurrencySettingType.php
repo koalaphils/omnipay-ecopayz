@@ -8,6 +8,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type;
 use Symfony\Bridge\Doctrine\Form\Type as EType;
+use Doctrine\ORM\EntityRepository;
 
 /**
  * Description of CurrencySettingType.
@@ -32,6 +33,10 @@ class CurrencySettingType extends AbstractType
             'class' => 'DbBundle:Currency',
             'choice_label' => 'name',
             'label' => 'settings.fields.baseCurrency',
+            'query_builder' => function (EntityRepository $er) {
+                return $er->createQueryBuilder('c')
+                    ->where("c.code = 'EUR'");
+            },
             'translation_domain' => 'CurrencyBundle',
             'required' => true,
         ])->add('save', Type\SubmitType::class, [
