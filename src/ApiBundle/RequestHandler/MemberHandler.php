@@ -133,7 +133,7 @@ class MemberHandler
                 'pinnacle_balance' => '',
                 'product_balance' => '',
                 'outstanding' => '',
-                'is_verified' => $member->isVerified()
+                'is_verified' => false
             ];
         }
     }
