@@ -2,9 +2,10 @@
 
 namespace MemberBundle\RequestHandler;
 
-
+use DbBundle\Entity\MemberTag;
 use MemberBundle\Manager\MemberManager;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Doctrine\Common\Collections\ArrayCollection;
 
 use AppBundle\Service\AffiliateService;
 use AppBundle\Event\GenericEntityEvent;
@@ -83,6 +84,15 @@ class UpdateProfileRequestHandler
         }
 
         $this->processAffiliate($request, $customer);
+
+        $memberTags = [];
+        if ($request->getMemberTags()){
+            foreach ($request->getMemberTags() as $memberTag) {
+                $memberTags[] = $this->entityManager->getPartialReference(MemberTag::class, $memberTag);
+            }
+        }
+        $originalTags = $customer->getMemberTags()->toArray();
+        $customer->setMemberTags(new ArrayCollection($memberTags));
         
         $this->entityManager->persist($customer->getUser());
         $this->entityManager->flush($customer->getUser());

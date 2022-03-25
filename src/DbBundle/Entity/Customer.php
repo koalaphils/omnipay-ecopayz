@@ -29,148 +29,42 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     public const DETAIL_BITCOIN_ADDRESS = 'bitcoin.address';
     public const DETAIL_BITCOIN_CALLBACK = 'bitcoin.callback';
     public const DETAIL_BITCOIN_XPUB = 'bitcoin.xpub';
-
-    /**
-     * @var string
-     */
     protected $fName;
-
-    /**
-     * @var string
-     */
     protected $mName;
-
-    /**
-     * @var string
-     */
     protected $lName;
-
     private $fullName;
-
-    /**
-     * @var date
-     */
     protected $birthDate = null;
-
-    /**
-     * @var decimal
-     */
     protected $balance;
-
-    /**
-     * @var \DbBundle\Entity\User
-     */
     protected $user;
-
-    /**
-     * @var json
-     */
     protected $socials;
-
-    /**
-     * @var string
-     */
     protected $transactionPassword;
-
-    /**
-     * @var int
-     */
     protected $level;
-
-    /**
-     * @var \DateTime
-     */
     protected $verifiedAt;
-
-    /**
-     * @var array
-     */
     protected $details;
-
-    /**
-     * @var \DateTime
-     */
     protected $joinedAt;
-
-    /**
-     * @var array
-     */
     protected $files;
-
-    /**
-     * @var array
-     */
     protected $contacts;
-
-    /**
-     * @var type
-     */
     protected $isAffiliate;
-
-    /**
-     * @var type
-     */
     protected $isCustomer;
-
-    /**
-     * @var \DbBundle\Entity\Customer
-     */
     protected $affiliate;
-
-    /**
-     * @var Currency
-     */
     protected $currency;
-
-    /**
-     * @var string
-     */
     protected $country;
-
-    /**
-     * @var \Doctrine\Common\Collections\ArrayCollection
-     */
     private $groups;
-
     private $referrals;
-
-    /**
-     * @var \Doctrine\Common\Collections\ArrayCollection
-     */
     private $paymentOptions;
-
-    /**
-    * @var \Doctrine\Common\Collections\ArrayCollection
-    */
     private $products;
-
     private $transactions;
-
-    /**
-     * @var string
-     */
     private $product;
-
     private $extraPreferences;
-
     private $notifications;
-
     private $riskSetting;
-
     private $tags;
-
     private $referrerByCode;
-
     private $gender;
-
     private $allowRevenueShare;
-
     private $memberRequests;
     private $countryName;
-
-    /**
-     * @var string
-     */
+    private $memberTags;
     private $locale;
 
     public function __construct()
@@ -193,6 +87,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         $this->setGroups(new \Doctrine\Common\Collections\ArrayCollection([]));
         $this->setPaymentOptions(new \Doctrine\Common\Collections\ArrayCollection([]));
         $this->setProducts(new \Doctrine\Common\Collections\ArrayCollection([]));
+        $this->memberTags = new \Doctrine\Common\Collections\ArrayCollection([]);
         $this->transactions = new ArrayCollection();
         $this->notifications = [];
         $this->setBalance(0);
@@ -1476,5 +1371,57 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         }
 
         return false;
+    }
+
+    public function getMemberTags()
+    {
+        return $this->memberTags ?? new ArrayCollection([]);
+    }
+
+    public function setMemberTags(ArrayCollection $memberTags)
+    {
+        $memberTags = $memberTags ?? new ArrayCollection([]);
+
+        if (!is_null($this->memberTags)) {
+            foreach ($this->memberTags as $memberTag) {
+                if (!$memberTags->contains($memberTag)) {
+                    $this->removeMemberTags($memberTag);
+                }
+            }
+        }
+
+        if ($this->memberTags === null) {
+            $this->memberTags = new ArrayCollection();
+        }
+
+        foreach ($memberTags as $memberTag) {
+            if (!$this->memberTags->contains($memberTag)) {
+                $this->addMemberTags($memberTag);
+            }
+        }
+
+        return $this;
+    }
+
+    public function hasMemberTags(): bool
+    {
+        return (bool) !$this->getMemberTags()->isEmpty();
+    }
+
+    public function addMemberTags(MemberTag $memberTags): Customer
+    {
+        $this->memberTags = $this->memberTags ?? new \Doctrine\Common\Collections\ArrayCollection([]);
+
+        if ($this->memberTags->contains($memberTags)) {
+            return $this;
+        }
+
+        $this->memberTags->add($memberTags);
+        $memberTags->addMember($this);
+//        if ($memberTags->getId() == self::KYC_LEVEL2_TAG_ID) {
+//            $this->unverify();
+//        }
+
+        return $this;
     }
 }

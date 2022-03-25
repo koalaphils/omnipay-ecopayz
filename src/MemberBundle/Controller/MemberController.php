@@ -2,6 +2,7 @@
 
 namespace MemberBundle\Controller;
 
+use DbBundle\Entity\MemberTag;
 use DbBundle\Entity\Product;
 use DbBundle\Repository\ProductRepository;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -586,8 +587,18 @@ class MemberController extends PageController
         return $this->container->get('member.handler.update_revenue_share');
     }
 
+    private function getMemberTagRepository(): \DbBundle\Repository\MemberTagRepository
+    {
+        return $this->getRepository(MemberTag::class);
+    }
+
     private function getCustomerPaymentOptionManager(): CustomerPaymentOptionManager
     {
 	    return $this->get('customer.payment_option_manager');
+    }
+
+    public function getMemberTagList(): array
+    {
+        return $this->getMemberTagRepository()->findAll();
     }
 }
