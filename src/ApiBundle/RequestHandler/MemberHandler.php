@@ -123,7 +123,8 @@ class MemberHandler
                 'available_balance' => $availableBalance,
                 'pinnacle_balance' => $pinAvailableBalance,
                 'product_balance' => $productBalance,
-                'outstanding' => $pinOutstandingBalance
+                'outstanding' => $pinOutstandingBalance,
+                'is_verified' => $member->isVerified()
             ];
         } else {
             return [
@@ -131,7 +132,8 @@ class MemberHandler
                 'available_balance' => '',
                 'pinnacle_balance' => '',
                 'product_balance' => '',
-                'outstanding' => ''
+                'outstanding' => '',
+                'is_verified' => false
             ];
         }
     }

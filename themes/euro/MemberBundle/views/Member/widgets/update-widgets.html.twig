@@ -427,9 +427,10 @@
     <script type="text/javascript">
         var submitProfile = true;
         var originalReferrer = {{ form.vars.data.referrer is null ? 'null' : form.vars.data.referrer }};
-        var originalReferrerDisplayName = '';
-        if (originalReferrer) {
-            let url = "{{ path('member.get_referrer_details')|escape('js') }}" + `?user_id=${originalReferrer}`;
+
+        const getReferrerDetail = function (orId, cb) {
+            let url = "{{ path('member.get_referrer_details')|escape('js') }}" + `?user_id=${orId}`;
+
             fetch(url)
                 .then((response) => {
                     if (response.ok) {
@@ -437,13 +438,14 @@
                     }
                 })
                 .then((details) => {
-                    originalReferrerDisplayName = details.name ? details.name : details.email;
+                    let originalReferrerDisplayName = details.name ? details.name : details.email;
+
+                    cb && cb(originalReferrerDisplayName);
                 })
             ;
         }
 
         var referrerId = $('#{{ form.vars.id }}_referrerLink').val();
-
         if (referrerId) {
             var referrerLink = "{{ url('member.update_page', { "id":"__id__"}, false) }}";
             referrerLink = referrerLink.replace('/__id__', '/'+ referrerId) + '/profile';
@@ -510,26 +512,29 @@
                     var currentReferrer = $('#{{ form.referrer.vars.id }}').val();
                     if (currentReferrer != originalReferrer && originalReferrer !== null) {
                         submitProfile = false;
-                        confirm2(
-                            'We just found that you have removed the referrer, removing it will unlink the member to <b>' + originalReferrerDisplayName + '</b>?',
-                            'Save and Unlink Member',
-                            {
-                                'type': null,
-                                'confirmButtonClass': 'btn-warning btn-md',
-                                'confirmButtonText': 'Unlink',
-                                'cancelButtonClass': 'btn-inverse btn-md',
-                                'cancelButtonText': 'Cancel',
-                                'html': true,
-                                'showLoaderOnConfirm': true
-                            },
-                            function (isUnlink) {
-                                if (isUnlink) {
-                                    submitProfile = true;
-                                    originalReferrer = currentReferrer;
-                                    $('#{{ form.vars.id }}').submit();
+
+                        getReferrerDetail(originalReferrer, function (originalReferrerDisplayName) {
+                            confirm2(
+                                'We just found that you have removed the referrer, removing it will unlink the member to <b>' + originalReferrerDisplayName + '</b>?',
+                                'Save and Unlink Member',
+                                {
+                                    'type': null,
+                                    'confirmButtonClass': 'btn-warning btn-md',
+                                    'confirmButtonText': 'Unlink',
+                                    'cancelButtonClass': 'btn-inverse btn-md',
+                                    'cancelButtonText': 'Cancel',
+                                    'html': true,
+                                    'showLoaderOnConfirm': true
+                                },
+                                function (isUnlink) {
+                                    if (isUnlink) {
+                                        submitProfile = true;
+                                        originalReferrer = currentReferrer;
+                                        $('#{{ form.vars.id }}').submit();
+                                    }
                                 }
-                            }
-                        );
+                            );
+                        })
                     }
 
                     if (!submitProfile) {
