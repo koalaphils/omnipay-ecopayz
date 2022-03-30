@@ -165,7 +165,7 @@ class CreateMemberRequestHandler
 
                 try {
                     $jwt = $this->jwtGeneratorService->generate([]);
-                    $integration->auth($jwt, [
+                    $data = [
                         'id' => $memberEvoProduct->getUsername(),
                         'lastName' => $request->getFullName() ? $request->getFullName() : $username,
                         'firstName' => $request->getFullName() ? $request->getFullName() : $username,
@@ -175,9 +175,12 @@ class CreateMemberRequestHandler
                         'currency' => $currency->getCode(),
                         'ip' => $this->getClientIp(),
                         'sessionId' => $this->getSessionId(),
-                    ]);
+                    ];
+
+                    $integration->auth($jwt, $data);
                 } catch (\Exception $ex) {
                     $this->logger->info($ex->getMessage());
+                    $this->logger->info(json_encode($data));
                     throw new \Exception('Failed to create EVO Account.', Response::HTTP_UNPROCESSABLE_ENTITY);
                 }
             }
