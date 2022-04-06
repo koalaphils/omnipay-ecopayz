@@ -634,9 +634,6 @@ class User extends Entity implements ActionInterface, TimestampInterface, Advanc
         return true;
     }
 
-    /**
-     * @return bool whether user is allowed to login or not
-     */
     public function isEnabled()
     {
         return $this->isActive == true;
