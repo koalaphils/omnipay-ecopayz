@@ -39,4 +39,18 @@ class TwoFactorCodeRepository extends EntityRepository implements StorageInterfa
             throw new CodeDoesNotExistsException(sprintf('Code %s does not exists', $code));
         }
     }
+
+
+    public function purgeExpiredIds(): void
+    {
+        $dateTime = new \DateTime('now');
+        $entityManager = $this->getEntityManager();
+        $queryBuilder = $entityManager->createQueryBuilder();
+        $query = $queryBuilder->delete('DbBundle:TwoFactorCode', 'f')
+            ->andWhere('f.expireAt < :datetime')
+            ->setParameter('datetime', $dateTime)
+            ->getQuery()
+        ;
+        $query->execute();
+    }
 }
