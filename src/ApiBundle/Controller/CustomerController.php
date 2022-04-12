@@ -2,8 +2,12 @@
 
 namespace ApiBundle\Controller;
 
+use AppBundle\Helper\Publisher;
+use DbBundle\Entity\Customer;
 use DbBundle\Entity\Transaction;
 use FOS\RestBundle\View\View;
+use MemberBundle\Event\VerifyEvent;
+use MemberBundle\Events;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use FOS\RestBundle\Context\Context;
 use FOS\RestBundle\Request\ParamFetcher;
@@ -740,6 +744,14 @@ class CustomerController extends AbstractController
         return $this->view($form, Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
+    public function notifyVerificationAction(Customer $customer)
+    {
+        $event = new VerifyEvent($customer);
+        $this->get('event_dispatcher')->dispatch(Events::MEMBER_VERIFICATION, $event);
+
+        return $this->json([]);
+    }
+
     /**
      * @ApiDoc(
      *  description="Validate reset password code",
@@ -820,5 +832,10 @@ class CustomerController extends AbstractController
     private function getSettingManager(): \AppBundle\Manager\SettingManager
     {
         return $this->container->get('app.setting_manager');
+    }
+
+    private function getPublisher(): Publisher
+    {
+        return $this->get(Publisher::class);
     }
 }

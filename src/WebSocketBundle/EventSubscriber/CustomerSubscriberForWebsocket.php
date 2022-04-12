@@ -39,8 +39,8 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
             MemberEvents::EVENT_REFERRAL_UNLINKED => ['onReferralUnlinked'],
             MemberEvents::EVENT_MEMBER_PRODUCT_REQUESTED => ['onMemberProductRequested', 300],
             MemberEvents::EVENT_MEMBER_KYC_FILE_UPLOADED => ['onMemberKycFileUploaded', 300],
-            MemberEvents::MEMBER_VERIFICATION => ['onMemberVerification', 300],
             MemberEvents::EVENT_ADMIN_USER_LOGIN => ['onAdminUserLogin', 300],
+            MemberEvents::MEMBER_VERIFICATION => ['onMemberVerification', 300],
         ];
     }
 
@@ -59,8 +59,9 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
         $member = $event->getMember();
         $channel = $member->getWebsocketDetails()['channel_id'];
         $payload['isVerified'] = $member->isVerified();
-
-        $this->publisher->publishUsingWamp(WebsocketTopics::TOPIC_MEMBER_REQUEST_PROCESSED . '.' . $channel, $payload);
+        dump(Topics::TOPIC_CUSTOMER_VERIFIED . '.' . $channel);
+        $this->publisher->publishUsingWamp(Topics::TOPIC_CUSTOMER_VERIFIED . '.' . $channel, $payload);
+        // $this->publisher->publishUsingWamp(WebsocketTopics::TOPIC_MEMBER_REQUEST_PROCESSED . '.' . $channel, $payload);
     }
 
     public function onCustomerProductSuspended(CustomerProductSuspendedEvent $event)
