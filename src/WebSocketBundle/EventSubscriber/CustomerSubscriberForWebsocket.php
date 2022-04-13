@@ -59,9 +59,7 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
         $member = $event->getMember();
         $channel = $member->getWebsocketDetails()['channel_id'];
         $payload['isVerified'] = $member->isVerified();
-        dump(Topics::TOPIC_CUSTOMER_VERIFIED . '.' . $channel);
         $this->publisher->publishUsingWamp(Topics::TOPIC_CUSTOMER_VERIFIED . '.' . $channel, $payload);
-        // $this->publisher->publishUsingWamp(WebsocketTopics::TOPIC_MEMBER_REQUEST_PROCESSED . '.' . $channel, $payload);
     }
 
     public function onCustomerProductSuspended(CustomerProductSuspendedEvent $event)
