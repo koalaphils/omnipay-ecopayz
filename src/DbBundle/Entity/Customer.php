@@ -1429,6 +1429,13 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this;
     }
 
+    public function getLevel1VerificationDate(): ?\DateTime
+    {
+        $kyc =  $this->getDetail('kyc', null);
+
+        return $kyc['level_1_verified_at']  ? new \DateTime($kyc['level_1_verified_at']) : null;
+    }
+
     public function removeMemberTags(MemberTag $memberTags): Customer
     {
         $this->memberTags = $this->memberTags ?? new ArrayCollection([]);
@@ -1439,9 +1446,9 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         $this->memberTags->removeElement($memberTags);
         $memberTags->removeMember($this);
 
-//        if ($memberTags->getId() == self::KYC_LEVEL2_TAG_ID) {
-//            $this->setVerifiedAt($this->getLevel1VerificationDate());
-//        }
+        if ($memberTags->getName() == 'Level 2') {
+            $this->setVerifiedAt($this->getLevel1VerificationDate());
+        }
 
         return $this;
     }
