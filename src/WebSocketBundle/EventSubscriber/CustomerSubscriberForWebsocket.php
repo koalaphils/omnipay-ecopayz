@@ -2,6 +2,7 @@
 
 namespace WebSocketBundle\EventSubscriber;
 
+use MemberBundle\Event\KycVerificationLevelChangedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 use AppBundle\Helper\Publisher;
@@ -41,7 +42,20 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
             MemberEvents::EVENT_MEMBER_KYC_FILE_UPLOADED => ['onMemberKycFileUploaded', 300],
             MemberEvents::EVENT_ADMIN_USER_LOGIN => ['onAdminUserLogin', 300],
             MemberEvents::MEMBER_VERIFICATION => ['onMemberVerification', 300],
+            MemberEvents::EVENT_MEMBER_KYC_LEVEL_CHANGED => ['onCustomerVerificationLevelChanged', 300],
         ];
+    }
+
+    public function onCustomerVerificationLevelChanged(KycVerificationLevelChangedEvent $event): void
+    {
+        $member = $event->getMember();
+        $channel = $member->getWebsocketDetails()['channel_id'];
+        $payload = [
+            'level' => $event->getVerificationLevel(),
+            'verified' => $member->isVerified(),
+        ];
+
+        $this->publisher->publishUsingWamp(Topics::TOPIC_MEMBER_VERIFICATION_LEVEL_CHANGED . '.' . $channel, $payload);
     }
 
     public function onCustomerProductSave(CustomerProductSaveEvent $event): void

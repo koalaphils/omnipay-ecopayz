@@ -16,6 +16,7 @@ final class Topics
     const TOPIC_MEMBER_KYC_FILE_DELETED = 'bo.topic.kyc_file_deleted';
     const TOPIC_MEMBER_API_KYC_UPLOADED = 'ms.topic.kyc_file_uploaded';
     const TOPIC_MEMBER_API_KYC_DELETED = 'ms.topic.kyc_file_deleted';
+    const TOPIC_MEMBER_VERIFICATION_LEVEL_CHANGED = 'bo.topic.customer_verification_level_changed';
     const TOPIC_ADMIN_USER_LOGIN = 'bo.topic.admin_user_login';
     const TOPIC_TRANSACTION_DECLINED = 'bo.topic.transaction_declined';
 }

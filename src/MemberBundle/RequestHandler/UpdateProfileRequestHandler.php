@@ -2,35 +2,31 @@
 
 namespace MemberBundle\RequestHandler;
 
-use DbBundle\Entity\MemberTag;
-use MemberBundle\Manager\MemberManager;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Doctrine\Common\Collections\ArrayCollection;
-
 use AppBundle\Service\AffiliateService;
-use AppBundle\Event\GenericEntityEvent;
 use AuditBundle\Manager\AuditManager;
-use DbBundle\Entity\AuditRevisionLog;
-use DbBundle\Entity\Country;
-use DbBundle\Entity\Currency;
 use DbBundle\Entity\Customer;
-use DbBundle\Repository\CustomerGroupRepository;
-use DbBundle\Entity\Customer as Member;
-use DbBundle\Entity\CustomerGroup;
-use DbBundle\Entity\MarketingTool;
-use DbBundle\Entity\User;
+use DbBundle\Entity\MemberTag;
 use DbBundle\Repository\UserRepository;
-use DbBundle\Listener\VersionableListener;
-use Doctrine\ORM\EntityManager;
-use MemberBundle\Event\ReferralEvent;
+use DbBundle\Entity\Currency;
+use DbBundle\Repository\CustomerGroupRepository;
+use DbBundle\Entity\CustomerGroup;
+use DbBundle\Entity\User;
+use MemberBundle\Event\KycVerificationLevelChangedEvent;
 use MemberBundle\Events;
+use MemberBundle\Manager\MemberManager;
 use MemberBundle\Request\UpdateProfileRequest;
 use PromoBundle\Manager\PromoManager;
+
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\EntityManager;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class UpdateProfileRequestHandler
 {
     private $entityManager;
     private $requestStack;
+    private $eventDispatcher;
     private $auditManager;
     private $memberManager;
     private $affiliateService;
@@ -39,6 +35,7 @@ class UpdateProfileRequestHandler
     public function __construct(
         EntityManager $entityManager,
         RequestStack $requestStack,
+        EventDispatcherInterface $eventDispatcher,
         AuditManager $auditManager,
         MemberManager $memberManager,
         AffiliateService $affiliateService,
@@ -47,6 +44,7 @@ class UpdateProfileRequestHandler
     {
         $this->entityManager = $entityManager;
         $this->requestStack = $requestStack;
+        $this->eventDispatcher = $eventDispatcher;
         $this->auditManager = $auditManager;
         $this->memberManager = $memberManager;
         $this->affiliateService = $affiliateService;
@@ -98,7 +96,9 @@ class UpdateProfileRequestHandler
         $this->entityManager->flush($customer->getUser());
         $this->entityManager->persist($customer);
         $this->entityManager->flush($customer);
+
         $this->promoManager->createPersonalLinkId($customer);
+        $this->checkKycLevelChanges($customer, $memberTags, $originalTags);
 
         return $customer;
     }
@@ -130,6 +130,19 @@ class UpdateProfileRequestHandler
             }
         }
     }
+    private function checkKycLevelChanges(Customer $member, $currentTags, $oldTags): void
+    {
+        if (count($currentTags) > 0 && count($oldTags) === 0) {
+            $newTag = $currentTags[0];
+            if ($newTag->getName() === 'Level 2') {
+                $this->eventDispatcher->dispatch(
+                    Events::EVENT_MEMBER_KYC_LEVEL_CHANGED,
+                    new KycVerificationLevelChangedEvent($member, 'Level 2')
+                );
+            }
+        }
+    }
+
     private function getCustomerGroupRepository(): CustomerGroupRepository
     {
         return $this->entityManager->getRepository(CustomerGroup::class);
