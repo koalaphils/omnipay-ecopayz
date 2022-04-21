@@ -11,7 +11,7 @@ class Events
     const EVENT_MEMBER_PRODUCT_REQUESTED = 'bo.event.member_product.requested';
     const EVENT_MEMBER_KYC_FILE_UPLOADED = 'bo.event.kyc_file_uploaded';
     const EVENT_MEMBER_KYC_FILE_DELETED = 'bo.event.kyc_file_deleted';
-    const MEMBER_VERIFICATION = 'bo.event.member_verification';
+    const EVENT_CHANGE_IN_MEMBER_VERIFICATION = 'bo.event.change_in_member_verification';
     const EVENT_MEMBER_KYC_LEVEL_CHANGED = 'bo.event.member_kyc_level_changed';
     const EVENT_ADMIN_USER_LOGIN = 'bo.event.admin_user_login';
 }

@@ -2,6 +2,7 @@
 
 namespace WebSocketBundle\EventSubscriber;
 
+use MemberBundle\Event\ChangeInVerificationEvent;
 use MemberBundle\Event\KycVerificationLevelChangedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
@@ -41,21 +42,8 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
             MemberEvents::EVENT_MEMBER_PRODUCT_REQUESTED => ['onMemberProductRequested', 300],
             MemberEvents::EVENT_MEMBER_KYC_FILE_UPLOADED => ['onMemberKycFileUploaded', 300],
             MemberEvents::EVENT_ADMIN_USER_LOGIN => ['onAdminUserLogin', 300],
-            MemberEvents::MEMBER_VERIFICATION => ['onMemberVerification', 300],
-            MemberEvents::EVENT_MEMBER_KYC_LEVEL_CHANGED => ['onCustomerVerificationLevelChanged', 300],
+            MemberEvents::EVENT_CHANGE_IN_MEMBER_VERIFICATION => ['onChangeInMemberVerification', 300],
         ];
-    }
-
-    public function onCustomerVerificationLevelChanged(KycVerificationLevelChangedEvent $event): void
-    {
-        $member = $event->getMember();
-        $channel = $member->getWebsocketDetails()['channel_id'];
-        $payload = [
-            'level' => $event->getVerificationLevel(),
-            'verified' => $member->isVerified(),
-        ];
-
-        $this->publisher->publishUsingWamp(Topics::TOPIC_MEMBER_VERIFICATION_LEVEL_CHANGED . '.' . $channel, $payload);
     }
 
     public function onCustomerProductSave(CustomerProductSaveEvent $event): void
@@ -68,12 +56,12 @@ class CustomerSubscriberForWebsocket implements EventSubscriberInterface
         $this->publisher->publish(Topics::TOPIC_CUSTOMER_PRODUCT_SAVE . '.' . $channel, json_encode($payload));
     }
 
-    public function onMemberVerification(VerifyEvent $event)
+    public function onChangeInMemberVerification(ChangeInVerificationEvent $event)
     {
         $member = $event->getMember();
         $channel = $member->getWebsocketDetails()['channel_id'];
-        $payload['isVerified'] = $member->isVerified();
-        $this->publisher->publishUsingWamp(Topics::TOPIC_CUSTOMER_VERIFIED . '.' . $channel, $payload);
+        $payload['verified'] = $member->isVerified();
+        $this->publisher->publishUsingWamp(Topics::TOPIC_MEMBER_VERIFICATION_CHANGED . '.' . $channel, $payload);
     }
 
     public function onCustomerProductSuspended(CustomerProductSuspendedEvent $event)

@@ -8,6 +8,7 @@ final class Topics
     const TOPIC_CUSTOMER_PRODUCT_ACTIVATED = 'bo.topic.customer_product_activated';
     const TOPIC_CUSTOMER_PRODUCT_SUSPENDED = 'bo.topic.customer_product_suspended';
     const TOPIC_CUSTOMER_VERIFIED = 'bo.topic.customer_verified';
+    const TOPIC_MEMBER_VERIFICATION_CHANGED = 'bo.topic.member_verification_changed';
     const TOPIC_REFERRAL_LINKED = 'bo.topic.member_linked';
     const TOPIC_REFERRAL_UNLINKED = 'bo.topic.member_unlinked';
     const TOPIC_BTC_EXCHANGE_RATE = 'btc.exchange_rate';

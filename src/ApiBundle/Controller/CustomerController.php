@@ -6,6 +6,7 @@ use AppBundle\Helper\Publisher;
 use DbBundle\Entity\Customer;
 use DbBundle\Entity\Transaction;
 use FOS\RestBundle\View\View;
+use MemberBundle\Event\ChangeInVerificationEvent;
 use MemberBundle\Event\VerifyEvent;
 use MemberBundle\Events;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
@@ -746,8 +747,8 @@ class CustomerController extends AbstractController
 
     public function notifyVerificationAction(Customer $customer)
     {
-        $event = new VerifyEvent($customer);
-        $this->get('event_dispatcher')->dispatch(Events::MEMBER_VERIFICATION, $event);
+        $event = new ChangeInVerificationEvent($customer);
+        $this->get('event_dispatcher')->dispatch(Events::EVENT_CHANGE_IN_MEMBER_VERIFICATION, $event);
 
         return $this->json([]);
     }

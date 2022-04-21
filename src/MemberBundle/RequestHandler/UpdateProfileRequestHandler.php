@@ -11,6 +11,7 @@ use DbBundle\Entity\Currency;
 use DbBundle\Repository\CustomerGroupRepository;
 use DbBundle\Entity\CustomerGroup;
 use DbBundle\Entity\User;
+use MemberBundle\Event\ChangeInVerificationEvent;
 use MemberBundle\Event\KycVerificationLevelChangedEvent;
 use MemberBundle\Events;
 use MemberBundle\Manager\MemberManager;
@@ -132,14 +133,8 @@ class UpdateProfileRequestHandler
     }
     private function checkKycLevelChanges(Customer $member, $currentTags, $oldTags): void
     {
-        if (count($currentTags) > 0 && count($oldTags) === 0) {
-            $newTag = $currentTags[0];
-            if ($newTag->getName() === 'Level 2') {
-                $this->eventDispatcher->dispatch(
-                    Events::EVENT_MEMBER_KYC_LEVEL_CHANGED,
-                    new KycVerificationLevelChangedEvent($member, 'Level 2')
-                );
-            }
+        if (count($currentTags) !== count($oldTags)) {
+            $this->eventDispatcher->dispatch(Events::EVENT_CHANGE_IN_MEMBER_VERIFICATION, new ChangeInVerificationEvent($member));
         }
     }
 

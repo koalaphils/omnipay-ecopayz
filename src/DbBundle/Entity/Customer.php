@@ -1426,13 +1426,6 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this;
     }
 
-    public function getLevel1VerificationDate(): ?\DateTime
-    {
-        $kyc =  $this->getDetail('kyc', null);
-
-        return $kyc['level_1_verified_at']  ? new \DateTime($kyc['level_1_verified_at']) : null;
-    }
-
     public function removeMemberTags(MemberTag $memberTags): Customer
     {
         $this->memberTags = $this->memberTags ?? new ArrayCollection([]);
@@ -1445,8 +1438,24 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
 
         if ($memberTags->getName() == 'Level 2') {
             $this->setVerifiedAt($this->getLevel1VerificationDate());
+            $this->unverifyLevel2Verification();
         }
 
         return $this;
+    }
+
+    public function unverifyLevel2Verification(): void
+    {
+        $kyc =  $this->getDetail('kyc', null);
+        $kyc['level_2'] = "UNVERIFIED";
+        $kyc['level_2_verified_at'] = null;
+        $this->setDetail('kyc', $kyc);
+    }
+
+    public function getLevel1VerificationDate(): ?\DateTime
+    {
+        $kyc =  $this->getDetail('kyc', null);
+
+        return $kyc['level_1_verified_at']  ? new \DateTime($kyc['level_1_verified_at']) : null;
     }
 }
