@@ -1420,9 +1420,6 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         $this->memberTags->add($memberTags);
         $memberTags->addMember($this);
         if ($memberTags->getName() == 'Level 2') {
-            $details = $this->getDetails();
-            $details['kyc']['level_2'] = 'MANUAL VERIFICATION';
-            $this->details = $details;
             $this->unverify();
         }
 
