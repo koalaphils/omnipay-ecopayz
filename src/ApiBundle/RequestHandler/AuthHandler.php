@@ -342,6 +342,7 @@ class AuthHandler
     private function generateJwtToken(Customer $member): string
     {
         $token = [
+            'username' => $member->getUsername(),
             'authid' => json_encode([
                 'username' => $member->getUsername(),
                 'userid' => $member->getUser()->getId(),
