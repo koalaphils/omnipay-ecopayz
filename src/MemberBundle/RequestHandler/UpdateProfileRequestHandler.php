@@ -4,7 +4,9 @@ namespace MemberBundle\RequestHandler;
 
 use AppBundle\Service\AffiliateService;
 use AuditBundle\Manager\AuditManager;
+use DbBundle\Entity\AuditRevisionLog;
 use DbBundle\Entity\Customer;
+use DbBundle\Entity\Customer as Member;
 use DbBundle\Entity\MemberTag;
 use DbBundle\Repository\UserRepository;
 use DbBundle\Entity\Currency;
@@ -131,10 +133,35 @@ class UpdateProfileRequestHandler
             }
         }
     }
+
     private function checkKycLevelChanges(Customer $member, $currentTags, $oldTags): void
     {
         if (count($currentTags) !== count($oldTags)) {
             $this->eventDispatcher->dispatch(Events::EVENT_CHANGE_IN_MEMBER_VERIFICATION, new ChangeInVerificationEvent($member));
+            $this->logMemberTags($member, $oldTags, $currentTags);
+        }
+    }
+
+
+    public function logMemberTags(Member $member, $originalMemberTags, $updatedMemberTags){
+        $original = array();
+        $updated = array();
+        /** @var MemberTag $tag */
+        foreach($originalMemberTags ?? new ArrayCollection([]) as $tag){
+            $original[] = $tag->getName();
+        }
+
+        foreach ($updatedMemberTags ?? new ArrayCollection([]) as $tag){
+            $updated[] = $tag->getName();
+        }
+        sort($original);
+        sort($updated);
+        $log = [
+            'memberTags' => [$original, $updated]
+        ];
+        $diffs = array_diff(array_merge($original, $updated), array_intersect($original, $updated));
+        if(count($diffs)){
+            $this->auditManager->audit($member, AuditRevisionLog::OPERATION_UPDATE, null, $log);
         }
     }
 
