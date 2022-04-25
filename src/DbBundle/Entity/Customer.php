@@ -1456,6 +1456,6 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     {
         $kyc =  $this->getDetail('kyc', null);
 
-        return $kyc['level_1_verified_at']  ? new \DateTime($kyc['level_1_verified_at']) : null;
+        return $kyc['level_1_verified_at']  ? new \DateTime($kyc['level_1_verified_at']['date']) : null;
     }
 }
