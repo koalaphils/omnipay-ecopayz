@@ -662,6 +662,7 @@ class User extends Entity implements ActionInterface, TimestampInterface, Advanc
             self::USER_TYPE_ADMIN => 'admin',
             self::USER_TYPE_MEMBER => 'member',
             self::USER_TYPE_CASHPAYER => 'cashpayer',
+	        self::USER_TYPE_AFFILIATE => 'affiliate'
         ];
     }
 
