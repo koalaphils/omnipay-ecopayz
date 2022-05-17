@@ -103,7 +103,7 @@
             "AppBundle\\Composer\\ScriptHandler::setupReferralToolsDirectory"
         ],
         "cleancache": [
-            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache"
+            "php app/console cache:clear"
         ],
         "initialize-web": [
             "php app/console theme:apply euro --no-interaction",
