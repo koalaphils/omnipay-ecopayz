@@ -178,7 +178,6 @@ class CreateMemberRequestHandler
                     ]);
                 } catch (\Exception $ex) {
                     $this->logger->info($ex->getMessage());
-                    throw new \Exception('Failed to create EVO Account.', Response::HTTP_UNPROCESSABLE_ENTITY);
                 }
             }
         }
