@@ -36,6 +36,7 @@ server {
     include conf.d/reports.conf.location;
     include conf.d/risk-setting.conf.location;
     include conf.d/correct-score.conf.location;
+    include conf.d/kyc.conf.location;
 
     return 404;
   }

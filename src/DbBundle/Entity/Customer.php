@@ -2,6 +2,7 @@
 
 namespace DbBundle\Entity;
 
+use DateTime;
 use DbBundle\Entity\Interfaces\AuditAssociationInterface;
 use DbBundle\Entity\Interfaces\AuditInterface;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -29,148 +30,42 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     public const DETAIL_BITCOIN_ADDRESS = 'bitcoin.address';
     public const DETAIL_BITCOIN_CALLBACK = 'bitcoin.callback';
     public const DETAIL_BITCOIN_XPUB = 'bitcoin.xpub';
-
-    /**
-     * @var string
-     */
     protected $fName;
-
-    /**
-     * @var string
-     */
     protected $mName;
-
-    /**
-     * @var string
-     */
     protected $lName;
-
     private $fullName;
-
-    /**
-     * @var date
-     */
     protected $birthDate = null;
-
-    /**
-     * @var decimal
-     */
     protected $balance;
-
-    /**
-     * @var \DbBundle\Entity\User
-     */
     protected $user;
-
-    /**
-     * @var json
-     */
     protected $socials;
-
-    /**
-     * @var string
-     */
     protected $transactionPassword;
-
-    /**
-     * @var int
-     */
     protected $level;
-
-    /**
-     * @var \DateTime
-     */
     protected $verifiedAt;
-
-    /**
-     * @var array
-     */
     protected $details;
-
-    /**
-     * @var \DateTime
-     */
     protected $joinedAt;
-
-    /**
-     * @var array
-     */
     protected $files;
-
-    /**
-     * @var array
-     */
     protected $contacts;
-
-    /**
-     * @var type
-     */
     protected $isAffiliate;
-
-    /**
-     * @var type
-     */
     protected $isCustomer;
-
-    /**
-     * @var \DbBundle\Entity\Customer
-     */
     protected $affiliate;
-
-    /**
-     * @var Currency
-     */
     protected $currency;
-
-    /**
-     * @var string
-     */
     protected $country;
-
-    /**
-     * @var \Doctrine\Common\Collections\ArrayCollection
-     */
     private $groups;
-
     private $referrals;
-
-    /**
-     * @var \Doctrine\Common\Collections\ArrayCollection
-     */
     private $paymentOptions;
-
-    /**
-    * @var \Doctrine\Common\Collections\ArrayCollection
-    */
     private $products;
-
     private $transactions;
-
-    /**
-     * @var string
-     */
     private $product;
-
     private $extraPreferences;
-
     private $notifications;
-
     private $riskSetting;
-
     private $tags;
-
     private $referrerByCode;
-
     private $gender;
-
     private $allowRevenueShare;
-
     private $memberRequests;
     private $countryName;
-
-    /**
-     * @var string
-     */
+    private $memberTags;
     private $locale;
 
     public function __construct()
@@ -190,9 +85,10 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         $this->setIsCustomer(false);
         $this->setIsAffiliate(false);
         $this->setAffiliate(null);
-        $this->setGroups(new \Doctrine\Common\Collections\ArrayCollection([]));
-        $this->setPaymentOptions(new \Doctrine\Common\Collections\ArrayCollection([]));
-        $this->setProducts(new \Doctrine\Common\Collections\ArrayCollection([]));
+        $this->setGroups(new ArrayCollection([]));
+        $this->setPaymentOptions(new ArrayCollection([]));
+        $this->setProducts(new ArrayCollection([]));
+        $this->memberTags = new ArrayCollection([]);
         $this->transactions = new ArrayCollection();
         $this->notifications = [];
         $this->setBalance(0);
@@ -205,7 +101,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
      *
      * @param string $fname
      *
-     * @return \DbBundle\Entity\Customer
+     * @return Customer
      */
     public function setFName($fname)
     {
@@ -299,9 +195,9 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     /**
      * Set birthDate.
      *
-     * @param \DateTime $birthDate
+     * @param DateTime $birthDate
      *
-     * @return \DbBundle\Entity\Customer
+     * @return Customer
      */
     public function setBirthDate($birthDate = null)
     {
@@ -325,7 +221,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
      *
      * @param double $balance
      *
-     * @return \DbBundle\Entity\Customer
+     * @return Customer
      */
     public function setBalance($balance = 0)
     {
@@ -351,7 +247,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
      *
      * @param int $user
      *
-     * @return \DbBundle\Entity\User
+     * @return User
      */
     public function setUser($user)
     {
@@ -363,7 +259,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     /**
      * Get user.
      *
-     * @return \DbBundle\Entity\User
+     * @return User
      */
     public function getUser()
     {
@@ -375,7 +271,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
      *
      * @param array $socials
      *
-     * @return \DbBundle\Entity\Customer
+     * @return Customer
      */
     public function setSocials($socials)
     {
@@ -419,7 +315,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
      *
      * @param string $password
      *
-     * @return \DbBundle\Entity\Customer
+     * @return Customer
      */
     public function setTransactionPassword($password = '')
     {
@@ -443,7 +339,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
      *
      * @param int $level
      *
-     * @return \DbBundle\Entity\Customer
+     * @return Customer
      */
     public function setLevel($level = 1)
     {
@@ -455,9 +351,9 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     /**
      * Set verified at.
      *
-     * @param \DateTime $verifiedAt
+     * @param DateTime $verifiedAt
      *
-     * @return \DbBundle\Entity\Customer
+     * @return Customer
      */
     public function setVerifiedAt($verifiedAt)
     {
@@ -469,7 +365,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     /**
      * Get verified at.
      *
-     * @return \DateTime
+     * @return DateTime
      */
     public function getVerifiedAt()
     {
@@ -506,7 +402,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
      *
      * @param array $details
      *
-     * @return \DbBundle\Entity\Customer
+     * @return Customer
      */
     public function setDetails($details)
     {
@@ -530,7 +426,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     /**
      * Get when the customer was join.
      *
-     * @return \DateTime
+     * @return DateTime
      */
     public function getJoinedAt()
     {
@@ -540,9 +436,9 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     /**
      * Set when the customer was join.
      *
-     * @param \DateTime $joinedAt
+     * @param DateTime $joinedAt
      *
-     * @return \DbBundle\Entity\Customer
+     * @return Customer
      */
     public function setJoinedAt($joinedAt)
     {
@@ -587,7 +483,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     /**
      * @param array $file
      *
-     * @return \DbBundle\Entity\Customer
+     * @return Customer
      */
     public function addFile($file)
     {
@@ -635,7 +531,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
      *
      * @param array $contacts
      *
-     * @return \DbBundle\Entity\Customer
+     * @return Customer
      */
     public function setContacts($contacts)
     {
@@ -723,7 +619,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
      *
      * @param string $currency
      *
-     * @return \DbBundle\Entity\Customer
+     * @return Customer
      */
     public function setCurrency($currency)
     {
@@ -735,7 +631,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     /**
      * Get currency.
      *
-     * @return \DbBundle\Entity\Currency
+     * @return Currency
      */
     public function getCurrency()
     {
@@ -1121,7 +1017,7 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
 
     public function verify(): void
     {
-        $this->setVerifiedAt(new \DateTime());
+        $this->setVerifiedAt(new DateTime());
     }
 
     public function unverify(): void
@@ -1236,11 +1132,11 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     /**
      * Add referral
      *
-     * @param \DbBundle\Entity\Customer $referral
+     * @param Customer $referral
      *
      * @return Customer
      */
-    public function addReferral(\DbBundle\Entity\Customer $referral)
+    public function addReferral(Customer $referral)
     {
         $this->referrals[] = $referral;
 
@@ -1250,9 +1146,9 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
     /**
      * Remove referral
      *
-     * @param \DbBundle\Entity\Customer $referral
+     * @param Customer $referral
      */
-    public function removeReferral(\DbBundle\Entity\Customer $referral)
+    public function removeReferral(Customer $referral)
     {
         $this->referrals->removeElement($referral);
     }
@@ -1476,5 +1372,98 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         }
 
         return false;
+    }
+
+    public function getMemberTags()
+    {
+        return $this->memberTags ?? new ArrayCollection([]);
+    }
+
+    public function setMemberTags(ArrayCollection $memberTags)
+    {
+        $memberTags = $memberTags ?? new ArrayCollection([]);
+
+        if (!is_null($this->memberTags)) {
+            foreach ($this->memberTags as $memberTag) {
+                if (!$memberTags->contains($memberTag)) {
+                    $this->removeMemberTags($memberTag);
+                }
+            }
+        }
+
+        if ($this->memberTags === null) {
+            $this->memberTags = new ArrayCollection();
+        }
+
+        foreach ($memberTags as $memberTag) {
+            if (!$this->memberTags->contains($memberTag)) {
+                $this->addMemberTags($memberTag);
+            }
+        }
+
+        return $this;
+    }
+
+    public function hasMemberTags(): bool
+    {
+        return (bool) !$this->getMemberTags()->isEmpty();
+    }
+
+    public function addMemberTags(MemberTag $memberTags): Customer
+    {
+        $this->memberTags = $this->memberTags ?? new ArrayCollection([]);
+
+        if ($this->memberTags->contains($memberTags)) {
+            return $this;
+        }
+
+        $this->memberTags->add($memberTags);
+        $memberTags->addMember($this);
+        if ($memberTags->getName() == 'Level 2') {
+            $this->unverify();
+        }
+
+        return $this;
+    }
+
+    public function removeMemberTags(MemberTag $memberTags): Customer
+    {
+        $this->memberTags = $this->memberTags ?? new ArrayCollection([]);
+        if (!$this->memberTags->contains($memberTags)) {
+            return $this;
+        }
+
+        $this->memberTags->removeElement($memberTags);
+        $memberTags->removeMember($this);
+
+        if ($memberTags->getName() == 'Level 2') {
+            $this->setVerifiedAt($this->getLevel1VerificationDate());
+            $this->unverifyLevel2Verification();
+        }
+
+        return $this;
+    }
+
+    public function unverifyLevel2Verification(): void
+    {
+        $kyc =  $this->getDetail('kyc', null);
+        $kyc['level_2'] = "UNVERIFIED";
+        $kyc['level_2_verified_at'] = null;
+        $this->setDetail('kyc', $kyc);
+    }
+
+    public function getLevel1VerificationDate(): ?\DateTime
+    {
+        $kyc =  $this->getDetail('kyc', null);
+
+        if ($kyc['level_1_verified_at'] && isset($kyc['level_1_verified_at']['date'])) {
+            return new \DateTime($kyc['level_1_verified_at']['date']);
+        }
+
+        if ($kyc['level_1_verified_at']) {
+            return new \DateTime($kyc['level_1_verified_at']);
+        }
+
+        return null;
     }
 }

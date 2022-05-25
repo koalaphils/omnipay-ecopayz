@@ -278,9 +278,13 @@ parameters:
                 from: 'riskSetting.0'
                 to: 'riskSetting.1'
             bitcoinRateSetting:
-                label: Bitcoin RAate Setting
+                label: Bitcoin Rate Setting
                 from: 'bitcoinRateSetting.0'
                 to: 'bitcoinRateSetting.1'
+            memberTags:
+                label: Member Tags
+                from: 'memberTags.0'
+                to: 'memberTags.1'
 
 
         affiliate:

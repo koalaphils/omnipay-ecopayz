@@ -69,6 +69,7 @@ class TransactionSubscriberForWebsocket implements EventSubscriberInterface
         $payload['status'] = $status;
         $payload['date'] = $event->getTransaction()->getDate()->format('c');
         $payload['type'] = strtolower($event->getTransaction()->getTypeAsText());
+        $payload['fromCustomer'] = $event->fromCustomer();
 
         if ($event->getTransaction()->getPaymentOptionType() !== null) {
             $payload['payment_option'] = $event->getTransaction()->getPaymentOptionType();

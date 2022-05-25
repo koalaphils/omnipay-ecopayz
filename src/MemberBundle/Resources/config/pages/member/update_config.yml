@@ -263,6 +263,18 @@ widgets:
                     type: text
                     size: 12
                     group: Left
+                memberTags:
+                    options:
+                        label: Tags
+                        multiple: true
+                        required: false
+                    type: dropdown
+                    size: 12
+                    group: Right
+                    choicesFrom:
+                        function: 'controller::getMemberTagList'
+                        label: result.getName()
+                        value: result.getIdentifier()
 
     passwordForm:
         type: AppBundle\Widget\Page\FormWidget
