@@ -68,7 +68,7 @@ x-environment: &php-env
 services:
   database:
     image: mysql/mysql-server:latest
-    command: --default-authentication-plugin=mysql_native_password
+    command: --default-authentication-plugin=mysql_native_password --sql_mode=NO_ENGINE_SUBSTITUTION
     volumes:
       - database:/var/lib/mysql
     environment:

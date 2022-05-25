@@ -172,12 +172,15 @@
                         <div class="col-md-12">{{ widget_render(widgets.referrals) }}</div>
                     </div>
                 </div>
-                <div class="tab-pane" id="referral_tool">
-                    <iframe src="/iframe/referral-tools/{{ customer.user.id }}" style="width: 100%; height: 90vh; border: none;"></iframe>
-                </div>
                 <div class="tab-pane" id="kyc">
                     <iframe src="/iframe/kyc/{{ customer    .id }}" style="width: 100%; height: 90vh; border: none;"></iframe>
                 </div>
+
+                {% if customer.isAffiliate %}
+                    <div class="tab-pane" id="referral_tool">
+                        <iframe src="/iframe/referral-tools/{{ customer.user.id }}" style="width: 100%; height: 90vh; border: none;"></iframe>
+                    </div>
+                {% endif %}
                 <div class="tab-pane" id="ewl_account">
                     <div class="row">
                         <div class="col-md-12">
