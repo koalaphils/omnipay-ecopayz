@@ -518,7 +518,7 @@ class AuthHandler
 
     private function getDefaultLoginPath(Customer $member): string 
     {
-        $defaultProduct = $member->getDetail('default_product', Product::EXCHANGE_VALUE);
+        $defaultProduct = $member->getDetail('default_product', Product::SPORTS_VALUE);
         if ($member->isProductActive(Product::PIWIXCHANGE_CODE) && !$this->isProductUnderMaintenance(Product::PIWIX_VALUE) && $defaultProduct == Product::EXCHANGE_VALUE) {
             return Product::EXCHANGE_VALUE;
         } else if ($member->isProductActive(Product::SPORTS_CODE) && !$this->isProductUnderMaintenance(Product::SPORTS_VALUE) && $defaultProduct == Product::SPORTS_VALUE) {
