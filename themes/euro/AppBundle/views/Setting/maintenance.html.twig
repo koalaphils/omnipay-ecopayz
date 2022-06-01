@@ -143,7 +143,7 @@
         $('.switch').on('change', function() {
             var currentStatus = this.checked ? true : false;
             var activeMaintenance = $(this).attr('attr-key').split('_');
-            var payload = {'type': activeMaintenance[0],  'index': activeMaintenance[1], 'key': activeMaintenance[2], 'value': currentStatus};
+            var payload = {'type': activeMaintenance[0],  'index': activeMaintenance[1], 'key': activeMaintenance[2], 'value': currentStatus, 'active_tab': 'piwix'};
 
             updateMaintenanceSettings(payload);
         }); 
@@ -176,6 +176,24 @@
         var updateMaintenanceSettings = function(payload) {
             var swalType = 'success';
             var swalTitle = 'Success';
+            var tabs = document.getElementsByName('default_active_tab');
+
+            if (payload.type === 'integration') {
+                if (payload.key === 'piwix' && payload.value) {
+                    payload.active_tab = 'sports';
+                    autoCheckTab(tabs, 'sports');
+                }
+
+                if (payload.key === 'sports' && payload.value) {
+                    payload.active_tab = 'casino';
+                    autoCheckTab(tabs, 'casino');
+                }
+
+                if (payload.key === 'casino' && payload.value) {
+                    payload.active_tab = 'piwix';
+                    autoCheckTab(tabs, 'piwix');
+                }
+            }
         
             if (payload.hasOwnProperty('value')) {
                 if (payload.value) {
@@ -185,7 +203,7 @@
                     swalTitle = 'Deactivated';
                 }
             }
-
+            
             $.ajax({
                 type: 'POST',
                 url: "{{ path('app.setting.maintenance_save') }}",
@@ -203,6 +221,16 @@
                     'title': 'Error',
                     'text': errorThrown
                 });
+            });
+        }
+
+        var autoCheckTab = function(tabs, tab) {
+            tabs.forEach((item) => {
+                if (item.value === tab) {
+                    item.checked = true;
+                } else {
+                    item.checked = false;
+                }
             });
         }
     });
