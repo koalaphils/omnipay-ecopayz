@@ -4,7 +4,6 @@ namespace AppBundle\Manager;
 
 use AppBundle\Helper\Publisher;
 use AppBundle\WebsocketTopics;
-use Doctrine\ORM\Query\Expr\Func;
 use Exception;
 
 /**
@@ -170,7 +169,7 @@ class SettingManager extends AbstractManager
                     }
                 }   
             });
-            
+
             $this->getRepository()->updateSetting($payload['type'], 'system.maintenance', $data, true);
             $this->publisher->publishUsingWamp($topic . '.zimimwa_websocket', $payload);
         } catch (Exception $exception) {
