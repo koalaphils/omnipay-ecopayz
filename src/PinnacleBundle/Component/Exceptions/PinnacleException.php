@@ -6,4 +6,5 @@ namespace PinnacleBundle\Component\Exceptions;
 
 class PinnacleException extends \Exception
 {
+
 }
