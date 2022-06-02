@@ -94,7 +94,7 @@ class SettingController extends AbstractController
         $this->denyAccessUnlessGranted(['ROLE_MAINTENANCE']);
 
         $payload = $request->request->all();
-        $isSettingActiveTab = false;
+        $isSettingActiveTabManually = false;
 
         if (isset($payload['value'])) {
             $payload['value'] = filter_var($payload['value'], FILTER_VALIDATE_BOOLEAN);
@@ -103,13 +103,13 @@ class SettingController extends AbstractController
         }
         
         if (isset($payload['is_default'])) {
-            $isSettingActiveTab = true;
+            $isSettingActiveTabManually = true;
             $payload['is_default'] = filter_var($payload['is_default'], FILTER_VALIDATE_BOOLEAN);
             $message = ['message' => ucfirst($payload['key']) .' has been set as default active tab.'];
         }
 
         try {
-            $this->getManager()->updateMaintenanceSetting($payload, $isSettingActiveTab);
+            $this->getManager()->updateMaintenanceSetting($payload, $isSettingActiveTabManually);
         } catch (Exception $exception) {
             throw $exception;
         } 

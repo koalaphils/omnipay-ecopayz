@@ -66,7 +66,7 @@
                                         <div class="row">   
                                             <label class="col-sm-3 control-label">{{ item.label }}</label>
                                             <div class="col-sm-4">
-                                                <input attr-key="integration_{{ index }}_{{ item.key }}" class="switch" type="checkbox" {% if item.value == true %}checked{% endif %} data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
+                                                <input attr-key="integration_{{ index }}_{{ item.key }}" name="active_integration" class="switch" type="checkbox" {% if item.value == true %}checked{% endif %} data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
                                             </div>
                                             <div class="col-sm-4">
                                                 <div class="checkbox checkbox-pink">
@@ -177,22 +177,39 @@
             var swalType = 'success';
             var swalTitle = 'Success';
             var tabs = document.getElementsByName('default_active_tab');
-
+           
             if (payload.type === 'integration') {
-                if (payload.key === 'piwix' && payload.value) {
-                    payload.active_tab = 'sports';
-                    autoCheckTab(tabs, 'sports');
+                var integrations = document.getElementsByName('active_integration');
+                if (payload.value) {
+                    if (payload.key === 'piwix') {
+                        payload.active_tab = 'sports';
+                    }
+                    if (payload.key === 'sports') {
+                       payload.active_tab = 'casino';
+                    }
+                    if (payload.key === 'casino') {
+                       payload.active_tab = 'piwix';
+                    }
+                } else {
+                    integrations.forEach((item) => {
+                        var activeIntegration = item.getAttribute('attr-key').split('_');
+                        if (item.checked) {
+                            if (activeIntegration[2] !== 'piwix') {
+                                payload.active_tab = 'piwix';
+                            } 
+                            if (activeIntegration[2] === 'piwix' || activeIntegration[2] === 'casino') {
+                                payload.active_tab = 'sports';
+                            }
+                            if (activeIntegration[2] === 'piwix' && activeIntegration[2] === 'sports') {
+                                payload.active_tab = 'casino';
+                            }
+                        } else {
+                            payload.active_tab = 'piwix';
+                        }
+                    });
                 }
-
-                if (payload.key === 'sports' && payload.value) {
-                    payload.active_tab = 'casino';
-                    autoCheckTab(tabs, 'casino');
-                }
-
-                if (payload.key === 'casino' && payload.value) {
-                    payload.active_tab = 'piwix';
-                    autoCheckTab(tabs, 'piwix');
-                }
+                
+                switchTab(tabs, payload.active_tab);
             }
         
             if (payload.hasOwnProperty('value')) {
@@ -224,13 +241,9 @@
             });
         }
 
-        var autoCheckTab = function(tabs, tab) {
+        var switchTab = function(tabs, tab) {
             tabs.forEach((item) => {
-                if (item.value === tab) {
-                    item.checked = true;
-                } else {
-                    item.checked = false;
-                }
+                item.checked = item.value === tab ? true : false;
             });
         }
     });
