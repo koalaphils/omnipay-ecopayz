@@ -36,6 +36,7 @@ use OAuth2\OAuth2ServerException;
 use PinnacleBundle\Component\Exceptions\PinnacleError;
 use PinnacleBundle\Component\Exceptions\PinnacleException;
 use PinnacleBundle\Service\PinnacleService;
+use Http\Client\Exception\NetworkException;
 use React\Http\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -429,7 +430,7 @@ class AuthHandler
             if ($exception->getDescription() === 'The access token provided has expired.') {
                 $this->deleteUserAccessToken(null, [$tokenString]);
             }
-        } catch (PinnacleError | PinnacleException $exception) {    
+        } catch (PinnacleError | PinnacleException | NetworkException $exception) {
         } finally {
             $this->deleteUserAccessToken(null, [$tokenString]);
             if ($token !== null) {
