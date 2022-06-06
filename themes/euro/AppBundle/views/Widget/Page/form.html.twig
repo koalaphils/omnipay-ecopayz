@@ -145,7 +145,7 @@
                         }
                     },
                     500: function (xhr, textStatus, errorThrown) {
-                        $(this).data('global-error-title' , false);
+                        $(this).data('global-error-title' , 'Error');
                         $(this).data('global-error-message' , false);
                         $('#{{ form.vars.id }}').find(":submit").removeAttr("disabled");
                     },
