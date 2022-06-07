@@ -389,7 +389,7 @@ class TransactionOldController extends AbstractController
                 $response['errors'] = $e->getErrors();
             } catch (\ProductIntegrationBundle\Exception\IntegrationNotAvailableException  $e) {
                 $response['success'] = false;
-                $response['errorMessage'] = $e->getMessage();
+                $response['errorMessage'] = 'Selected product is not available as of the moment. Please check with the provider or try again later.';
             } catch (\ProductIntegrationBundle\Exception\IntegrationException  $e) {
                 $response['success'] = false;
                 $response['errorMessage'] = $e->getMessage();
@@ -488,7 +488,7 @@ class TransactionOldController extends AbstractController
         } catch (\ProductIntegrationBundle\Exception\IntegrationNotAvailableException  $e) {
             $this->getManager()->rollBack();
             $response['success'] = false;
-            $response['errorMessage'] = $e->getMessage();
+            $response['errorMessage'] = 'Selected product is not available as of the moment. Please check with the provider or try again later.';
         } catch (\ProductIntegrationBundle\Exception\IntegrationException  $e) {
             $this->getManager()->rollBack();
             $response['success'] = false;
