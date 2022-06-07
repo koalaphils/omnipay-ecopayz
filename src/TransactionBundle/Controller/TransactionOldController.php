@@ -10,6 +10,8 @@ use DbBundle\Entity\SubTransaction;
 use DbBundle\Entity\Transaction;
 use Doctrine\ORM\PersistentCollection;
 use PinnacleBundle\Component\Exceptions\PinnacleError;
+use ProductIntegrationBundle\Exception\IntegrationException;
+use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -387,12 +389,9 @@ class TransactionOldController extends AbstractController
             } catch (\AppBundle\Exceptions\FormValidationException $e) {
                 $response['success'] = false;
                 $response['errors'] = $e->getErrors();
-            } catch (\ProductIntegrationBundle\Exception\IntegrationNotAvailableException  $e) {
+            } catch (IntegrationNotAvailableException |  IntegrationException $e) {
                 $response['success'] = false;
                 $response['errorMessage'] = 'Selected product is not available as of the moment. Please check with the provider or try again later.';
-            } catch (\ProductIntegrationBundle\Exception\IntegrationException  $e) {
-                $response['success'] = false;
-                $response['errorMessage'] = $e->getMessage();
             }
 
         } catch (PessimisticLockException $e) {
@@ -485,14 +484,10 @@ class TransactionOldController extends AbstractController
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['__notifications' => [$notifications]], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
-        } catch (\ProductIntegrationBundle\Exception\IntegrationNotAvailableException  $e) {
+        } catch (IntegrationNotAvailableException | IntegrationException  $e) {
             $this->getManager()->rollBack();
             $response['success'] = false;
             $response['errorMessage'] = 'Selected product is not available as of the moment. Please check with the provider or try again later.';
-        } catch (\ProductIntegrationBundle\Exception\IntegrationException  $e) {
-            $this->getManager()->rollBack();
-            $response['success'] = false;
-            $response['errorMessage'] = $e->getMessage();
         }  catch (Exception $e) {
             $this->getManager()->rollBack();
 
