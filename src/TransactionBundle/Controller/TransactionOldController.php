@@ -218,18 +218,12 @@ class TransactionOldController extends AbstractController
 		    if ($request->isXmlHttpRequest()) {
 			    return new JsonResponse(['__notifications' => [$notifications]], Response::HTTP_INTERNAL_SERVER_ERROR);
 		    }
-	    } catch (\Exception $e) {
-		    $notifications = [
-			    'type' => 'error',
-			    'title' => 'Processing Error',
-			    'message' => $e->getMessage(),
-		    ];
-		    if ($request->isXmlHttpRequest()) {
-			    return new JsonResponse(['__notifications' => [$notifications]], Response::HTTP_RESET_CONTENT);
-		    }
 	    }
-
-        return $this->updateAction($request, $type, $id);
+		catch (\Exception $e) {
+			$response['success'] = false;
+			$response['errorMessage'] = 'Selected product is not available as of the moment. Please check with the provider or try again later.';
+			return $this->response($request, $response, ['groups' => ['Default', '_link']]);
+	    }
     }
 
     public function getGatewayByTransactionAction(Request $request, $type)
@@ -320,9 +314,13 @@ class TransactionOldController extends AbstractController
 
             return new JsonResponse(['__notifications' => $notifications], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (\Exception $e) {
-            $this->getManager()->rollBack();
-
-            throw $e;
+	        $this->getManager()->rollBack();
+	        $notifications = [
+		        'type' => 'error',
+		        'title' => 'Transaction Error!',
+		        'message_notification' => 'Selected product is not available as of the moment. Please check with the provider or try again later.',
+	        ];
+	        return new JsonResponse(['__notifications' => $notifications], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
     }
