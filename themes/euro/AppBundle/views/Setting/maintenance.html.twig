@@ -154,7 +154,6 @@
             var tabStatus = this.checked ? true : false;
 
             if (!tabStatus) {
-                this.checked = true;
                 swal({
                     'type': 'warning',
                     'title': 'Warning',
@@ -162,15 +161,14 @@
                 });
             } else {
                 checkboxes.forEach((item) => {
-                    if (item.value !== $(this).val()) {
-                        item.checked = false;
-                    } 
-
-                    var payload = {'type': 'integration',  'index': activeTab[0], 'key': activeTab[1], 'is_default': tabStatus};
-
-                    updateMaintenanceSettings(payload);
+                    item.checked = false;
                 });
+
+                var payload = {'type': 'integration',  'index': activeTab[0], 'key': activeTab[1], 'is_default': tabStatus, 'active_tab': activeTab[1]};
+                updateMaintenanceSettings(payload);
             }
+
+            this.checked = true;
         });
 
         var updateMaintenanceSettings = function(payload) {
@@ -180,20 +178,19 @@
            
             if (payload.type === 'integration') {
                 var integrations = document.getElementsByName('active_integration');
-                payload.active_tab = 'piwix';
+                payload.active_tab = 'sports';
                 if (integrations.length === 3) {
                     var piwix = integrations[0].checked;
                     var sports = integrations[1].checked;
                     var casino = integrations[2].checked;
-
                     if ((piwix && sports && casino) || (piwix && sports && !casino) || (!piwix && sports && casino)) {
                         payload.active_tab = 'casino';
-                    } else {
-                        payload.active_tab = 'sports';
                     }
                 }
 
-                switchTab(tabs, payload.active_tab);
+                if (!payload.hasOwnProperty('is_default')) {
+                    switchTab(tabs, payload.active_tab);
+                }
             }
         
             if (payload.hasOwnProperty('value')) {
