@@ -219,10 +219,16 @@ class TransactionOldController extends AbstractController
 			    return new JsonResponse(['__notifications' => [$notifications]], Response::HTTP_INTERNAL_SERVER_ERROR);
 		    }
 	    }
-		catch (\Exception $e) {
-			$response['success'] = false;
-			$response['errorMessage'] = 'Selected product is not available as of the moment. Please check with the provider or try again later.';
-			return $this->response($request, $response, ['groups' => ['Default', '_link']]);
+
+	    catch (\Exception $e) {
+		    $notifications = [
+			    'type' => 'error',
+			    'title' => 'Processing Error',
+			    'message' => $e->getMessage(),
+		    ];
+		    if ($request->isXmlHttpRequest()) {
+			    return new JsonResponse(['__notifications' => [$notifications]], Response::HTTP_RESET_CONTENT);
+		    }
 	    }
     }
 
@@ -304,7 +310,7 @@ class TransactionOldController extends AbstractController
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['__notifications' => [$notifications]], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
-        } catch (\ProductIntegrationBundle\Exception\IntegrationException $e) {
+        } catch (IntegrationException $e) {
             $this->getManager()->rollBack();
             $notifications = [
                 'type' => 'error',
@@ -313,7 +319,8 @@ class TransactionOldController extends AbstractController
             ];
 
             return new JsonResponse(['__notifications' => $notifications], Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (\Exception $e) {
+        }
+        catch (IntegrationNotAvailableException $e) {
 	        $this->getManager()->rollBack();
 	        $notifications = [
 		        'type' => 'error',
@@ -321,6 +328,11 @@ class TransactionOldController extends AbstractController
 		        'message_notification' => 'Selected product is not available as of the moment. Please check with the provider or try again later.',
 	        ];
 	        return new JsonResponse(['__notifications' => $notifications], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+		catch (\Exception $e) {
+			$this->getManager()->rollBack();
+
+			throw $e;
         }
 
     }
@@ -387,7 +399,12 @@ class TransactionOldController extends AbstractController
             } catch (\AppBundle\Exceptions\FormValidationException $e) {
                 $response['success'] = false;
                 $response['errors'] = $e->getErrors();
-            } catch (IntegrationNotAvailableException |  IntegrationException $e) {
+            }
+            catch (IntegrationException $e) {
+	            $response['success'] = false;
+	            $response['errorMessage'] = $e->getMessage();
+            }
+			catch (IntegrationNotAvailableException $e) {
                 $response['success'] = false;
                 $response['errorMessage'] = 'Selected product is not available as of the moment. Please check with the provider or try again later.';
             }
@@ -482,11 +499,18 @@ class TransactionOldController extends AbstractController
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['__notifications' => [$notifications]], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
-        } catch (IntegrationNotAvailableException | IntegrationException  $e) {
-            $this->getManager()->rollBack();
-            $response['success'] = false;
-            $response['errorMessage'] = 'Selected product is not available as of the moment. Please check with the provider or try again later.';
-        }  catch (Exception $e) {
+        }
+        catch (IntegrationException $e) {
+	        $this->getManager()->rollBack();
+	        $response['success'] = false;
+	        $response['errorMessage'] = $e->getMessage();
+        }
+        catch (IntegrationNotAvailableException $e) {
+	        $this->getManager()->rollBack();
+	        $response['success'] = false;
+	        $response['errorMessage'] = 'Selected product is not available as of the moment. Please check with the provider or try again later.';
+        }
+		catch (Exception $e) {
             $this->getManager()->rollBack();
 
             throw $e;
