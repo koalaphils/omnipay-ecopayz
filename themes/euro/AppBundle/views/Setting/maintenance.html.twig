@@ -180,35 +180,19 @@
            
             if (payload.type === 'integration') {
                 var integrations = document.getElementsByName('active_integration');
-                if (payload.value) {
-                    if (payload.key === 'piwix') {
+                payload.active_tab = 'piwix';
+                if (integrations.length === 3) {
+                    var piwix = integrations[0].checked;
+                    var sports = integrations[1].checked;
+                    var casino = integrations[2].checked;
+
+                    if ((piwix && sports && casino) || (piwix && sports && !casino) || (!piwix && sports && casino)) {
+                        payload.active_tab = 'casino';
+                    } else {
                         payload.active_tab = 'sports';
                     }
-                    if (payload.key === 'sports') {
-                       payload.active_tab = 'casino';
-                    }
-                    if (payload.key === 'casino') {
-                       payload.active_tab = 'piwix';
-                    }
-                } else {
-                    integrations.forEach((item) => {
-                        var activeIntegration = item.getAttribute('attr-key').split('_');
-                        if (item.checked) {
-                            if (activeIntegration[2] !== 'piwix') {
-                                payload.active_tab = 'piwix';
-                            } 
-                            if (activeIntegration[2] === 'piwix' || activeIntegration[2] === 'casino') {
-                                payload.active_tab = 'sports';
-                            }
-                            if (activeIntegration[2] === 'piwix' && activeIntegration[2] === 'sports') {
-                                payload.active_tab = 'casino';
-                            }
-                        } else {
-                            payload.active_tab = 'piwix';
-                        }
-                    });
                 }
-                
+
                 switchTab(tabs, payload.active_tab);
             }
         
