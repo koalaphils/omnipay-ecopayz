@@ -183,7 +183,7 @@
                     var piwix = integrations[0].checked;
                     var sports = integrations[1].checked;
                     var casino = integrations[2].checked;
-                    if ((piwix && sports && casino) || (piwix && sports && !casino) || (!piwix && sports && casino)) {
+                    if ((piwix && sports && casino) || (piwix && sports && !casino) || (!piwix && sports && casino) | (!piwix && sports && !casino)) {
                         payload.active_tab = 'casino';
                     }
                 }
