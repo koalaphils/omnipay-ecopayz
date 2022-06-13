@@ -34,6 +34,7 @@ class UpdateProfileRequest
 
     private $locale;
     private $phoneNumber;
+    private $memberTags;
 
     private function __construct() {
         $this->groups = [];
@@ -76,6 +77,11 @@ class UpdateProfileRequest
             $request->groups[] = $group->getId();
         }
         $request->locale = $customer->getLocale();
+
+        foreach ($customer->getMemberTags() as $group) {
+            $request->memberTags[] = $group->getId();
+        }
+
 
         return $request;
     }
@@ -357,5 +363,16 @@ class UpdateProfileRequest
     public function setUserType(int $userType): void
     {
         $this->userType = $userType;
+    }
+
+
+    public function getMemberTags(): ?array
+    {
+        return $this->memberTags;
+    }
+
+    public function setMemberTags(array $memberTags): void
+    {
+        $this->memberTags = $memberTags;
     }
 }

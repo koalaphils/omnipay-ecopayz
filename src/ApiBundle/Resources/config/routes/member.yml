@@ -36,6 +36,11 @@ api_customers.me_read_notifications:
     defaults: { _controller: ApiBundle:Customer:readNotifications }
     methods: [PUT]
 
+api_customers.notify_verification:
+    path: notify-verification/{customer}
+    defaults: { _controller: ApiBundle:Customer:notifyVerification }
+    methods: [GET]
+
 api_customers.me_kyc_files:
     path: me/files
     defaults: { _controller: ApiBundle:Member:getMemberFiles }

@@ -172,6 +172,19 @@ DbBundle\Entity\Customer:
                     ccg_customer_group_id:
                         referencedColumnName: customer_group_id
             cascade: ['persist']
+
+        memberTags:
+            targetEntity: DbBundle\Entity\MemberTag
+            inversedBy: members
+            joinTable:
+                name: member_tags
+                joinColumns:
+                    member_tags_member_id:
+                        referencedColumnName: customer_id
+                inverseJoinColumns:
+                    member_tags_tag_id:
+                        referencedColumnName: member_tag_id
+                onDelete: CASCADE
     oneToMany:
         transactions:
             targetEntity: DbBundle\Entity\Transaction

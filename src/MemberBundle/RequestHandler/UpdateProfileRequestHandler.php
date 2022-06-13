@@ -2,34 +2,34 @@
 
 namespace MemberBundle\RequestHandler;
 
-
-use MemberBundle\Manager\MemberManager;
-use Symfony\Component\HttpFoundation\RequestStack;
-
 use AppBundle\Service\AffiliateService;
-use AppBundle\Event\GenericEntityEvent;
 use AuditBundle\Manager\AuditManager;
 use DbBundle\Entity\AuditRevisionLog;
-use DbBundle\Entity\Country;
-use DbBundle\Entity\Currency;
 use DbBundle\Entity\Customer;
-use DbBundle\Repository\CustomerGroupRepository;
 use DbBundle\Entity\Customer as Member;
-use DbBundle\Entity\CustomerGroup;
-use DbBundle\Entity\MarketingTool;
-use DbBundle\Entity\User;
+use DbBundle\Entity\MemberTag;
 use DbBundle\Repository\UserRepository;
-use DbBundle\Listener\VersionableListener;
-use Doctrine\ORM\EntityManager;
-use MemberBundle\Event\ReferralEvent;
+use DbBundle\Entity\Currency;
+use DbBundle\Repository\CustomerGroupRepository;
+use DbBundle\Entity\CustomerGroup;
+use DbBundle\Entity\User;
+use MemberBundle\Event\ChangeInVerificationEvent;
+use MemberBundle\Event\KycVerificationLevelChangedEvent;
 use MemberBundle\Events;
+use MemberBundle\Manager\MemberManager;
 use MemberBundle\Request\UpdateProfileRequest;
 use PromoBundle\Manager\PromoManager;
+
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\EntityManager;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class UpdateProfileRequestHandler
 {
     private $entityManager;
     private $requestStack;
+    private $eventDispatcher;
     private $auditManager;
     private $memberManager;
     private $affiliateService;
@@ -38,6 +38,7 @@ class UpdateProfileRequestHandler
     public function __construct(
         EntityManager $entityManager,
         RequestStack $requestStack,
+        EventDispatcherInterface $eventDispatcher,
         AuditManager $auditManager,
         MemberManager $memberManager,
         AffiliateService $affiliateService,
@@ -46,6 +47,7 @@ class UpdateProfileRequestHandler
     {
         $this->entityManager = $entityManager;
         $this->requestStack = $requestStack;
+        $this->eventDispatcher = $eventDispatcher;
         $this->auditManager = $auditManager;
         $this->memberManager = $memberManager;
         $this->affiliateService = $affiliateService;
@@ -83,12 +85,23 @@ class UpdateProfileRequestHandler
         }
 
         $this->processAffiliate($request, $customer);
+
+        $memberTags = [];
+        if ($request->getMemberTags()){
+            foreach ($request->getMemberTags() as $memberTag) {
+                $memberTags[] = $this->entityManager->getPartialReference(MemberTag::class, $memberTag);
+            }
+        }
+        $originalTags = $customer->getMemberTags()->toArray();
+        $customer->setMemberTags(new ArrayCollection($memberTags));
         
         $this->entityManager->persist($customer->getUser());
         $this->entityManager->flush($customer->getUser());
         $this->entityManager->persist($customer);
         $this->entityManager->flush($customer);
+
         $this->promoManager->createPersonalLinkId($customer);
+        $this->checkKycLevelChanges($customer, $memberTags, $originalTags);
 
         return $customer;
     }
@@ -120,6 +133,38 @@ class UpdateProfileRequestHandler
             }
         }
     }
+
+    private function checkKycLevelChanges(Customer $member, $currentTags, $oldTags): void
+    {
+        if (count($currentTags) !== count($oldTags)) {
+            $this->eventDispatcher->dispatch(Events::EVENT_CHANGE_IN_MEMBER_VERIFICATION, new ChangeInVerificationEvent($member));
+            $this->logMemberTags($member, $oldTags, $currentTags);
+        }
+    }
+
+
+    public function logMemberTags(Member $member, $originalMemberTags, $updatedMemberTags){
+        $original = array();
+        $updated = array();
+        /** @var MemberTag $tag */
+        foreach($originalMemberTags ?? new ArrayCollection([]) as $tag){
+            $original[] = $tag->getName();
+        }
+
+        foreach ($updatedMemberTags ?? new ArrayCollection([]) as $tag){
+            $updated[] = $tag->getName();
+        }
+        sort($original);
+        sort($updated);
+        $log = [
+            'memberTags' => [$original, $updated]
+        ];
+        $diffs = array_diff(array_merge($original, $updated), array_intersect($original, $updated));
+        if(count($diffs)){
+            $this->auditManager->audit($member, AuditRevisionLog::OPERATION_UPDATE, null, $log);
+        }
+    }
+
     private function getCustomerGroupRepository(): CustomerGroupRepository
     {
         return $this->entityManager->getRepository(CustomerGroup::class);

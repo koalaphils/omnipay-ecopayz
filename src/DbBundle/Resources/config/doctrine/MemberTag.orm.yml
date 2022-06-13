@@ -1,0 +1,52 @@
+DbBundle\Entity\MemberTag:
+  type: entity
+  table: member_tag
+  repositoryClass: DbBundle\Repository\MemberTagRepository
+  id:
+    id:
+      type: integer
+      id: true
+      generator:
+        strategy: AUTO
+      options:
+        unsigned: true
+      column: member_tag_id
+  fields:
+    name:
+      type: string
+      unique: true
+      length: 64
+      column: member_tag_name
+    description:
+      type: string
+      length: 255
+      column: member_tag_description
+    isDeleteEnabled:
+      type: boolean
+      column: member_tag_is_delete_enabled
+      options:
+        default: true
+    createdBy:
+      type: bigint
+      column: member_tag_created_by
+      options:
+        unsigned: true
+    createdAt:
+      type: datetime
+      column: member_tag_created_at
+    updatedBy:
+      type: bigint
+      nullable: true
+      column: member_tag_updated_by
+      options:
+        unsigned: true
+    updatedAt:
+      type: datetime
+      column: member_tag_updated_at
+      nullable: true
+  manyToMany:
+    members:
+      targetEntity: DbBundle\Entity\Customer
+      mappedBy: memberTags
+
+  lifecycleCallbacks: {  }

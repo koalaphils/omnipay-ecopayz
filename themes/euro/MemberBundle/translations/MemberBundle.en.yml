@@ -17,6 +17,7 @@ page:
         transactionHistory: Transaction History
         payments: Payments
         referrals: Referrals
+        kyc: KYC
         documents: Documents
         affiliateSettings: Affiliate Setting
         referralTools : Referral Tools

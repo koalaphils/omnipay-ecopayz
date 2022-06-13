@@ -1,0 +1,6 @@
+location /iframe/kyc {
+  set $target kyc-frontend:3000;
+  proxy_pass http://$target;
+  proxy_set_header    Host $host;
+  proxy_set_header    X-Forwarded-For $remote_addr;
+}
