@@ -56,7 +56,7 @@ class TransactionSubscriber implements EventSubscriberInterface
             'message' => 'Transaction ' . $transaction->getNumber() . ' has been requested.',
             'otherDetails' => [
                 'id' => $transaction->getId(),
-                'type' => 'deposit',
+                'type' => strtolower($transaction->getTypeAsText()),
             ],
         ]);
     }

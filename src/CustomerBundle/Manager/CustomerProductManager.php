@@ -75,18 +75,12 @@ class CustomerProductManager extends AbstractManager
             $jwt = $this->jwtService->generate([]);
 
             $results = array_map(function ($record) use ($jwt) {
-                    try {
-                        $record['balance'] = $this->integrationFactory->getIntegration($record['product']['code'])
-                            ->getBalance($jwt, $record['userName']);
-                    } catch(NoSuchIntegrationException $ex) {
-                        $record['balance'] = $ex->getMessage();
-                    } 
-                    catch (IntegrationException $ex) {
-                        $record['balance']  = "Unable to fetch balance";
-                    } catch (IntegrationNotAvailableException $ex) {
-                        $record['balance']  = $ex->getMessage();
-                    }
-                  
+                try {
+                    $record['balance'] = $this->integrationFactory->getIntegration($record['product']['code'])
+                        ->getBalance($jwt, $record['userName']);
+                } catch (\Exception $ex) {
+                    $record['balance'] = 0;
+                }
                 return $record;
             }, $results);
         }
