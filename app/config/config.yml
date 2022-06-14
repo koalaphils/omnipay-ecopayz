@@ -188,9 +188,6 @@ aws:
 
 product_integration:
     integrations:
-        piwix:
-            url: '%ewl_url%'
-            class: 'ProductIntegrationBundle\Integration\EwlIntegration'
         evolution:
             url: '%evolution_url%'
             class: 'ProductIntegrationBundle\Integration\EvolutionIntegration'
