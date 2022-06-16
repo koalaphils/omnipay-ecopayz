@@ -37,9 +37,9 @@ class TransactionService
                 ]
             ]);
         } catch (ServerException $exception) {
-            // dont do anything for now
+           throw $exception;
         } catch (ClientException $exception) {
-            // dont do anything for now
+            throw $exception;
         }
     }
 }
