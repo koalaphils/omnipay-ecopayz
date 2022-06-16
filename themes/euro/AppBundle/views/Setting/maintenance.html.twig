@@ -143,7 +143,7 @@
         $('.switch').on('change', function() {
             var currentStatus = this.checked ? true : false;
             var activeMaintenance = $(this).attr('attr-key').split('_');
-            var payload = {'type': activeMaintenance[0],  'index': activeMaintenance[1], 'key': activeMaintenance[2], 'value': currentStatus, 'active_tab': 'piwix'};
+            var payload = {'type': activeMaintenance[0],  'index': activeMaintenance[1], 'key': activeMaintenance[2], 'value': currentStatus, 'active_tab': 'sports'};
 
             updateMaintenanceSettings(payload);
         }); 
@@ -183,7 +183,7 @@
                     var piwix = integrations[0].checked;
                     var sports = integrations[1].checked;
                     var casino = integrations[2].checked;
-                    if ((piwix && sports && casino) || (piwix && sports && !casino) || (!piwix && sports && casino) | (!piwix && sports && !casino)) {
+                    if (!piwix && sports && !casino) {
                         payload.active_tab = 'casino';
                     }
                 }
