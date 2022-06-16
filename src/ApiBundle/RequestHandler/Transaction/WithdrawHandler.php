@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace ApiBundle\RequestHandler\Transaction;
 
+use ApiBundle\Event\TransactionCreatedEvent;
 use ApiBundle\Request\Transaction\DepositRequest;
 use ApiBundle\Request\Transaction\WithdrawRequest;
 use AppBundle\Manager\SettingManager;
@@ -142,6 +143,9 @@ class WithdrawHandler
             $this->transactionManager->processTransaction($transaction, $action, true);
 
             $this->entityManager->commit();
+
+            $event = new TransactionCreatedEvent($transaction);
+            $this->eventDispatcher->dispatch('transaction.created', $event);
 
             return $transaction;
         } catch (\Exception $exception) {
