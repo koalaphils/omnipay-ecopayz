@@ -146,16 +146,17 @@ class SettingManager extends AbstractManager
         return true;
     }
 
-    public function updateMaintenanceSetting(array $payload, bool $isSettingActiveTab = false): void 
+    public function updateMaintenanceSetting(array $payload, bool $isSettingActiveTabManually = false): void 
     {
         $data = $this->getSetting('system.maintenance');
         $topic = $payload['type'] === 'app' ? WebsocketTopics::TOPIC_APP_MAINTENANCE : WebsocketTopics::TOPIC_INTEGRATION_MAINTENANCE;
 
         try {
-            array_walk($data, function (&$items, $key) use ($payload, $isSettingActiveTab) {
+            array_walk($data, function (&$items, $key) use ($payload, $isSettingActiveTabManually) {
                 if ($key === $payload['type']) {
-                    if (!$isSettingActiveTab) {
+                    if (!$isSettingActiveTabManually) {
                         $items[$payload['index']]['value'] = $payload['value'];
+                        $items = $this->switchActiveTab($items, $payload['active_tab']);
                     } else {
                         $updatedItems = [];
                         $index = 0;
@@ -168,12 +169,24 @@ class SettingManager extends AbstractManager
                     }
                 }   
             });
-    
+
             $this->getRepository()->updateSetting($payload['type'], 'system.maintenance', $data, true);
             $this->publisher->publishUsingWamp($topic . '.zimimwa_websocket', $payload);
         } catch (Exception $exception) {
             throw $exception;
         }
+    }
+
+    public function switchActiveTab(array $data, string $activeTab): array
+    {
+        $items = [];
+        $index = 0;
+        foreach ($data as $item) {
+            $item['is_default'] = $item['key'] === $activeTab ? true : false;
+            $items[$index++] = $item;
+        }
+
+        return $items;
     }
 
     public function getCode($code)
