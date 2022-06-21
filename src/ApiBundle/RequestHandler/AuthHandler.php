@@ -226,7 +226,6 @@ class AuthHandler
         $locale = !empty($memberLocale) ? $memberLocale : 'en';
         
         $this->createPiwiWalletIfNotExisting($user->getCustomer());
-        $this->createPiwixProductIfNotExisting($user->getCustomer());
         $this->createEvolutionIfNotExisting($user->getCustomer());
 
         $pinnacleLoginResponse = $this->loginToPinnacle($user->getCustomer()->getPinUserCode(), $locale);
@@ -247,22 +246,6 @@ class AuthHandler
             $product = $this->productRepository->getProductByCode(Product::MEMBER_WALLET_CODE);
             $customerProduct->setProduct($product);
             $customerProduct->setUsername(Product::MEMBER_WALLET_CODE . '_' . uniqid());
-            $customerProduct->setBalance('0.00');
-            $customerProduct->setIsActive(true);
-            $this->entityManager->persist($customerProduct);
-            $this->entityManager->flush();
-        }
-    }
-
-    private function createPiwixProductIfNotExisting(Customer $customer): void
-    {
-        $customerProduct = $this->customerProductRepository->findOneByCustomerAndProductCode($customer, Product::PIWIXCHANGE_CODE);
-
-        if ($customerProduct === null) {
-            $customerProduct = CustomerProduct::create($customer);
-            $product = $this->productRepository->getProductByCode(Product::PIWIXCHANGE_CODE);
-            $customerProduct->setProduct($product);
-            $customerProduct->setUsername('PIW_' . $customer->getId());
             $customerProduct->setBalance('0.00');
             $customerProduct->setIsActive(true);
             $this->entityManager->persist($customerProduct);
@@ -520,9 +503,7 @@ class AuthHandler
     private function getDefaultLoginPath(Customer $member): string 
     {
         $defaultProduct = $member->getDetail('default_product', Product::SPORTS_VALUE);
-        if ($member->isProductActive(Product::PIWIXCHANGE_CODE) && !$this->isProductUnderMaintenance(Product::PIWIX_VALUE) && $defaultProduct == Product::EXCHANGE_VALUE) {
-            return Product::EXCHANGE_VALUE;
-        } else if ($member->isProductActive(Product::SPORTS_CODE) && !$this->isProductUnderMaintenance(Product::SPORTS_VALUE) && $defaultProduct == Product::SPORTS_VALUE) {
+        if ($member->isProductActive(Product::SPORTS_CODE) && !$this->isProductUnderMaintenance(Product::SPORTS_VALUE) && $defaultProduct == Product::SPORTS_VALUE) {
             return Product::SPORTS_VALUE;
         } else if ($member->isProductActive(Product::EVOLUTION_PRODUCT_CODE) && !$this->isProductUnderMaintenance(Product::CASINO_VALUE) && $defaultProduct == Product::CASINO_VALUE) {
             return Product::CASINO_VALUE;

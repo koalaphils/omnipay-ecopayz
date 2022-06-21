@@ -160,6 +160,7 @@ class CustomerProductRepository extends BaseRepository
             ->leftJoin('cp.customer', 'c')
             ->leftJoin('cp.product', 'p')
             ->orderBy('cp.createdAt', 'DESC')
+            ->andWhere('p.code <> :piwixProduct')->setParameter('piwixProduct', Product::PIWIXCHANGE_CODE)
         ;
 
         if (isset($filters['customerID'])) {
@@ -210,6 +211,7 @@ class CustomerProductRepository extends BaseRepository
                 $qb->addOrderBy($column, $dir);
             }
         }
+
 
         $qb->setMaxResults($limit);
         $qb->setFirstResult($offset);

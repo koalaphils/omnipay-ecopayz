@@ -109,12 +109,13 @@ class MemberHandler
                 $productCode = $customerProduct->getProduct()->getCode();
                 $productUsername = $customerProduct->getUserName();
                 $token = $this->jwtGeneratorService->generate([]);
-
-                try {
-                    $productBalance[$productCode] = $this->productFactory->getIntegration(strtolower($productCode))->getBalance($token, $productUsername);
-                    $availableBalance = $availableBalance->plus($productBalance[$productCode]);
-                } catch (Exception $exception) {
-                    $productBalance[$productCode] = '';
+                if ($productCode !== Product::PIWIXCHANGE_CODE) {
+                    try {
+                        $productBalance[$productCode] = $this->productFactory->getIntegration(strtolower($productCode))->getBalance($token, $productUsername);
+                        $availableBalance = $availableBalance->plus($productBalance[$productCode]);
+                    } catch (Exception $exception) {
+                        $productBalance[$productCode] = '';
+                    }
                 }
             }
 

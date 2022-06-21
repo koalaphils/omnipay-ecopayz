@@ -100,7 +100,6 @@ parameters:
         evolution:
             url: ${EVOLUTION_SERVICE_URL}
 
-    ewl_url: ${EWL_URL}
     evolution_url: ${EVOLUTION_SERVICE_URL}
     pinnacle_url: ${PINNACLE_SERVICE_URL}
     api_gateway_url: "${API_GATEWAY_URL}"
