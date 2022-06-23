@@ -66,7 +66,7 @@
                                         <div class="row">   
                                             <label class="col-sm-3 control-label">{{ item.label }}</label>
                                             <div class="col-sm-4">
-                                                <input attr-key="integration_{{ index }}_{{ item.key }}" class="switch" type="checkbox" {% if item.value == true %}checked{% endif %} data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
+                                                <input attr-key="integration_{{ index }}_{{ item.key }}" name="active_integration" class="switch" type="checkbox" {% if item.value == true %}checked{% endif %} data-plugin="switchery" data-color="#1AB394" data-secondary-color="#ED5565" />
                                             </div>
                                             <div class="col-sm-4">
                                                 <div class="checkbox checkbox-pink">
@@ -143,7 +143,7 @@
         $('.switch').on('change', function() {
             var currentStatus = this.checked ? true : false;
             var activeMaintenance = $(this).attr('attr-key').split('_');
-            var payload = {'type': activeMaintenance[0],  'index': activeMaintenance[1], 'key': activeMaintenance[2], 'value': currentStatus};
+            var payload = {'type': activeMaintenance[0],  'index': activeMaintenance[1], 'key': activeMaintenance[2], 'value': currentStatus, 'active_tab': 'sports'};
 
             updateMaintenanceSettings(payload);
         }); 
@@ -154,7 +154,6 @@
             var tabStatus = this.checked ? true : false;
 
             if (!tabStatus) {
-                this.checked = true;
                 swal({
                     'type': 'warning',
                     'title': 'Warning',
@@ -162,20 +161,37 @@
                 });
             } else {
                 checkboxes.forEach((item) => {
-                    if (item.value !== $(this).val()) {
-                        item.checked = false;
-                    } 
-
-                    var payload = {'type': 'integration',  'index': activeTab[0], 'key': activeTab[1], 'is_default': tabStatus};
-
-                    updateMaintenanceSettings(payload);
+                    item.checked = false;
                 });
+
+                var payload = {'type': 'integration',  'index': activeTab[0], 'key': activeTab[1], 'is_default': tabStatus, 'active_tab': activeTab[1]};
+                updateMaintenanceSettings(payload);
             }
+
+            this.checked = true;
         });
 
         var updateMaintenanceSettings = function(payload) {
             var swalType = 'success';
             var swalTitle = 'Success';
+            var tabs = document.getElementsByName('default_active_tab');
+           
+            if (payload.type === 'integration') {
+                var integrations = document.getElementsByName('active_integration');
+                payload.active_tab = 'sports';
+                if (integrations.length === 3) {
+                    var piwix = integrations[0].checked;
+                    var sports = integrations[1].checked;
+                    var casino = integrations[2].checked;
+                    if (!piwix && sports && !casino) {
+                        payload.active_tab = 'casino';
+                    }
+                }
+
+                if (!payload.hasOwnProperty('is_default')) {
+                    switchTab(tabs, payload.active_tab);
+                }
+            }
         
             if (payload.hasOwnProperty('value')) {
                 if (payload.value) {
@@ -185,7 +201,7 @@
                     swalTitle = 'Deactivated';
                 }
             }
-
+            
             $.ajax({
                 type: 'POST',
                 url: "{{ path('app.setting.maintenance_save') }}",
@@ -203,6 +219,12 @@
                     'title': 'Error',
                     'text': errorThrown
                 });
+            });
+        }
+
+        var switchTab = function(tabs, tab) {
+            tabs.forEach((item) => {
+                item.checked = item.value === tab ? true : false;
             });
         }
     });

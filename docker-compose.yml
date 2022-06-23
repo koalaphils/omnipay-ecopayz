@@ -64,11 +64,10 @@ x-environment: &php-env
       - ACCESS_TOKEN_EXPIRES_IN=3600
       - API_GATEWAY_URL=http://api-gateway/api/v1
       - API_GATEWAY_SERVICE=http://api-gateway
-      - EWL_URL=http://api-gateway/api/v1/ewl
 services:
   database:
     image: mysql/mysql-server:latest
-    command: --default-authentication-plugin=mysql_native_password
+    command: --default-authentication-plugin=mysql_native_password --sql_mode=NO_ENGINE_SUBSTITUTION
     volumes:
       - database:/var/lib/mysql
     environment:

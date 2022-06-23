@@ -10,6 +10,8 @@ use AppBundle\Widget\AbstractPageWidget;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
 use JMS\Serializer\SerializationContext;
+use ProductIntegrationBundle\Exception\IntegrationException;
+use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
 use Symfony\Bundle\FrameworkBundle\Routing\Router;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\Form\CallbackTransformer;
@@ -211,7 +213,14 @@ class FormWidget extends AbstractPageWidget
             if ($this->hasProperty('handler')) {
                 $handlerCallable = $this->getCallable($this->property('handler'));
                 if (!empty($handlerCallable)) {
-                    $modelData = call_user_func($handlerCallable, $modelData);
+	                try
+	                {
+		                $modelData = call_user_func($handlerCallable, $modelData);
+	                }
+					catch (IntegrationException | IntegrationNotAvailableException $ex)
+					{
+						return new JsonResponse(['__errors' => true, '__error' => ['message' => $ex->getMessage()]], $ex->getCode());
+					}
                 }
             }
 

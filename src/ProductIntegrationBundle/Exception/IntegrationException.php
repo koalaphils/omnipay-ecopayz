@@ -6,13 +6,7 @@
 
 namespace ProductIntegrationBundle\Exception;
 
-use Exception;
-use Throwable;
-
-class IntegrationException extends Exception
+class IntegrationException extends \Exception
 {
-    public function __construct(string $body, string $code, Throwable $previous = null)
-    {
-        parent::__construct($body, $code, $previous);
-    }
+
 }

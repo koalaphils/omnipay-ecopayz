@@ -19,6 +19,8 @@ use Doctrine\ORM\EntityManager;
 use MemberBundle\Manager\MemberManager;
 use MemberBundle\Request\CreateMemberRequest;
 use PinnacleBundle\Service\PinnacleService;
+use ProductIntegrationBundle\Exception\IntegrationException;
+use ProductIntegrationBundle\Exception\IntegrationNotAvailableException;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoder;
@@ -26,6 +28,7 @@ use UserBundle\Manager\UserManager;
 use ApiBundle\Service\JWTGeneratorService;
 use ProductIntegrationBundle\ProductIntegrationFactory;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class CreateMemberRequestHandler
 {
@@ -142,16 +145,28 @@ class CreateMemberRequestHandler
             $memberWalletProduct->setIsActive(true);
             $member->addProduct($memberWalletProduct);
 
-            $pinnacleProduct = $this->pinnacleService->getPinnacleProduct();
-            $pinnaclePlayer = $this->pinnacleService->getPlayerComponent()->createPlayer();
-            $memberPinProduct = new CustomerProduct();
-            $memberPinProduct->setBalance('0.00');
-            $memberPinProduct->setIsActive(true);
-            $memberPinProduct->setProduct($pinnacleProduct);
-            $memberPinProduct->setUserName($pinnaclePlayer->userCode());
-            $member->setPinLoginId($pinnaclePlayer->loginId());
-            $member->setPinUserCode($pinnaclePlayer->userCode());
-            $member->addProduct($memberPinProduct);
+	        try
+	        {
+		        $pinnacleProduct = $this->getProductRepository()->getProductByCode(Product::SPORTS_CODE);
+		        $integration = $this->productIntegrationFactory->getIntegration(Product::SPORTS_CODE);
+		        $pinnaclePlayer = $integration->create();
+		        $memberPinProduct = new CustomerProduct();
+		        $memberPinProduct->setBalance('0.00');
+		        $memberPinProduct->setIsActive(true);
+		        $memberPinProduct->setProduct($pinnacleProduct);
+		        $memberPinProduct->setUserName($pinnaclePlayer['user_code']);
+		        $member->setPinLoginId($pinnaclePlayer['login_id']);
+		        $member->setPinUserCode($pinnaclePlayer['user_code']);
+		        $member->addProduct($memberPinProduct);
+	        }
+			catch (IntegrationException $ex)
+			{
+				throw new IntegrationException($ex->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+			}
+	        catch (IntegrationNotAvailableException $ex)
+	        {
+		        throw new IntegrationNotAvailableException('PIN is not available as of the moment. Please check with the provider or try again later.', Response::HTTP_INTERNAL_SERVER_ERROR);
+	        }
 
             if ($currency->getCode() === 'EUR') {
                 $integration = $this->productIntegrationFactory->getIntegration(Product::EVOLUTION_PRODUCT_CODE);
@@ -163,23 +178,25 @@ class CreateMemberRequestHandler
                 $memberEvoProduct->setIsActive(true);
                 $member->addProduct($memberEvoProduct);
 
-//                try {
-//                    $jwt = $this->jwtGeneratorService->generate([]);
-//                    $integration->auth($jwt, [
-//                        'id' => $memberEvoProduct->getUsername(),
-//                        'lastName' => $request->getFullName() ? $request->getFullName() : $username,
-//                        'firstName' => $request->getFullName() ? $request->getFullName() : $username,
-//                        'nickname' => str_replace("Evolution_","", $memberEvoProduct->getUsername()),
-//                        'country' => $country ? $country : 'UK',
-//                        'language' => 'en',
-//                        'currency' => $currency->getCode(),
-//                        'ip' => $this->getClientIp(),
-//                        'sessionId' => $this->getSessionId(),
-//                    ]);
-//                } catch (\Exception $ex) {
-//                    $this->logger->info($ex->getMessage());
-//                    throw new \Exception('Failed to create EVO Account.', Response::HTTP_UNPROCESSABLE_ENTITY);
-//                }
+                try {
+                    $jwt = $this->jwtGeneratorService->generate([]);
+                    $data = [
+                        'id' => $memberEvoProduct->getUsername(),
+                        'lastName' => $request->getFullName() ? $request->getFullName() : $username,
+                        'firstName' => $request->getFullName() ? $request->getFullName() : $username,
+                        'nickname' => str_replace("Evolution_","", $memberEvoProduct->getUsername()),
+                        'country' => $country ? $country : 'UK',
+                        'language' => 'en',
+                        'currency' => $currency->getCode(),
+                        'ip' => $this->getClientIp(),
+                        'sessionId' => $this->getSessionId(),
+                    ];
+
+                    $integration->auth($jwt, $data);
+                } catch (\Exception $ex) {
+	                $this->logger->info($ex->getMessage());
+	                $this->logger->info(json_encode($data));
+                }
             }
         }
 

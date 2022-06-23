@@ -29,6 +29,7 @@
                         {{ form_widget(form.immutableCustomerProductData, {'attr': {'class':'immutableCustomerProductData hidden'}}) }}
                     {% endif %}
                 </div>
+                <div class="integration-error-message help-block text-danger"></div>
                 <div class="help-block">
                     <ul class="list-unstyled"></ul>
                 </div>
@@ -111,6 +112,7 @@
                 'immutableCustomerProductData': '{{ child.vars.data.immutableCustomerProductData|default(null) }}',
                 'showImmutableCustomerProductData': '{{  child.vars.value.parent.isClosedForFurtherProcessing  }}',
                 'amount': '{{ child.vars.data.amount }}',
+                'hasFailedWithIntegration': '{{ child.vars.data.getFailedProcessingWithIntegration() }}',
                 'enabled': {% if child.vars.view -%} false {%- else -%} true {%- endif -%},
                 'errors': '{{ form_errors(child) }}'
             });
