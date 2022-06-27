@@ -1421,7 +1421,6 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         $memberTags->addMember($this);
         if ($memberTags->getName() == 'Level 2') {
             $this->unverify();
-            $this->switchToManualStatus();
         }
 
         return $this;
@@ -1445,22 +1444,15 @@ class Customer extends Entity implements AuditInterface, AuditAssociationInterfa
         return $this;
     }
 
-    public function switchToManualStatus(): void
-    {
-        $kyc =  $this->getDetail('kyc', null);
-        if ($kyc['level_1'] === 'VERIFIED') {
-            $kyc['level_2'] = 'MANUAL';
-            $kyc['level_2_verified_at'] = null;
-        }
-        $this->setDetail('kyc', $kyc);
-    }
-
     public function unverifyLevel2Verification(): void
     {
         $kyc =  $this->getDetail('kyc', null);
-        $kyc['level_2'] = 'UNVERIFIED';
-        $kyc['level_2_verified_at'] = null;
-        $this->setDetail('kyc', $kyc);
+
+        if ($kyc) {
+            $kyc['level_2'] = 'UNVERIFIED';
+            $kyc['level_2_verified_at'] = null;
+            $this->setDetail('kyc', $kyc);
+        }
     }
 
     public function getLevel1VerificationDate(): ?\DateTime

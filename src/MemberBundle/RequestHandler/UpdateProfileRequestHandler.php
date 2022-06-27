@@ -93,6 +93,7 @@ class UpdateProfileRequestHandler
             }
         }
         $originalTags = $customer->getMemberTags()->toArray();
+        $this->getKycAttempts($customer->getId());
         $customer->setMemberTags(new ArrayCollection($memberTags));
         
         $this->entityManager->persist($customer->getUser());
@@ -104,6 +105,18 @@ class UpdateProfileRequestHandler
         $this->checkKycLevelChanges($customer, $memberTags, $originalTags);
 
         return $customer;
+    }
+
+    private function getKycAttempts($customerId)
+    {
+        $conn = $this->entityManager
+            ->getConnection();
+
+        $sql = "SELECT * FROM kyc_transactions WHERE user_reference=:customerId";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute(array('customerId' => $customerId));
+
+        dump($stmt->fetch());
     }
 
     private function processAffiliate($request, $customer)
