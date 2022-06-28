@@ -93,9 +93,13 @@ class UpdateProfileRequestHandler
             }
         }
         $originalTags = $customer->getMemberTags()->toArray();
-        $this->getKycAttempts($customer->getId());
-        $customer->setMemberTags(new ArrayCollection($memberTags));
-        
+        $hasAllKycAttemptsFailed = $this->hasAllKycAttemptsFailed($customer->getId());
+
+        // Do not set to level_1 tag when all kyc attempts failed
+        if (!$hasAllKycAttemptsFailed && count($memberTags) >= count($originalTags)) {
+            $customer->setMemberTags(new ArrayCollection($memberTags));
+        }
+
         $this->entityManager->persist($customer->getUser());
         $this->entityManager->flush($customer->getUser());
         $this->entityManager->persist($customer);
@@ -107,7 +111,7 @@ class UpdateProfileRequestHandler
         return $customer;
     }
 
-    private function getKycAttempts($customerId)
+    private function hasAllKycAttemptsFailed($customerId)
     {
         $conn = $this->entityManager
             ->getConnection();
@@ -116,7 +120,15 @@ class UpdateProfileRequestHandler
         $stmt = $conn->prepare($sql);
         $stmt->execute(array('customerId' => $customerId));
 
-        dump($stmt->fetch());
+        $bothFailed = array_reduce($stmt->fetchAll(), function($carry, $item) {
+            if (isset($item['details']['callback']) && $item['details']['callback']['idScanStatus'] === 'ERROR') {
+                $carry[] = $item;
+            }
+
+            return $carry;
+        }, []);
+
+        return count($bothFailed) === 2;
     }
 
     private function processAffiliate($request, $customer)
